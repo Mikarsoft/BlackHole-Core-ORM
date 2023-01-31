@@ -18,6 +18,10 @@ namespace BlackHole.Data
             _loggerService = new LoggerService();
         }
 
+        /// <summary>
+        /// Closes all open connections and drops the database
+        /// </summary>
+        /// <returns></returns>
         bool IBHDatabaseBuilder.DropDatabase()
         {
             bool success = false;
@@ -156,6 +160,10 @@ namespace BlackHole.Data
             return success;
         }
 
+        /// <summary>
+        /// Checks if the database exists and returns a boolean
+        /// </summary>
+        /// <returns></returns>
         bool IBHDatabaseBuilder.DoesDbExists()
         {
             bool success = false;

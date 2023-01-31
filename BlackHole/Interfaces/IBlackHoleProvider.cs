@@ -3,59 +3,75 @@ using System.Linq.Expressions;
 
 namespace BlackHole.Interfaces
 {
+    /// <summary>
+    /// Makes all the communication between the Datbase Table and The Specified Entity
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IBlackHoleProvider<T> where T : BlackHoleEntity
     {
         /// <summary>
-        /// 
+        /// Gets all the entries of the specific Table
+        /// and returns an IList of Entities
         /// </summary>
         /// <returns></returns>
         IList<T> GetAllEntries();
 
         /// <summary>
-        /// 
+        /// Selects only the columns of the specified Dto that exist on the Table
+        /// and returns an IList of the Dto.
+        /// Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null
         /// </summary>
-        /// <typeparam name="Dto"></typeparam>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns></returns>
         IList<Dto> GetAllEntries<Dto>() where Dto : BlackHoleDto;
 
         /// <summary>
-        /// 
+        /// In case you are using the 'UseActivator' Attribute on the Entity
+        /// this method will return an IList of the Inactive Entries
+        /// in this Table
         /// </summary>
         /// <returns></returns>
         IList<T> GetAllInactiveEntries();
 
         /// <summary>
-        /// 
+        /// Returns the Entity from this Table that has the
+        /// specified Id
         /// </summary>
-        /// <param name="Id"></param>
+        /// <param name="Id">Specified Id</param>
         /// <returns></returns>
         T? GetEntryById(int Id);
 
         /// <summary>
-        /// 
+        /// Selects only the columns of the specified Dto that exist on the Table
+        /// and returns a Dto of the Entity with the specified Id.
         /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="Id"></param>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="Id">Specified Id</param>
         /// <returns></returns>
         Dto? GetEntryById<Dto>(int Id) where Dto : BlackHoleDto;
 
         /// <summary>
-        /// 
+        /// Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns the first one that matches the filters
         /// </summary>
-        /// <param name="predicate"></param>
+        /// <param name="predicate">Lambda Expression</param>
         /// <returns></returns>
         T? GetEntryWhere(Expression<Func<T,bool>> predicate);
 
         /// <summary>
-        /// 
+        /// Generates an Sql command using the Lambda Expression and the Dto properties that match
+        /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
+        /// filters
         /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="predicate"></param>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="predicate">Lambda Expression</param>
         /// <returns></returns>
         Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
 
         /// <summary>
-        /// 
+        /// Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Entries that match the filters
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>

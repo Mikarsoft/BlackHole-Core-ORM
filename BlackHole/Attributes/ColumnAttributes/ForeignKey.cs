@@ -17,8 +17,8 @@ namespace BlackHole.Attributes.ColumnAttributes
         /// on the Primary Table as Id. You Can choose the Primary Table and
         /// if the Foreign Key is Nullable
         /// </summary>
-        /// <param name="table"></param>
-        /// <param name="isNullable"></param>
+        /// <param name="table">Type of the parent Table</param>
+        /// <param name="isNullable">Is this Column Nullable?</param>
         public ForeignKey(Type table,bool isNullable)
         {
            TableName = table.Name;
@@ -41,7 +41,7 @@ namespace BlackHole.Attributes.ColumnAttributes
         /// on the Primary Table as Id and makes the Foreign Key Column Nullable.
         /// You Can choose the Primary Table
         /// </summary>
-        /// <param name="table"></param>
+        /// <param name="table">Type of the parent Table</param>
         public ForeignKey(Type table)
         {
             TableName = table.Name;

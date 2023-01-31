@@ -1,5 +1,8 @@
 ﻿namespace BlackHole.Attributes.ColumnAttributes
 {
+    /// <summary>
+    /// It turns the property to a Non Nullable Column in the Table.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
     public class NotNullable : Attribute
     {
