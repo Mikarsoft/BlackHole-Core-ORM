@@ -1,0 +1,40 @@
+# BlackHole-Core-ORM
+A fully automated, very easy to use and setup, with many new features, Object Relational Mapping Library, for .Net Core 6. Using Dapper in the Data Provider  utilizing its full potential.
+
+I am still working on the documentation but here are some quick steps to use this ORM
+
+- In Your project install Black.Hole.ORM from nuget
+
+- In your Program.cs add 'using BlackHole.FunctionalObjects' and 'using BlackHole.Enums'
+
+- Create some Entities in any folder that Inherit from the class 'BlackHoleEntity' for Entities that are using Integer as Id,
+  or 'BlackHoleEntityG' for Entities that are using Guid as Id. (using BlackHole.Entities)
+
+- Add properties on your Entities except the Id property that already exists in the BlackHoleEntity class.
+
+- Add in your entities 'using BlackHole.Attributes.ColumnAttributes' 
+  to be able to use '[ForeignKey(typeof(Entity))]' , '[NotNullable]' and '[VarCharSize(int)]' attributes on your Entity's properties
+  * You can also use 'UseActivator' attribute on your Entity, to take advantage of the 'IsActive' column in case you need to keep the
+  data after delete.
+
+- Make your services Inherit from 'BlackHoleScoped' or 'BlackHoleSingleton' or 'BlackHoleTransient' so they will be automatically
+  registered on the Startup without needing services.Add(<>). (using BlackHole.Entities)
+
+- On your IServiceCollection 'services' 
+  add services.SuperNova(new BlackHoleBaseConfig{ string ConnectionString, enum BHSqlTypes.SqlType, string LogsPath });
+  *The database name in the connection string is your choice. Just make sure that the server of the sql exists*
+  *if you don't have any Postgres or MySql or Microsoft Sql Server setup, you can use SqLite with a more simple command =>
+  services.SuperNovaLite(string databaseName);
+  
+ - Last step , go to your services or your controllers and add the Interfaces for the DataProviders =>
+  private readonly BlackHoleProvider<Entity> _entityService; for Integer Id Entities and =>
+  private readonly BlackHoleProviderG<EntityG> _entitygService for Guid Id Entities.
+  
+ - Done! You are ready to use all the functionality of the Data Providers in your services.
+  * there are descriptions on the methods of what they do
+   
+   *The Ids are created automatically on Insert and they get returned.
+   * The cascade on Foreign keys is automatic and it depends on the Nullability of the column
+   
+ I will soon upload here a more detailed guide of all the functionalities of this ORM, such as Stored Views and Joins
+ and automatic mapping on DTOs or Updating Specific Columns.
