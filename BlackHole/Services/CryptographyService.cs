@@ -1,12 +1,13 @@
 ﻿using BlackHole.Interfaces;
+using BlackHole.Statics;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace BlackHole.Services
 {
-    public class CryptographyService : ICryptographyService
+    internal class CryptographyService : ICryptographyService
     {
-        public string PassToHash(string text)
+        string ICryptographyService.PassToHash(string text)
         {
             var sh = SHA1.Create();
             var hash = new StringBuilder();
@@ -22,7 +23,7 @@ namespace BlackHole.Services
             return hash.ToString();
         }
 
-        public string Encrypt(string clearText)
+        string ICryptographyService.Encrypt(string clearText)
         {
             string EncryptionKey = "MAKV2SPBNI99212";
 
@@ -51,7 +52,7 @@ namespace BlackHole.Services
             return clearText;
         }
 
-        public string Decrypt(string cipherText)
+        string ICryptographyService.Decrypt(string cipherText)
         {
 
             string EncryptionKey = "MAKV2SPBNI99212";
@@ -81,7 +82,7 @@ namespace BlackHole.Services
             return cipherText;
         }
 
-        public string BasicEncryption(string text)
+        string ICryptographyService.BasicEncryption(string text)
         {
             byte xorConstant = 0x57;
 
@@ -94,7 +95,7 @@ namespace BlackHole.Services
             return output;
         }
 
-        public string BasicDecryption(string text)
+        string ICryptographyService.BasicDecryption(string text)
         {
             byte xorConstant = 0x57;
 
@@ -106,12 +107,6 @@ namespace BlackHole.Services
             string plainText = Encoding.UTF8.GetString(data);
             return plainText;
         }
-    }
-
-    public static class EncryptionKeyVar
-    {
-        public static string Keyword { get; set; } = "None";
-
     }
 }
 

@@ -44,14 +44,14 @@ namespace BlackHole.FunctionalObjects
 
             if (dbExists)
             {
-                var Entities = namespaceSelector.GetAllBlazarEntities(assembly);
+                var Entities = namespaceSelector.GetAllBHEntities(assembly);
                 tableBuilder.BuildMultipleTables(Entities);
 
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
                 services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
                 services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
 
-                services.RegisterBlazarServices(assembly);
+                services.RegisterBHServices(assembly);
             }
             return services;
         }
@@ -84,12 +84,12 @@ namespace BlackHole.FunctionalObjects
 
             if (dbExists)
             {
-                var Entities = namespaceSelector.GetAllBlazarEntities(assembly);
+                var Entities = namespaceSelector.GetAllBHEntities(assembly);
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
                 services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
                 services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
-                services.RegisterBlazarServices(assembly);
+                services.RegisterBHServices(assembly);
             }
             return services;
         }
@@ -129,12 +129,12 @@ namespace BlackHole.FunctionalObjects
             {
                 if(settings.SpecificEntityNamespace != string.Empty)
                 {
-                    var Entities = namespaceSelector.GetBlazarEntitiesInNamespace(settings.SpecificEntityNamespace,assembly);
+                    var Entities = namespaceSelector.GetBHEntitiesInNamespace(settings.SpecificEntityNamespace,assembly);
                     tableBuilder.BuildMultipleTables(Entities);
                 }
                 else
                 {
-                    var Entities = namespaceSelector.GetAllBlazarEntities(assembly);
+                    var Entities = namespaceSelector.GetAllBHEntities(assembly);
                     tableBuilder.BuildMultipleTables(Entities);
                 }
 
@@ -144,13 +144,13 @@ namespace BlackHole.FunctionalObjects
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespace != string.Empty)
                 {
-                    var BlazarServices = namespaceSelector.GetBlazarServicesInNamespace(settings.SpecificServicesNamespace,assembly);
-                    services.RegisterBlazarServicesByList(BlazarServices);
+                    var BlazarServices = namespaceSelector.GetBHServicesInNamespace(settings.SpecificServicesNamespace,assembly);
+                    services.RegisterBHServicesByList(BlazarServices);
                 }
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespace == string.Empty)
                 {
-                    services.RegisterBlazarServices(assembly);
+                    services.RegisterBHServices(assembly);
                 }
             }
             return services;
@@ -191,12 +191,12 @@ namespace BlackHole.FunctionalObjects
             {
                 if (settings.SpecificEntityNamespaces.Count > 0)
                 {
-                    var Entities = namespaceSelector.GetBlazarEntitiesInNamespaces(settings.SpecificEntityNamespaces, assembly);
+                    var Entities = namespaceSelector.GetBHEntitiesInNamespaces(settings.SpecificEntityNamespaces, assembly);
                     tableBuilder.BuildMultipleTables(Entities);
                 }
                 else
                 {
-                    var Entities = namespaceSelector.GetAllBlazarEntities(assembly);
+                    var Entities = namespaceSelector.GetAllBHEntities(assembly);
                     tableBuilder.BuildMultipleTables(Entities);
                 }
 
@@ -206,13 +206,13 @@ namespace BlackHole.FunctionalObjects
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespaces.Count > 0)
                 {
-                    var BlazarServices = namespaceSelector.GetBlazarServicesInNamespaces(settings.SpecificServicesNamespaces, assembly);
-                    services.RegisterBlazarServicesByList(BlazarServices);
+                    var BlazarServices = namespaceSelector.GetBHServicesInNamespaces(settings.SpecificServicesNamespaces, assembly);
+                    services.RegisterBHServicesByList(BlazarServices);
                 }
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespaces.Count == 0)
                 {
-                    services.RegisterBlazarServices(assembly);
+                    services.RegisterBHServices(assembly);
                 }
             }
             return services;
@@ -250,12 +250,12 @@ namespace BlackHole.FunctionalObjects
 
             if (dbExists)
             {
-                var Entities = namespaceSelector.GetAllBlazarEntities(useOtherAssembly);
+                var Entities = namespaceSelector.GetAllBHEntities(useOtherAssembly);
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
                 services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
                 services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
-                services.RegisterBlazarServices(useOtherAssembly);
+                services.RegisterBHServices(useOtherAssembly);
             }
             return services;
         }
@@ -287,12 +287,12 @@ namespace BlackHole.FunctionalObjects
 
             if (dbExists)
             {
-                var Entities = namespaceSelector.GetAllBlazarEntities(useOtherAssembly);
+                var Entities = namespaceSelector.GetAllBHEntities(useOtherAssembly);
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
                 services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
                 services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
-                services.RegisterBlazarServices(useOtherAssembly);
+                services.RegisterBHServices(useOtherAssembly);
             }
             return services;
         }
@@ -331,12 +331,12 @@ namespace BlackHole.FunctionalObjects
             {
                 if (settings.SpecificEntityNamespace != string.Empty)
                 {
-                    var Entities = namespaceSelector.GetBlazarEntitiesInNamespace(settings.SpecificEntityNamespace, useOtherAssembly);
+                    var Entities = namespaceSelector.GetBHEntitiesInNamespace(settings.SpecificEntityNamespace, useOtherAssembly);
                     tableBuilder.BuildMultipleTables(Entities);
                 }
                 else
                 {
-                    var Entities = namespaceSelector.GetAllBlazarEntities(useOtherAssembly);
+                    var Entities = namespaceSelector.GetAllBHEntities(useOtherAssembly);
                     tableBuilder.BuildMultipleTables(Entities);
                 }
 
@@ -346,13 +346,13 @@ namespace BlackHole.FunctionalObjects
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespace != string.Empty)
                 {
-                    var BlazarServices = namespaceSelector.GetBlazarServicesInNamespace(settings.SpecificServicesNamespace, useOtherAssembly);
-                    services.RegisterBlazarServicesByList(BlazarServices);
+                    var BlazarServices = namespaceSelector.GetBHServicesInNamespace(settings.SpecificServicesNamespace, useOtherAssembly);
+                    services.RegisterBHServicesByList(BlazarServices);
                 }
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespace == string.Empty)
                 {
-                    services.RegisterBlazarServices(useOtherAssembly);
+                    services.RegisterBHServices(useOtherAssembly);
                 }
             }
             return services;
@@ -392,12 +392,12 @@ namespace BlackHole.FunctionalObjects
             {
                 if (settings.SpecificEntityNamespaces.Count > 0)
                 {
-                    var Entities = namespaceSelector.GetBlazarEntitiesInNamespaces(settings.SpecificEntityNamespaces, useOtherAssembly);
+                    var Entities = namespaceSelector.GetBHEntitiesInNamespaces(settings.SpecificEntityNamespaces, useOtherAssembly);
                     tableBuilder.BuildMultipleTables(Entities);
                 }
                 else
                 {
-                    var Entities = namespaceSelector.GetAllBlazarEntities(useOtherAssembly);
+                    var Entities = namespaceSelector.GetAllBHEntities(useOtherAssembly);
                     tableBuilder.BuildMultipleTables(Entities);
                 }
 
@@ -407,13 +407,13 @@ namespace BlackHole.FunctionalObjects
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespaces.Count > 0)
                 {
-                    var BlazarServices = namespaceSelector.GetBlazarServicesInNamespaces(settings.SpecificServicesNamespaces, useOtherAssembly);
-                    services.RegisterBlazarServicesByList(BlazarServices);
+                    var BlazarServices = namespaceSelector.GetBHServicesInNamespaces(settings.SpecificServicesNamespaces, useOtherAssembly);
+                    services.RegisterBHServicesByList(BlazarServices);
                 }
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespaces.Count == 0)
                 {
-                    services.RegisterBlazarServices(useOtherAssembly);
+                    services.RegisterBHServices(useOtherAssembly);
                 }
             }
             return services;

@@ -1,6 +1,4 @@
-﻿using BlackHole.Data;
-using BlackHole.Entities;
-using BlackHole.Interfaces;
+﻿using BlackHole.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -15,7 +13,7 @@ namespace BlackHole.Services
         /// Example -> Service : myService , Interface : ImyService
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection RegisterBlazarServices(this IServiceCollection services)
+        public static IServiceCollection RegisterBHServices(this IServiceCollection services)
         {
             Assembly ass = Assembly.GetCallingAssembly();
 
@@ -76,7 +74,7 @@ namespace BlackHole.Services
         /// </summary>
         /// <param name="services"></param>
         /// <param name="assembly"></param>
-        public static IServiceCollection RegisterBlazarServices(this IServiceCollection services, Assembly assembly)
+        public static IServiceCollection RegisterBHServices(this IServiceCollection services, Assembly assembly)
         {
 
             Type blazarScoped = typeof(BlackHoleScoped);
@@ -137,7 +135,7 @@ namespace BlackHole.Services
         /// </summary>
         /// <param name="services"></param>
         /// <param name="blazarServices"></param>
-        public static IServiceCollection RegisterBlazarServicesByList(this IServiceCollection services, List<Type> blazarServices)
+        public static IServiceCollection RegisterBHServicesByList(this IServiceCollection services, List<Type> blazarServices)
         {
             Type blazarScoped = typeof(BlackHoleScoped);
             Type blazarSingleton = typeof(BlackHoleSingleton);
