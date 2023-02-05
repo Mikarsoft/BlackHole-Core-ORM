@@ -25,6 +25,10 @@ add 'SuperNova(connectionString,SqlType)' on your IServiceCollection and it will
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Entities\czkb3gud.1xo~" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\mikarsoft.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

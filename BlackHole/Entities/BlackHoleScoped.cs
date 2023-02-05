@@ -1,6 +1,10 @@
 ﻿
 namespace BlackHole.Entities
 {
+    /// <summary>
+    /// Make a service Inherit from this class
+    /// to automatically get registered as Scoped
+    /// </summary>
     public abstract partial class BlackHoleScoped
     {
         public object ServiceType { get; set; }

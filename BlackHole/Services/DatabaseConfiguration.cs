@@ -54,7 +54,7 @@ namespace BlackHole.Services
             ConfigureDatabase(GetConnectionString(databaseInfo),GetServerConnectionString(databaseInfo),databaseInfo.DatabaseName,databaseInfo.SqlType);
         }
 
-        public static void ScanConnectionString(string connectionString, BHSqlTypes sqlType, string LogsPath)
+        internal static void ScanConnectionString(string connectionString, BHSqlTypes sqlType, string LogsPath)
         {
             DatabaseStatics.LogsPath = LogsPath;
 

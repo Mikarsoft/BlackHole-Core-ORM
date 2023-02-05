@@ -69,7 +69,10 @@ namespace BlackHole.Services
         }
 
         /// <summary>
-        /// 
+        /// Register BlazarScoped, BlazarSingleton and BlazarTransient Services of the Inserted Assembly to the Application Builder.
+        /// Automatically Finds and Registers the Services and the Interfaces that have BaseType one of the above. 
+        /// Important!! Interfaces must have the same name with their service with an additional capital "I" at the front of the name.
+        /// Example -> Service : myService , Interface : ImyService
         /// </summary>
         /// <param name="services"></param>
         /// <param name="assembly"></param>

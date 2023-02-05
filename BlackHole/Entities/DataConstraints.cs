@@ -1,11 +1,11 @@
 ﻿
 namespace BlackHole.Entities
 {
-    public class DataConstraints
+    internal class DataConstraints
     {
-        public string TABLE_NAME { get; set; } = "";
-        public string COLUMN_NAME { get; set; } = "";
-        public string REFERENCED_TABLE_NAME { get; set; } = "";
-        public string IS_NULLABLE { get; set; } = "";
+        internal string TABLE_NAME { get; set; } = "";
+        internal string COLUMN_NAME { get; set; } = "";
+        internal string REFERENCED_TABLE_NAME { get; set; } = "";
+        internal string IS_NULLABLE { get; set; } = "";
     }
 }

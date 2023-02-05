@@ -9,6 +9,10 @@ using BlackHole.Attributes.EntityAttributes;
 
 namespace BlackHole.Data
 {
+    /// <summary>
+    /// Makes all the communication between the Datbase Table and The Specified Entity
+    /// </summary>
+    /// <typeparam name="T">Black Hole Entity with Integer Id</typeparam>
     public class BlackHoleProvider<T> : IBlackHoleProvider<T> where T : BlackHoleEntity
     {
         private bool withActivator { get;}
@@ -28,7 +32,7 @@ namespace BlackHole.Data
         private ILoggerService _loggerService;
 
         /// <summary>
-        /// Create a Data Provider that Automatically Communicates with the Database Using the BlazarEntity you pass in.
+        /// Create a Data Provider that Automatically Communicates with the Database Using the Black Hole Entity you pass in.
         /// </summary>
         public BlackHoleProvider()
         {
@@ -83,10 +87,6 @@ namespace BlackHole.Data
             UpdateParams = UpdateParams.Remove(0, 1);
         }
 
-        /// <summary>
-        /// Get All Entries from the Table in the Database
-        /// </summary>
-        /// <returns></returns>
         IList<T> IBlackHoleProvider<T>.GetAllEntries()
         {
             List<T> entries = new List<T>();
@@ -114,11 +114,6 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <returns></returns>
         IList<Dto> IBlackHoleProvider<T>.GetAllEntries<Dto>() where Dto : class
         {
             List<Dto> entries = new List<Dto>();
@@ -148,11 +143,6 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// Get All Inactive Entries from the Table in Database
-        /// mikarsoft.com
-        /// </summary>
-        /// <returns></returns>
         IList<T> IBlackHoleProvider<T>.GetAllInactiveEntries()
         {
             IList<T> entries = new List<T>();
@@ -177,11 +167,6 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// Get an Entry by its Id
-        /// </summary>
-        /// <param name="Id"></param>
-        /// <returns></returns>
         T? IBlackHoleProvider<T>.GetEntryById(int Id)
         {
             T? entry = null;
@@ -209,12 +194,6 @@ namespace BlackHole.Data
             return entry;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="Id"></param>
-        /// <returns></returns>
         Dto? IBlackHoleProvider<T>.GetEntryById<Dto>(int Id) where Dto : class
         {
             Dto? entry = null;
@@ -244,11 +223,6 @@ namespace BlackHole.Data
             return entry;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         T? IBlackHoleProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
             T? entry = null;
@@ -277,12 +251,6 @@ namespace BlackHole.Data
             return entry;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         Dto? IBlackHoleProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             Dto? entry = null;
@@ -312,11 +280,6 @@ namespace BlackHole.Data
             return entry;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         IList<T> IBlackHoleProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
             IList<T> entries = new List<T>();
@@ -346,12 +309,6 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         IList<Dto> IBlackHoleProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             IList<Dto> entries = new List<Dto>();
@@ -382,22 +339,12 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <returns></returns>
         int IBlackHoleProvider<T>.InsertEntry(T entry)
         {
             string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
             return Insert(entry, insertCommand);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entries"></param>
-        /// <returns></returns>
         List<int> IBlackHoleProvider<T>.InsertEntries(List<T> entries)
         {
             List<int> Ids = new List<int>();
@@ -411,10 +358,6 @@ namespace BlackHole.Data
             return Ids;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         async Task<IList<T>> IBlackHoleProvider<T>.GetAllEntriesAsync()
         {
             List<T> entries = new List<T>();
@@ -442,11 +385,6 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <returns></returns>
         async Task<IList<Dto>> IBlackHoleProvider<T>.GetAllEntriesAsync<Dto>() where Dto : class
         {
             List<Dto> entries = new List<Dto>();
@@ -476,10 +414,6 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         async Task<IList<T>> IBlackHoleProvider<T>.GetAllInactiveEntriesAsync()
         {
             List<T> entries = new List<T>();
@@ -504,11 +438,6 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="Id"></param>
-        /// <returns></returns>
         async Task<T?> IBlackHoleProvider<T>.GetEntryByIdAsync(int Id)
         {
             T? entry = null;
@@ -536,12 +465,6 @@ namespace BlackHole.Data
             return entry;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="Id"></param>
-        /// <returns></returns>
         async Task<Dto?> IBlackHoleProvider<T>.GetEntryByIdAsync<Dto>(int Id) where Dto : class
         {
             Dto? entry = null;
@@ -571,11 +494,6 @@ namespace BlackHole.Data
             return entry;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         async Task<T?> IBlackHoleProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
             T? entry = null;
@@ -604,12 +522,6 @@ namespace BlackHole.Data
             return entry;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         async Task<Dto?> IBlackHoleProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             Dto? entry = null;
@@ -639,11 +551,6 @@ namespace BlackHole.Data
             return entry;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         async Task<IList<T>> IBlackHoleProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
             IList<T> entries = new List<T>();
@@ -673,12 +580,6 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         async Task<IList<Dto>> IBlackHoleProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             IList<Dto> entries = new List<Dto>();
@@ -709,22 +610,12 @@ namespace BlackHole.Data
             return entries;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <returns></returns>
         async Task<int> IBlackHoleProvider<T>.InsertEntryAsync(T entry)
         {
             string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
             return await InsertAsync(entry, insertCommand);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entries"></param>
-        /// <returns></returns>
         async Task<List<int>> IBlackHoleProvider<T>.InsertEntriesAsync(List<T> entries)
         {
             List<int> Ids = new List<int>();
@@ -738,31 +629,18 @@ namespace BlackHole.Data
             return Ids;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entry"></param>
         async Task IBlackHoleProvider<T>.UpdateEntryById(T entry)
         {
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
             await Update(entry,updateCommand);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Columns"></typeparam>
-        /// <param name="entry"></param>
         async Task IBlackHoleProvider<T>.UpdateEntryById<Columns>(T entry) where Columns : class
         {
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
             await Update(entry, updateCommand);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entries"></param>
         async Task IBlackHoleProvider<T>.UpdateEntriesById(List<T> entries)
         {
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
@@ -773,11 +651,6 @@ namespace BlackHole.Data
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Columns"></typeparam>
-        /// <param name="entries"></param>
         async Task IBlackHoleProvider<T>.UpdateEntriesById<Columns>(List<T> entries) where Columns : class
         {
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
@@ -788,11 +661,6 @@ namespace BlackHole.Data
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="entry"></param>
         async Task IBlackHoleProvider<T>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
             try
@@ -818,12 +686,6 @@ namespace BlackHole.Data
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Columns"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="entry"></param>
         async Task IBlackHoleProvider<T>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
             try
@@ -849,9 +711,6 @@ namespace BlackHole.Data
             }
         }
 
-        /// <summary>
-        /// Delete all Entries of the Table in Database
-        /// </summary>
         async Task IBlackHoleProvider<T>.DeleteAllEntries()
         {
             try
@@ -874,10 +733,6 @@ namespace BlackHole.Data
             } 
         }
 
-        /// <summary>
-        /// Delete Entry in the Table with the specific Id number
-        /// </summary>
-        /// <param name="id"></param>
         async Task IBlackHoleProvider<T>.DeleteEntryById(int id)
         {
             try
@@ -902,10 +757,6 @@ namespace BlackHole.Data
 
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id"></param>
         async Task IBlackHoleProvider<T>.DeleteInactiveEntryById(int id)
         {
             if (withActivator)
@@ -926,11 +777,6 @@ namespace BlackHole.Data
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <exception cref="NotImplementedException"></exception>
         async Task IBlackHoleProvider<T>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
         {         
             try
@@ -955,40 +801,18 @@ namespace BlackHole.Data
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         async Task<int> IBlackHoleProvider<T>.GetIdWhereAsync(Expression<Func<T, bool>> predicate)
         {
             return await GetIdFromPredicate(predicate);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
         async Task<List<int>> IBlackHoleProvider<T>.GetIdsWhereAsync(Expression<Func<T, bool>> predicate)
         {
             return await GetIdsFromPredicate(predicate);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TOther"></typeparam>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="otherKey"></param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         JoinsData<Dto, T, TOther> IBlackHoleProvider<T>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            //Type propertyType = key.Body.Type;
-
             return CreateFirstJoin<TOther,Dto>(key, otherKey, "inner");
         }
 

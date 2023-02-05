@@ -12,8 +12,25 @@ using System.Reflection;
 
 namespace BlackHole.ExtensionMethods
 {
+    /// <summary>
+    /// Queries for the Table Joins Feature
+    /// </summary>
     public static class BlackHoleQueries
     {
+        /// <summary>
+        /// Performs a Right Join between the First and the Second specified Entities. 
+        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
+        /// Execution and you might get some null values on the exported DTOs.
+        /// </summary>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> RightJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
@@ -36,6 +53,20 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key,otherkey,"right");
         }
 
+        /// <summary>
+        /// Performs a Right Join between the First and the Second specified Entities. 
+        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
+        /// Execution and you might get some null values on the exported DTOs.
+        /// </summary>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> RightJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
@@ -58,6 +89,20 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key, otherkey, "right");
         }
 
+        /// <summary>
+        /// Performs a Left Join between the First and the Second specified Entities. 
+        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
+        /// Execution and you might get some null values on the exported DTOs.
+        /// </summary>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> LeftJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
@@ -80,6 +125,20 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key, otherkey, "left");
         }
 
+        /// <summary>
+        /// Performs a Left Join between the First and the Second specified Entities. 
+        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
+        /// Execution and you might get some null values on the exported DTOs.
+        /// </summary>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> LeftJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
@@ -102,6 +161,20 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key, otherkey, "left");
         }
 
+        /// <summary>
+        /// Performs an Outer Join between the First and the Second specified Entities. 
+        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
+        /// Execution and you might get some null values on the exported DTOs.
+        /// </summary>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> OuterJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
@@ -124,6 +197,20 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key, otherkey, "outer");
         }
 
+        /// <summary>
+        /// Performs an Outer Join between the First and the Second specified Entities. 
+        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
+        /// Execution and you might get some null values on the exported DTOs.
+        /// </summary>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> OuterJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
@@ -146,6 +233,20 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key, otherkey, "outer");
         }
 
+        /// <summary>
+        /// Performs an Inner Join between the First and the Second specified Entities. 
+        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
+        /// Execution and you might get some null values on the exported DTOs.
+        /// </summary>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> InnerJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey) 
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
@@ -168,6 +269,20 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key, otherkey, "inner");
         }
 
+        /// <summary>
+        /// Performs a Inner Join between the First and the Second specified Entities. 
+        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
+        /// Execution and you might get some null values on the exported DTOs.
+        /// </summary>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> InnerJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
@@ -190,6 +305,18 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key, otherkey, "inner");
         }
 
+
+        /// <summary>
+        /// Uses Additional columns to the Join
+        /// </summary>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> And<Dto,Tsource, TOther, Tkey>(this JoinsData<Dto, Tsource, TOther> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey) where Tkey : IComparable
         {
@@ -210,6 +337,17 @@ namespace BlackHole.ExtensionMethods
             return data;
         }
 
+        /// <summary>
+        /// Uses Additional case to the Join
+        /// </summary>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="key">First Table Joint Column</param>
+        /// <param name="otherkey">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> Or<Dto, Tsource, TOther, Tkey>(this JoinsData<Dto, Tsource, TOther> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey) where Tkey : IComparable
         {
@@ -230,6 +368,24 @@ namespace BlackHole.ExtensionMethods
             return data;
         }
 
+        /// <summary>
+        /// Casts a column of the second Entity as a column of the 
+        /// output's DTO. !!Important!! => There are some restrictions
+        /// to the types of the properties that can be casted. Read the Documentation
+        /// for details. If a data type is not allowed to be converted to another type,
+        /// then the cast will be ignored in the Execution and the DTO column will be null. 
+        /// !!Tip!! => Cast has priority over normal mapping, For example the Column Id of the DTO is 
+        /// by default mapped to the First Entity of all Joins. If you want to map a different
+        /// Entity's Id into that column, use a Cast.
+        /// </summary>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="predicate">First Table Joint Column</param>
+        /// <param name="castOnDto">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> CastColumnOfSecondAs<Dto, Tsource, TOther, Tkey , TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
             Expression<Func<TOther, Tkey>> predicate, Expression<Func<Dto,TotherKey>> castOnDto) where Tkey : IComparable where TotherKey : IComparable
         {
@@ -260,6 +416,24 @@ namespace BlackHole.ExtensionMethods
             return data;
         }
 
+        /// <summary>
+        /// Casts a column of the second Entity as a column of the 
+        /// output's DTO. !!Important!! => There are some restrictions
+        /// to the types of the properties that can be casted. Read the Documentation
+        /// for details. If a data type is not allowed to be converted to another type,
+        /// then the cast will be ignored in the Execution and the DTO column will be null. 
+        /// !!Tip!! => Cast has priority over normal mapping, For example the Column Id of the DTO is 
+        /// by default mapped to the First Entity of all Joins. If you want to map a different
+        /// Entity's Id into that column, use a Cast.
+        /// </summary>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="predicate">First Table Joint Column</param>
+        /// <param name="castOnDto">Second Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> CastColumnOfFirstAs<Dto, Tsource, TOther, Tkey ,TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
             Expression<Func<Tsource, Tkey>> predicate, Expression<Func<Dto,TotherKey>> castOnDto) where Tkey : IComparable where TotherKey : IComparable
         {
@@ -290,6 +464,18 @@ namespace BlackHole.ExtensionMethods
             return data;
         }
 
+        /// <summary>
+        /// Uses a Lambda Expression as filters for the First table of the
+        /// current Join.Only the entries of the table that match these filters
+        /// will be used
+        /// </summary>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="predicate">First Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> WhereFirst<Dto,Tsource,TOther>(this JoinsData<Dto,Tsource,TOther> data,
             Expression<Func<Tsource,bool>> predicate)
         {
@@ -315,6 +501,18 @@ namespace BlackHole.ExtensionMethods
             return data;
         }
 
+        /// <summary>
+        /// Uses a Lambda Expression as filters for the Second table of the
+        /// current Join.Only the entries of the table that match these filters
+        /// will be used
+        /// </summary>
+        /// <typeparam name="Dto">Class of the Output</typeparam>
+        /// <typeparam name="Tsource">First Entity</typeparam>
+        /// <typeparam name="TOther">Second Entity</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <param name="data">Previous Joins Data</param>
+        /// <param name="predicate">First Table Joint Column</param>
+        /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto,Tsource, TOther> WhereSecond<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data,
             Expression<Func<TOther, bool>> predicate)
         {
@@ -340,6 +538,15 @@ namespace BlackHole.ExtensionMethods
             return data;
         }
 
+        /// <summary>
+        /// Combines the Data of the Join and let's you start
+        /// another Join or Execute the Joins Data or Store them as View
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <typeparam name="Tsource"></typeparam>
+        /// <typeparam name="TOther"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public static JoinsData<Dto> Then<Dto,Tsource,TOther>(this JoinsData<Dto,Tsource,TOther> data)
         {
             return new JoinsData<Dto>
@@ -358,6 +565,20 @@ namespace BlackHole.ExtensionMethods
             };
         }
 
+        /// <summary>
+        /// Stores the Joins Data with the DTO Class as Identifier
+        /// and then you can execute them as many times as you want
+        /// using the 'IBlackHoleViewStorage' Interface.
+        /// With this method, the program doesn't have to calculate the
+        /// Joins Data multiple times and it executes the Joins faster.
+        /// This method is recommended if the parameters in the current
+        /// Joins Data are not depending on the user's inputs.
+        /// Run your Joins Once in the StartUp of your program and store them
+        /// as Views.
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="data"></param>
+        /// <returns>The index of this Joins Data in the Stored Views List</returns>
         public static int StoreAsView<Dto>(this JoinsData<Dto> data) where Dto:BlackHoleDto
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
@@ -386,6 +607,20 @@ namespace BlackHole.ExtensionMethods
             return BlackHoleViews.Stored.Count;
         }
 
+        /// <summary>
+        /// Stores the Joins Data with the DTO Class as Identifier
+        /// and then you can execute them as many times as you want
+        /// using the 'IBlackHoleViewStorage' Interface.
+        /// With this method, the program doesn't have to calculate the
+        /// Joins Data multiple times and it executes the Joins faster.
+        /// This method is recommended if the parameters in the current
+        /// Joins Data are not depending on the user's inputs.
+        /// Run your Joins Once in the StartUp of your program and store them
+        /// as Views.
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="data"></param>
+        /// <returns>The index of this Joins Data in the Stored Views List</returns>
         public static int StoreAsGView<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleGDto
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
@@ -414,7 +649,14 @@ namespace BlackHole.ExtensionMethods
             return BlackHoleViews.Stored.Count;
         }
 
-        public static IList<Dto> ExecuteQuery<Dto>(this JoinsData data) where Dto : BlackHoleDto
+
+        /// <summary>
+        /// Executes the Joins Data from The View Storage
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
+        internal static IList<Dto> ExecuteQuery<Dto>(this JoinsData data) where Dto : BlackHoleDto
         {
             IList<Dto> joinResult = new List<Dto>();
 
@@ -436,7 +678,13 @@ namespace BlackHole.ExtensionMethods
             return joinResult;
         }
 
-        public static IList<Dto> ExecuteGQuery<Dto>(this JoinsData data) where Dto : BlackHoleGDto
+        /// <summary>
+        /// Executes the Joins Data from The View Storage
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
+        internal static IList<Dto> ExecuteGQuery<Dto>(this JoinsData data) where Dto : BlackHoleGDto
         {
             IList<Dto> joinResult = new List<Dto>();
 
@@ -458,6 +706,12 @@ namespace BlackHole.ExtensionMethods
             return joinResult;
         }
 
+        /// <summary>
+        /// Executes the Joins Data and returns the result
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
         public static IList<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data) where Dto : class
         {
             IList<Dto> joinResult = new List<Dto>();
@@ -477,6 +731,12 @@ namespace BlackHole.ExtensionMethods
             return joinResult;
         }
 
+        /// <summary>
+        /// Asyncronous. Executes the Joins Data and returns the result
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
         public static async Task<IList<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data) where Dto : class
         {
             IList<Dto> joinResult = new List<Dto>();

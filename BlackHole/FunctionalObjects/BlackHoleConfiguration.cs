@@ -7,8 +7,20 @@ using System.Reflection;
 
 namespace BlackHole.FunctionalObjects
 {
+    /// <summary>
+    /// All Black Hole Configuration
+    /// </summary>
     public static class BlackHoleConfiguration
     {
+        /// <summary>
+        /// The easiest way to setup a single file standalone database
+        /// Just insert the file name and it will be created in the 
+        /// current user's folder.
+        /// It uses the BlackHole Entities and Services of the Calling Assembly
+        /// </summary>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="databaseName">The filename of the SQLite database</param>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection SuperNovaLite(this IServiceCollection services, string databaseName)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
@@ -44,6 +56,15 @@ namespace BlackHole.FunctionalObjects
             return services;
         }
 
+        /// <summary>
+        /// Generates a database , based on the inserted connection string, to an
+        /// Existing Sql Server.The connection string Must lead to the server and the 
+        /// Database part of the connection string will be used to create the database.
+        /// It uses the BlackHole Entities and Services of the Calling Assembly
+        /// </summary>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="settings">Simple Configuration</param>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection SuperNova(this IServiceCollection services, BlackHoleBaseConfig settings)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
@@ -73,6 +94,20 @@ namespace BlackHole.FunctionalObjects
             return services;
         }
 
+        /// <summary>
+        /// Generates a database , based on the inserted connection string, to an
+        /// Existing Sql Server.The connection string Must lead to the server and the 
+        /// Database part of the connection string will be used to create the database.
+        /// It uses the BlackHole Entities and Services of the Calling Assembly.
+        /// With Extta Config you can choose a specific namespace for the entities 
+        /// and another one for the services that will be used.
+        /// You can also choose if the services will be automatically or manually registered.
+        /// If you don't specify these options , all entities and services in the assebly will
+        /// be used automatically.
+        /// </summary>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="settings">Extra Options Configuration</param>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection SuperNova(this IServiceCollection services, BlackHoleExtraConfig settings)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
@@ -121,6 +156,20 @@ namespace BlackHole.FunctionalObjects
             return services;
         }
 
+        /// <summary>
+        /// Generates a database , based on the inserted connection string, to an
+        /// Existing Sql Server.The connection string Must lead to the server and the 
+        /// Database part of the connection string will be used to create the database.
+        /// It uses the BlackHole Entities and Services of the Calling Assembly
+        /// With Advanced Config you can choose specific namespaces for the entities 
+        /// and for the services that will be used.
+        /// You can also choose if the services will be automatically or manually registered.
+        /// If you don't specify these options , all entities and services in the assebly will
+        /// be used automatically.
+        /// </summary>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="settings">Advanced Options Configuration</param>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection SuperNova(this IServiceCollection services, BlackHoleAdvancedConfig settings)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
@@ -169,6 +218,16 @@ namespace BlackHole.FunctionalObjects
             return services;
         }
 
+
+        /// <summary>
+        /// The easiest way to setup a single file standalone database
+        /// Just insert the file name and it will be created in the 
+        /// current user's folder.
+        /// It uses the BlackHole Entities and Services of the Inserted Assembly
+        /// </summary>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="databaseName">The filename of the SQLite database</param>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection SuperNovaLite(this IServiceCollection services, string databaseName, Assembly useOtherAssembly)
         {
             string defaultBlackHoleFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\BlackHole";
@@ -201,6 +260,16 @@ namespace BlackHole.FunctionalObjects
             return services;
         }
 
+
+        /// <summary>
+        /// Generates a database , based on the inserted connection string, to an
+        /// Existing Sql Server.The connection string Must lead to the server and the 
+        /// Database part of the connection string will be used to create the database.
+        /// It uses the BlackHole Entities and Services of the Inserted Assembly
+        /// </summary>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="settings">Simple Configuration</param>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection SuperNova(this IServiceCollection services, BlackHoleBaseConfig settings, Assembly useOtherAssembly)
         {
             if (settings.LogsPath == string.Empty)
@@ -228,6 +297,21 @@ namespace BlackHole.FunctionalObjects
             return services;
         }
 
+
+        /// <summary>
+        /// Generates a database , based on the inserted connection string, to an
+        /// Existing Sql Server.The connection string Must lead to the server and the 
+        /// Database part of the connection string will be used to create the database.
+        /// It uses the BlackHole Entities and Services of the Inserted Assembly.
+        /// With Extta Config you can choose a specific namespace for the entities 
+        /// and another one for the services that will be used.
+        /// You can also choose if the services will be automatically or manually registered.
+        /// If you don't specify these options , all entities and services in the assebly will
+        /// be used automatically.
+        /// </summary>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="settings">Extra Options Configuration</param>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection SuperNova(this IServiceCollection services, BlackHoleExtraConfig settings, Assembly useOtherAssembly)
         {
             if (settings.LogsPath == string.Empty)
@@ -274,6 +358,21 @@ namespace BlackHole.FunctionalObjects
             return services;
         }
 
+
+        /// <summary>
+        /// Generates a database , based on the inserted connection string, to an
+        /// Existing Sql Server.The connection string Must lead to the server and the 
+        /// Database part of the connection string will be used to create the database.
+        /// It uses the BlackHole Entities and Services of the Inserted Assembly
+        /// With Advanced Config you can choose specific namespaces for the entities 
+        /// and for the services that will be used.
+        /// You can also choose if the services will be automatically or manually registered.
+        /// If you don't specify these options , all entities and services in the assebly will
+        /// be used automatically.
+        /// </summary>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="settings">Advanced Options Configuration</param>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection SuperNova(this IServiceCollection services, BlackHoleAdvancedConfig settings,Assembly useOtherAssembly)
         {
             if (settings.LogsPath == string.Empty)
@@ -320,12 +419,20 @@ namespace BlackHole.FunctionalObjects
             return services;
         }
 
+        /// <summary>
+        /// Checks the database's condition
+        /// </summary>
+        /// <returns></returns>
         public static bool TestDatabase()
         {
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
             return databaseBuilder.DoesDbExists();
         }
 
+        /// <summary>
+        /// Closes all connections and drops the database
+        /// </summary>
+        /// <returns></returns>
         public static bool DropDatabase()
         {
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();

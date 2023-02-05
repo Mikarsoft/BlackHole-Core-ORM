@@ -2,16 +2,16 @@
 
 namespace BlackHole.Entities
 {
-    public class ExpressionsData
+    internal class ExpressionsData
     {
-        public BinaryExpression? operation { get; set; }
+        internal BinaryExpression? operation { get; set; }
         public MemberExpression? leftMember { get; set; }
-        public MemberExpression? rightMember { get; set; }
-        public ExpressionType expressionType { get; set; }
-        public object? memberValue { get; set; }
-        public bool rightChecked { get; set; }
-        public bool leftChecked { get; set; }
-        public int parentIndex { get; set; }
-        public string sqlCommand { get; set; } = "";
+        internal MemberExpression? rightMember { get; set; }
+        internal ExpressionType expressionType { get; set; }
+        internal object? memberValue { get; set; }
+        internal bool rightChecked { get; set; }
+        internal bool leftChecked { get; set; }
+        internal int parentIndex { get; set; }
+        internal string sqlCommand { get; set; } = "";
     }
 }

@@ -1,9 +1,11 @@
-﻿
-using Dapper;
-using System.Linq.Expressions;
+﻿using Dapper;
 
 namespace BlackHole.Entities
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="Dto"></typeparam>
     public class JoinsData<Dto>
     {
         internal Type? BaseTable { get; set; }
@@ -19,6 +21,9 @@ namespace BlackHole.Entities
         internal int ParamsCount { get; set; }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class JoinsData
     {
         internal Type? DtoType { get; set; }
@@ -35,6 +40,12 @@ namespace BlackHole.Entities
         internal int ParamsCount { get; set; }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="Dto"></typeparam>
+    /// <typeparam name="Tsource"></typeparam>
+    /// <typeparam name="TOther"></typeparam>
     public class JoinsData<Dto,Tsource, TOther>
     {
         internal Type? BaseTable { get; set; }

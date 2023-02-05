@@ -1,13 +1,13 @@
 ﻿
 namespace BlackHole.Entities
 {
-    public class LiteTableInfo
+    internal class LiteTableInfo
     {
-        public int cid { get; set; }
-        public string name { get; set; } = string.Empty;
-        public string type { get; set; } = string.Empty;
-        public bool notnull { get; set; }
-        public string dflt_value { get; set; } = string.Empty;
-        public bool pk { get; set; }
+        internal int cid { get; set; }
+        internal string name { get; set; } = string.Empty;
+        internal string type { get; set; } = string.Empty;
+        internal bool notnull { get; set; }
+        internal string dflt_value { get; set; } = string.Empty;
+        internal bool pk { get; set; }
     }
 }

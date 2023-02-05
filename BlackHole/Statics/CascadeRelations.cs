@@ -2,8 +2,8 @@
 
 namespace BlackHole.Statics
 {
-    public static class CascadeRelations
+    internal static class CascadeRelations
     {
-        public static List<DataConstraints> dataConstrains = new List<DataConstraints>();
+        internal static List<DataConstraints> dataConstrains = new List<DataConstraints>();
     }
 }

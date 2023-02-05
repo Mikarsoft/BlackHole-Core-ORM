@@ -2,6 +2,10 @@
 
 namespace BlackHole.Entities
 {
+    /// <summary>
+    /// A Required Entity For Black Hole Data Provider
+    /// It Contains an Integer Id Column as Primary Key
+    /// </summary>
     public class BlackHoleEntity
     {
         [PrimaryKey]

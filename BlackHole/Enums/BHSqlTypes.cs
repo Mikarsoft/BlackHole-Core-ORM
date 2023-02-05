@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace BlackHole.Enums
 {
+    /// <summary>
+    /// The Supported Sql types of this Tool
+    /// </summary>
     public enum BHSqlTypes
     {
         MsSql,

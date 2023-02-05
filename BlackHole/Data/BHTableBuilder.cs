@@ -12,7 +12,6 @@ namespace BlackHole.Data
     {
         private IBHDatabaseSelector _multiDatabaseSelector;
         private ILoggerService _loggerService;
-        private IConstraintsLoader _constraintsLoader;
         private string[] SqlDatatypes;
         private bool isMyShit;
         private bool isLite;
@@ -21,7 +20,6 @@ namespace BlackHole.Data
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             _loggerService = new LoggerService();
-            _constraintsLoader = new ConstraintsLoader(_multiDatabaseSelector,_loggerService);
             SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
             isMyShit = _multiDatabaseSelector.GetMyShit();
             isLite = _multiDatabaseSelector.IsLite();
@@ -53,7 +51,6 @@ namespace BlackHole.Data
                 }               
             }
 
-            _constraintsLoader.StoreAllConstraints();
         }
 
         /// <summary>
@@ -73,8 +70,6 @@ namespace BlackHole.Data
             {
                 UpdateSchema(TableType);
             }
-
-            _constraintsLoader.StoreAllConstraints();
         }
 
         /// <summary>

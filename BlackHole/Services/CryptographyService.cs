@@ -110,7 +110,7 @@ namespace BlackHole.Services
 
     public static class EncryptionKeyVar
     {
-        public static string Keyword { get; set; } = "";
+        public static string Keyword { get; set; } = "None";
 
     }
 }
