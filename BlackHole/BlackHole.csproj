@@ -20,7 +20,7 @@ add 'SuperNova(connectionString,SqlType)' on your IServiceCollection and it will
     <RepositoryUrl>https://github.com/Mikarsoft/BlackHole-Core-ORM</RepositoryUrl>
     <PackageTags>ORM;MySql;Postgres;SqlServer;Data;Provider;Autoincrement;Object;Relational;Mapping;Easy;Black;Hole;Mikarsoft</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
-    <PackageLicenseFile>M:\Users\Archo\Desktop\TheBlackHole\BlackHole-Core-ORM\LICENSE</PackageLicenseFile>
+    <PackageLicenseFile>..\LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
