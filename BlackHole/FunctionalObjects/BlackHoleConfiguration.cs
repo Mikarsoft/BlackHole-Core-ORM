@@ -66,6 +66,8 @@ namespace BlackHole.FunctionalObjects
                 var Entities = namespaceSelector.GetAllBlazarEntities(assembly);
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
+                services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
+                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
                 services.RegisterBlazarServices(assembly);
             }
             return services;
@@ -102,6 +104,8 @@ namespace BlackHole.FunctionalObjects
                 }
 
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
+                services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
+                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespace != string.Empty)
                 {
@@ -148,6 +152,8 @@ namespace BlackHole.FunctionalObjects
                 }
 
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
+                services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
+                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespaces.Count > 0)
                 {
@@ -188,6 +194,8 @@ namespace BlackHole.FunctionalObjects
                 var Entities = namespaceSelector.GetAllBlazarEntities(useOtherAssembly);
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
+                services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
+                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
                 services.RegisterBlazarServices(useOtherAssembly);
             }
             return services;
@@ -213,6 +221,8 @@ namespace BlackHole.FunctionalObjects
                 var Entities = namespaceSelector.GetAllBlazarEntities(useOtherAssembly);
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
+                services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
+                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
                 services.RegisterBlazarServices(useOtherAssembly);
             }
             return services;
@@ -247,6 +257,8 @@ namespace BlackHole.FunctionalObjects
                 }
 
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
+                services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
+                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespace != string.Empty)
                 {
@@ -291,6 +303,8 @@ namespace BlackHole.FunctionalObjects
                 }
 
                 services.AddScoped(typeof(IBlackHoleProvider<>), typeof(BlackHoleProvider<>));
+                services.AddScoped(typeof(IBlackHoleProviderG<>), typeof(BlackHoleProviderG<>));
+                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespaces.Count > 0)
                 {
