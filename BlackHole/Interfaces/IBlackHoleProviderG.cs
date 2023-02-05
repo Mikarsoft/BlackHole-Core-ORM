@@ -16,7 +16,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <typeparam name="Dto"></typeparam>
         /// <returns></returns>
-        IList<Dto> GetAllEntries<Dto>() where Dto : BlackHoleDto;
+        IList<Dto> GetAllEntries<Dto>() where Dto : BlackHoleGDto;
 
         /// <summary>
         /// 
@@ -37,7 +37,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto"></typeparam>
         /// <param name="Id"></param>
         /// <returns></returns>
-        Dto? GetEntryById<Dto>(Guid Id) where Dto : BlackHoleDto;
+        Dto? GetEntryById<Dto>(Guid Id) where Dto : BlackHoleGDto;
 
         /// <summary>
         /// 
@@ -52,7 +52,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto"></typeparam>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
+        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleGDto;
 
         /// <summary>
         /// 
@@ -67,7 +67,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto"></typeparam>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        IList<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
+        IList<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleGDto;
 
         /// <summary>
         /// 
@@ -94,7 +94,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <typeparam name="Dto"></typeparam>
         /// <returns></returns>
-        Task<IList<Dto>> GetAllEntriesAsync<Dto>() where Dto : BlackHoleDto;
+        Task<IList<Dto>> GetAllEntriesAsync<Dto>() where Dto : BlackHoleGDto;
 
         /// <summary>
         /// 
@@ -115,7 +115,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto"></typeparam>
         /// <param name="Id"></param>
         /// <returns></returns>
-        Task<Dto?> GetEntryByIdAsync<Dto>(int Id) where Dto : BlackHoleDto;
+        Task<Dto?> GetEntryByIdAsync<Dto>(int Id) where Dto : BlackHoleGDto;
 
         /// <summary>
         /// 
@@ -130,7 +130,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto"></typeparam>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
+        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleGDto;
 
         /// <summary>
         /// 
@@ -145,7 +145,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto"></typeparam>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        Task<IList<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
+        Task<IList<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleGDto;
 
         /// <summary>
         /// 
@@ -249,7 +249,7 @@ namespace BlackHole.Interfaces
         /// <param name="otherKey"></param>
         /// <returns></returns>
         JoinsData<Dto, T, TOther> InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-           where Dto : BlackHoleDto where TOther : BlackHoleEntity where Tkey : IComparable;
+           where Dto : BlackHoleGDto where TOther : BlackHoleEntityG where Tkey : IComparable;
 
         /// <summary>
         /// 
@@ -261,7 +261,7 @@ namespace BlackHole.Interfaces
         /// <param name="otherKey"></param>
         /// <returns></returns>
         JoinsData<Dto, T, TOther> OuterJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-            where Dto : BlackHoleDto where TOther : BlackHoleEntity where Tkey : IComparable;
+            where Dto : BlackHoleGDto where TOther : BlackHoleEntityG where Tkey : IComparable;
 
         /// <summary>
         /// 
@@ -273,7 +273,7 @@ namespace BlackHole.Interfaces
         /// <param name="otherKey"></param>
         /// <returns></returns>
         JoinsData<Dto, T, TOther> LeftJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-            where Dto : BlackHoleDto where TOther : BlackHoleEntity where Tkey : IComparable;
+            where Dto : BlackHoleGDto where TOther : BlackHoleEntityG where Tkey : IComparable;
 
         /// <summary>
         /// 
@@ -285,7 +285,7 @@ namespace BlackHole.Interfaces
         /// <param name="otherKey"></param>
         /// <returns></returns>
         JoinsData<Dto, T, TOther> RightJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-           where Dto : BlackHoleDto where TOther : BlackHoleEntity where Tkey : IComparable;
+           where Dto : BlackHoleGDto where TOther : BlackHoleEntityG where Tkey : IComparable;
     }
 }
 

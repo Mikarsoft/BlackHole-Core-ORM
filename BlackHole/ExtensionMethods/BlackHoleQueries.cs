@@ -36,9 +36,53 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key,otherkey,"right");
         }
 
+        public static JoinsData<Dto, Tsource, TOther> RightJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
+            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
+            where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
+        {
+            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
+            {
+                BaseTable = data.BaseTable,
+                OccupiedDtoProps = data.OccupiedDtoProps,
+                TablesToLetters = data.TablesToLetters,
+                Joins = data.Joins,
+                Letters = data.Letters,
+                WherePredicates = data.WherePredicates,
+                DynamicParams = data.DynamicParams,
+                HelperIndex = data.HelperIndex,
+                isMyShit = data.isMyShit,
+                ParamsCount = data.ParamsCount,
+                Ignore = data.Ignore
+            };
+
+            return newJoin.CreateJoin(key, otherkey, "right");
+        }
+
         public static JoinsData<Dto, Tsource, TOther> LeftJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
+        {
+            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
+            {
+                BaseTable = data.BaseTable,
+                OccupiedDtoProps = data.OccupiedDtoProps,
+                TablesToLetters = data.TablesToLetters,
+                Joins = data.Joins,
+                Letters = data.Letters,
+                WherePredicates = data.WherePredicates,
+                DynamicParams = data.DynamicParams,
+                HelperIndex = data.HelperIndex,
+                isMyShit = data.isMyShit,
+                ParamsCount = data.ParamsCount,
+                Ignore = data.Ignore
+            };
+
+            return newJoin.CreateJoin(key, otherkey, "left");
+        }
+
+        public static JoinsData<Dto, Tsource, TOther> LeftJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
+            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
+            where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
             {
@@ -80,9 +124,53 @@ namespace BlackHole.ExtensionMethods
             return newJoin.CreateJoin(key, otherkey, "outer");
         }
 
+        public static JoinsData<Dto, Tsource, TOther> OuterJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
+            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
+            where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
+        {
+            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
+            {
+                BaseTable = data.BaseTable,
+                OccupiedDtoProps = data.OccupiedDtoProps,
+                TablesToLetters = data.TablesToLetters,
+                Joins = data.Joins,
+                Letters = data.Letters,
+                WherePredicates = data.WherePredicates,
+                DynamicParams = data.DynamicParams,
+                HelperIndex = data.HelperIndex,
+                isMyShit = data.isMyShit,
+                ParamsCount = data.ParamsCount,
+                Ignore = data.Ignore
+            };
+
+            return newJoin.CreateJoin(key, otherkey, "outer");
+        }
+
         public static JoinsData<Dto, Tsource, TOther> InnerJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey) 
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
+        {
+            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
+            {
+                BaseTable = data.BaseTable,
+                OccupiedDtoProps = data.OccupiedDtoProps,
+                TablesToLetters = data.TablesToLetters,
+                Joins = data.Joins,
+                Letters = data.Letters,
+                WherePredicates = data.WherePredicates,
+                DynamicParams = data.DynamicParams,
+                HelperIndex = data.HelperIndex,
+                isMyShit = data.isMyShit,
+                ParamsCount = data.ParamsCount,
+                Ignore = data.Ignore,
+            };
+
+            return newJoin.CreateJoin(key, otherkey, "inner");
+        }
+
+        public static JoinsData<Dto, Tsource, TOther> InnerJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
+            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
+            where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
             {

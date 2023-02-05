@@ -1011,8 +1011,6 @@ namespace BlackHole.Data
         /// <exception cref="NotImplementedException"></exception>
         JoinsData<Dto, T, TOther> IBlackHoleProviderG<T>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            //Type propertyType = key.Body.Type;
-
             return CreateFirstJoin<TOther, Dto>(key, otherKey, "inner");
         }
 
