@@ -75,6 +75,6 @@ namespace BlackHole.Entities
         internal string? TableLetter { get; set; }
         internal string? TableProperty { get; set; } = string.Empty;
         internal Type? TablePropertyType { get; set; }
-        internal bool WithCast { get; set; }
+        internal int WithCast { get; set; }
     }
 }

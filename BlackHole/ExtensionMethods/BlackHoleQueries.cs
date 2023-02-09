@@ -401,8 +401,9 @@ namespace BlackHole.ExtensionMethods
             Type dtoPropType = castOnDto.Body.Type;
             MemberExpression? memberOther = castOnDto.Body as MemberExpression;
             string? propNameOther = memberOther?.Member.Name;
+            int allow = propertyType.AllowCast(dtoPropType);
 
-            if (propertyType.AllowCast(dtoPropType))
+            if (allow != 0)
             {
                 var oDp = data.OccupiedDtoProps.Where(x => x.PropName == propNameOther).First();
                 int index = data.OccupiedDtoProps.IndexOf(oDp);
@@ -410,7 +411,7 @@ namespace BlackHole.ExtensionMethods
                 data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.Where(x=>x.Table == typeof(TOther)).First().Letter;
                 data.OccupiedDtoProps[index].TableProperty = propName;
                 data.OccupiedDtoProps[index].TablePropertyType = propertyType;
-                data.OccupiedDtoProps[index].WithCast = true;
+                data.OccupiedDtoProps[index].WithCast = allow;
             }
 
             return data;
@@ -449,8 +450,8 @@ namespace BlackHole.ExtensionMethods
             Type dtoPropType = castOnDto.Body.Type;
             MemberExpression? memberOther = castOnDto.Body as MemberExpression;
             string? propNameOther = memberOther?.Member.Name;
-
-            if (propertyType.AllowCast(dtoPropType))
+            int allow = propertyType.AllowCast(dtoPropType);
+            if (allow != 0)
             {
                 var oDp = data.OccupiedDtoProps.Where(x => x.PropName == propNameOther).First();
                 int index = data.OccupiedDtoProps.IndexOf(oDp);
@@ -458,7 +459,7 @@ namespace BlackHole.ExtensionMethods
                 data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.Where(x => x.Table == typeof(Tsource)).First().Letter;
                 data.OccupiedDtoProps[index].TableProperty = propName;
                 data.OccupiedDtoProps[index].TablePropertyType = propertyType;
-                data.OccupiedDtoProps[index].WithCast = true;
+                data.OccupiedDtoProps[index].WithCast = allow;
             }
 
             return data;
@@ -786,13 +787,17 @@ namespace BlackHole.ExtensionMethods
 
             foreach(PropertyOccupation prop in usedProperties.Where(x => x.Occupied))
             {
-                if (prop.WithCast)
+                switch (prop.WithCast)
                 {
-                    sqlCommand += $" cast({prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SqlPropertyName(isMyShit)},";
-                }
-                else
-                {
-                    sqlCommand += $" {prop.TableLetter}.{prop.PropName.SqlPropertyName(isMyShit)},";
+                    case 1:
+                        sqlCommand += $" {prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropName.SqlPropertyName(isMyShit)},";
+                        break;
+                    case 2:
+                        sqlCommand += $" cast({prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SqlPropertyName(isMyShit)},";
+                        break;
+                    default:
+                        sqlCommand += $" {prop.TableLetter}.{prop.PropName.SqlPropertyName(isMyShit)},";
+                        break;
                 }
             }
 
@@ -975,9 +980,9 @@ namespace BlackHole.ExtensionMethods
             return result;
         }
 
-        private static bool AllowCast(this Type firstType , Type secondType)
+        private static int AllowCast(this Type firstType , Type secondType)
         {
-            bool allow = true;
+            int allow = 2;
             string typeTotype = firstType.Name + secondType.Name;
 
             if(firstType.Name != secondType.Name)
@@ -1017,9 +1022,13 @@ namespace BlackHole.ExtensionMethods
                     case "DateTimeString":
                         break;
                     default:
-                        allow = false;
+                        allow = 0;
                         break;
                 }
+            }
+            else
+            {
+                allow = 1;
             }
 
             return allow;

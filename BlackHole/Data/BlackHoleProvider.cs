@@ -889,7 +889,7 @@ namespace BlackHole.Data
                             TableLetter = paramA,
                             TableProperty = property.Name,
                             TablePropertyType = TpropType,
-                            WithCast = false
+                            WithCast = 0
                         };
                     }
                 }
@@ -908,7 +908,7 @@ namespace BlackHole.Data
                             TableLetter = paramB,
                             TableProperty = property.Name,
                             TablePropertyType = TOtherPropType,
-                            WithCast = false
+                            WithCast = 0
                         };
                     }
                 }
@@ -920,7 +920,7 @@ namespace BlackHole.Data
                         PropName = property.Name,
                         PropType = property.PropertyType,
                         Occupied = false,
-                        WithCast = false
+                        WithCast = 0
                     };
                 }
 
