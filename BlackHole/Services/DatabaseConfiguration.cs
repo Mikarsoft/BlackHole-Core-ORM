@@ -12,7 +12,7 @@ namespace BlackHole.Services
 
             switch (sqlType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     ScanMsSqlString(connectionString);
                     break;
                 case BHSqlTypes.MySql:
@@ -48,7 +48,7 @@ namespace BlackHole.Services
                 }
             }
 
-            DatabaseStatics.DatabaseType = BHSqlTypes.MsSql;
+            DatabaseStatics.DatabaseType = BHSqlTypes.MicrosoftSql;
             DatabaseStatics.ConnectionString = connectionString;
             DatabaseStatics.ServerConnection = serverConnection;
         }

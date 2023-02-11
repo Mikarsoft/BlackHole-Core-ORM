@@ -9,7 +9,9 @@ namespace BlackHole.Services
         List<Type> IBHNamespaceSelector.GetAllBHEntities(Assembly ass)
         {
             List<Type> types = new List<Type>();
-            types = ass.GetTypes().Where(t => t.BaseType == typeof(BlackHoleEntity) || t.BaseType== typeof(BlackHoleEntityG)).ToList();
+            types = ass.GetTypes().Where(t => (t.BaseType == typeof(BlackHoleEntity<int>)
+            || t.BaseType == typeof(BlackHoleEntity<Guid>)
+            || t.BaseType == typeof(BlackHoleEntity<string>))).ToList();
             return types;
         }
 
@@ -17,7 +19,9 @@ namespace BlackHole.Services
         {
             List<Type> types = new List<Type>();
             types = ass.GetTypes().Where(t => String.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
-            && (t.BaseType == typeof(BlackHoleEntity) || t.BaseType == typeof(BlackHoleEntityG))).ToList();
+            && (t.BaseType == typeof(BlackHoleEntity<int>)
+            || t.BaseType == typeof(BlackHoleEntity<Guid>)
+            || t.BaseType == typeof(BlackHoleEntity<string>))).ToList();
             return types;
         }
 
@@ -28,7 +32,9 @@ namespace BlackHole.Services
             foreach (string nameSpace in nameSpaces)
             {
                 types.AddRange(ass.GetTypes().Where(t => String.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
-                && (t.BaseType == typeof(BlackHoleEntity) || t.BaseType == typeof(BlackHoleEntityG))).ToList());
+                && (t.BaseType == typeof(BlackHoleEntity<int>)
+                || t.BaseType == typeof(BlackHoleEntity<Guid>)
+                || t.BaseType == typeof(BlackHoleEntity<string>))).ToList());
             }
             return types;
         }

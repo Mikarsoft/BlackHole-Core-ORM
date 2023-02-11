@@ -1,4 +1,5 @@
-﻿using BlackHole.Enums;
+﻿using BlackHole.Entities;
+using BlackHole.Enums;
 using BlackHole.Interfaces;
 using BlackHole.Statics;
 using Microsoft.Data.SqlClient;
@@ -22,7 +23,7 @@ namespace BlackHole.Data
 
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     _Sconnection = new SqlConnection(_connectionString);
                     break;
                 case BHSqlTypes.MySql:
@@ -50,7 +51,7 @@ namespace BlackHole.Data
 
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     _Sconnection = new SqlConnection(connectionString);
                     break;
                 case BHSqlTypes.MySql:
@@ -81,7 +82,7 @@ namespace BlackHole.Data
             string[] InsertOutputs = new string[2];
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     InsertOutputs[0] = $"output inserted.{columnName}";
                     break;
                 case BHSqlTypes.MySql:
@@ -133,7 +134,7 @@ namespace BlackHole.Data
 
                     switch (DatabaseStatics.DatabaseType)
                     {
-                        case BHSqlTypes.MsSql:
+                        case BHSqlTypes.MicrosoftSql:
                             _Sconnection = new SqlConnection(serverConnectionString);
                             break;
                         case BHSqlTypes.MySql:
@@ -187,7 +188,7 @@ namespace BlackHole.Data
         {
             bool transact = false;
 
-            if(DatabaseStatics.DatabaseType == BHSqlTypes.MsSql)
+            if(DatabaseStatics.DatabaseType == BHSqlTypes.MicrosoftSql)
             {
                 transact = true;
             }
@@ -206,12 +207,13 @@ namespace BlackHole.Data
         /// to create an Integer ,autoincrement Id column
         /// </summary>
         /// <returns></returns>
+        /// 
         string IBHDatabaseSelector.GetPrimaryKeyCommand()
         {
             string PrimaryKeyCommand = "";
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     PrimaryKeyCommand = @"""Id"" INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
                     break;
                 case BHSqlTypes.MySql:
@@ -227,6 +229,55 @@ namespace BlackHole.Data
             return PrimaryKeyCommand;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        string IBHDatabaseSelector.GetStringPrimaryKeyCommand()
+        {
+            string PrimaryKeyCommand = "";
+            switch (DatabaseStatics.DatabaseType)
+            {
+                case BHSqlTypes.MicrosoftSql:
+                    PrimaryKeyCommand = @"""Id"" NVARCHAR(50) PRIMARY KEY NOT NULL ,";
+                    break;
+                case BHSqlTypes.MySql:
+                    PrimaryKeyCommand = @"Id varchar(50) NOT NULL PRIMARY KEY ,";
+                    break;
+                case BHSqlTypes.Postgres:
+                    PrimaryKeyCommand = @"""Id"" varchar(50) NOT NULL PRIMARY KEY ,";
+                    break;
+                case BHSqlTypes.SqlLite:
+                    PrimaryKeyCommand = @"Id TEXT PRIMARY KEY ,";
+                    break;
+            }
+            return PrimaryKeyCommand;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        string IBHDatabaseSelector.GetDatePrimaryKeyCommand()
+        {
+            string PrimaryKeyCommand = "";
+            switch (DatabaseStatics.DatabaseType)
+            {
+                case BHSqlTypes.MicrosoftSql:
+                    PrimaryKeyCommand = @"""Id"" INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
+                    break;
+                case BHSqlTypes.MySql:
+                    PrimaryKeyCommand = @"Id TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) PRIMARY KEY ,";
+                    break;
+                case BHSqlTypes.Postgres:
+                    PrimaryKeyCommand = @"""Id"" timestamp(6) default current_timestamp(6) PRIMARY KEY ,";
+                    break;
+                case BHSqlTypes.SqlLite:
+                    PrimaryKeyCommand = @"Id timestamp(6) DEFAULT CURRENT_TIMESTAMP(6) ,";
+                    break;
+            }
+            return PrimaryKeyCommand;
+        }
 
         /// <summary>
         /// Based on the selected Sql Type, returns the required addition to the sql command,
@@ -238,7 +289,7 @@ namespace BlackHole.Data
             string PrimaryKeyCommand = "";
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     PrimaryKeyCommand = @"""Id"" UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,";
                     break;
                 case BHSqlTypes.MySql:
@@ -307,7 +358,7 @@ namespace BlackHole.Data
             int sqlTypeId = 0;
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     sqlTypeId = 0;
                     break;
                 case BHSqlTypes.MySql:
@@ -334,7 +385,7 @@ namespace BlackHole.Data
             string[] SqlDatatypes = new string[10];
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     SqlDatatypes = new[] {"nvarchar", "int", "bigint", "decimal", "float", "float", "uniqueidentifier", "bit", "datetime", "varbinary"};
                     break;
                 case BHSqlTypes.MySql:
@@ -383,6 +434,46 @@ namespace BlackHole.Data
         BHSqlTypes IBHDatabaseSelector.GetSqlType()
         {
             return DatabaseStatics.DatabaseType;
+        }
+
+        BHIdTypes IBHDatabaseSelector.GetIdType(Type type)
+        {
+            if(type == typeof(int))
+            {
+                return BHIdTypes.IntId;
+            }
+
+            if (type == typeof(Guid))
+            {
+                return BHIdTypes.GuidId;
+            }
+
+            return BHIdTypes.StringId; 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <returns></returns>
+        bool IBHDatabaseSelector.RequiredIdGeneration(BHIdTypes dataType)
+        {
+            if(dataType == BHIdTypes.IntId)
+            {
+                return false;
+            }
+
+            if(dataType == BHIdTypes.StringId)
+            {
+                return true;
+            }
+
+            if (DatabaseStatics.DatabaseType == BHSqlTypes.SqlLite || DatabaseStatics.DatabaseType == BHSqlTypes.MySql)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

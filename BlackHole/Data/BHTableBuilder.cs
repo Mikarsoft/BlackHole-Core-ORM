@@ -72,49 +72,6 @@ namespace BlackHole.Data
             }
         }
 
-        /// <summary>
-        /// Insert a List of all Entities you want to use and if there are Tables in the Database from a Previous version
-        /// that are not Included in your new List of Entities, it automatically drops those tables from the Database.
-        /// </summary>
-        /// <param name="UsedTables"></param>
-        void IBHTableBuilder.DropUnusedTables(List<Type> UsedTables)
-        {
-            List<string> tableNames = new List<string>();
-
-            foreach(Type table in UsedTables)
-            {
-                if(table.BaseType == typeof(BlackHoleEntity))
-                {
-                    tableNames.Add(table.Name);
-                }
-            }
-
-            List<string> existingTables = new List<string>();
-            string GetTablenames = $"SELECT table_name FROM information_schema.tables WHERE table_schema = '{_multiDatabaseSelector.GetDatabaseName()}';";
-
-            using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            {
-                existingTables = connection.Query<string>(GetTablenames).ToList();
-
-                List<string> TablesToDrop = existingTables.Except(tableNames).ToList();
-
-                foreach (string tableName in TablesToDrop)
-                {
-                    List<DataConstraints> constraints = new List<DataConstraints>();
-                    //constraints = CascadeRelations.dataConstrains.Where(x => x.PK_Table == tableName).ToList();
-                    
-                    foreach (DataConstraints constraint in constraints)
-                    {
-                        //string ColumnDropCommand = $"ALTER TABLE {MyShit(constraint.FK_Table)} DROP COLUMN {MyShit(constraint.FK_Column)} ;";
-                        //connection.ExecuteAsync(ColumnDropCommand);
-                    }
-
-                    string TableDropCommand = $"DROP TABLE {MyShit(tableName)} ;";
-                    connection.ExecuteAsync(TableDropCommand);  
-                }
-            }
-        }
-
         bool CreateTable(Type TableType)
         {
             string Tablename = TableType.Name;
@@ -159,13 +116,19 @@ namespace BlackHole.Data
                             }
                             else
                             {
-                                if(TableType.BaseType == typeof(BlackHoleEntity<>))
+                                if(TableType.BaseType == typeof(BlackHoleEntity<int>))
                                 {
                                     creationCommand += _multiDatabaseSelector.GetPrimaryKeyCommand();
                                 }
-                                else
+
+                                if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
                                 {
                                     creationCommand += _multiDatabaseSelector.GetGuidPrimaryKeyCommand();
+                                }
+
+                                if (TableType.BaseType == typeof(BlackHoleEntity<string>))
+                                {
+                                    creationCommand += _multiDatabaseSelector.GetStringPrimaryKeyCommand();
                                 }
                             }
                         }

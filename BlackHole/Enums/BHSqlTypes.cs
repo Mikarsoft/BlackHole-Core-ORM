@@ -6,7 +6,7 @@ namespace BlackHole.Enums
     /// </summary>
     public enum BHSqlTypes
     {
-        MsSql,
+        MicrosoftSql,
         MySql,
         Postgres,
         SqlLite

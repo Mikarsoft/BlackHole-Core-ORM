@@ -38,6 +38,15 @@ namespace BlackHole.Interfaces
         bool GetMyShit();
 
         string[] IdOutput(string tableName, string columnName, bool g);
+
         bool IsMyShittyDb();
+
+        BHIdTypes GetIdType(Type type);
+
+        string GetDatePrimaryKeyCommand();
+
+        string GetStringPrimaryKeyCommand();
+
+        bool RequiredIdGeneration(BHIdTypes dataType);
     }
 }

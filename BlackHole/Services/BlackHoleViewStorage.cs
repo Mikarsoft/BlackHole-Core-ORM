@@ -32,15 +32,12 @@ namespace BlackHole.Services
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        public IList<Dto> ExecuteGView<Dto>() where Dto : BlackHoleGDto
+        public IList<Dto> ExecuteGView<Dto>() where Dto : BlackHoleDto
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             IList<Dto> result = new List<Dto>();
 
-            if (existingJoin != null)
-            {
-                result = existingJoin.ExecuteGQuery<Dto>();
-            }
+
             return result;
         }
     }

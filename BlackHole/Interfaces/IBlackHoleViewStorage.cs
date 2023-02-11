@@ -20,6 +20,6 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        IList<Dto> ExecuteGView<Dto>() where Dto : BlackHoleGDto;
+        IList<Dto> ExecuteGView<Dto>() where Dto : BlackHoleDto;
     }
 }

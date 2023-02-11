@@ -9,6 +9,8 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace BlackHole.Interfaces
 {
@@ -594,7 +596,7 @@ namespace BlackHole.Interfaces
 
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     SqlDatatypes = new[] { "nvarchar(500)", "int", "bigint", "decimal", "float" };
                     break;
                 case BHSqlTypes.MySql:
@@ -638,7 +640,7 @@ namespace BlackHole.Interfaces
 
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.MsSql:
+                case BHSqlTypes.MicrosoftSql:
                     _Sconnection = new SqlConnection(_connectionString);
                     break;
                 case BHSqlTypes.MySql:
@@ -1067,6 +1069,22 @@ namespace BlackHole.Interfaces
             }
 
             return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value };
+        }
+
+        public static string GenerateSHA1(this string text)
+        {
+            var sh = SHA1.Create();
+            var hash = new StringBuilder();
+            byte[] bytes = Encoding.UTF8.GetBytes(text);
+            byte[] b = sh.ComputeHash(bytes);
+
+            foreach (byte a in b)
+            {
+                var h = a.ToString("x2");
+                hash.Append(h);
+            }
+
+            return hash.ToString();
         }
     }
 }
