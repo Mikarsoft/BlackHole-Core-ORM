@@ -1,6 +1,6 @@
 ﻿using BlackHole.Enums;
 
-namespace BlackHole.FunctionalObjects
+namespace BlackHole.Configuration
 {
     /// <summary>
     /// A BlackHole Configuration with some extra options.

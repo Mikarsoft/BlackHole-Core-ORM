@@ -3,11 +3,7 @@ using System.Linq.Expressions;
 
 namespace BlackHole.Interfaces
 {
-    /// <summary>
-    /// Makes all the communication between the Datbase Table and The Specified Entity
-    /// </summary>
-    /// <typeparam name="T">Black Hole Entity with Integer Id</typeparam>
-    public interface IBlackHoleProvider<T> where T : BlackHoleEntity
+    public interface IBHDataProvider<T,G> where T : BlackHoleEntity<G>
     {
         /// <summary>
         /// Gets all the entries of the specific Table
@@ -24,7 +20,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        IList<Dto> GetAllEntries<Dto>() where Dto : BlackHoleDto;
+        IList<Dto> GetAllEntries<Dto>() where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// In case you are using the 'UseActivator' Attribute on the Entity
@@ -40,7 +36,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="Id">Specified Id</param>
         /// <returns>Entity</returns>
-        T? GetEntryById(int Id);
+        T? GetEntryById(G Id);
 
         /// <summary>
         /// Selects only the columns of the specified Dto that exist on the Table
@@ -49,7 +45,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="Id">Specified Id</param>
         /// <returns>Data Transfer Object</returns>
-        Dto? GetEntryById<Dto>(int Id) where Dto : BlackHoleDto;
+        Dto? GetEntryById<Dto>(G Id) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// Generates an Sql command using the Lambda Expression, that filters the
@@ -57,7 +53,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Entity</returns>
-        T? GetEntryWhere(Expression<Func<T,bool>> predicate);
+        T? GetEntryWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
         /// Generates an Sql command using the Lambda Expression and the Dto properties that match
@@ -67,7 +63,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Data Transfer Object</returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
+        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// Generates an Sql command using the Lambda Expression, that filters the
@@ -75,7 +71,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>IList of Entities</returns>
-        IList<T> GetEntriesWhere(Expression<Func<T,bool>> predicate);
+        IList<T> GetEntriesWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
         /// Generates an Sql command using the Lambda Expression, that filters the
@@ -85,7 +81,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>IList of DTOs</returns>
-        IList<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
+        IList<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// Inserts the Entity into the table, generates a new Id 
@@ -93,7 +89,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <returns>Id of the Entity</returns>
-        int InsertEntry(T entry);
+        G? InsertEntry(T entry);
 
         /// <summary>
         /// Inserts a list of Entities into the table, generates a new Id of each one
@@ -101,7 +97,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="entries">Entities</param>
         /// <returns>Ids of the Entities</returns>
-        List<int> InsertEntries(List<T> entries);
+        List<G?> InsertEntries(List<T> entries);
 
         /// <summary>
         /// Asyncronous. Gets all the entries of the specific Table
@@ -118,7 +114,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        Task<IList<Dto>> GetAllEntriesAsync<Dto>() where Dto : BlackHoleDto;
+        Task<IList<Dto>> GetAllEntriesAsync<Dto>() where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// Asyncronous. In case you are using the 'UseActivator' Attribute on the Entity
@@ -134,7 +130,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="Id">Specified Id</param>
         /// <returns>Entity</returns>
-        Task<T?> GetEntryByIdAsync(int Id);
+        Task<T?> GetEntryByIdAsync(G Id);
 
         /// <summary>
         /// Asyncronous. Selects only the columns of the specified Dto that exist on the Table
@@ -143,7 +139,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="Id">Specified Id</param>
         /// <returns>Data Transfer Object</returns>
-        Task<Dto?> GetEntryByIdAsync<Dto>(int Id) where Dto : BlackHoleDto;
+        Task<Dto?> GetEntryByIdAsync<Dto>(G Id) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
@@ -161,7 +157,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Data Transfer Object</returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
+        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
@@ -179,7 +175,7 @@ namespace BlackHole.Interfaces
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>IList of DTOs</returns>
-        Task<IList<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto;
+        Task<IList<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// Asyncronous. Inserts the Entity into the table, generates a new Id 
@@ -187,7 +183,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <returns>Id of the Entity</returns>
-        Task<int> InsertEntryAsync(T entry);
+        Task<G?> InsertEntryAsync(T entry);
 
         /// <summary>
         /// Asyncronous. Inserts a list of Entities into the table, generates a new Id of each one
@@ -195,7 +191,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="entries">List of Entities</param>
         /// <returns>Ids of the Entities</returns>
-        Task<List<int>> InsertEntriesAsync(List<T> entries);
+        Task<List<G?>> InsertEntriesAsync(List<T> entries);
 
         /// <summary>
         /// Asyncronous. Finds the entry in the table that has
@@ -278,7 +274,7 @@ namespace BlackHole.Interfaces
         /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
         /// </summary>
         /// <param name="id">Entry's Id</param>
-        Task DeleteEntryById(int id);
+        Task DeleteEntryById(G id);
 
         /// <summary>
         /// Asyncronous. If you are using a 'UseActivator' Attribute on this Entity
@@ -286,7 +282,7 @@ namespace BlackHole.Interfaces
         /// Id as the input and permanently deletes it from the database.
         /// </summary>
         /// <param name="id">Inactive Entry's Id</param>
-        Task DeleteInactiveEntryById(int id);
+        Task DeleteInactiveEntryById(G id);
 
         /// <summary>
         /// Asyncronous. Finds and deletes the entries of the database table
@@ -306,7 +302,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Id of the Entry</returns>
-        Task<int> GetIdWhereAsync(Expression<Func<T, bool>> predicate);
+        Task<G?> GetIdWhereAsync(Expression<Func<T, bool>> predicate);
 
         /// <summary>
         /// Asyncronous. Finds the active entries of the database table that
@@ -314,7 +310,7 @@ namespace BlackHole.Interfaces
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>List of Entry Ids</returns>
-        Task<List<int>> GetIdsWhereAsync(Expression<Func<T, bool>> predicate);
+        Task<List<G>> GetIdsWhereAsync(Expression<Func<T, bool>> predicate);
 
         /// <summary>
         /// Starts a Joins sequence, with the first one as 'Inner Join' that can be continued with 

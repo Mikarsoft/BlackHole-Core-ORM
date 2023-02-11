@@ -159,7 +159,7 @@ namespace BlackHole.Data
                             }
                             else
                             {
-                                if(TableType.BaseType == typeof(BlackHoleEntity))
+                                if(TableType.BaseType == typeof(BlackHoleEntity<>))
                                 {
                                     creationCommand += _multiDatabaseSelector.GetPrimaryKeyCommand();
                                 }

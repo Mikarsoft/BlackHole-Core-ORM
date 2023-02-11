@@ -1,6 +1,6 @@
 ﻿using BlackHole.Enums;
 
-namespace BlackHole.FunctionalObjects
+namespace BlackHole.Configuration
 {
     /// <summary>
     /// Simple Configuration that is using all Black Hole Entities

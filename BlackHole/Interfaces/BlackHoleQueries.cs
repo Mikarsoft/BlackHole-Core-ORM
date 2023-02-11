@@ -10,7 +10,7 @@ using Microsoft.Data.SqlClient;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace BlackHole.ExtensionMethods
+namespace BlackHole.Interfaces
 {
     /// <summary>
     /// Queries for the Table Joins Feature
@@ -34,42 +34,6 @@ namespace BlackHole.ExtensionMethods
         public static JoinsData<Dto, Tsource, TOther> RightJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
-        {
-            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
-            {
-                BaseTable = data.BaseTable,
-                OccupiedDtoProps = data.OccupiedDtoProps,
-                TablesToLetters = data.TablesToLetters,
-                Joins = data.Joins,
-                Letters = data.Letters,
-                WherePredicates = data.WherePredicates,
-                DynamicParams = data.DynamicParams,
-                HelperIndex = data.HelperIndex,
-                isMyShit = data.isMyShit,
-                ParamsCount = data.ParamsCount,
-                Ignore = data.Ignore
-            };
-
-            return newJoin.CreateJoin(key,otherkey,"right");
-        }
-
-        /// <summary>
-        /// Performs a Right Join between the First and the Second specified Entities. 
-        /// !!Important!! => For safety reasons, The first Entity must have been used 
-        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
-        /// Execution and you might get some null values on the exported DTOs.
-        /// </summary>
-        /// <typeparam name="Tsource">First Entity</typeparam>
-        /// <typeparam name="TOther">Second Entity</typeparam>
-        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
-        /// <typeparam name="Dto">Class of the Output</typeparam>
-        /// <param name="data">Previous Joins Data</param>
-        /// <param name="key">First Table Joint Column</param>
-        /// <param name="otherkey">Second Table Joint Column</param>
-        /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto, Tsource, TOther> RightJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
             {
@@ -126,42 +90,6 @@ namespace BlackHole.ExtensionMethods
         }
 
         /// <summary>
-        /// Performs a Left Join between the First and the Second specified Entities. 
-        /// !!Important!! => For safety reasons, The first Entity must have been used 
-        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
-        /// Execution and you might get some null values on the exported DTOs.
-        /// </summary>
-        /// <typeparam name="Tsource">First Entity</typeparam>
-        /// <typeparam name="TOther">Second Entity</typeparam>
-        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
-        /// <typeparam name="Dto">Class of the Output</typeparam>
-        /// <param name="data">Previous Joins Data</param>
-        /// <param name="key">First Table Joint Column</param>
-        /// <param name="otherkey">Second Table Joint Column</param>
-        /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto, Tsource, TOther> LeftJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
-        {
-            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
-            {
-                BaseTable = data.BaseTable,
-                OccupiedDtoProps = data.OccupiedDtoProps,
-                TablesToLetters = data.TablesToLetters,
-                Joins = data.Joins,
-                Letters = data.Letters,
-                WherePredicates = data.WherePredicates,
-                DynamicParams = data.DynamicParams,
-                HelperIndex = data.HelperIndex,
-                isMyShit = data.isMyShit,
-                ParamsCount = data.ParamsCount,
-                Ignore = data.Ignore
-            };
-
-            return newJoin.CreateJoin(key, otherkey, "left");
-        }
-
-        /// <summary>
         /// Performs an Outer Join between the First and the Second specified Entities. 
         /// !!Important!! => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
@@ -198,42 +126,6 @@ namespace BlackHole.ExtensionMethods
         }
 
         /// <summary>
-        /// Performs an Outer Join between the First and the Second specified Entities. 
-        /// !!Important!! => For safety reasons, The first Entity must have been used 
-        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
-        /// Execution and you might get some null values on the exported DTOs.
-        /// </summary>
-        /// <typeparam name="Tsource">First Entity</typeparam>
-        /// <typeparam name="TOther">Second Entity</typeparam>
-        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
-        /// <typeparam name="Dto">Class of the Output</typeparam>
-        /// <param name="data">Previous Joins Data</param>
-        /// <param name="key">First Table Joint Column</param>
-        /// <param name="otherkey">Second Table Joint Column</param>
-        /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto, Tsource, TOther> OuterJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
-        {
-            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
-            {
-                BaseTable = data.BaseTable,
-                OccupiedDtoProps = data.OccupiedDtoProps,
-                TablesToLetters = data.TablesToLetters,
-                Joins = data.Joins,
-                Letters = data.Letters,
-                WherePredicates = data.WherePredicates,
-                DynamicParams = data.DynamicParams,
-                HelperIndex = data.HelperIndex,
-                isMyShit = data.isMyShit,
-                ParamsCount = data.ParamsCount,
-                Ignore = data.Ignore
-            };
-
-            return newJoin.CreateJoin(key, otherkey, "outer");
-        }
-
-        /// <summary>
         /// Performs an Inner Join between the First and the Second specified Entities. 
         /// !!Important!! => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
@@ -248,44 +140,8 @@ namespace BlackHole.ExtensionMethods
         /// <param name="otherkey">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> InnerJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey) 
-            where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
-        {
-            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
-            {
-                BaseTable = data.BaseTable,
-                OccupiedDtoProps = data.OccupiedDtoProps,
-                TablesToLetters = data.TablesToLetters,
-                Joins = data.Joins,
-                Letters = data.Letters,
-                WherePredicates = data.WherePredicates,
-                DynamicParams = data.DynamicParams,
-                HelperIndex = data.HelperIndex,
-                isMyShit = data.isMyShit,
-                ParamsCount = data.ParamsCount,
-                Ignore = data.Ignore,
-            };
-
-            return newJoin.CreateJoin(key, otherkey, "inner");
-        }
-
-        /// <summary>
-        /// Performs a Inner Join between the First and the Second specified Entities. 
-        /// !!Important!! => For safety reasons, The first Entity must have been used 
-        /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
-        /// Execution and you might get some null values on the exported DTOs.
-        /// </summary>
-        /// <typeparam name="Tsource">First Entity</typeparam>
-        /// <typeparam name="TOther">Second Entity</typeparam>
-        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
-        /// <typeparam name="Dto">Class of the Output</typeparam>
-        /// <param name="data">Previous Joins Data</param>
-        /// <param name="key">First Table Joint Column</param>
-        /// <param name="otherkey">Second Table Joint Column</param>
-        /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto, Tsource, TOther> InnerJoinG<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : BlackHoleEntityG where Tsource : BlackHoleEntityG where Tkey : IComparable
+            where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable where Dto:BlackHoleDto
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
             {
@@ -304,7 +160,6 @@ namespace BlackHole.ExtensionMethods
 
             return newJoin.CreateJoin(key, otherkey, "inner");
         }
-
 
         /// <summary>
         /// Uses Additional columns to the Join
@@ -317,7 +172,7 @@ namespace BlackHole.ExtensionMethods
         /// <param name="key">First Table Joint Column</param>
         /// <param name="otherkey">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto, Tsource, TOther> And<Dto,Tsource, TOther, Tkey>(this JoinsData<Dto, Tsource, TOther> data,
+        public static JoinsData<Dto, Tsource, TOther> And<Dto, Tsource, TOther, Tkey>(this JoinsData<Dto, Tsource, TOther> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey) where Tkey : IComparable
         {
             if (data.Ignore)
@@ -386,8 +241,8 @@ namespace BlackHole.ExtensionMethods
         /// <param name="predicate">First Table Joint Column</param>
         /// <param name="castOnDto">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto, Tsource, TOther> CastColumnOfSecondAs<Dto, Tsource, TOther, Tkey , TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
-            Expression<Func<TOther, Tkey>> predicate, Expression<Func<Dto,TotherKey>> castOnDto) where Tkey : IComparable where TotherKey : IComparable
+        public static JoinsData<Dto, Tsource, TOther> CastColumnOfSecondAs<Dto, Tsource, TOther, Tkey, TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
+            Expression<Func<TOther, Tkey>> predicate, Expression<Func<Dto, TotherKey>> castOnDto) where Tkey : IComparable where TotherKey : IComparable
         {
             if (data.Ignore)
             {
@@ -408,7 +263,7 @@ namespace BlackHole.ExtensionMethods
                 var oDp = data.OccupiedDtoProps.Where(x => x.PropName == propNameOther).First();
                 int index = data.OccupiedDtoProps.IndexOf(oDp);
                 data.OccupiedDtoProps[index].Occupied = true;
-                data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.Where(x=>x.Table == typeof(TOther)).First().Letter;
+                data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.Where(x => x.Table == typeof(TOther)).First().Letter;
                 data.OccupiedDtoProps[index].TableProperty = propName;
                 data.OccupiedDtoProps[index].TablePropertyType = propertyType;
                 data.OccupiedDtoProps[index].WithCast = allow;
@@ -435,8 +290,8 @@ namespace BlackHole.ExtensionMethods
         /// <param name="predicate">First Table Joint Column</param>
         /// <param name="castOnDto">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto, Tsource, TOther> CastColumnOfFirstAs<Dto, Tsource, TOther, Tkey ,TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
-            Expression<Func<Tsource, Tkey>> predicate, Expression<Func<Dto,TotherKey>> castOnDto) where Tkey : IComparable where TotherKey : IComparable
+        public static JoinsData<Dto, Tsource, TOther> CastColumnOfFirstAs<Dto, Tsource, TOther, Tkey, TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
+            Expression<Func<Tsource, Tkey>> predicate, Expression<Func<Dto, TotherKey>> castOnDto) where Tkey : IComparable where TotherKey : IComparable
         {
             if (data.Ignore)
             {
@@ -477,8 +332,8 @@ namespace BlackHole.ExtensionMethods
         /// <param name="data">Previous Joins Data</param>
         /// <param name="predicate">First Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto, Tsource, TOther> WhereFirst<Dto,Tsource,TOther>(this JoinsData<Dto,Tsource,TOther> data,
-            Expression<Func<Tsource,bool>> predicate)
+        public static JoinsData<Dto, Tsource, TOther> WhereFirst<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data,
+            Expression<Func<Tsource, bool>> predicate)
         {
             if (data.Ignore)
             {
@@ -486,7 +341,7 @@ namespace BlackHole.ExtensionMethods
             }
 
             string? letter = data.TablesToLetters.Where(x => x.Table == typeof(Tsource)).First().Letter;
-            ColumnsAndParameters colsAndParams = predicate.Body.SplitMembersExtension(data.isMyShit, letter, data.DynamicParams,data.ParamsCount);
+            ColumnsAndParameters colsAndParams = predicate.Body.SplitMembersExtension(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
             data.DynamicParams = colsAndParams.Parameters;
             data.ParamsCount = colsAndParams.Count;
 
@@ -514,7 +369,7 @@ namespace BlackHole.ExtensionMethods
         /// <param name="data">Previous Joins Data</param>
         /// <param name="predicate">First Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
-        public static JoinsData<Dto,Tsource, TOther> WhereSecond<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data,
+        public static JoinsData<Dto, Tsource, TOther> WhereSecond<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data,
             Expression<Func<TOther, bool>> predicate)
         {
             if (data.Ignore)
@@ -548,7 +403,7 @@ namespace BlackHole.ExtensionMethods
         /// <typeparam name="TOther"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static JoinsData<Dto> Then<Dto,Tsource,TOther>(this JoinsData<Dto,Tsource,TOther> data)
+        public static JoinsData<Dto> Then<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data)
         {
             return new JoinsData<Dto>
             {
@@ -556,7 +411,7 @@ namespace BlackHole.ExtensionMethods
                 OccupiedDtoProps = data.OccupiedDtoProps,
                 TablesToLetters = data.TablesToLetters,
                 Joins = data.Joins,
-                Letters= data.Letters,
+                Letters = data.Letters,
                 WherePredicates = data.WherePredicates,
                 DynamicParams = data.DynamicParams,
                 HelperIndex = data.HelperIndex,
@@ -580,49 +435,7 @@ namespace BlackHole.ExtensionMethods
         /// <typeparam name="Dto"></typeparam>
         /// <param name="data"></param>
         /// <returns>The index of this Joins Data in the Stored Views List</returns>
-        public static int StoreAsView<Dto>(this JoinsData<Dto> data) where Dto:BlackHoleDto
-        {
-            JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
-
-            if(existingJoin != null)
-            {
-                BlackHoleViews.Stored.Remove(existingJoin);
-            }
-
-            BlackHoleViews.Stored.Add(new JoinsData
-            {
-                DtoType = typeof(Dto),
-                BaseTable = data.BaseTable,
-                OccupiedDtoProps = data.OccupiedDtoProps,
-                TablesToLetters = data.TablesToLetters,
-                Joins = data.Joins,
-                Letters = data.Letters,
-                WherePredicates = data.WherePredicates,
-                DynamicParams = data.DynamicParams,
-                HelperIndex = data.HelperIndex,
-                isMyShit = data.isMyShit,
-                ParamsCount = data.ParamsCount,
-                Ignore = false
-            });
-
-            return BlackHoleViews.Stored.Count;
-        }
-
-        /// <summary>
-        /// Stores the Joins Data with the DTO Class as Identifier
-        /// and then you can execute them as many times as you want
-        /// using the 'IBlackHoleViewStorage' Interface.
-        /// With this method, the program doesn't have to calculate the
-        /// Joins Data multiple times and it executes the Joins faster.
-        /// This method is recommended if the parameters in the current
-        /// Joins Data are not depending on the user's inputs.
-        /// Run your Joins Once in the StartUp of your program and store them
-        /// as Views.
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <returns>The index of this Joins Data in the Stored Views List</returns>
-        public static int StoreAsGView<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleGDto
+        public static int StoreAsView<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleDto
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
 
@@ -650,7 +463,6 @@ namespace BlackHole.ExtensionMethods
             return BlackHoleViews.Stored.Count;
         }
 
-
         /// <summary>
         /// Executes the Joins Data from The View Storage
         /// </summary>
@@ -658,34 +470,6 @@ namespace BlackHole.ExtensionMethods
         /// <param name="data">Joins Data</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         internal static IList<Dto> ExecuteQuery<Dto>(this JoinsData data) where Dto : BlackHoleDto
-        {
-            IList<Dto> joinResult = new List<Dto>();
-
-            if(data.DtoType == typeof(Dto))
-            {
-                try
-                {
-                    using (IDbConnection connection = DatabaseStatics.ConnectionString.GetConnectionExtension())
-                    {
-                        TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                        string command = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                        joinResult = connection.Query<Dto>(command, data.DynamicParams).ToList();
-                    }
-                }
-                catch
-                {}
-            }
-
-            return joinResult;
-        }
-
-        /// <summary>
-        /// Executes the Joins Data from The View Storage
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="data">Joins Data</param>
-        /// <returns>The Entries of the Joins mapped into DTO</returns>
-        internal static IList<Dto> ExecuteGQuery<Dto>(this JoinsData data) where Dto : BlackHoleGDto
         {
             IList<Dto> joinResult = new List<Dto>();
 
@@ -713,7 +497,7 @@ namespace BlackHole.ExtensionMethods
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        public static IList<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data) where Dto : class
+        public static IList<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleDto
         {
             IList<Dto> joinResult = new List<Dto>();
 
@@ -727,7 +511,7 @@ namespace BlackHole.ExtensionMethods
                 }
             }
             catch
-            {}
+            { }
 
             return joinResult;
         }
@@ -738,7 +522,7 @@ namespace BlackHole.ExtensionMethods
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        public static async Task<IList<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data) where Dto : class
+        public static async Task<IList<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleDto
         {
             IList<Dto> joinResult = new List<Dto>();
             try
@@ -763,14 +547,14 @@ namespace BlackHole.ExtensionMethods
             string inactiveColumn = "Inactive";
             string anD = "and";
 
-            if(whereCommand == string.Empty)
+            if (whereCommand == string.Empty)
             {
                 anD = "where";
             }
 
-            foreach(TableLetters table in involvedTables)
+            foreach (TableLetters table in involvedTables)
             {
-                if(command != string.Empty)
+                if (command != string.Empty)
                 {
                     anD = "and";
                 }
@@ -785,7 +569,7 @@ namespace BlackHole.ExtensionMethods
         {
             string sqlCommand = "select ";
 
-            foreach(PropertyOccupation prop in usedProperties.Where(x => x.Occupied))
+            foreach (PropertyOccupation prop in usedProperties.Where(x => x.Occupied))
             {
                 switch (prop.WithCast)
                 {
@@ -811,16 +595,16 @@ namespace BlackHole.ExtensionMethods
             switch (DatabaseStatics.DatabaseType)
             {
                 case BHSqlTypes.MsSql:
-                    SqlDatatypes = new[] { "nvarchar(500)", "int", "bigint", "decimal","float"};
+                    SqlDatatypes = new[] { "nvarchar(500)", "int", "bigint", "decimal", "float" };
                     break;
                 case BHSqlTypes.MySql:
-                    SqlDatatypes = new[] { "char", "int", "bigint", "dec","double"};
+                    SqlDatatypes = new[] { "char", "int", "bigint", "dec", "double" };
                     break;
                 case BHSqlTypes.Postgres:
-                    SqlDatatypes = new[] { "varchar(500)", "integer", "bigint", "numeric(10,5)", "numeric"};
+                    SqlDatatypes = new[] { "varchar(500)", "integer", "bigint", "numeric(10,5)", "numeric" };
                     break;
                 case BHSqlTypes.SqlLite:
-                    SqlDatatypes = new[] { "varchar(500)", "integer", "bigint", "decimal(10,5)","numeric"};
+                    SqlDatatypes = new[] { "varchar(500)", "integer", "bigint", "decimal(10,5)", "numeric" };
                     break;
             }
 
@@ -840,7 +624,8 @@ namespace BlackHole.ExtensionMethods
                 case "Double":
                     result = SqlDatatypes[4];
                     break;
-                default: result = SqlDatatypes[0];
+                default:
+                    result = SqlDatatypes[0];
                     break;
             }
 
@@ -870,13 +655,13 @@ namespace BlackHole.ExtensionMethods
             return _Sconnection;
         }
 
-        private static JoinsData<Dto, Tsource, TOther> CreateJoin<Dto,Tsource, TOther>(this JoinsData<Dto,Tsource,TOther> data,LambdaExpression key, LambdaExpression otherKey, string joinType)
+        private static JoinsData<Dto, Tsource, TOther> CreateJoin<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data, LambdaExpression key, LambdaExpression otherKey, string joinType)
         {
             string? parameter = string.Empty;
 
             TableLetters? firstType = data.TablesToLetters.Where(x => x.Table == typeof(Tsource)).FirstOrDefault();
 
-            if(firstType == null)
+            if (firstType == null)
             {
                 data.Ignore = true;
             }
@@ -898,7 +683,7 @@ namespace BlackHole.ExtensionMethods
 
             TableLetters? secondTable = data.TablesToLetters.Where(x => x.Table == typeof(TOther)).FirstOrDefault();
 
-            if(secondTable == null)
+            if (secondTable == null)
             {
                 bool letterExists = data.Letters.Contains(parameterOther);
 
@@ -921,7 +706,7 @@ namespace BlackHole.ExtensionMethods
             return data;
         }
 
-        private static List<PropertyOccupation> BindPropertiesToDtoExtension(this List<PropertyOccupation> props,Type firstTable, Type secondTable, string? paramA, string? paramB)
+        private static List<PropertyOccupation> BindPropertiesToDtoExtension(this List<PropertyOccupation> props, Type firstTable, Type secondTable, string? paramA, string? paramB)
         {
             List<string> PropNames = new List<string>();
             List<string> OtherPropNames = new List<string>();
@@ -980,12 +765,12 @@ namespace BlackHole.ExtensionMethods
             return result;
         }
 
-        private static int AllowCast(this Type firstType , Type secondType)
+        private static int AllowCast(this Type firstType, Type secondType)
         {
             int allow = 2;
             string typeTotype = firstType.Name + secondType.Name;
 
-            if(firstType.Name != secondType.Name)
+            if (firstType.Name != secondType.Name)
             {
                 switch (typeTotype)
                 {
@@ -1228,7 +1013,7 @@ namespace BlackHole.ExtensionMethods
             return new ColumnsAndParameters { Columns = result, Parameters = parameters, Count = index };
         }
 
-        private static ColumnAndParameter TranslateExpressionExtension( this ExpressionsData expression, int index, bool isMyShit, string? letter)
+        private static ColumnAndParameter TranslateExpressionExtension(this ExpressionsData expression, int index, bool isMyShit, string? letter)
         {
             string? column = string.Empty;
             string? parameter = string.Empty;
