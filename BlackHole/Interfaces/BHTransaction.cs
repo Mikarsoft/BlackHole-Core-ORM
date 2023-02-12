@@ -38,6 +38,12 @@ namespace BlackHole.Interfaces
             return result;
         }
 
+        public bool DoNotCommit()
+        {
+            commited = true;
+            return commited;
+        }
+
         public bool RollBack()
         {
             commited = true;
