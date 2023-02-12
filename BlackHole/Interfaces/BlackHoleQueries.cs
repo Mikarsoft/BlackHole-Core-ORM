@@ -11,6 +11,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using BlackHole.Services;
 
 namespace BlackHole.Interfaces
 {
@@ -486,8 +487,11 @@ namespace BlackHole.Interfaces
                         joinResult = connection.Query<Dto>(command, data.DynamicParams).ToList();
                     }
                 }
-                catch
-                { }
+                catch(Exception ex)
+                {
+                    LoggerService logs = new LoggerService();
+                    logs.CreateErrorLogs("ViewExecution_",ex.Message,ex.ToString());
+                }
             }
 
             return joinResult;
@@ -507,13 +511,17 @@ namespace BlackHole.Interfaces
             {
                 using (IDbConnection connection = DatabaseStatics.ConnectionString.GetConnectionExtension())
                 {
+                    data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                     TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                     string command = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
                     joinResult = connection.Query<Dto>(command, data.DynamicParams).ToList();
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                LoggerService logs = new LoggerService();
+                logs.CreateErrorLogs("JoinExecution_", ex.Message, ex.ToString());
+            }
 
             return joinResult;
         }
@@ -538,7 +546,11 @@ namespace BlackHole.Interfaces
                     joinResult = join.ToList();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LoggerService logs = new LoggerService();
+                logs.CreateErrorLogs("JoinExecution_", ex.Message, ex.ToString());
+            }
 
             return joinResult;
         }

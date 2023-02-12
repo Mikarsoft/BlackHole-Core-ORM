@@ -121,6 +121,31 @@ namespace BlackHole.Data
             return entries;
         }
 
+        IList<T> IBHDataProvider<T, G>.GetAllEntries(BHTransaction bhTransaction)
+        {
+            List<T> entries = new List<T>();
+
+            try
+            {             
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0";
+                }
+
+                var entr = bhTransaction.connection.Query<T>(SubCommand, bhTransaction._transaction);
+                entries = entr.ToList();
+                
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entries;
+        }
+
         IList<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>() where Dto : class
         {
             List<Dto> entries = new List<Dto>();
@@ -141,6 +166,32 @@ namespace BlackHole.Data
                     var entr = connection.Query<Dto>(SubCommand);
                     entries = entr.ToList();
                 }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entries;
+        }
+
+        IList<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(BHTransaction bhTransaction) where Dto : class
+        {
+            List<Dto> entries = new List<Dto>();
+
+            try
+            {  
+                string colsAndParams = CompareDtoToEntity(typeof(Dto));
+                string SubCommand = $"select {colsAndParams} from {ThisTable}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0";
+                }
+
+                var entr = bhTransaction.connection.Query<Dto>(SubCommand,bhTransaction._transaction);
+                entries = entr.ToList();
+                
             }
             catch (Exception ex)
             {
@@ -174,6 +225,27 @@ namespace BlackHole.Data
             return entries;
         }
 
+        IList<T> IBHDataProvider<T, G>.GetAllInactiveEntries(BHTransaction bhTransaction)
+        {
+            IList<T> entries = new List<T>();
+
+            if (withActivator)
+            {
+                try
+                {
+                    string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=1";
+                    var entr = bhTransaction.connection.Query<T>(SubCommand,bhTransaction._transaction);
+                    entries = entr.ToList(); 
+                }
+                catch (Exception ex)
+                {
+                    _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                }
+            }
+
+            return entries;
+        }
+
         T? IBHDataProvider<T, G>.GetEntryById(G Id)
         {
             T? entry = default(T);
@@ -192,6 +264,30 @@ namespace BlackHole.Data
 
                     entry = connection.QueryFirstOrDefault<T>(SubCommand, Parameter);
                 }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entry;
+        }
+
+        T? IBHDataProvider<T, G>.GetEntryById(G Id, BHTransaction bhTransaction)
+        {
+            T? entry = default(T);
+
+            try
+            {              
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id";
+                var Parameter = new { Id = Id };
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                }
+
+                entry = bhTransaction.connection.QueryFirstOrDefault<T>(SubCommand, Parameter, bhTransaction._transaction);       
             }
             catch (Exception ex)
             {
@@ -230,9 +326,35 @@ namespace BlackHole.Data
             return entry;
         }
 
+        Dto? IBHDataProvider<T, G>.GetEntryById<Dto>(G Id, BHTransaction bhTransaction) where Dto : class
+        {
+            Dto? entry = default(Dto);
+
+            try
+            {     
+                string colsAndParams = CompareDtoToEntity(typeof(Dto));
+
+                string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id";
+                var Parameter = new { Id = Id };
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                }
+
+                entry = bhTransaction.connection.QueryFirstOrDefault<Dto>(SubCommand, Parameter,bhTransaction._transaction);      
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entry;
+        }
+
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
-            T? entry = null;
+            T? entry = default(T);
 
             try
             {
@@ -258,9 +380,34 @@ namespace BlackHole.Data
             return entry;
         }
 
+        T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            T? entry = default(T);
+
+            try
+            {  
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                entry = bhTransaction.connection.QueryFirstOrDefault<T>(SubCommand, sql.Parameters, bhTransaction._transaction); 
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entry;
+        }
+
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            Dto? entry = null;
+            Dto? entry = default(Dto);
 
             try
             {
@@ -278,6 +425,32 @@ namespace BlackHole.Data
 
                     entry = connection.QueryFirstOrDefault<Dto>(SubCommand, sql.Parameters);
                 }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entry;
+        }
+
+        Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
+        {
+            Dto? entry = default(Dto);
+
+            try
+            {    
+                string colsAndParams = CompareDtoToEntity(typeof(Dto));
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                entry = bhTransaction.connection.QueryFirstOrDefault<Dto>(SubCommand, sql.Parameters, bhTransaction._transaction);  
             }
             catch (Exception ex)
             {
@@ -307,6 +480,32 @@ namespace BlackHole.Data
                     var entr = connection.Query<T>(SubCommand, sql.Parameters);
                     entries = entr.ToList();
                 }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entries;
+        }
+
+        IList<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            IList<T> entries = new List<T>();
+
+            try
+            {     
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                var entr = bhTransaction.connection.Query<T>(SubCommand, sql.Parameters,bhTransaction._transaction);
+                entries = entr.ToList(); 
             }
             catch (Exception ex)
             {
@@ -346,20 +545,149 @@ namespace BlackHole.Data
             return entries;
         }
 
+        IList<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
+        {
+            IList<Dto> entries = new List<Dto>();
+
+            try
+            {            
+                string colsAndParams = CompareDtoToEntity(typeof(Dto));
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                var entr = bhTransaction.connection.Query<Dto>(SubCommand, sql.Parameters,bhTransaction._transaction);
+                entries = entr.ToList();    
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entries;
+        }
+
         G? IBHDataProvider<T, G>.InsertEntry(T entry)
         {
+            G? Id = default(G);
             string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
-            return Insert(entry, insertCommand);
+
+            try
+            {
+                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                {
+                    if (requiredId)
+                    {
+                        Id = GenerateId();
+                        insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
+                        connection.Execute(insertCommand, entry);
+                    }
+                    else
+                    {
+                        Id = connection.ExecuteScalar<G>(insertCommand, entry);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return Id;
+        }
+
+        G? IBHDataProvider<T, G>.InsertEntry(T entry, BHTransaction bhTransaction)
+        {
+            G? Id = default(G);
+            string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
+
+            try
+            {             
+                if (requiredId)
+                {
+                    Id = GenerateId();
+                    insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
+                    bhTransaction.connection.Execute(insertCommand, entry,bhTransaction._transaction);
+                }
+                else
+                {
+                    Id = bhTransaction.connection.ExecuteScalar<G>(insertCommand, entry, bhTransaction._transaction);
+                } 
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return Id;
         }
 
         List<G?> IBHDataProvider<T, G>.InsertEntries(List<T> entries)
         {
             List<G?> Ids = new List<G?>();
             string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
-
-            foreach (T entry in entries)
+            try
             {
-                Ids.Add(Insert(entry, insertCommand));
+                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                {
+                    connection.Open();
+                    using (IDbTransaction transaction = connection.BeginTransaction())
+                    {
+                        foreach (T entry in entries)
+                        {
+                            if (requiredId)
+                            {
+                                G? Id = GenerateId();
+                                insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
+                                connection.Execute(insertCommand, entry);
+                                Ids.Add(Id);
+                            }
+                            else
+                            {
+                                Ids.Add(connection.ExecuteScalar<G>(insertCommand, entry, transaction));
+                            }
+                        }
+                        transaction.Commit();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return Ids;
+        }
+
+        List<G?> IBHDataProvider<T, G>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
+        {
+            List<G?> Ids = new List<G?>();
+            string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
+            try
+            {            
+                foreach (T entry in entries)
+                {
+                    if (requiredId)
+                    {
+                        G? Id = GenerateId();
+                        insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
+                        bhTransaction.connection.Execute(insertCommand, entry, bhTransaction._transaction);
+                        Ids.Add(Id);
+                    }
+                    else
+                    {
+                        Ids.Add(bhTransaction.connection.ExecuteScalar<G>(insertCommand, entry, bhTransaction._transaction));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
             }
 
             return Ids;
@@ -383,6 +711,30 @@ namespace BlackHole.Data
                     var entr = await connection.QueryAsync<T>(SubCommand);
                     entries = entr.ToList();
                 }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entries;
+        }
+
+        async Task<IList<T>> IBHDataProvider<T, G>.GetAllEntriesAsync(BHTransaction bhTransaction)
+        {
+            List<T> entries = new List<T>();
+
+            try
+            {     
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0";
+                }
+
+                var entr = await bhTransaction.connection.QueryAsync<T>(SubCommand, bhTransaction._transaction);
+                entries = entr.ToList();   
             }
             catch (Exception ex)
             {
@@ -421,6 +773,32 @@ namespace BlackHole.Data
             return entries;
         }
 
+        async Task<IList<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(BHTransaction bhTransaction) where Dto : class
+        {
+            List<Dto> entries = new List<Dto>();
+
+            try
+            {
+                string colsAndParams = CompareDtoToEntity(typeof(Dto));
+
+                string SubCommand = $"select {colsAndParams} from {ThisTable}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0";
+                }
+
+                var entr = await bhTransaction.connection.QueryAsync<Dto>(SubCommand,bhTransaction._transaction);
+                entries = entr.ToList();
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entries;
+        }
+
         async Task<IList<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync()
         {
             List<T> entries = new List<T>();
@@ -445,9 +823,30 @@ namespace BlackHole.Data
             return entries;
         }
 
+        async Task<IList<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync(BHTransaction bhTransaction)
+        {
+            List<T> entries = new List<T>();
+
+            if (withActivator)
+            {
+                try
+                { 
+                    string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=1";
+                    var entr = await bhTransaction.connection.QueryAsync<T>(SubCommand,bhTransaction._transaction);
+                    entries = entr.ToList();        
+                }
+                catch (Exception ex)
+                {
+                    _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                }
+            }
+
+            return entries;
+        }
+
         async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id)
         {
-            T? entry = null;
+            T? entry = default(T);
 
             try
             {
@@ -472,9 +871,62 @@ namespace BlackHole.Data
             return entry;
         }
 
+        async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id, BHTransaction bhTransaction)
+        {
+            T? entry = default(T);
+
+            try
+            {               
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id";
+                var Parameter = new { Id = Id };
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                }
+
+                entry = await bhTransaction.connection.QueryFirstOrDefaultAsync<T>(SubCommand, Parameter,bhTransaction._transaction);   
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entry;
+        }
+
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryByIdAsync<Dto>(G Id) where Dto : class
         {
-            Dto? entry = null;
+            Dto? entry = default(Dto);
+
+            try
+            {
+                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                {
+                    string colsAndParams = CompareDtoToEntity(typeof(Dto));
+
+                    string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id";
+                    var Parameter = new { Id = Id };
+
+                    if (withActivator)
+                    {
+                        SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                    }
+
+                    entry = await connection.QueryFirstOrDefaultAsync<Dto>(SubCommand, Parameter);
+                }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entry;
+        }
+
+        async Task<Dto?> IBHDataProvider<T, G>.GetEntryByIdAsync<Dto>(G Id, BHTransaction bhTransaction) where Dto : class
+        {
+            Dto? entry = default(Dto);
 
             try
             {
@@ -503,7 +955,7 @@ namespace BlackHole.Data
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            T? entry = null;
+            T? entry = default(T);
 
             try
             {
@@ -529,9 +981,34 @@ namespace BlackHole.Data
             return entry;
         }
 
+        async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            T? entry = default(T);
+
+            try
+            { 
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                entry = await bhTransaction.connection.QueryFirstOrDefaultAsync<T>(SubCommand, sql.Parameters,bhTransaction._transaction);  
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entry;
+        }
+
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            Dto? entry = null;
+            Dto? entry = default(Dto);
 
             try
             {
@@ -549,6 +1026,32 @@ namespace BlackHole.Data
 
                     entry = await connection.QueryFirstOrDefaultAsync<Dto>(SubCommand, sql.Parameters);
                 }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entry;
+        }
+
+        async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
+        {
+            Dto? entry = default(Dto);
+
+            try
+            {              
+                string colsAndParams = CompareDtoToEntity(typeof(Dto));
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                entry = await bhTransaction.connection.QueryFirstOrDefaultAsync<Dto>(SubCommand, sql.Parameters,bhTransaction._transaction);
             }
             catch (Exception ex)
             {
@@ -578,6 +1081,32 @@ namespace BlackHole.Data
                     var entr = await connection.QueryAsync<T>(SubCommand, sql.Parameters);
                     entries = entr.ToList();
                 }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entries;
+        }
+
+        async Task<IList<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            IList<T> entries = new List<T>();
+
+            try
+            {            
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                var entr = await bhTransaction.connection.QueryAsync<T>(SubCommand, sql.Parameters,bhTransaction._transaction);
+                entries = entr.ToList();            
             }
             catch (Exception ex)
             {
@@ -617,59 +1146,208 @@ namespace BlackHole.Data
             return entries;
         }
 
+        async Task<IList<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
+        {
+            IList<Dto> entries = new List<Dto>();
+
+            try
+            {
+                string colsAndParams = CompareDtoToEntity(typeof(Dto));
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                var entr = await bhTransaction.connection.QueryAsync<Dto>(SubCommand, sql.Parameters,bhTransaction._transaction);
+                entries = entr.ToList();     
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return entries;
+        }
+
         async Task<G?> IBHDataProvider<T, G>.InsertEntryAsync(T entry)
         {
+            G? Id = default(G);
             string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
-            return await InsertAsync(entry, insertCommand);
+
+            try
+            {
+                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                {
+                    if (requiredId)
+                    {
+                        Id = GenerateId();
+                        insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
+                        await connection.ExecuteAsync(insertCommand, entry);
+                    }
+                    else
+                    {
+                        Id = await connection.ExecuteScalarAsync<G>(insertCommand, entry);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return Id;
+        }
+
+        async Task<G?> IBHDataProvider<T, G>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
+        {
+            G? Id = default(G);
+            string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
+
+            try
+            {
+                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                {
+                    if (requiredId)
+                    {
+                        Id = GenerateId();
+                        insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
+                        await connection.ExecuteAsync(insertCommand, entry);
+                    }
+                    else
+                    {
+                        Id = await connection.ExecuteScalarAsync<G>(insertCommand, entry);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return Id;
         }
 
         async Task<List<G?>> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries)
         {
             List<G?> Ids = new List<G?>();
             string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
-
-            foreach (T entry in entries)
+            try
             {
-                Ids.Add(await InsertAsync(entry, insertCommand));
+                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                {
+                    connection.Open();
+                    using (IDbTransaction transaction = connection.BeginTransaction())
+                    {
+                        foreach (T entry in entries)
+                        {
+                            if (requiredId)
+                            {
+                                G? Id = GenerateId();
+                                insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
+                                await connection.ExecuteAsync(insertCommand, entry, transaction);
+                                Ids.Add(Id);
+                            }
+                            else
+                            {
+                                Ids.Add(await connection.ExecuteScalarAsync<G>(insertCommand, entry, transaction));
+                            }
+                        }
+                        transaction.Commit();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
             }
 
             return Ids;
         }
 
-        async Task IBHDataProvider<T, G>.UpdateEntryById(T entry)
+        async Task<List<G?>> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
+        {
+            List<G?> Ids = new List<G?>();
+            string insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}) {OutputIdMiddle} values ({PropertyParams},0) {OutputIdEnding}";
+            try
+            {
+                foreach (T entry in entries)
+                {
+                    if (requiredId)
+                    {
+                        G? Id = GenerateId();
+                        insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
+                        await bhTransaction.connection.ExecuteAsync(insertCommand, entry, bhTransaction._transaction);
+                        Ids.Add(Id);
+                    }
+                    else
+                    {
+                        Ids.Add(await bhTransaction.connection.ExecuteScalarAsync<G>(insertCommand, entry, bhTransaction._transaction));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return Ids;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntryById(T entry)
         {
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
-            await Update(entry, updateCommand);
+            return await Update(entry, updateCommand);
         }
 
-        async Task IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry) where Columns : class
-        {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
-            await Update(entry, updateCommand);
-        }
-
-        async Task IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries)
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntryById(T entry, BHTransaction bhTransaction)
         {
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
-
-            foreach (T entry in entries)
-            {
-                await Update(entry, updateCommand);
-            }
+            return await Update(entry, updateCommand, bhTransaction);
         }
 
-        async Task IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries) where Columns : class
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry) where Columns : class
         {
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
-
-            foreach (T entry in entries)
-            {
-                await Update(entry, updateCommand);
-            }
+            return await Update(entry, updateCommand);
         }
 
-        async Task IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
         {
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            return await Update(entry, updateCommand, bhTransaction);
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries)
+        {
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            return await UpdateMany(entries, updateCommand);
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries, BHTransaction bhTransaction)
+        {
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            return await UpdateMany(entries, updateCommand, bhTransaction);
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries) where Columns : class
+        {
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            return await UpdateMany(entries, updateCommand);
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries, BHTransaction bhTransaction) where Columns : class
+        {
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            return await UpdateMany(entries, updateCommand, bhTransaction);
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
+        {
+            bool success = false;
             try
             {
                 using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
@@ -685,16 +1363,46 @@ namespace BlackHole.Data
                     }
 
                     await connection.ExecuteAsync(updateCommand, additionalSql.Parameters);
+                    success = true;
                 }
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
             }
+            return success;
         }
 
-        async Task IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
+            bool success = false;
+            try
+            {
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
+                ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
+
+                if (withActivator)
+                {
+                    updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                await bhTransaction.connection.ExecuteAsync(updateCommand, additionalSql.Parameters,bhTransaction._transaction);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
+            }
+            return success;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
+        {
+            bool success = false;
             try
             {
                 using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
@@ -710,16 +1418,46 @@ namespace BlackHole.Data
                     }
 
                     await connection.ExecuteAsync(updateCommand, additionalSql.Parameters);
+                    success = true;
                 }
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
             }
+            return success;
         }
 
-        async Task IBHDataProvider<T, G>.DeleteAllEntries()
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry,BHTransaction bhTransaction) where Columns : class
         {
+            bool success = false;
+            try
+            {
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
+                ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
+
+                if (withActivator)
+                {
+                    updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                await bhTransaction.connection.ExecuteAsync(updateCommand, additionalSql.Parameters,bhTransaction._transaction);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
+            }
+            return success;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.DeleteAllEntries()
+        {
+            bool success = false;
             try
             {
                 using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
@@ -732,16 +1470,43 @@ namespace BlackHole.Data
                     }
 
                     await connection.ExecuteAsync(SubCommand);
+                    success = true;
                 }
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
             }
+            return success;
         }
 
-        async Task IBHDataProvider<T, G>.DeleteEntryById(G id)
+        async Task<bool> IBHDataProvider<T, G>.DeleteAllEntries(BHTransaction bhTransaction)
         {
+            bool success = false;
+            try
+            {               
+                string SubCommand = $"Delete from {ThisTable}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisInactive}=0";
+                }
+
+                await bhTransaction.connection.ExecuteAsync(SubCommand,bhTransaction._transaction);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
+            }
+            return success;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.DeleteEntryById(G id)
+        {
+            bool success = false;
             try
             {
                 using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
@@ -755,17 +1520,44 @@ namespace BlackHole.Data
 
                     var Parameter = new { Id = id };
                     await connection.ExecuteAsync(SubCommand, Parameter);
+                    success = true;
                 }
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
             }
-
+            return success;
         }
 
-        async Task IBHDataProvider<T, G>.DeleteInactiveEntryById(G id)
+        async Task<bool> IBHDataProvider<T, G>.DeleteEntryById(G id, BHTransaction bhTransaction)
         {
+            bool success = false;
+            try
+            {
+                string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
+
+                if (withActivator)
+                {
+                    SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisId}=@Id";
+                }
+
+                var Parameter = new { Id = id };
+                await bhTransaction.connection.ExecuteAsync(SubCommand, Parameter,bhTransaction._transaction);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
+            }
+            return success;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryById(G id)
+        {
+            bool success = false;
             if (withActivator)
             {
                 try
@@ -776,16 +1568,88 @@ namespace BlackHole.Data
                         var Parameter = new { Id = id };
                         await connection.ExecuteAsync(SubCommand, Parameter);
                     }
+                    success = true;
                 }
                 catch (Exception ex)
                 {
                     _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                    success = false;
                 }
             }
+            return success;
         }
 
-        async Task IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
+        async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryById(G id, BHTransaction bhTransaction)
         {
+            bool success = false;
+            if (withActivator)
+            {
+                try
+                {
+                    string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
+                    var Parameter = new { Id = id };
+                    await bhTransaction.connection.ExecuteAsync(SubCommand, Parameter,bhTransaction._transaction);
+                    
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                    success = false;
+                }
+            }
+            return success;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.ReactivateEntryById(G id, BHTransaction bhTransaction)
+        {
+            bool success = false;
+            if (withActivator)
+            {
+                try
+                {
+                    string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
+                    var Parameter = new { Id = id };
+                    await bhTransaction.connection.ExecuteAsync(SubCommand, Parameter,bhTransaction._transaction);
+                    
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                    success = false;
+                }
+            }
+            return success;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.ReactivateEntryById(G id)
+        {
+            bool success = false;
+            if (withActivator)
+            {
+                try
+                {
+                    using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                    {
+                        string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
+                        var Parameter = new { Id = id };
+                        await connection.ExecuteAsync(SubCommand, Parameter);
+                    }
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                    success = false;
+                }
+            }
+            return success;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
+        {
+            bool success = false;
             try
             {
                 using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
@@ -801,11 +1665,40 @@ namespace BlackHole.Data
 
                     await connection.ExecuteAsync(SubCommand, sql.Parameters);
                 }
+                success = true;
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
             }
+            return success;
+        }
+
+        async Task<bool> IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            bool success = false;
+            try
+            {    
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {sql.Columns}";
+                }
+
+                await bhTransaction.connection.ExecuteAsync(SubCommand, sql.Parameters,bhTransaction._transaction);
+                
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
+            }
+            return success;
         }
 
         async Task<G?> IBHDataProvider<T, G>.GetIdWhereAsync(Expression<Func<T, bool>> predicate)
@@ -813,9 +1706,19 @@ namespace BlackHole.Data
             return await GetIdFromPredicate(predicate);
         }
 
+        async Task<G?> IBHDataProvider<T, G>.GetIdWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            return await GetIdFromPredicate(predicate,bhTransaction);
+        }
+
         async Task<List<G>> IBHDataProvider<T, G>.GetIdsWhereAsync(Expression<Func<T, bool>> predicate)
         {
             return await GetIdsFromPredicate(predicate);
+        }
+
+        async Task<List<G>> IBHDataProvider<T, G>.GetIdsWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            return await GetIdsFromPredicate(predicate, bhTransaction);
         }
 
         JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
@@ -937,88 +1840,85 @@ namespace BlackHole.Data
             return result;
         }
 
-        private async Task<G?> InsertAsync(T entry, string insertCommand)
+        private async Task<bool> Update(T entry, string updateCommand)
         {
-            G? Id = default(G);
-
-            try
-            {
-                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-                {
-                    Id = await connection.QuerySingleAsync<G>(insertCommand, entry);
-                }
-            }
-            catch (Exception ex)
-            {
-                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
-            }
-
-            return Id;
-        }
-
-        private async Task<List<G>> InsertTransaction(List<T> entries)
-        {
-            List<G> Ids = new List<G>();
-            string insertCommand = "";
-            try
-            {
-                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-                {
-                    using (IDbTransaction transaction = connection.BeginTransaction())
-                    {
-                        foreach (T entry in entries)
-                        {
-                            if (requiredId)
-                            {
-                                object Id = GenerateId();
-                                insertCommand = $"insert into {ThisTable} ({PropertyNames},{ThisInactive},Id) values ({PropertyParams},0,'{Id}');";
-                            }
-
-                        }
-                        transaction.Commit();
-                    }
-                }
-            }
-            catch
-            {
-
-            }
-
-            return Ids;
-        }
-
-        private G? Insert(T entry, string insertCommand)
-        {
-            G? Id = default(G);
-
-            try
-            {
-                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-                {
-                    Id = connection.ExecuteScalar<G>(insertCommand, entry);
-                }
-            }
-            catch (Exception ex)
-            {
-                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
-            }
-
-            return Id;
-        }
-
-        private async Task Update(T entry, string updateCommand)
-        {
+            bool success = false;
             try
             {
                 using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
                 {
                     await connection.ExecuteAsync(updateCommand, entry);
                 }
+                success = true;
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
             }
+            return success;
+        }
+
+        private async Task<bool> Update(T entry, string updateCommand, BHTransaction bhTransaction)
+        {
+            bool success = false;
+            try
+            {
+                await bhTransaction.connection.ExecuteAsync(updateCommand, entry, bhTransaction._transaction);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
+            }
+            return success;
+        }
+
+        private async Task<bool> UpdateMany(List<T> entries, string updateCommand)
+        {
+            bool success = false;
+            try
+            {
+                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                {
+                    connection.Open();
+                    using (IDbTransaction transaction = connection.BeginTransaction())
+                    {
+                        foreach (T entry in entries)
+                        {
+                            await connection.ExecuteAsync(updateCommand, entry,transaction);
+                        }
+                        transaction.Commit();
+                    }
+                }
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
+            }
+            return success;
+        }
+
+        private async Task<bool> UpdateMany(List<T> entries, string updateCommand,BHTransaction bhTransaction)
+        {
+            bool success = false;
+            try
+            {
+                foreach (T entry in entries)
+                {
+                    await bhTransaction.connection.ExecuteAsync(updateCommand, entry, bhTransaction._transaction);
+                }
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+                success = false;
+            }
+            return success;
         }
 
         private async Task<G?> GetIdFromPredicate(Expression<Func<T, bool>> predicate)
@@ -1049,6 +1949,31 @@ namespace BlackHole.Data
             return Id;
         }
 
+        private async Task<G?> GetIdFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            G? Id = default(G);
+
+            try
+            {
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                Id = await bhTransaction.connection.QueryFirstOrDefaultAsync<G>(selectCommand, sql.Parameters,bhTransaction._transaction); 
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return Id;
+        }
+
         private async Task<List<G>> GetIdsFromPredicate(Expression<Func<T, bool>> predicate)
         {
             List<G> Id = new List<G>();
@@ -1069,6 +1994,32 @@ namespace BlackHole.Data
                     var Ids = await connection.QueryAsync<G>(selectCommand, sql.Parameters);
                     Id = Ids.ToList();
                 }
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"DataProvider_{OriginalTableName}", ex.Message, ex.ToString());
+            }
+
+            return Id;
+        }
+
+        private async Task<List<G>> GetIdsFromPredicate(Expression<Func<T, bool>> predicate,BHTransaction bhTransaction)
+        {
+            List<G> Id = new List<G>();
+
+            try
+            { 
+                List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+                ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+                string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
+
+                if (withActivator)
+                {
+                    selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                }
+
+                var Ids = await bhTransaction.connection.QueryAsync<G>(selectCommand, sql.Parameters,bhTransaction._transaction);
+                Id = Ids.ToList();
             }
             catch (Exception ex)
             {
@@ -1341,7 +2292,6 @@ namespace BlackHole.Data
             return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value };
         }
 
-
         private ColumnsAndParameters AdditionalParameters(ColumnsAndParameters colsAndParams, object item)
         {
             Type type = item.GetType();
@@ -1393,9 +2343,9 @@ namespace BlackHole.Data
             return columns;
         }
 
-        private object GenerateId()
+        private G? GenerateId()
         {
-            object value = new object();
+            object? value = null;
 
             switch (idType)
             {
@@ -1403,12 +2353,12 @@ namespace BlackHole.Data
                     value = Guid.NewGuid();
                     break;
                 case BHIdTypes.StringId:
-                    string vv = "skata";
-                    value = vv.GenerateSHA1();
+                    string ToHash = Guid.NewGuid().ToString()+DateTime.Now.ToString();
+                    value = ToHash.GenerateSHA1();
                     break;
             }
 
-            return value;
+            return (G?)value;
         }
     }
 }

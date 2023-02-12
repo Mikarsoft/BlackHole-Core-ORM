@@ -1,6 +1,5 @@
 ﻿
 using BlackHole.Attributes.ColumnAttributes;
-using BlackHole.Enums;
 
 namespace BlackHole.Entities
 {

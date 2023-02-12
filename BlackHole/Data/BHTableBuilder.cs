@@ -50,7 +50,6 @@ namespace BlackHole.Data
                     UpdateSchema(TableTypes[j]);
                 }               
             }
-
         }
 
         /// <summary>
@@ -97,7 +96,6 @@ namespace BlackHole.Data
                     if (!tExists)
                     {    
                         PropertyInfo[] Properties = TableType.GetProperties();
-
                         string creationCommand = $"CREATE TABLE {MyShit(Tablename)} (";
 
                         creationCommand += GetDatatypeCommand("Int32", new object[0], "Inactive");
@@ -254,13 +252,19 @@ namespace BlackHole.Data
                     }
                     else
                     {
-                        if(TableType.BaseType == typeof(BlackHoleEntity))
+                        if (TableType.BaseType == typeof(BlackHoleEntity<int>))
                         {
                             alterTable += _multiDatabaseSelector.GetPrimaryKeyCommand();
                         }
-                        else
+
+                        if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
                         {
                             alterTable += _multiDatabaseSelector.GetGuidPrimaryKeyCommand();
+                        }
+
+                        if (TableType.BaseType == typeof(BlackHoleEntity<string>))
+                        {
+                            alterTable += _multiDatabaseSelector.GetStringPrimaryKeyCommand();
                         }
                     }
 
@@ -277,7 +281,7 @@ namespace BlackHole.Data
                         }
                     }
                 }
-
+                
                 string trasferData = TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old");
                 closingCommand = $"{alterTable}{foreignKeys}";
                 closingCommand = closingCommand.Substring(0, closingCommand.Length - 2);
@@ -292,7 +296,7 @@ namespace BlackHole.Data
                 catch (Exception ex)
                 {
                     _loggerService.CreateErrorLogs($"Constraints_{Tablename}", ex.Message, ex.ToString());
-                }
+                } 
             }
         }
 

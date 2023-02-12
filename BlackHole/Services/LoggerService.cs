@@ -36,7 +36,7 @@ namespace BlackHole.Services
             dateChar = "D-";
         }
 
-        void ILoggerService.CreateErrorLogs(string Area, string Message , string Details)
+        public void CreateErrorLogs(string Area, string Message , string Details)
         {
             if (canWriteLogs)
             {

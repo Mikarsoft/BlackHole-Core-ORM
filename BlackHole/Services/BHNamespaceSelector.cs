@@ -28,7 +28,6 @@ namespace BlackHole.Services
         List<Type> IBHNamespaceSelector.GetBHEntitiesInNamespaces(List<string> nameSpaces, Assembly ass)
         {
             List<Type> types = new List<Type>();
-
             foreach (string nameSpace in nameSpaces)
             {
                 types.AddRange(ass.GetTypes().Where(t => String.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
