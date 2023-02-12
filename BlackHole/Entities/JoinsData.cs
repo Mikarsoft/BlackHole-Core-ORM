@@ -3,9 +3,10 @@
 namespace BlackHole.Entities
 {
     /// <summary>
-    /// 
+    /// Stores All the required data to perform the Joins in this class
+    /// To get the result you need to Execute this object.
     /// </summary>
-    /// <typeparam name="Dto"></typeparam>
+    /// <typeparam name="Dto">Returning Data Transfer Object</typeparam>
     public class JoinsData<Dto>
     {
         internal Type? BaseTable { get; set; }
@@ -22,9 +23,10 @@ namespace BlackHole.Entities
     }
 
     /// <summary>
-    /// 
+    /// Stores All the required data to perform the Joins in this class
+    /// To get the result you need to Execute this object.
     /// </summary>
-    public class JoinsData
+    internal class JoinsData
     {
         internal Type? DtoType { get; set; }
         internal Type? BaseTable { get; set; }
@@ -41,7 +43,8 @@ namespace BlackHole.Entities
     }
 
     /// <summary>
-    /// 
+    /// Stores All the required data to perform the Joins in this class
+    /// To get the result you need to Execute this object.
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>

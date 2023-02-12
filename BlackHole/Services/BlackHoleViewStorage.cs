@@ -13,7 +13,7 @@ namespace BlackHole.Services
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        public IList<Dto> ExecuteView<Dto>() where Dto : BlackHoleDto
+        IList<Dto> IBlackHoleViewStorage.ExecuteView<Dto>() where Dto : class
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             IList<Dto> result = new List<Dto>();
@@ -22,21 +22,26 @@ namespace BlackHole.Services
             {
                 result = existingJoin.ExecuteQuery<Dto>();
             }
+
             return result;
         }
 
         /// <summary>
-        /// Executes the stored view that has the inserted DTO as
+        /// Transaction. Executes the stored view that has the inserted DTO as
         /// Identifier. If there is no view stored with this DTO it returns
         /// an empty IList
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        public IList<Dto> ExecuteGView<Dto>() where Dto : BlackHoleDto
+        IList<Dto> IBlackHoleViewStorage.ExecuteView<Dto>(BHTransaction transaction) where Dto : class
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             IList<Dto> result = new List<Dto>();
 
+            if (existingJoin != null)
+            {
+                result = existingJoin.ExecuteQuery<Dto>(transaction);
+            }
 
             return result;
         }
