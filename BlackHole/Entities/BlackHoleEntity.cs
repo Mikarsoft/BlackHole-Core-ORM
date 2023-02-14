@@ -6,7 +6,7 @@ namespace BlackHole.Entities
     public abstract class BlackHoleEntity<G> : BlackHoleEntity
     {
         [PrimaryKey]
-        public G? Id { get; set; }
+        public G Id { get; set; }
     }
 
     public abstract class BlackHoleEntity

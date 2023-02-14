@@ -245,7 +245,7 @@ namespace BlackHole.Interfaces
         /// <param name="castOnDto">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> CastColumnOfSecondAs<Dto, Tsource, TOther, Tkey, TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
-            Expression<Func<TOther, Tkey>> predicate, Expression<Func<Dto, TotherKey>> castOnDto) where Tkey : IComparable where TotherKey : IComparable
+            Expression<Func<TOther, Tkey>> predicate, Expression<Func<Dto, TotherKey>> castOnDto)
         {
             if (data.Ignore)
             {
@@ -294,7 +294,7 @@ namespace BlackHole.Interfaces
         /// <param name="castOnDto">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> CastColumnOfFirstAs<Dto, Tsource, TOther, Tkey, TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
-            Expression<Func<Tsource, Tkey>> predicate, Expression<Func<Dto, TotherKey>> castOnDto) where Tkey : IComparable where TotherKey : IComparable
+            Expression<Func<Tsource, Tkey>> predicate, Expression<Func<Dto, TotherKey>> castOnDto)
         {
             if (data.Ignore)
             {
