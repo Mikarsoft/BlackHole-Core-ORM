@@ -16,7 +16,7 @@ I am still working on the documentation but here are some quick steps to use thi
 
 - In Your project install Black.Hole.ORM from nuget
 
-- In your Program.cs add 'using BlackHole.FunctionalObjects' and 'using BlackHole.Enums'
+- In your Program.cs add 'using BlackHole.Configuration' and 'using BlackHole.Enums'
 
 - Create some Entities in any folder that Inherit from the class 'BlackHoleEntity<int>' for Entities that are using Integer as Id,
   or 'BlackHoleEntity<Guid>' for Entities that are using Guid as Id
