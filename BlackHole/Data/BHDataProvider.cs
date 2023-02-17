@@ -2252,10 +2252,14 @@ namespace BlackHole.Data
                     column = " or ";
                     break;
                 case ExpressionType.Equal:
+                    value = expression?.memberValue;
                     variable = expression?.leftMember?.ToString().Split(".");
                     column = $"{MyShit(variable?[1])} = @{variable?[1]}{index}";
+                    if (value == null)
+                    {
+                        column = $"{MyShit(variable?[1])} is @{variable?[1]}{index}";
+                    }
                     parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
                     break;
                 case ExpressionType.GreaterThanOrEqual:
                     variable = expression?.leftMember?.ToString().Split(".");
@@ -2282,10 +2286,14 @@ namespace BlackHole.Data
                     value = expression?.memberValue;
                     break;
                 case ExpressionType.NotEqual:
+                    value = expression?.memberValue;
                     variable = expression?.leftMember?.ToString().Split(".");
                     column = $"{MyShit(variable?[1])} != @{variable?[1]}{index}";
+                    if (value == null)
+                    {
+                        column = $"{MyShit(variable?[1])} is not @{variable?[1]}{index}";
+                    }
                     parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
                     break;
             }
 
