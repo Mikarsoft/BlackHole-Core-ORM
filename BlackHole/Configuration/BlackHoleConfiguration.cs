@@ -1,7 +1,6 @@
-﻿using BlackHole.Data;
+﻿using BlackHole.Core;
 using BlackHole.Enums;
-using BlackHole.Interfaces;
-using BlackHole.Services;
+using BlackHole.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -49,7 +48,7 @@ namespace BlackHole.Configuration
 
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
 
-                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
 
                 services.RegisterBHServices(assembly);
             }
@@ -87,7 +86,7 @@ namespace BlackHole.Configuration
                 var Entities = namespaceSelector.GetAllBHEntities(assembly);
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
-                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
                 services.RegisterBHServices(assembly);
             }
             return services;
@@ -139,7 +138,7 @@ namespace BlackHole.Configuration
 
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
 
-                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespace != string.Empty)
                 {
@@ -201,7 +200,7 @@ namespace BlackHole.Configuration
 
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
 
-                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespaces.Count > 0)
                 {
@@ -253,7 +252,7 @@ namespace BlackHole.Configuration
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
 
-                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
                 services.RegisterBHServices(useOtherAssembly);
             }
             return services;
@@ -290,7 +289,7 @@ namespace BlackHole.Configuration
                 tableBuilder.BuildMultipleTables(Entities);
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
 
-                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
                 services.RegisterBHServices(useOtherAssembly);
             }
             return services;
@@ -341,7 +340,7 @@ namespace BlackHole.Configuration
 
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
 
-                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespace != string.Empty)
                 {
@@ -402,7 +401,7 @@ namespace BlackHole.Configuration
 
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
 
-                services.AddScoped(typeof(IBlackHoleViewStorage), typeof(BlackHoleViewStorage));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
 
                 if (settings.AutoRegisterBlazarServices && settings.SpecificServicesNamespaces.Count > 0)
                 {
