@@ -8,34 +8,28 @@ namespace BlackHole.CoreSupport
     {
         IDataProvider IBHDataProviderSelector.GetDataProvider(Type IdType)
         {
-            string _connectionString = DatabaseStatics.ConnectionString;
             IDataProvider dataProvider;
 
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
-                    dataProvider = new SqlServerDataProvider(_connectionString, GetIdType(IdType));
+                case BlackHoleSqlTypes.SqlServer:
+                    //dataProvider = new SqlServerDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
                     break;
-                case BHSqlTypes.MySql:
-                    dataProvider = new MySqlDataProvider(_connectionString, GetIdType(IdType));
+                case BlackHoleSqlTypes.MySql:
+                    dataProvider = new MySqlDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
                     break;
-                case BHSqlTypes.Postgres:
-                    dataProvider = new PostgresDataProvider(_connectionString, GetIdType(IdType));
+                case BlackHoleSqlTypes.Postgres:
+                    //dataProvider = new PostgresDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
                     break;
-                case BHSqlTypes.SqlLite:
-                    dataProvider = new SqLiteDataProvider(_connectionString, GetIdType(IdType));
+                case BlackHoleSqlTypes.SqlLite:
+                    //dataProvider = new SqLiteDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
                     break;
                 default:
-                    dataProvider = new OracleDataProvider(_connectionString, GetIdType(IdType));
+                    //dataProvider = new OracleDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
                     break;
             }
 
-            if (dataProvider == null)
-            {
-                dataProvider = new SqlServerDataProvider(_connectionString);
-            }
-
-            return dataProvider;
+            return new MySqlDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
         }
 
         IExecutionProvider IBHDataProviderSelector.GetExecutionProvider()
@@ -43,19 +37,19 @@ namespace BlackHole.CoreSupport
             throw new NotImplementedException();
         }
 
-        private BHIdTypes GetIdType(Type type)
+        private BlackHoleIdTypes GetIdType(Type type)
         {
             if (type == typeof(int))
             {
-                return BHIdTypes.IntId;
+                return BlackHoleIdTypes.IntId;
             }
 
             if (type == typeof(Guid))
             {
-                return BHIdTypes.GuidId;
+                return BlackHoleIdTypes.GuidId;
             }
 
-            return BHIdTypes.StringId;
+            return BlackHoleIdTypes.StringId;
         }
     }
 }

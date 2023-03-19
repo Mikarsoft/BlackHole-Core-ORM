@@ -1,9 +1,7 @@
 ﻿using System.Data;
 using System.Reflection;
-using BlackHole.Data;
 using BlackHole.Entities;
 using BlackHole.Logger;
-using BlackHole.Services;
 using Dapper;
 
 namespace BlackHole.Internal

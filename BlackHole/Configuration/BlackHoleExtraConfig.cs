@@ -12,7 +12,7 @@ namespace BlackHole.Configuration
     public class BlackHoleExtraConfig
     {
         public string ConnectionString { get; set; } = string.Empty;
-        public BHSqlTypes SqlType { get; set; }
+        public BHSqlType SqlType { get; set; }
         public bool AutoRegisterBlazarServices { get; set; } = true;
         public string SpecificEntityNamespace { get; set; } = string.Empty;
         public string SpecificServicesNamespace { get; set; } = string.Empty;

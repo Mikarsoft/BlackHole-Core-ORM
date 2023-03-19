@@ -22,16 +22,16 @@ namespace BlackHole.Internal
 
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     _Sconnection = new SqlConnection(_connectionString);
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     _Sconnection = new MySqlConnection(_connectionString);
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     _Sconnection = new NpgsqlConnection(_connectionString);
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     _Sconnection = new SqliteConnection(_connectionString);
                     break;
             }
@@ -50,16 +50,16 @@ namespace BlackHole.Internal
 
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     _Sconnection = new SqlConnection(connectionString);
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     _Sconnection = new MySqlConnection(connectionString);
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     _Sconnection = new NpgsqlConnection(connectionString);
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     _Sconnection = new SqliteConnection(connectionString);
                     break;
             }
@@ -81,10 +81,10 @@ namespace BlackHole.Internal
             string[] InsertOutputs = new string[2];
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     InsertOutputs[0] = $"output inserted.{columnName}";
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     if (g)
                     {
                         InsertOutputs[1] = $";SELECT CAST(LAST_INSERT_ID() AS VARCHAR);";
@@ -94,10 +94,10 @@ namespace BlackHole.Internal
                         InsertOutputs[1] = $";SELECT LAST_INSERT_ID();";
                     }
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     InsertOutputs[1] = $"returning {tableName}.{columnName};";
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     InsertOutputs[1] = $"returning {columnName}";
                     break;
             }
@@ -133,16 +133,16 @@ namespace BlackHole.Internal
 
                     switch (DatabaseStatics.DatabaseType)
                     {
-                        case BHSqlTypes.SqlServer:
+                        case BlackHoleSqlTypes.SqlServer:
                             _Sconnection = new SqlConnection(serverConnectionString);
                             break;
-                        case BHSqlTypes.MySql:
+                        case BlackHoleSqlTypes.MySql:
                             _Sconnection = new MySqlConnection(serverConnectionString);
                             break;
-                        case BHSqlTypes.Postgres:
+                        case BlackHoleSqlTypes.Postgres:
                             _Sconnection = new NpgsqlConnection(serverConnectionString);
                             break;
-                        case BHSqlTypes.SqlLite:
+                        case BlackHoleSqlTypes.SqlLite:
                             _Sconnection = new SqliteConnection(serverConnectionString);
                             break;
                     }
@@ -171,7 +171,7 @@ namespace BlackHole.Internal
         {
             bool lite = false;
 
-            if (DatabaseStatics.DatabaseType == BHSqlTypes.SqlLite)
+            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlLite)
             {
                 lite = true;
             }
@@ -187,7 +187,7 @@ namespace BlackHole.Internal
         {
             bool transact = false;
 
-            if (DatabaseStatics.DatabaseType == BHSqlTypes.SqlServer)
+            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer)
             {
                 transact = true;
             }
@@ -212,16 +212,16 @@ namespace BlackHole.Internal
             string PrimaryKeyCommand = "";
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     PrimaryKeyCommand = @"""Id"" INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     PrimaryKeyCommand = @"Id INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,";
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     PrimaryKeyCommand = @"""Id"" SERIAL PRIMARY KEY ,";
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     PrimaryKeyCommand = @"Id INTEGER PRIMARY KEY AUTOINCREMENT ,";
                     break;
             }
@@ -237,16 +237,16 @@ namespace BlackHole.Internal
             string PrimaryKeyCommand = "";
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     PrimaryKeyCommand = @"""Id"" NVARCHAR(50) PRIMARY KEY NOT NULL ,";
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     PrimaryKeyCommand = @"Id varchar(50) NOT NULL PRIMARY KEY ,";
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     PrimaryKeyCommand = @"""Id"" varchar(50) NOT NULL PRIMARY KEY ,";
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     PrimaryKeyCommand = @"Id TEXT PRIMARY KEY ,";
                     break;
             }
@@ -262,16 +262,16 @@ namespace BlackHole.Internal
             string PrimaryKeyCommand = "";
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     PrimaryKeyCommand = @"""Id"" INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     PrimaryKeyCommand = @"Id TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) PRIMARY KEY ,";
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     PrimaryKeyCommand = @"""Id"" timestamp(6) default current_timestamp(6) PRIMARY KEY ,";
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     PrimaryKeyCommand = @"Id timestamp(6) DEFAULT CURRENT_TIMESTAMP(6) ,";
                     break;
             }
@@ -288,16 +288,16 @@ namespace BlackHole.Internal
             string PrimaryKeyCommand = "";
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     PrimaryKeyCommand = @"""Id"" UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,";
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     PrimaryKeyCommand = @"Id varchar(50) NOT NULL PRIMARY KEY ,";
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     PrimaryKeyCommand = @"""Id"" uuid DEFAULT gen_random_uuid() PRIMARY KEY ,";
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     PrimaryKeyCommand = @"Id TEXT PRIMARY KEY ,";
                     break;
             }
@@ -307,7 +307,7 @@ namespace BlackHole.Internal
         bool IsMyShit()
         {
             bool myShit = false;
-            if (DatabaseStatics.DatabaseType == BHSqlTypes.MySql || DatabaseStatics.DatabaseType == BHSqlTypes.SqlLite)
+            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlLite)
             {
                 myShit = true;
             }
@@ -322,7 +322,7 @@ namespace BlackHole.Internal
         bool IBHDatabaseSelector.IsMyShittyDb()
         {
             bool myShit = false;
-            if (DatabaseStatics.DatabaseType == BHSqlTypes.MySql)
+            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
             {
                 myShit = true;
             }
@@ -357,16 +357,16 @@ namespace BlackHole.Internal
             int sqlTypeId = 0;
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     sqlTypeId = 0;
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     sqlTypeId = 1;
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     sqlTypeId = 2;
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     sqlTypeId = 3;
                     break;
             }
@@ -384,16 +384,16 @@ namespace BlackHole.Internal
             string[] SqlDatatypes = new string[10];
             switch (DatabaseStatics.DatabaseType)
             {
-                case BHSqlTypes.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     SqlDatatypes = new[] { "nvarchar", "int", "bigint", "decimal", "float", "float", "uniqueidentifier", "bit", "datetime", "varbinary" };
                     break;
-                case BHSqlTypes.MySql:
+                case BlackHoleSqlTypes.MySql:
                     SqlDatatypes = new[] { "varchar", "int", "bigint", "dec", "float", "double", "varchar(50)", "boolean", "datetime", "blob" };
                     break;
-                case BHSqlTypes.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     SqlDatatypes = new[] { "varchar", "integer", "bigint", "numeric(15,2)", "numeric(21,5)", "numeric", "uuid", "boolean", "timestamp", "bytea" };
                     break;
-                case BHSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
                     SqlDatatypes = new[] { "varchar", "integer", "bigint", "decimal(15,2)", "float", "numeric", "varchar", "boolean", "datetime", "blob" };
                     break;
                     //RAW(16) default SYS_GUID()
@@ -409,7 +409,7 @@ namespace BlackHole.Internal
         {
             string databaseName = string.Empty;
 
-            if (DatabaseStatics.DatabaseType != BHSqlTypes.SqlLite)
+            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite)
             {
                 try
                 {
@@ -431,24 +431,24 @@ namespace BlackHole.Internal
         /// Gives an Enum of the selected Sql Type
         /// </summary>
         /// <returns></returns>
-        BHSqlTypes IBHDatabaseSelector.GetSqlType()
+        BlackHoleSqlTypes IBHDatabaseSelector.GetSqlType()
         {
             return DatabaseStatics.DatabaseType;
         }
 
-        BHIdTypes IBHDatabaseSelector.GetIdType(Type type)
+        BlackHoleIdTypes IBHDatabaseSelector.GetIdType(Type type)
         {
             if (type == typeof(int))
             {
-                return BHIdTypes.IntId;
+                return BlackHoleIdTypes.IntId;
             }
 
             if (type == typeof(Guid))
             {
-                return BHIdTypes.GuidId;
+                return BlackHoleIdTypes.GuidId;
             }
 
-            return BHIdTypes.StringId;
+            return BlackHoleIdTypes.StringId;
         }
 
         /// <summary>
@@ -456,19 +456,19 @@ namespace BlackHole.Internal
         /// </summary>
         /// <param name="dataType"></param>
         /// <returns></returns>
-        bool IBHDatabaseSelector.RequiredIdGeneration(BHIdTypes dataType)
+        bool IBHDatabaseSelector.RequiredIdGeneration(BlackHoleIdTypes dataType)
         {
-            if (dataType == BHIdTypes.IntId)
+            if (dataType == BlackHoleIdTypes.IntId)
             {
                 return false;
             }
 
-            if (dataType == BHIdTypes.StringId)
+            if (dataType == BlackHoleIdTypes.StringId)
             {
                 return true;
             }
 
-            if (DatabaseStatics.DatabaseType == BHSqlTypes.SqlLite || DatabaseStatics.DatabaseType == BHSqlTypes.MySql)
+            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlLite || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
             {
                 return true;
             }

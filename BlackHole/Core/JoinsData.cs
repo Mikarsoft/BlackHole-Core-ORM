@@ -15,7 +15,7 @@ namespace BlackHole.Core
         internal List<string?> Letters { get; set; } = new List<string?>();
         internal string Joins { get; set; } = string.Empty;
         internal string WherePredicates { get; set; } = string.Empty;
-        internal DynamicParameters DynamicParams { get; set; } = new DynamicParameters();
+        internal BHParameters DynamicParams { get; set; } = new BHParameters();
         internal int HelperIndex { get; set; }
         internal bool isMyShit { get; set; }
         internal bool Ignore { get; set; }
@@ -35,7 +35,7 @@ namespace BlackHole.Core
         internal List<string?> Letters { get; set; } = new List<string?>();
         internal string Joins { get; set; } = string.Empty;
         internal string WherePredicates { get; set; } = string.Empty;
-        internal DynamicParameters DynamicParams { get; set; } = new DynamicParameters();
+        internal BHParameters DynamicParams { get; set; } = new BHParameters();
         internal int HelperIndex { get; set; }
         internal bool isMyShit { get; set; }
         internal bool Ignore { get; set; }
@@ -57,7 +57,7 @@ namespace BlackHole.Core
         internal List<string?> Letters { get; set; } = new List<string?>();
         internal string Joins { get; set; } = string.Empty;
         internal string WherePredicates { get; set; } = string.Empty;
-        internal DynamicParameters DynamicParams { get; set; } = new DynamicParameters();
+        internal BHParameters DynamicParams { get; set; } = new BHParameters();
         internal int HelperIndex { get; set; }
         internal bool isMyShit { get; set; }
         internal bool Ignore { get; set; }

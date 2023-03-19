@@ -14,17 +14,17 @@ namespace BlackHole.DataProviders
         private readonly string _connectionString;
         internal readonly string insertedOutput = "SELECT LAST_INSERT_ID();";
         internal readonly bool skipQuotes = true;
-        private readonly BHIdTypes _idType;
+        private readonly BlackHoleIdTypes _idType;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
 
-        internal MySqlDataProvider(string connectionString, BHIdTypes idType)
+        internal MySqlDataProvider(string connectionString, BlackHoleIdTypes idType)
         {
             _connectionString = connectionString;
             _idType = idType;
             _loggerService = new LoggerService();
 
-            if(idType != BHIdTypes.IntId)
+            if(idType != BlackHoleIdTypes.IntId)
             {
                 useGenerator = true;
             }
@@ -862,10 +862,10 @@ namespace BlackHole.DataProviders
 
             switch (_idType)
             {
-                case BHIdTypes.GuidId:
+                case BlackHoleIdTypes.GuidId:
                     value = Guid.NewGuid();
                     break;
-                case BHIdTypes.StringId:
+                case BlackHoleIdTypes.StringId:
                     string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
                     value = ToHash.GenerateSHA1();
                     break;

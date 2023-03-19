@@ -6,13 +6,13 @@ using System.Reflection;
 
 namespace BlackHole.DataProviders
 {
-    internal class SqlServerDataProvider : IDataProvider
+    internal class SqlServerDataProvider
     {
         private readonly string _connectionString;
         internal readonly string[] insertedOutputs = new string[2];
         internal readonly bool skipQuotes = false;
 
-        internal SqlServerDataProvider(string connectionString)
+        internal SqlServerDataProvider(string connectionString, BlackHoleIdTypes idType)
         {
             insertedOutputs[0] = "output Inserted.Id";
             insertedOutputs[1] = "";
@@ -39,19 +39,19 @@ namespace BlackHole.DataProviders
             return insertedOutputs;
         }
 
-        public BHIdTypes GetIdType(Type type)
+        public BlackHoleIdTypes GetIdType(Type type)
         {
             if (type == typeof(int))
             {
-                return BHIdTypes.IntId;
+                return BlackHoleIdTypes.IntId;
             }
 
             if (type == typeof(Guid))
             {
-                return BHIdTypes.GuidId;
+                return BlackHoleIdTypes.GuidId;
             }
 
-            return BHIdTypes.StringId;
+            return BlackHoleIdTypes.StringId;
         }
 
         public G? ExecuteScalar<G>(string commandText, object?[]? parameters)

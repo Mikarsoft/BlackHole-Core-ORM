@@ -5,22 +5,22 @@ namespace BlackHole.Configuration
 {
     internal static class DatabaseConfiguration
     {
-        internal static void ScanConnectionString(string connectionString, BHSqlTypes sqlType, string LogsPath)
+        internal static void ScanConnectionString(string connectionString, BHSqlType sqlType, string LogsPath)
         {
             DatabaseStatics.LogsPath = LogsPath;
 
             switch (sqlType)
             {
-                case BHSqlTypes.SqlServer:
+                case BHSqlType.SqlServer:
                     ScanMsSqlString(connectionString);
                     break;
-                case BHSqlTypes.MySql:
+                case BHSqlType.MySql:
                     ScanMySqlString(connectionString);
                     break;
-                case BHSqlTypes.Postgres:
+                case BHSqlType.Postgres:
                     ScanPostgresString(connectionString);
                     break;
-                case BHSqlTypes.SqlLite:
+                case BHSqlType.SqlLite:
                     ScanLiteString(connectionString);
                     break;
             }
@@ -47,7 +47,7 @@ namespace BlackHole.Configuration
                 }
             }
 
-            DatabaseStatics.DatabaseType = BHSqlTypes.SqlServer;
+            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.SqlServer;
             DatabaseStatics.ConnectionString = connectionString;
             DatabaseStatics.ServerConnection = serverConnection;
         }
@@ -73,7 +73,7 @@ namespace BlackHole.Configuration
                 }
             }
 
-            DatabaseStatics.DatabaseType = BHSqlTypes.MySql;
+            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.MySql;
             DatabaseStatics.ConnectionString = connectionString; // +"OldGuids=true;";
             DatabaseStatics.ServerConnection = serverConnection;
         }
@@ -99,7 +99,7 @@ namespace BlackHole.Configuration
                 }
             }
 
-            DatabaseStatics.DatabaseType = BHSqlTypes.Postgres;
+            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Postgres;
             DatabaseStatics.ConnectionString = connectionString;
             DatabaseStatics.ServerConnection = serverConnection;
         }
@@ -117,7 +117,7 @@ namespace BlackHole.Configuration
                 DatabaseStatics.DatabaseName = connectionString;
             }
 
-            DatabaseStatics.DatabaseType = BHSqlTypes.SqlLite;
+            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.SqlLite;
             DatabaseStatics.ServerConnection = connectionString;
             DatabaseStatics.ConnectionString = $"Data Source={connectionString};";
         }

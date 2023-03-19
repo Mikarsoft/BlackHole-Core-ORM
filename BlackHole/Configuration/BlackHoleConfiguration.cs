@@ -1,5 +1,4 @@
 ﻿using BlackHole.Core;
-using BlackHole.Enums;
 using BlackHole.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -11,6 +10,7 @@ namespace BlackHole.Configuration
     /// </summary>
     public static class BlackHoleConfiguration
     {
+        internal static BlackHoleSettings blackHoleSettings = new BlackHoleSettings();
         /// <summary>
         /// The easiest way to setup a single file standalone database
         /// Just insert the file name and it will be created in the 
@@ -33,7 +33,7 @@ namespace BlackHole.Configuration
 
             string dbPath = defaultBlackHoleFolder + $"\\{databaseName}.db3";
             string LogsPath = defaultBlackHoleFolder + "\\Logs";
-            ScanConnectionString(BHSqlTypes.SqlLite, dbPath, LogsPath);
+            ScanConnectionString(BHSqlType.SqlLite, dbPath, LogsPath);
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
             IBHTableBuilder tableBuilder = new BHTableBuilder();
@@ -64,16 +64,45 @@ namespace BlackHole.Configuration
         /// <param name="services">IServiceCollection</param>
         /// <param name="settings">Simple Configuration</param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection SuperNova(this IServiceCollection services, BlackHoleBaseConfig settings)
+        public static IServiceCollection SuperNova(this IServiceCollection services, BHConfig settings)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
 
-            if (settings.LogsPath == string.Empty)
+            //if (settings.LogsPath == string.Empty)
+            //{
+            //    settings.LogsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\BlackHole\\Logs";
+            //}
+
+            //ScanConnectionString(settings.SqlType, settings.ConnectionString, settings.LogsPath);
+
+            IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
+            IBHTableBuilder tableBuilder = new BHTableBuilder();
+            IBHNamespaceSelector namespaceSelector = new BHNamespaceSelector();
+
+            bool dbExists = databaseBuilder.CheckDatabaseExistance();
+
+            if (dbExists)
             {
-                settings.LogsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\BlackHole\\Logs";
+                var Entities = namespaceSelector.GetAllBHEntities(assembly);
+                tableBuilder.BuildMultipleTables(Entities);
+                services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
+                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
+                services.RegisterBHServices(assembly);
+            }
+            return services;
+        }
+
+        public static IServiceCollection SuperNova(this IServiceCollection services, Func<BlackHoleSettings,BlackHoleSettings> settings)
+        {
+            var stt = settings.Invoke(blackHoleSettings);
+            Assembly assembly = Assembly.GetCallingAssembly();
+
+            if (stt.LogsPath == string.Empty)
+            {
+                stt.LogsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\BlackHole\\Logs";
             }
 
-            ScanConnectionString(settings.SqlType, settings.ConnectionString, settings.LogsPath);
+            //ScanConnectionString(stt..SqlType, settings.ConnectionString, settings.LogsPath);
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
             IBHTableBuilder tableBuilder = new BHTableBuilder();
@@ -238,7 +267,7 @@ namespace BlackHole.Configuration
             string dbPath = defaultBlackHoleFolder + $"\\{databaseName}.db3";
             string LogsPath = defaultBlackHoleFolder + "\\Logs";
 
-            ScanConnectionString(BHSqlTypes.SqlLite, dbPath,LogsPath);
+            //ScanConnectionString(BHSqlTypes.SqlLite, dbPath,LogsPath);
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
             IBHTableBuilder tableBuilder = new BHTableBuilder();
@@ -268,14 +297,14 @@ namespace BlackHole.Configuration
         /// <param name="services">IServiceCollection</param>
         /// <param name="settings">Simple Configuration</param>
         /// <returns>IServiceCollection</returns>
-        public static IServiceCollection SuperNova(this IServiceCollection services, BlackHoleBaseConfig settings, Assembly useOtherAssembly)
+        public static IServiceCollection SuperNova(this IServiceCollection services, BHConfig settings, Assembly useOtherAssembly)
         {
-            if (settings.LogsPath == string.Empty)
-            {
-                settings.LogsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\BlackHole\\Logs";
-            }
+            //if (settings.LogsPath == string.Empty)
+            //{
+            //    settings.LogsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\BlackHole\\Logs";
+            //}
 
-            ScanConnectionString(settings.SqlType, settings.ConnectionString, settings.LogsPath);
+            //ScanConnectionString(settings.SqlType, settings.ConnectionString, settings.LogsPath);
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
             IBHTableBuilder tableBuilder = new BHTableBuilder();
@@ -437,7 +466,7 @@ namespace BlackHole.Configuration
             return databaseBuilder.DropDatabase();
         }
 
-        internal static void ScanConnectionString(BHSqlTypes SqlType, string ConnectionString, string LogsPath)
+        internal static void ScanConnectionString(BHSqlType SqlType, string ConnectionString, string LogsPath)
         {
             DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType,LogsPath);
         }

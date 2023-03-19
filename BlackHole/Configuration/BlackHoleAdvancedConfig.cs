@@ -13,7 +13,7 @@ namespace BlackHole.Configuration
     public class BlackHoleAdvancedConfig
     {
         public string ConnectionString { get; set; } = string.Empty;
-        public BHSqlTypes SqlType { get; set; }
+        public BHSqlType SqlType { get; set; }
         public bool AutoRegisterBlazarServices { get; set; } = true;
         public List<string> SpecificEntityNamespaces { get; set; } = new List<string>();
         public List<string> SpecificServicesNamespaces { get; set; } = new List<string>();

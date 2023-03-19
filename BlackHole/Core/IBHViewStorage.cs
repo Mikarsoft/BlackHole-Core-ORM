@@ -21,6 +21,6 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        IList<Dto> ExecuteView<Dto>(BlackHoleTransaction transaction) where Dto : BlackHoleDto;
+        IList<Dto> ExecuteView<Dto>(BHTransaction transaction) where Dto : BlackHoleDto;
     }
 }

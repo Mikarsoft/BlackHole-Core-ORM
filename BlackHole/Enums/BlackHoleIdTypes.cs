@@ -1,7 +1,7 @@
 ﻿
 namespace BlackHole.Enums
 {
-    internal enum BHIdTypes
+    internal enum BlackHoleIdTypes
     {
         IntId,
         GuidId,

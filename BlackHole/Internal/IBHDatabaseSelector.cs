@@ -25,7 +25,7 @@ namespace BlackHole.Internal
 
         string GetDatabaseName();
 
-        BHSqlTypes GetSqlType();
+        BlackHoleSqlTypes GetSqlType();
 
         string GetServerConnection();
 
@@ -41,12 +41,12 @@ namespace BlackHole.Internal
 
         bool IsMyShittyDb();
 
-        BHIdTypes GetIdType(Type type);
+        BlackHoleIdTypes GetIdType(Type type);
 
         string GetDatePrimaryKeyCommand();
 
         string GetStringPrimaryKeyCommand();
 
-        bool RequiredIdGeneration(BHIdTypes dataType);
+        bool RequiredIdGeneration(BlackHoleIdTypes dataType);
     }
 }

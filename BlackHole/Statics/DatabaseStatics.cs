@@ -8,6 +8,6 @@ namespace BlackHole.Statics
         internal static string ServerConnection { get; set; } = string.Empty;
         internal static string DatabaseName { get; set; } = string.Empty;
         internal static string LogsPath { get; set; } = string.Empty;
-        internal static BHSqlTypes DatabaseType { get; set; }
+        internal static BlackHoleSqlTypes DatabaseType { get; set; }
     }
 }
