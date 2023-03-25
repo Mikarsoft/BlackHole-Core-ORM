@@ -10,7 +10,6 @@ namespace BlackHole.Configuration
     /// </summary>
     public static class BlackHoleConfiguration
     {
-        internal static BlackHoleSettings blackHoleSettings = new BlackHoleSettings();
         /// <summary>
         /// The easiest way to setup a single file standalone database
         /// Just insert the file name and it will be created in the 
@@ -92,14 +91,15 @@ namespace BlackHole.Configuration
             return services;
         }
 
-        public static IServiceCollection SuperNova(this IServiceCollection services, Func<BlackHoleSettings,BlackHoleSettings> settings)
+        public static IServiceCollection SuperNova(this IServiceCollection services, Action<BlackHoleSettings> settings)
         {
-            var stt = settings.Invoke(blackHoleSettings);
+            BlackHoleSettings blackHoleSettings = new BlackHoleSettings();
+            settings.Invoke(blackHoleSettings);
             Assembly assembly = Assembly.GetCallingAssembly();
 
-            if (stt.LogsPath == string.Empty)
+            if (blackHoleSettings.logsPath == string.Empty)
             {
-                stt.LogsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\BlackHole\\Logs";
+                blackHoleSettings.logsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\BlackHole\\Logs";
             }
 
             //ScanConnectionString(stt..SqlType, settings.ConnectionString, settings.LogsPath);

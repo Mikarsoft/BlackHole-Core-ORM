@@ -1,30 +1,31 @@
 ﻿
-using System.Reflection;
-
 namespace BlackHole.Configuration
 {
     public class BlackHoleSettings
     {
-        public BHConfig BHConfiguration { get; set; } = new BHConfig();
-        public string LogsPath { get; set; } = string.Empty;
-        public Assembly? callingAssembly { get; set; }
+        public string dataPath { get; set; } = string.Empty;
+        public ConnectionSettings connectionConfig { get; set; } = new ConnectionSettings();
 
-
+        /// <summary>
+        /// Add the configuration for a database.
+        /// </summary>
+        /// <param name="connectionSettings">connection settings</param>
+        /// <returns>BlackHoleSettings to add more settings</returns>
         public BlackHoleSettings AddDatabase(Action<ConnectionSettings> connectionSettings)
         {
+            connectionSettings.Invoke(connectionConfig);
             return this;
         }
 
-        public BlackHoleSettings SetLogsPath(string LogsPath)
+        /// <summary>
+        /// Set the path of the folder where BlackHole will store
+        /// Sqlite databases, Logs and other data that will
+        /// be required for the features in later updates
+        /// </summary>
+        /// <param name="DataPath">Full path of the data folder</param>
+        public void SetDataPath(string DataPath)
         {
-            this.LogsPath = LogsPath;
-            return this;
-        }
-
-        public BlackHoleSettings GetEntitiesFromAnotherAssembly(Assembly assembly)
-        {
-            callingAssembly = assembly;
-            return this;
+            dataPath = DataPath;
         }
     }
 }
