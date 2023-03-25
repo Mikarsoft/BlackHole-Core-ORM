@@ -11,90 +11,165 @@ namespace BlackHole.Configuration
 
         public ConnectionAdditionalSettings UseEntitiesFromNamespace(string entityNamespace)
         {
-            EntityNamespaces.Add(new EntitiesWithNamespace { NamespaceUsed = entityNamespace});
+            EntitiesWithNamespace? existing = EntityNamespaces
+                .Where(x => x.NamespaceUsed == entityNamespace && x.AssemblyNameUsed == string.Empty).FirstOrDefault();
+
+            if(existing == null)
+            {
+                EntityNamespaces.Add(new EntitiesWithNamespace { NamespaceUsed = entityNamespace });
+            }
+
             return this;
         }
 
         public ConnectionAdditionalSettings UseEntitiesFromNamespaces(List<string> entityNamespaces)
         {
-            List<EntitiesWithNamespace> namespacesToAdd = new List<EntitiesWithNamespace>();
-
             foreach(string entityNamespace in entityNamespaces)
             {
-                namespacesToAdd.Add(new EntitiesWithNamespace { NamespaceUsed = entityNamespace });
+                EntitiesWithNamespace? existing = EntityNamespaces
+                    .Where(x => x.NamespaceUsed == entityNamespace && x.AssemblyNameUsed == string.Empty).FirstOrDefault();
+
+                if(existing == null)
+                {
+                    EntityNamespaces.Add(new EntitiesWithNamespace { NamespaceUsed = entityNamespace });
+                }
             }
 
-            EntityNamespaces.AddRange(namespacesToAdd);
             return this;
         }
 
         public ConnectionAdditionalSettings AddServicesFromNamespace(string servicesNamespace)
         {
-            ServicesNamespaces.Add(new ServicesWithNamespace { NamespaceUsed = servicesNamespace});
+            ServicesWithNamespace? existing = ServicesNamespaces
+                .Where(x => x.NamespaceUsed == servicesNamespace && x.AssemblyNameUsed == string.Empty).FirstOrDefault();
+
+            if (existing == null)
+            {
+                ServicesNamespaces.Add(new ServicesWithNamespace { NamespaceUsed = servicesNamespace });
+            }
+
             return this;
         }
 
         public ConnectionAdditionalSettings AddServicesFromNamespaces(List<string> servicesNamespaces)
         {
-            List<ServicesWithNamespace> namespacesToAdd = new List<ServicesWithNamespace>();
-
             foreach (string servicesNamespace in servicesNamespaces)
             {
-                namespacesToAdd.Add(new ServicesWithNamespace { NamespaceUsed = servicesNamespace });
+                ServicesWithNamespace? existing = ServicesNamespaces
+                    .Where(x => x.NamespaceUsed == servicesNamespace && x.AssemblyNameUsed == string.Empty).FirstOrDefault();
+
+                if( existing == null)
+                {
+                    ServicesNamespaces.Add(new ServicesWithNamespace { NamespaceUsed = servicesNamespace });
+                }
             }
 
-            ServicesNamespaces.AddRange(namespacesToAdd);
             return this;
         }
 
-        public ConnectionAdditionalSettings UseEntitiesFromNamespace(string entityNamespace, Assembly assbly)
+        public ConnectionAdditionalSettings UseEntitiesFromNamespace(string entityNamespace, Assembly otherAssembly)
         {
-            EntityNamespaces.Add(new EntitiesWithNamespace { NamespaceUsed = entityNamespace });
+            string? assemblyName = otherAssembly.FullName;
+
+            if (assemblyName != null)
+            {
+                AssembliesUsed? existing = AssembliesToUse.Where(x => x.AssName == assemblyName).FirstOrDefault();
+
+                if (existing == null)
+                {
+                    AssembliesToUse.Add(new AssembliesUsed { AssName = assemblyName, ScanAssembly = otherAssembly });
+                }
+
+                EntitiesWithNamespace? existingNamespace = EntityNamespaces
+                    .Where(x => x.NamespaceUsed == entityNamespace && x.AssemblyNameUsed == assemblyName).FirstOrDefault();
+
+                if (existingNamespace == null)
+                {
+                    EntityNamespaces.Add(new EntitiesWithNamespace { NamespaceUsed = entityNamespace, AssemblyNameUsed = assemblyName });
+                }
+            }
+
             return this;
         }
 
-        public ConnectionAdditionalSettings UseEntitiesFromNamespaces(List<string> entityNamespaces, Assembly assbly)
+        public ConnectionAdditionalSettings UseEntitiesFromNamespaces(List<string> entityNamespaces, Assembly otherAssembly)
         {
-            string? assemblyName = assbly.FullName;
-
-            AssembliesUsed? existing = AssembliesToUse.Where(x => x.AssName == assemblyName).FirstOrDefault();
+            string? assemblyName = otherAssembly.FullName;
 
             if(assemblyName != null)
             {
+                AssembliesUsed? existing = AssembliesToUse.Where(x => x.AssName == assemblyName).FirstOrDefault();
+
                 if (existing == null)
                 {
-                    AssembliesToUse.Add(new AssembliesUsed { AssName = assemblyName, ScanAssembly = assbly });
+                    AssembliesToUse.Add(new AssembliesUsed { AssName = assemblyName, ScanAssembly = otherAssembly });
                 }
-
-                List<EntitiesWithNamespace> namespacesToAdd = new List<EntitiesWithNamespace>();
 
                 foreach (string entityNamespace in entityNamespaces)
                 {
-                    namespacesToAdd.Add(new EntitiesWithNamespace { NamespaceUsed = entityNamespace, AssemblyNameUsed = assemblyName });
+                    EntitiesWithNamespace? existingNamespace = EntityNamespaces
+                        .Where(x => x.NamespaceUsed == entityNamespace && x.AssemblyNameUsed == assemblyName).FirstOrDefault();
+
+                    if(existingNamespace == null)
+                    {
+                        EntityNamespaces.Add(new EntitiesWithNamespace { NamespaceUsed = entityNamespace, AssemblyNameUsed = assemblyName });
+                    }
+                }
+            }
+
+            return this;
+        }
+
+        public ConnectionAdditionalSettings AddServicesFromNamespace(string servicesNamespace, Assembly otherAssembly)
+        {
+            string? assemblyName = otherAssembly.FullName;
+
+            if (assemblyName != null)
+            {
+                AssembliesUsed? existing = AssembliesToUse.Where(x => x.AssName == assemblyName).FirstOrDefault();
+
+                if (existing == null)
+                {
+                    AssembliesToUse.Add(new AssembliesUsed { AssName = assemblyName, ScanAssembly = otherAssembly });
                 }
 
-                EntityNamespaces.AddRange(namespacesToAdd);
+                ServicesWithNamespace? existingNamespace = ServicesNamespaces
+                    .Where(x => x.NamespaceUsed == servicesNamespace && x.AssemblyNameUsed == assemblyName).FirstOrDefault();
+
+                if(existingNamespace == null)
+                {
+                    ServicesNamespaces.Add(new ServicesWithNamespace { NamespaceUsed = servicesNamespace, AssemblyNameUsed = assemblyName});
+                }
             }
 
             return this;
         }
 
-        public ConnectionAdditionalSettings AddServicesFromNamespace(string servicesNamespace, Assembly assbly)
+        public ConnectionAdditionalSettings AddServicesFromNamespaces(List<string> servicesNamespaces, Assembly otherAssembly)
         {
-            ServicesNamespaces.Add(new ServicesWithNamespace { NamespaceUsed = servicesNamespace });
-            return this;
-        }
+            string? assemblyName = otherAssembly.FullName;
 
-        public ConnectionAdditionalSettings AddServicesFromNamespaces(List<string> servicesNamespaces, Assembly assbly)
-        {
-            List<ServicesWithNamespace> namespacesToAdd = new List<ServicesWithNamespace>();
-
-            foreach (string servicesNamespace in servicesNamespaces)
+            if (assemblyName != null)
             {
-                namespacesToAdd.Add(new ServicesWithNamespace { NamespaceUsed = servicesNamespace });
+                AssembliesUsed? existing = AssembliesToUse.Where(x => x.AssName == assemblyName).FirstOrDefault();
+
+                if (existing == null)
+                {
+                    AssembliesToUse.Add(new AssembliesUsed { AssName = assemblyName, ScanAssembly = otherAssembly });
+                }
+
+                foreach (string servicesNamespace in servicesNamespaces)
+                {
+                    ServicesWithNamespace? existingNamespace = ServicesNamespaces
+                        .Where(x => x.NamespaceUsed == servicesNamespace && x.AssemblyNameUsed == assemblyName).FirstOrDefault();
+
+                    if (existingNamespace == null)
+                    {
+                        ServicesNamespaces.Add(new ServicesWithNamespace { NamespaceUsed = servicesNamespace, AssemblyNameUsed = assemblyName });
+                    }
+                }
             }
 
-            ServicesNamespaces.AddRange(namespacesToAdd);
             return this;
         }
     }

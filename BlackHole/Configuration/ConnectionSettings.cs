@@ -1,11 +1,13 @@
 ﻿
 
+using BlackHole.Enums;
+
 namespace BlackHole.Configuration
 {
     public class ConnectionSettings
     {
         internal string ConnectionString { get; set; } = string.Empty;
-        internal BHSqlType ConnectionType { get; set; }
+        internal BlackHoleSqlTypes ConnectionType { get; set; }
         internal ConnectionAdditionalSettings additionalSettings = new ConnectionAdditionalSettings();
 
         /// <summary>
@@ -16,7 +18,7 @@ namespace BlackHole.Configuration
         public ConnectionAdditionalSettings UseSqlServer(string connectionString)
         {
             ConnectionString = connectionString;
-            ConnectionType = BHSqlType.SqlServer;
+            ConnectionType = BlackHoleSqlTypes.SqlServer;
             return additionalSettings;
         }
 
@@ -28,7 +30,7 @@ namespace BlackHole.Configuration
         public ConnectionAdditionalSettings UseNpgSql(string connectionString)
         {
             ConnectionString = connectionString;
-            ConnectionType = BHSqlType.Postgres;
+            ConnectionType = BlackHoleSqlTypes.Postgres;
             return additionalSettings;
         }
 
@@ -40,7 +42,7 @@ namespace BlackHole.Configuration
         public ConnectionAdditionalSettings UseMySql(string connectionString)
         {
             ConnectionString = connectionString;
-            ConnectionType = BHSqlType.MySql;
+            ConnectionType = BlackHoleSqlTypes.MySql;
             return additionalSettings;
         }
 
@@ -53,7 +55,7 @@ namespace BlackHole.Configuration
         public ConnectionAdditionalSettings UseSqlite(string connectionString)
         {
             ConnectionString = connectionString;
-            ConnectionType = BHSqlType.SqlLite;
+            ConnectionType = BlackHoleSqlTypes.SqlLite;
             return additionalSettings;
         }
 
@@ -65,7 +67,7 @@ namespace BlackHole.Configuration
         public ConnectionAdditionalSettings UseOracle(string connectionString)
         {
             ConnectionString = connectionString;
-            ConnectionType = BHSqlType.Oracle;
+            ConnectionType = BlackHoleSqlTypes.Oracle;
             return additionalSettings;
         }
     }

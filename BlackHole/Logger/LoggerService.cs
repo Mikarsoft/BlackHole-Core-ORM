@@ -12,12 +12,7 @@ namespace BlackHole.Logger
         {
             try
             {
-                if (DatabaseStatics.LogsPath == string.Empty)
-                {
-                    DatabaseStatics.LogsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleLogs");
-                }
-
-                LogsPath = DatabaseStatics.LogsPath;
+                LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
 
                 if (!Directory.Exists(LogsPath))
                 {
@@ -28,8 +23,8 @@ namespace BlackHole.Logger
             }
             catch
             {
-                DatabaseStatics.LogsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleLogs");
-                LogsPath = DatabaseStatics.LogsPath;
+                DatabaseStatics.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData");
+                LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
                 canWriteLogs = false;
             }
 

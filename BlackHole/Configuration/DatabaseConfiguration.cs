@@ -5,22 +5,25 @@ namespace BlackHole.Configuration
 {
     internal static class DatabaseConfiguration
     {
-        internal static void ScanConnectionString(string connectionString, BHSqlType sqlType, string LogsPath)
+        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string LogsPath)
         {
-            DatabaseStatics.LogsPath = LogsPath;
+            DatabaseStatics.DataPath = LogsPath;
 
             switch (sqlType)
             {
-                case BHSqlType.SqlServer:
+                case BlackHoleSqlTypes.SqlServer:
                     ScanMsSqlString(connectionString);
                     break;
-                case BHSqlType.MySql:
+                case BlackHoleSqlTypes.MySql:
                     ScanMySqlString(connectionString);
                     break;
-                case BHSqlType.Postgres:
+                case BlackHoleSqlTypes.Postgres:
                     ScanPostgresString(connectionString);
                     break;
-                case BHSqlType.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:
+                    ScanLiteString(connectionString);
+                    break;
+                case BlackHoleSqlTypes.Oracle:
                     ScanLiteString(connectionString);
                     break;
             }
