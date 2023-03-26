@@ -7,7 +7,7 @@ using System.Data.Odbc;
 
 namespace BlackHole.DataProviders
 {
-    internal class SqlServerDataProvider
+    internal class SqlServerDataProvider : IDataProvider
     {
         private readonly string _connectionString;
         internal readonly string insertedOutput = "output Inserted.Id";

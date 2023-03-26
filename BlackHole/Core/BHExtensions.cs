@@ -713,19 +713,19 @@ namespace BlackHole.Core
             switch (connectionType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    provider = new SqlServerExecutionProvider();
+                    provider = new SqlServerExecutionProvider(DatabaseStatics.ConnectionString);
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    provider = new MySqlExecutionProvider();
+                    provider = new MySqlExecutionProvider(DatabaseStatics.ConnectionString);
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    provider = new PostgresExecutionProvider();
+                    provider = new PostgresExecutionProvider(DatabaseStatics.ConnectionString);
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    provider = new SqLiteExecutionProvider();
+                    provider = new SqLiteExecutionProvider(DatabaseStatics.ConnectionString);
                     break;
                 default:
-                    provider = new OracleExecutionProvider();
+                    provider = new OracleExecutionProvider(DatabaseStatics.ConnectionString);
                     break;
             }
             return provider;

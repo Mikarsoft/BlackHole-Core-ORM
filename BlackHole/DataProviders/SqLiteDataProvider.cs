@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace BlackHole.DataProviders
 {
-    internal class SqLiteDataProvider 
+    internal class SqLiteDataProvider : IDataProvider
     {
         private readonly string _connectionString;
         internal readonly string insertedOutput = "returning Id";

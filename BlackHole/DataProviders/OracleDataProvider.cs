@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace BlackHole.DataProviders
 {
-    internal class OracleDataProvider
+    internal class OracleDataProvider : IDataProvider
     {
         private readonly string _connectionString;
         internal readonly string insertedOutput = "SELECT LAST_INSERT_ID();";

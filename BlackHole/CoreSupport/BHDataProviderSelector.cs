@@ -8,28 +8,14 @@ namespace BlackHole.CoreSupport
     {
         IDataProvider IBHDataProviderSelector.GetDataProvider(Type IdType, string tableName)
         {
-            IDataProvider dataProvider;
-
-            switch (DatabaseStatics.DatabaseType)
+            return DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    //dataProvider = new SqlServerDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    dataProvider = new MySqlDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    dataProvider = new PostgresDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType), tableName);
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    //dataProvider = new SqLiteDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
-                    break;
-                default:
-                    //dataProvider = new OracleDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
-                    break;
-            }
-
-            return new MySqlDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
+                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType)),
+                BlackHoleSqlTypes.MySql => new MySqlDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType)),
+                BlackHoleSqlTypes.Postgres => new PostgresDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType), tableName),
+                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType)),
+                _ => new OracleDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType)),
+            };
         }
 
         IExecutionProvider IBHDataProviderSelector.GetExecutionProvider()

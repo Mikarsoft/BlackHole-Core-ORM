@@ -194,10 +194,70 @@ namespace BlackHole.Core
             return await _executionProvider.QueryAsync<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction);
         }
 
+        public T? QueryFirst<T>(string commandText)
+        {
+            return _executionProvider.QueryFirst<T>(commandText, null);
+        }
+
+        public T? QueryFirst<T>(string commandText, BHParameters parameters)
+        {
+            return _executionProvider.QueryFirst<T>(commandText, parameters.Parameters);
+        }
+
+        public T? QueryFirst<T>(string commandText, object parametersObject)
+        {
+            return _executionProvider.QueryFirst<T>(commandText, MapObjectToParameters(parametersObject));
+        }
+
+        public T? QueryFirst<T>(string commandText, BHTransaction bHTransaction)
+        {
+            return _executionProvider.QueryFirst<T>(commandText, null, bHTransaction.transaction);
+        }
+
+        public T? QueryFirst<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        {
+            return _executionProvider.QueryFirst<T>(commandText, parameters.Parameters, bHTransaction.transaction);
+        }
+
+        public T? QueryFirst<T>(string commandText, object parametersObject, BHTransaction bHTransaction)
+        {
+            return _executionProvider.QueryFirst<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction);
+        }
+
+        public async Task<T?> QueryFirstAsync<T>(string commandText)
+        {
+            return await _executionProvider.QueryFirstAsync<T>(commandText, null);
+        }
+
+        public async Task<T?> QueryFirstAsync<T>(string commandText, BHParameters parameters)
+        {
+            return await _executionProvider.QueryFirstAsync<T>(commandText, parameters.Parameters);
+        }
+
+        public async Task<T?> QueryFirstAsync<T>(string commandText, object parametersObject)
+        {
+            return await _executionProvider.QueryFirstAsync<T>(commandText, MapObjectToParameters(parametersObject));
+        }
+
+        public async Task<T?> QueryFirstAsync<T>(string commandText, BHTransaction bHTransaction)
+        {
+            return await _executionProvider.QueryFirstAsync<T>(commandText, null, bHTransaction.transaction);
+        }
+
+        public async Task<T?> QueryFirstAsync<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        {
+            return await _executionProvider.QueryFirstAsync<T>(commandText, parameters.Parameters, bHTransaction.transaction);
+        }
+
+        public async Task<T?> QueryFirstAsync<T>(string commandText, object parametersObject, BHTransaction bHTransaction)
+        {
+            return await _executionProvider.QueryFirstAsync<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction);
+        }
+
         private BlackHoleParameter[] MapObjectToParameters(object parametersObject)
         {
             PropertyInfo[] propertyInfos = parametersObject.GetType().GetProperties();
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new ();
 
             foreach (PropertyInfo property in propertyInfos)
             {
