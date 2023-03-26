@@ -1,5 +1,6 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Enums;
+using BlackHole.Logger;
 using Oracle.ManagedDataAccess.Client;
 using System.Data.Common;
 using System.Reflection;
@@ -9,358 +10,388 @@ namespace BlackHole.DataProviders
     internal class OracleDataProvider
     {
         private readonly string _connectionString;
-        internal readonly string[] insertedOutputs = new string[2];
-        internal readonly bool skipQuotes = false;
+        internal readonly string insertedOutput = "SELECT LAST_INSERT_ID();";
+        internal readonly bool skipQuotes = true;
+        private readonly BlackHoleIdTypes _idType;
+        private readonly ILoggerService _loggerService;
+        private readonly bool useGenerator = false;
 
         internal OracleDataProvider(string connectionString, BlackHoleIdTypes idType)
         {
             _connectionString = connectionString;
-        }
+            _idType = idType;
+            _loggerService = new LoggerService();
 
-        public bool IsGeneratorRequired(Type type)
-        {
-            if (type != typeof(int))
+            if (idType != BlackHoleIdTypes.IntId)
             {
-                return true;
+                useGenerator = true;
             }
-
-            return false;
+            else
+            {
+                useGenerator = false;
+            }
         }
 
+        #region Internal Processes
+        private G? ExecuteEntryScalar<T, G>(string commandText, T entry)
+        {
+            try
+            {
+                G? Id = default(G);
+                using (OracleConnection connection = new OracleConnection(_connectionString))
+                {
+                    connection.Open();
+                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    ObjectToParameters(entry, Command.Parameters);
+
+                    Id = (G?)Command.ExecuteScalar();
+                    connection.Close();
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return default(G);
+            }
+        }
+
+        private async Task<G?> ExecuteEntryScalarAsync<T, G>(string commandText, T entry)
+        {
+            try
+            {
+                G? Id = default(G);
+                using (OracleConnection connection = new OracleConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    ObjectToParameters(entry, Command.Parameters);
+
+                    Id = (G?)await Command.ExecuteScalarAsync();
+                    await connection.CloseAsync();
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs($"InsertAsync_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                return default(G);
+            }
+        }
+
+        private G? ExecuteEntryScalar<T, G>(string commandText, T entry, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new OracleCommand(commandText, connection);
+                Command.Transaction = transaction;
+
+                ObjectToParameters(entry, Command.Parameters);
+
+                return (G?)Command.ExecuteScalar();
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                return default(G);
+            }
+        }
+
+        private async Task<G?> ExecuteEntryScalarAsync<T, G>(string commandText, T entry, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new OracleCommand(commandText, connection);
+                Command.Transaction = transaction;
+
+                ObjectToParameters(entry, Command.Parameters);
+
+                return (G?)await Command.ExecuteScalarAsync();
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return default(G);
+            }
+        }
+        #endregion
+
+        #region Helper Methods
         public bool SkipQuotes()
         {
             return skipQuotes;
         }
+        #endregion
 
-        public string[] GetIdOutputCommand(string tableName, string columnName)
+        #region Execution Methods
+        public G? InsertScalar<T, G>(string commandStart, string commandEnd, T entry)
         {
-            return insertedOutputs;
-        }
-
-        public BlackHoleIdTypes GetIdType(Type type)
-        {
-            if (type == typeof(int))
+            if (useGenerator)
             {
-                return BlackHoleIdTypes.IntId;
-            }
+                G? Id = GenerateId<G>();
 
-            if (type == typeof(Guid))
-            {
-                return BlackHoleIdTypes.GuidId;
-            }
-
-            return BlackHoleIdTypes.StringId;
-        }
-
-        public G? ExecuteScalar<G>(string commandText, object?[]? parameters)
-        {
-            G? Id = default(G);
-
-            try
-            {
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                if (ExecuteEntry($"{commandStart},Id){commandEnd},'{Id}');", entry))
                 {
-                    connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
-
-                    if (parameters != null)
-                    {
-                        Command.Parameters.AddRange(parameters);
-                    }
-
-                    Id = (G?)Command.ExecuteScalar();
+                    return Id;
+                }
+                else
+                {
+                    return default(G);
                 }
             }
-            catch
+            else
             {
-
+                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
             }
-
-            return Id;
         }
 
-        public G? ExecuteScalar<G>(string commandText, object?[]? parameters, BlackHoleTransaction bHTransaction)
+        public G? InsertScalar<T, G>(string commandStart, string commandEnd, T entry, BlackHoleTransaction bhTransaction)
         {
-            G? Id = default(G);
-
-            try
+            if (useGenerator)
             {
-                OracleConnection? connection = bHTransaction.connection as OracleConnection;
-                OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
-                Command.Transaction = transaction;
+                G? Id = GenerateId<G>();
 
-                if (parameters != null)
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},'{Id}');", entry, bhTransaction))
                 {
-                    Command.Parameters.AddRange(parameters);
+                    return Id;
                 }
-
-                Id = (G?)Command.ExecuteScalar();
-            }
-            catch
-            {
-
-            }
-
-            return Id;
-        }
-
-        public async Task<G?> ExecuteScalarAsync<G>(string commandText, object?[]? parameters)
-        {
-            G? Id = default(G);
-
-            try
-            {
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                else
                 {
-                    connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
-
-                    if (parameters != null)
-                    {
-                        Command.Parameters.AddRange(parameters);
-                    }
-
-                    Id = (G?)await Command.ExecuteScalarAsync();
+                    return default(G);
                 }
             }
-            catch
+            else
             {
-
+                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
             }
-
-            return Id;
         }
 
-        public async Task<G?> ExecuteScalarAsync<G>(string commandText, object?[]? parameters, BlackHoleTransaction bHTransaction)
+        public async Task<G?> InsertScalarAsync<T, G>(string commandStart, string commandEnd, T entry)
         {
-            G? Id = default(G);
-
-            try
+            if (useGenerator)
             {
-                OracleConnection? connection = bHTransaction.connection as OracleConnection;
-                OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
-                Command.Transaction = transaction;
+                G? Id = GenerateId<G>();
 
-                if (parameters != null)
+                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry))
                 {
-                    Command.Parameters.AddRange(parameters);
+                    return Id;
                 }
-
-                Id = (G?)await Command.ExecuteScalarAsync();
-            }
-            catch
-            {
-
-            }
-
-            return Id;
-        }
-
-        public G? ExecuteScalar<T, G>(string commandText, T entry)
-        {
-            G? Id = default(G);
-
-            try
-            {
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                else
                 {
-                    connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
-
-                    if (entry != null)
-                    {
-                        Command.Parameters.AddRange(BreakObjectToParameters(entry));
-                    }
-
-                    Id = (G?)Command.ExecuteScalar();
+                    return default(G);
                 }
             }
-            catch
+            else
             {
-
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
             }
-
-            return Id;
         }
 
-        public G? ExecuteScalar<T, G>(string commandText, T entry, BlackHoleTransaction bHTransaction)
+        public async Task<G?> InsertScalarAsync<T, G>(string commandStart, string commandEnd, T entry, BlackHoleTransaction bhTransaction)
         {
-            G? Id = default(G);
-
-            try
+            if (useGenerator)
             {
-                OracleConnection? connection = bHTransaction.connection as OracleConnection;
-                OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
-                Command.Transaction = transaction;
+                G? Id = GenerateId<G>();
 
-                if (entry != null)
+                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry, bhTransaction))
                 {
-                    Command.Parameters.AddRange(BreakObjectToParameters(entry));
+                    return Id;
                 }
-
-                Id = (G?)Command.ExecuteScalar();
-            }
-            catch
-            {
-
-            }
-
-            return Id;
-        }
-
-        public async Task<G?> ExecuteScalarAsync<T, G>(string commandText, T entry)
-        {
-            G? Id = default(G);
-
-            try
-            {
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                else
                 {
-                    connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
-
-                    if (entry != null)
-                    {
-                        Command.Parameters.AddRange(BreakObjectToParameters(entry));
-                    }
-
-                    Id = (G?)await Command.ExecuteScalarAsync();
+                    return default(G);
                 }
             }
-            catch
+            else
             {
-
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
             }
-
-            return Id;
         }
 
-        public async Task<G?> ExecuteScalarAsync<T, G>(string commandText, T entry, BlackHoleTransaction bHTransaction)
+        public async Task<List<G?>> MultiInsertScalarAsync<T, G>(string commandStart, string commandEnd, List<T> entries, BlackHoleTransaction bhTransaction)
         {
-            G? Id = default(G);
+            List<G?> Ids = new List<G?>();
 
-            try
+            if (useGenerator)
             {
-                OracleConnection? connection = bHTransaction.connection as OracleConnection;
-                OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
-                Command.Transaction = transaction;
-
-                if (entry != null)
-                {
-                    Command.Parameters.AddRange(BreakObjectToParameters(entry));
-                }
-
-                Id = (G?)await Command.ExecuteScalarAsync();
-            }
-            catch
-            {
-
-            }
-
-            return Id;
-        }
-
-        public List<G> MultiScalarTransaction<T,G>(string commandText, List<T> entries)
-        {
-            List<G> result = new List<G>();
-            using (BlackHoleTransaction bHTransaction = new BlackHoleTransaction())
-            {
+                string commandText = "";
                 foreach (T entry in entries)
                 {
-                    if (entry != null)
+                    G? Id = GenerateId<G>();
+                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+
+                    if (await ExecuteEntryAsync(commandText, entry, bhTransaction))
                     {
-                        object?[] parameters = BreakObjectToParameters(entry);
-
-                        G? response = ExecuteScalar<G>(commandText, parameters, bHTransaction);
-
-                        if (response != null)
-                        {
-                            result.Add(response);
-                        }
+                        Ids.Add(Id);
+                    }
+                    else
+                    {
+                        Ids.Add(default(G));
                     }
                 }
             }
-
-            return result;
-        }
-
-        public async Task<List<G>> MultiScalarTransactionAsync<T,G>(string commandText, List<T> entries)
-        {
-            List<G> result = new List<G>();
-
-            using (BlackHoleTransaction bHTransaction = new BlackHoleTransaction())
+            else
             {
+                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+
                 foreach (T entry in entries)
                 {
-                    if (entry != null)
-                    {
-                        object?[] parameters = BreakObjectToParameters(entry);
-
-                        G? response = await ExecuteScalarAsync<G>(commandText, parameters, bHTransaction);
-
-                        if (response != null)
-                        {
-                            result.Add(response);
-                        }
-                    }
+                    Ids.Add(await ExecuteEntryScalarAsync<T, G>(commandText, entry, bhTransaction));
                 }
             }
 
-            return result;
+            return Ids;
         }
 
-        public List<G> MultiScalarTransaction<T,G>(string commandText, List<T> entries, BlackHoleTransaction bHTransaction)
+        public List<G?> MultiInsertScalar<T, G>(string commandStart, string commandEnd, List<T> entries, BlackHoleTransaction bhTransaction)
         {
-            List<G> result = new List<G>();
+            List<G?> Ids = new List<G?>();
 
-            foreach (T entry in entries)
+            if (useGenerator)
             {
-                if (entry != null)
+                string commandText = "";
+                foreach (T entry in entries)
                 {
-                    object?[] parameters = BreakObjectToParameters(entry);
+                    G? Id = GenerateId<G>();
+                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
 
-                    G? response = ExecuteScalar<G>(commandText, parameters, bHTransaction);
-
-                    if (response != null)
+                    if (ExecuteEntry(commandText, entry, bhTransaction))
                     {
-                        result.Add(response);
+                        Ids.Add(Id);
+                    }
+                    else
+                    {
+                        Ids.Add(default(G));
                     }
                 }
             }
-
-            return result;
-        }
-
-        public async Task<List<G>> MultiScalarTransactionAsync<T,G>(string commandText, List<T> entries, BlackHoleTransaction bHTransaction)
-        {
-            List<G> result = new List<G>();
-
-            foreach (T entry in entries)
+            else
             {
-                if (entry != null)
+                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+
+                foreach (T entry in entries)
                 {
-                    object?[] parameters = BreakObjectToParameters(entry);
-
-                    G? response = await ExecuteScalarAsync<G>(commandText, parameters, bHTransaction);
-
-                    if (response != null)
-                    {
-                        result.Add(response);
-                    }
+                    Ids.Add(ExecuteEntryScalar<T, G>(commandText, entry, bhTransaction));
                 }
             }
 
-            return result;
+            return Ids;
         }
 
-        public bool JustExecute(string commandText, object?[]? parameters)
+        public bool ExecuteEntry<T>(string commandText, T entry)
         {
-            bool success = false;
+            try
+            {
+                using (OracleConnection connection = new OracleConnection(_connectionString))
+                {
+                    connection.Open();
+                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    ObjectToParameters(entry, Command.Parameters);
 
+                    Command.ExecuteNonQuery();
+                    connection.Close();
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return false;
+            }
+        }
+
+        public async Task<bool> ExecuteEntryAsync<T>(string commandText, T entry)
+        {
+            try
+            {
+                using (OracleConnection connection = new OracleConnection(_connectionString))
+                {
+                    connection.Open();
+                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    ObjectToParameters(entry, Command.Parameters);
+
+                    await Command.ExecuteNonQueryAsync();
+                    connection.Close();
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return false;
+            }
+        }
+
+        public bool ExecuteEntry<T>(string commandText, T entry, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new OracleCommand(commandText, connection);
+                Command.Transaction = transaction;
+
+                ObjectToParameters(entry, Command.Parameters);
+
+                Command.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return false;
+            }
+        }
+
+        public async Task<bool> ExecuteEntryAsync<T>(string commandText, T entry, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new OracleCommand(commandText, connection);
+                Command.Transaction = transaction;
+
+                ObjectToParameters(entry, Command.Parameters);
+
+                await Command.ExecuteNonQueryAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return false;
+            }
+        }
+
+        public bool JustExecute(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new OracleCommand(commandText, connection);
+                Command.Transaction = transaction;
+
+                ArrayToParameters(parameters, Command.Parameters);
+
+                Command.ExecuteNonQuery();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return false;
+            }
+        }
+
+        public bool JustExecute(string commandText, BlackHoleParameter[]? parameters)
+        {
             try
             {
                 using (OracleConnection connection = new OracleConnection(_connectionString))
@@ -368,238 +399,78 @@ namespace BlackHole.DataProviders
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText, connection);
 
-                    if (parameters != null)
-                    {
-                        Command.Parameters.AddRange(parameters);
-                    }
+                    ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
                     connection.Close();
                 }
 
-                success = true;
+                return true;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return false;
             }
-
-            return success;
         }
 
-        public async Task<bool> JustExecuteAsync(string commandText, object?[]? parameters)
+        public async Task<bool> JustExecuteAsync(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction)
         {
-            bool success = false;
-
             try
             {
-                using (OracleConnection connection = new OracleConnection(_connectionString))
-                {
-                    connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
-
-                    if (parameters != null)
-                    {
-                        Command.Parameters.AddRange(parameters);
-                    }
-
-                    await Command.ExecuteNonQueryAsync();
-                    connection.Close();
-                }
-
-                success = true;
-            }
-            catch
-            {
-
-            }
-
-            return success;
-        }
-
-        public bool JustExecute(string commandText, object?[]? parameters, BlackHoleTransaction bHTransaction)
-        {
-            bool success = false;
-
-            try
-            {
-                OracleConnection? connection = bHTransaction.connection as OracleConnection;
-                OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
 
-                if (parameters != null)
-                {
-                    Command.Parameters.AddRange(parameters);
-                }
-
-                Command.ExecuteNonQuery();
-                success = true;
-            }
-            catch
-            {
-
-            }
-
-            return success;
-        }
-
-        public async Task<bool> JustExecuteAsync(string commandText, object?[]? parameters, BlackHoleTransaction bHTransaction)
-        {
-            bool success = false;
-
-            try
-            {
-                OracleConnection? connection = bHTransaction.connection as OracleConnection;
-                OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
-                Command.Transaction = transaction;
-
-                if (parameters != null)
-                {
-                    Command.Parameters.AddRange(parameters);
-                }
+                ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
-                success = true;
+
+                return true;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return false;
             }
-
-            return success;
         }
 
-        public bool JustExecute<T>(string commandText, T entry)
+        public async Task<bool> JustExecuteAsync(string commandText, BlackHoleParameter[]? parameters)
         {
-            bool success = false;
-
             try
             {
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
-                    connection.Open();
+                    await connection.OpenAsync();
                     OracleCommand Command = new OracleCommand(commandText, connection);
 
-                    if (entry != null)
-                    {
-                        Command.Parameters.AddRange(BreakObjectToParameters(entry));
-                    }
-
-                    Command.ExecuteNonQuery();
-                    connection.Close();
-                }
-
-                success = true;
-            }
-            catch
-            {
-
-            }
-
-            return success;
-        }
-
-        public async Task<bool> JustExecuteAsync<T>(string commandText, T entry)
-        {
-            bool success = false;
-
-            try
-            {
-                using (OracleConnection connection = new OracleConnection(_connectionString))
-                {
-                    connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
-
-                    if (entry != null)
-                    {
-                        Command.Parameters.AddRange(BreakObjectToParameters(entry));
-                    }
+                    ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
-                    connection.Close();
+                    await connection.CloseAsync();
                 }
-
-                success = true;
+                return true;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return false;
             }
-
-            return success;
         }
 
-        public bool JustExecute<T>(string commandText, T entry, BlackHoleTransaction bHTransaction)
-        {
-            bool success = false;
 
+        public T? QueryFirst<T>(string commandText, BlackHoleParameter[]? parameters)
+        {
             try
             {
-                OracleConnection? connection = bHTransaction.connection as OracleConnection;
-                OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
-                Command.Transaction = transaction;
+                T? result = default(T);
 
-                if (entry != null)
-                {
-                    Command.Parameters.AddRange(BreakObjectToParameters(entry));
-                }
-
-                Command.ExecuteNonQuery();
-                success = true;
-            }
-            catch
-            {
-
-            }
-
-            return success;
-        }
-
-        public async Task<bool> JustExecuteAsync<T>(string commandText, T entry, BlackHoleTransaction bHTransaction)
-        {
-            bool success = false;
-
-            try
-            {
-                OracleConnection? connection = bHTransaction.connection as OracleConnection;
-                OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
-                Command.Transaction = transaction;
-
-                if (entry != null)
-                {
-                    Command.Parameters.AddRange(BreakObjectToParameters(entry));
-                }
-
-                await Command.ExecuteNonQueryAsync();
-                success = true;
-            }
-            catch
-            {
-
-            }
-
-            return success;
-        }
-
-        public T? QueryFirst<T>(string commandText, object?[]? parameters)
-        {
-            T? result = default(T);
-
-            try
-            {
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText, connection);
-
-                    if (parameters != null)
-                    {
-                        Command.Parameters.AddRange(parameters);
-                    }
+                    ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
                     {
@@ -616,30 +487,26 @@ namespace BlackHole.DataProviders
                     }
                     connection.Close();
                 }
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                return default(T);
             }
-
-            return result;
         }
 
-        public List<T> Query<T>(string command, object?[]? parameters)
+        public List<T> Query<T>(string command, BlackHoleParameter[]? parameters)
         {
-            List<T> result = new List<T>();
-
             try
             {
+                List<T> result = new List<T>();
+
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(command, connection);
-
-                    if (parameters != null)
-                    {
-                        Command.Parameters.AddRange(parameters);
-                    }
+                    ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
                     {
@@ -655,30 +522,26 @@ namespace BlackHole.DataProviders
                     }
                     connection.Close();
                 }
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                return new List<T>();
             }
-
-            return result;
         }
 
-        public async Task<T?> QueryFirstAsync<T>(string command, object?[]? parameters)
+        public async Task<T?> QueryFirstAsync<T>(string command, BlackHoleParameter[]? parameters)
         {
-            T? result = default(T);
-
             try
             {
+                T? result = default(T);
+
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     await connection.OpenAsync();
                     OracleCommand Command = new OracleCommand(command, connection);
-
-                    if (parameters != null)
-                    {
-                        Command.Parameters.AddRange(parameters);
-                    }
+                    ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
@@ -695,30 +558,26 @@ namespace BlackHole.DataProviders
                     }
                     await connection.CloseAsync();
                 }
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                return default(T);
             }
-
-            return result;
         }
 
-        public async Task<List<T>> QueryAsync<T>(string command, object?[]? parameters)
+        public async Task<List<T>> QueryAsync<T>(string command, BlackHoleParameter[]? parameters)
         {
-            List<T> result = new List<T>();
-
             try
             {
+                List<T> result = new List<T>();
+
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     await connection.OpenAsync();
                     OracleCommand Command = new OracleCommand(command, connection);
-
-                    if (parameters != null)
-                    {
-                        Command.Parameters.AddRange(parameters);
-                    }
+                    ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
@@ -734,30 +593,27 @@ namespace BlackHole.DataProviders
                     }
                     await connection.CloseAsync();
                 }
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                return new List<T>();
             }
-
-            return result;
         }
 
-        public T? QueryFirst<T>(string commandText, object?[]? parameters, BlackHoleTransaction bHTransaction)
+        public T? QueryFirst<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
         {
-            T? result = default(T);
-
             try
             {
+                T? result = default(T);
+
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
 
-                if (parameters != null)
-                {
-                    Command.Parameters.AddRange(parameters);
-                }
+                ArrayToParameters(parameters, Command.Parameters);
 
                 using (OracleDataReader DataReader = Command.ExecuteReader())
                 {
@@ -772,30 +628,27 @@ namespace BlackHole.DataProviders
                         }
                     }
                 }
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                return default(T);
             }
-
-            return result;
         }
 
-        public List<T> Query<T>(string commandText, object?[]? parameters, BlackHoleTransaction bHTransaction)
+        public List<T> Query<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
         {
-            List<T> result = new List<T>();
-
             try
             {
+                List<T> result = new List<T>();
+
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
 
-                if (parameters != null)
-                {
-                    Command.Parameters.AddRange(parameters);
-                }
+                ArrayToParameters(parameters, Command.Parameters);
 
                 using (OracleDataReader DataReader = Command.ExecuteReader())
                 {
@@ -809,21 +662,21 @@ namespace BlackHole.DataProviders
                         }
                     }
                 }
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                return new List<T>();
             }
-
-            return result;
         }
 
-        public async Task<T?> QueryFirstAsync<T>(string commandText, object?[]? parameters, BlackHoleTransaction bHTransaction)
+        public async Task<T?> QueryFirstAsync<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
         {
-            T? result = default(T);
-
             try
             {
+                T? result = default(T);
+
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
@@ -847,21 +700,21 @@ namespace BlackHole.DataProviders
                         }
                     }
                 }
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                return default(T);
             }
-
-            return result;
         }
 
-        public async Task<List<T>> QueryAsync<T>(string commandText, object?[]? parameters, BlackHoleTransaction bHTransaction)
+        public async Task<List<T>> QueryAsync<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
         {
-            List<T> result = new List<T>();
-
             try
             {
+                List<T> result = new List<T>();
+
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
@@ -884,22 +737,25 @@ namespace BlackHole.DataProviders
                         }
                     }
                 }
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
-
+                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                return new List<T>();
             }
-
-            return result;
         }
+        #endregion
 
+        #region Object Mapping
         private T? MapObject<T>(OracleDataReader reader)
         {
-            Type type = typeof(T);
-            PropertyInfo[] properties = type.GetProperties();
-            object? obj = Activator.CreateInstance(type);
             try
             {
+                Type type = typeof(T);
+                PropertyInfo[] properties = type.GetProperties();
+                object? obj = Activator.CreateInstance(type);
+
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     if (!reader.IsDBNull(i))
@@ -923,63 +779,109 @@ namespace BlackHole.DataProviders
                         }
                     }
                 }
+                return (T?)obj;
             }
-            catch
+            catch (Exception ex)
             {
-
+                throw new Exception($"Object Mapping:{ex.Message}");
             }
-
-            return (T?)obj;
         }
 
         private T? MapObject<T>(DbDataReader reader)
         {
-            Type type = typeof(T);
-            PropertyInfo[] properties = type.GetProperties();
-            object? obj = Activator.CreateInstance(type);
-
-            for (int i = 0; i < reader.FieldCount; i++)
+            try
             {
-                if (!reader.IsDBNull(i))
+                Type type = typeof(T);
+                PropertyInfo[] properties = type.GetProperties();
+                object? obj = Activator.CreateInstance(type);
+
+                for (int i = 0; i < reader.FieldCount; i++)
                 {
-                    string propertyName = reader.GetName(i);
-
-                    if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
+                    if (!reader.IsDBNull(i))
                     {
-                        PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
+                        string propertyName = reader.GetName(i);
 
-                        if (property.PropertyType == typeof(Guid))
+                        if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            Guid result = Guid.Empty;
-                            Guid.TryParse(reader.GetString(i), out result);
-                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
-                        }
-                        else
-                        {
-                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
+
+                            if (property.PropertyType == typeof(Guid))
+                            {
+                                Guid result = Guid.Empty;
+                                Guid.TryParse(reader.GetString(i), out result);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
+                            }
+                            else
+                            {
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                            }
                         }
                     }
                 }
+                return (T?)obj;
             }
-            return (T?)obj;
+            catch (Exception ex)
+            {
+                throw new Exception($"Object Mapping:{ex.Message}");
+            }
         }
 
-        private object?[] BreakObjectToParameters(object item)
+        private void ArrayToParameters(BlackHoleParameter[]? bhParameters, OracleParameterCollection parameters)
         {
-            PropertyInfo[] propertyInfos = item.GetType().GetProperties();
-            object?[] parameters = new object[propertyInfos.Length];
-            for (int i = 0; i < propertyInfos.Length; i++)
+            if (bhParameters != null)
             {
-                object? value = propertyInfos[i].GetValue(item);
+                foreach (BlackHoleParameter param in bhParameters)
+                {
+                    object? value = param.Value;
 
-                parameters[i] = value;
+                    if (value?.GetType() == typeof(Guid))
+                    {
+                        parameters.Add(new OracleParameter(@param.Name, value.ToString()));
+                    }
+                    else
+                    {
+                        parameters.Add(new OracleParameter(@param.Name, value));
+                    }
+                }
+            }
+        }
+
+        private void ObjectToParameters<T>(T item, OracleParameterCollection parameters)
+        {
+            PropertyInfo[] propertyInfos = typeof(T).GetProperties();
+
+            foreach (PropertyInfo property in propertyInfos)
+            {
+                object? value = property.GetValue(item);
 
                 if (value?.GetType() == typeof(Guid))
                 {
-                    parameters[i] = value.ToString();
+                    parameters.Add(new OracleParameter(@property.Name, value.ToString()));
+                }
+                else
+                {
+                    parameters.Add(new OracleParameter(@property.Name, value));
                 }
             }
-            return parameters;
         }
+
+        private G? GenerateId<G>()
+        {
+            object? value = default(G);
+
+            switch (_idType)
+            {
+                case BlackHoleIdTypes.GuidId:
+                    value = Guid.NewGuid();
+                    break;
+                case BlackHoleIdTypes.StringId:
+                    string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
+                    value = ToHash.GenerateSHA1();
+                    break;
+            }
+
+            return (G?)value;
+        }
+        #endregion
     }
 }

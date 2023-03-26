@@ -42,7 +42,6 @@ namespace BlackHole.Configuration
                 blackHoleSettings.connectionConfig.ConnectionString, blackHoleSettings.directorySettings.DataPath);
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
-            IBHTableBuilder tableBuilder = new BHTableBuilder();
 
             bool dbExists = databaseBuilder.CheckDatabaseExistance();
 
@@ -51,104 +50,101 @@ namespace BlackHole.Configuration
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
                 services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
                 services.AddScoped(typeof(IBHConnection), typeof(BHConnection));
-
-                tableBuilder.BuildMultipleTables();
+                services.AddServicesAndTables(blackHoleSettings.connectionConfig.additionalSettings, assembly);
             }
 
             return services;
         }
 
-        private static void AddServices(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
+        private static void AddServicesAndTables(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
         {
-            if(additionalSettings.AssembliesToUse.Count > 0)
+            IBHTableBuilder tableBuilder = new BHTableBuilder();
+            IBHNamespaceSelector namespaceSelector = new BHNamespaceSelector();
+
+            if (additionalSettings.AssembliesToUse.Count > 0)
             {
                 if (additionalSettings.useCallingAssembly)
                 {
                     services.RegisterBHServices(callingAssembly);
+                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
                 }
 
                 foreach(Assembly assembly in additionalSettings.AssembliesToUse)
                 {
                     services.RegisterBHServices(assembly);
+                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly));
                 }
             }
             else
             {
+                List<string> serviceNamespaces = new List<string>();
+                List<string> entityNamespaces = new List<string>();
+
+                AssembliesUsed assembliesToUse = new AssembliesUsed();
+
                 if(additionalSettings.ServicesNamespaces != null)
                 {
+                    serviceNamespaces = additionalSettings.ServicesNamespaces.ServicesNamespaces;
 
-                }
-            }
-        }
-
-        private static void ScanForServices( this IServiceCollection services,
-            List<ServicesWithNamespace> servicesToUse, List<AssembliesUsed> assembliesToUse, Assembly callinAssembly)
-        {
-            IBHNamespaceSelector namespaceSelector = new BHNamespaceSelector();
-
-            if (servicesToUse.Count > 0)
-            {
-                foreach (ServicesWithNamespace namespaceToUse in servicesToUse)
-                {
-                    if (namespaceToUse.AssemblyNameUsed != string.Empty)
+                    if(additionalSettings.ServicesNamespaces.AssemblyToUse != null)
                     {
-                        AssembliesUsed? fromAssembly = assembliesToUse.Where(x => x.AssName == namespaceToUse.AssemblyNameUsed).FirstOrDefault();
+                        assembliesToUse = additionalSettings.ServicesNamespaces.AssemblyToUse;
+                    }
+                }
 
-                        if (fromAssembly != null && fromAssembly.ScanAssembly != null)
-                        {
-                            services.RegisterBHServicesByList(namespaceSelector.GetBHServicesInNamespace(namespaceToUse.NamespaceUsed, fromAssembly.ScanAssembly));
-                        }
-                        else
-                        {
-                            services.RegisterBHServicesByList(namespaceSelector.GetBHServicesInNamespace(namespaceToUse.NamespaceUsed, callinAssembly));
-                        }
+                if (additionalSettings.EntityNamespaces != null)
+                {
+                    entityNamespaces = additionalSettings.EntityNamespaces.EntitiesNamespaces;
+
+                    if (additionalSettings.EntityNamespaces.AssemblyToUse != null)
+                    {
+                        assembliesToUse = additionalSettings.EntityNamespaces.AssemblyToUse;
+                    }
+                }
+
+                if(assembliesToUse.ScanAssembly != null)
+                {
+                    if (serviceNamespaces.Count > 0)
+                    {
+                        services.RegisterBHServicesByList(
+                            namespaceSelector.GetBHServicesInNamespaces(serviceNamespaces, assembliesToUse.ScanAssembly));
                     }
                     else
                     {
-                        services.RegisterBHServicesByList(namespaceSelector.GetBHServicesInNamespace(namespaceToUse.NamespaceUsed, callinAssembly));
+                        services.RegisterBHServices(assembliesToUse.ScanAssembly);
                     }
-                }
-            }
-            else
-            {
-                services.RegisterBHServices(callinAssembly);
-            }
-        }
 
-        private static List<Type> ScanForEntities(List<EntitiesWithNamespace> entitiesToUse, List<AssembliesUsed> assembliesToUse ,Assembly callinAssembly)
-        {
-            List<Type> Entities = new List<Type>();
-            IBHNamespaceSelector namespaceSelector = new BHNamespaceSelector();
-
-            if (entitiesToUse.Count > 0)
-            {
-                foreach (EntitiesWithNamespace entity in entitiesToUse)
-                {
-                    if (entity.AssemblyNameUsed != string.Empty)
+                    if (entityNamespaces.Count > 0)
                     {
-                        AssembliesUsed? fromAssembly = assembliesToUse.Where(x => x.AssName == entity.AssemblyNameUsed).FirstOrDefault();
-
-                        if (fromAssembly != null && fromAssembly.ScanAssembly != null)
-                        {
-                            Entities.AddRange(namespaceSelector.GetBHEntitiesInNamespace(entity.NamespaceUsed, fromAssembly.ScanAssembly));
-                        }
-                        else
-                        {
-                            Entities.AddRange(namespaceSelector.GetBHEntitiesInNamespace(entity.NamespaceUsed, callinAssembly));
-                        }
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, assembliesToUse.ScanAssembly));
                     }
                     else
                     {
-                        Entities.AddRange(namespaceSelector.GetBHEntitiesInNamespace(entity.NamespaceUsed, callinAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembliesToUse.ScanAssembly));
+                    }
+                }
+                else
+                {
+                    if (serviceNamespaces.Count > 0)
+                    {
+                        services.RegisterBHServicesByList(
+                                namespaceSelector.GetBHServicesInNamespaces(serviceNamespaces, callingAssembly));
+                    }
+                    else
+                    {
+                        services.RegisterBHServices(callingAssembly);
+                    }
+
+                    if (entityNamespaces.Count > 0)
+                    {
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, callingAssembly));
+                    }
+                    else
+                    {
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
                     }
                 }
             }
-            else
-            {
-                Entities = namespaceSelector.GetAllBHEntities(callinAssembly);
-            }
-
-            return Entities;
         }
 
         /// <summary>

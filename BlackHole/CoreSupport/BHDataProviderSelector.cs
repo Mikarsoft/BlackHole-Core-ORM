@@ -6,7 +6,7 @@ namespace BlackHole.CoreSupport
 {
     internal class BHDataProviderSelector : IBHDataProviderSelector
     {
-        IDataProvider IBHDataProviderSelector.GetDataProvider(Type IdType)
+        IDataProvider IBHDataProviderSelector.GetDataProvider(Type IdType, string tableName)
         {
             IDataProvider dataProvider;
 
@@ -19,7 +19,7 @@ namespace BlackHole.CoreSupport
                     dataProvider = new MySqlDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    //dataProvider = new PostgresDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));
+                    dataProvider = new PostgresDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType), tableName);
                     break;
                 case BlackHoleSqlTypes.SqlLite:
                     //dataProvider = new SqLiteDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType));

@@ -2,7 +2,7 @@
 {
     internal interface IBHDataProviderSelector
     {
-        internal IDataProvider GetDataProvider(Type IdType);
+        internal IDataProvider GetDataProvider(Type IdType, string tableName);
         internal IExecutionProvider GetExecutionProvider();
     }
 }

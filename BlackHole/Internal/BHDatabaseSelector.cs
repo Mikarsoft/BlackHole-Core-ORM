@@ -1,5 +1,7 @@
-﻿using BlackHole.Entities;
+﻿using BlackHole.CoreSupport;
+using BlackHole.Entities;
 using BlackHole.Enums;
+using BlackHole.ExecutionProviders;
 using BlackHole.Statics;
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
@@ -37,6 +39,11 @@ namespace BlackHole.Internal
             }
 
             return _Sconnection;
+        }
+
+        IExecutionProvider IBHDatabaseSelector.GetExecutionProvider(string connectionString)
+        {
+            return new MySqlExecutionProvider();
         }
 
         /// <summary>

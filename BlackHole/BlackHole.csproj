@@ -57,7 +57,6 @@ add 'SuperNova(connectionString,SqlType)' on your IServiceCollection and it will
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.14" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="MySql.Data" Version="8.0.29" />

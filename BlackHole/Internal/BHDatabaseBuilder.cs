@@ -1,8 +1,7 @@
-﻿using BlackHole.Logger;
+﻿using BlackHole.CoreSupport;
+using BlackHole.Logger;
 using BlackHole.Statics;
-using Dapper;
 using Microsoft.Data.Sqlite;
-using System.Data;
 
 namespace BlackHole.Internal
 {
@@ -10,11 +9,13 @@ namespace BlackHole.Internal
     {
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
         private readonly ILoggerService _loggerService;
+        private readonly IExecutionProvider connection;
 
         internal BHDatabaseBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             _loggerService = new LoggerService();
+            connection = _multiDatabaseSelector.GetExecutionProvider("a");
         }
 
         /// <summary>
@@ -48,8 +49,8 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
-                    {
+                    //using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
+                    //{
                         string databaseName = _multiDatabaseSelector.GetDatabaseName();
                         string CheckDb = "";
                         bool dbExists = false;
@@ -59,16 +60,16 @@ namespace BlackHole.Internal
                         {
                             case 0:
                                 CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb) == 1;
+                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                                 DropDb = $@"USE master;ALTER DATABASE ""{databaseName}"" SET SINGLE_USER WITH ROLLBACK IMMEDIATE;DROP DATABASE ""{databaseName}"";";
                                 break;
                             case 1:
                                 string DeleteMyShit = $"DROP DATABASE IF EXISTS {databaseName}";
-                                connection.Execute(DeleteMyShit);
+                                connection.JustExecute(DeleteMyShit, null);
                                 break;
                             case 2:
                                 CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb) == 1;
+                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                                 DropDb = $@"UPDATE pg_database SET datallowconn = 'false' WHERE datname = '{databaseName}'; SELECT pg_terminate_backend(pg_stat_activity.pid)
                                 FROM pg_stat_activity WHERE pg_stat_activity.datname = '{databaseName}'; DROP DATABASE ""{databaseName}""";
                                 break;
@@ -76,9 +77,9 @@ namespace BlackHole.Internal
 
                         if (dbExists)
                         {
-                            connection.Execute(DropDb);
+                            connection.JustExecute(DropDb, null);
                         }
-                    }
+                    //}
                     success = true;
                 }
             }
@@ -117,8 +118,8 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
-                    {
+                    //using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
+                    //{
                         string databaseName = _multiDatabaseSelector.GetDatabaseName();
                         string CheckDb = "";
                         bool dbExists = true;
@@ -128,25 +129,25 @@ namespace BlackHole.Internal
                         {
                             case 0:
                                 CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb) == 1;
+                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                                 break;
                             case 1:
                                 CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName.ToLower()}'";
                                 CreateDb = $"CREATE DATABASE IF NOT EXISTS {databaseName}";
-                                dbExists = connection.ExecuteScalar<string>(CheckDb) == databaseName.ToLower();
+                                dbExists = connection.ExecuteScalar<string>(CheckDb, null) == databaseName.ToLower();
                                 break;
                             case 2:
                                 CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb) == 1;
+                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                                 break;
                         }
 
                         if (!dbExists)
                         {
-                            connection.Execute(CreateDb);
+                            connection.JustExecute(CreateDb, null);
                         }
 
-                    }
+                    //}
                     success = true;
                 }
             }
@@ -190,8 +191,8 @@ namespace BlackHole.Internal
                 {
                     bool dbExists = true;
 
-                    using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
-                    {
+                   // using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
+                    //{
                         string databaseName = _multiDatabaseSelector.GetDatabaseName();
                         string CheckDb = "";
 
@@ -199,19 +200,19 @@ namespace BlackHole.Internal
                         {
                             case 0:
                                 CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb) == 1;
+                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                                 break;
                             case 1:
                                 CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName}'";
-                                string dbName = connection.ExecuteScalar<string>(CheckDb);
-                                dbExists = dbName.ToLower() == databaseName.ToLower();
+                                string? dbName = connection.ExecuteScalar<string>(CheckDb, null);
+                                dbExists = dbName?.ToLower() == databaseName.ToLower();
                                 break;
                             case 2:
                                 CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb) == 1;
+                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                                 break;
                         }
-                    }
+                    //}
 
                     success = dbExists;
                 }

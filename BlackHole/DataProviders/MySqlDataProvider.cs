@@ -2,7 +2,6 @@
 using BlackHole.Enums;
 using BlackHole.Logger;
 using MySql.Data.MySqlClient;
-using System.Data;
 using System.Data.Common;
 using System.Reflection;
 

@@ -31,10 +31,7 @@ namespace BlackHole.Core
         public BHDataProvider()
         {
             Type _type = typeof(T);
-
-            _dataProviderSelector = new BHDataProviderSelector();
-            _dataProvider = _dataProviderSelector.GetDataProvider(_type);
-            isMyShit = _dataProvider.SkipQuotes();
+            string name = _type.Name;
 
             var attributes = _type.GetCustomAttributes(true);
             var attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(UseActivator));
@@ -44,11 +41,13 @@ namespace BlackHole.Core
                 withActivator = true;
             }
 
-            string name = _type.Name;
-
             ThisTable = MyShit(name);
             ThisId = MyShit("Id");
             ThisInactive = MyShit("Inactive");
+
+            _dataProviderSelector = new BHDataProviderSelector();
+            _dataProvider = _dataProviderSelector.GetDataProvider(_type,ThisTable);
+            isMyShit = _dataProvider.SkipQuotes();
 
             IList<PropertyInfo> props = new List<PropertyInfo>(_type.GetProperties());
 

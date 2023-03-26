@@ -13,7 +13,7 @@ namespace BlackHole.Configuration
         /// <param name="DataPath">Full path of the data folder</param>
         public void SetDataPath(string dataPath)
         {
-            DataPath = DataPath;
+            DataPath = dataPath;
         }
     }
 }

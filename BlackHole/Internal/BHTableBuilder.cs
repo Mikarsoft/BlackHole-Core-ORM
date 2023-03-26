@@ -1,8 +1,8 @@
 ﻿using System.Data;
 using System.Reflection;
+using BlackHole.CoreSupport;
 using BlackHole.Entities;
 using BlackHole.Logger;
-using Dapper;
 
 namespace BlackHole.Internal
 {
@@ -10,6 +10,8 @@ namespace BlackHole.Internal
     {
         private IBHDatabaseSelector _multiDatabaseSelector;
         private ILoggerService _loggerService;
+        private readonly IExecutionProvider connection;
+
         private string[] SqlDatatypes;
         private bool isMyShit;
         private bool isLite;
@@ -18,6 +20,7 @@ namespace BlackHole.Internal
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             _loggerService = new LoggerService();
+            connection = _multiDatabaseSelector.GetExecutionProvider("");
             SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
             isMyShit = _multiDatabaseSelector.GetMyShit();
             isLite = _multiDatabaseSelector.IsLite();
@@ -75,8 +78,8 @@ namespace BlackHole.Internal
             bool tExists = false;
             bool success = false;
 
-            using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            {
+            //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+            //{
                 try
                 {
                     string tableCheck = $@"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + "')) then 1 else 0 end";
@@ -84,11 +87,11 @@ namespace BlackHole.Internal
                     if (isLite)
                     {
                         tableCheck = $@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'";
-                        tExists = connection.ExecuteScalar<string>(tableCheck) == Tablename;
+                        tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
                     }
                     else
                     {
-                        tExists = connection.ExecuteScalar<int>(tableCheck) == 1;
+                        tExists = connection.ExecuteScalar<int>(tableCheck, null) == 1;
                     }
 
                     if (!tExists)
@@ -130,7 +133,7 @@ namespace BlackHole.Internal
                         }
 
                         creationCommand = creationCommand.Substring(0, creationCommand.Length - 2) + ");";
-                        connection.Execute(creationCommand);
+                        connection.JustExecute(creationCommand , null);
                         success = true;
                     }
                 }
@@ -139,7 +142,7 @@ namespace BlackHole.Internal
                     success = false;
                     _loggerService.CreateErrorLogs($"TableBuilder_{Tablename}", ex.Message, ex.ToString());
                 }
-            }
+            //}
 
             return success;
         }
@@ -172,8 +175,8 @@ namespace BlackHole.Internal
         {
             bool updateSchema = false;
 
-            using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            {
+            //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+            //{
                 string Tablename = MyShit(TableType.Name);
 
                 List<LiteTableInfo> ColumnsInfo = new List<LiteTableInfo>();
@@ -189,7 +192,7 @@ namespace BlackHole.Internal
                 }
 
                 string getColumns = $"PRAGMA table_info({Tablename}); ";
-                ColumnsInfo = connection.Query<LiteTableInfo>(getColumns).ToList();
+                ColumnsInfo = connection.Query<LiteTableInfo>(getColumns, null);
 
                 foreach (LiteTableInfo column in ColumnsInfo)
                 {
@@ -203,7 +206,7 @@ namespace BlackHole.Internal
                 {
                     updateSchema = true;
                 }
-            }
+            //}
 
             if (updateSchema)
             {
@@ -220,13 +223,13 @@ namespace BlackHole.Internal
             string foreignKeys = "";
             string closingCommand = "";
 
-            using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            {
+            //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+            //{
                 List<LiteTableInfo> ColumnsInfo = new List<LiteTableInfo>();
                 List<string> ColumnNames = new List<string>();
                 List<string> NewColumnNames = new List<string>();
 
-                ColumnsInfo = connection.Query<LiteTableInfo>(getColumns).ToList();
+                ColumnsInfo = connection.Query<LiteTableInfo>(getColumns, null).ToList();
 
                 foreach (LiteTableInfo column in ColumnsInfo)
                 {
@@ -289,13 +292,13 @@ namespace BlackHole.Internal
 
                 try
                 {
-                    connection.Execute(closingCommand);
+                    connection.JustExecute(closingCommand, null);
                 }
                 catch (Exception ex)
                 {
                     _loggerService.CreateErrorLogs($"Constraints_{Tablename}", ex.Message, ex.ToString());
                 }
-            }
+            //}
         }
 
         void ForeignKeyAsignment(Type TableType)
@@ -304,8 +307,8 @@ namespace BlackHole.Internal
             PropertyInfo[] Properties = TableType.GetProperties();
             string alterTable = $" ALTER TABLE {MyShit(Tablename)}";
 
-            using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            {
+            //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+            //{
                 foreach (PropertyInfo Property in Properties)
                 {
                     object[] attributes = Property.GetCustomAttributes(true);
@@ -322,7 +325,7 @@ namespace BlackHole.Internal
                                 var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
                                 var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
                                 string alterColumn = MyShitConstraint(alterTable, Tablename, Property.Name, tName, tColumn, cascadeInfo);
-                                connection.Execute(alterColumn);
+                                connection.JustExecute(alterColumn, null);
                             }
                             catch (Exception ex)
                             {
@@ -331,7 +334,7 @@ namespace BlackHole.Internal
                         }
                     }
                 }
-            }
+            //}
         }
 
         void UpdateTableSchema(Type TableType)
@@ -350,10 +353,10 @@ namespace BlackHole.Internal
 
                 NewColumnNames.Add("Inactive");
 
-                using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-                {
+                //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
+                //{
                     List<string> ColumnNames = new List<string>();
-                    ColumnNames = connection.Query<string>(getColumns).ToList();
+                    ColumnNames = connection.Query<string>(getColumns, null);
 
                     List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
                     List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
@@ -364,7 +367,7 @@ namespace BlackHole.Internal
 
                         try
                         {
-                            connection.Execute(dropCommand);
+                            connection.JustExecute(dropCommand, null);
                         }
                         catch (Exception ex)
                         {
@@ -388,7 +391,7 @@ namespace BlackHole.Internal
 
                             try
                             {
-                                connection.Execute(addCommand);
+                                connection.JustExecute(addCommand, null);
                             }
                             catch (Exception ex)
                             {
@@ -401,7 +404,7 @@ namespace BlackHole.Internal
                             addCommand += GetDatatypeCommand("Int32", new object[0], ColumnName);
                             try
                             {
-                                connection.Execute(addCommand);
+                                connection.JustExecute(addCommand, null);
                             }
                             catch (Exception ex)
                             {
@@ -409,7 +412,7 @@ namespace BlackHole.Internal
                             }
                         }
                     }
-                }
+                //}
             }
         }
 

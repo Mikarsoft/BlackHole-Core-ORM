@@ -28,19 +28,37 @@ namespace BlackHole.Configuration
             return ServicesNamespaces;
         }
 
-        public EntitiesWithNamespace AddServicesFromNamespace(string entityNamespace)
+        public ServicesWithNamespace UseEntitiesInNamespaces(Action<List<string>> entityNamespaces)
+        {
+            EntityNamespaces = new EntitiesWithNamespace();
+            entityNamespaces.Invoke(EntityNamespaces.EntitiesNamespaces);
+
+            ServicesNamespaces = new ServicesWithNamespace();
+            return ServicesNamespaces;
+        }
+
+        public EntitiesWithNamespace AddServicesFromNamespace(string servicesNamespace)
         {
             ServicesNamespaces = new ServicesWithNamespace();
-            ServicesNamespaces.ServicesNamespaces.Add(entityNamespace);
+            ServicesNamespaces.ServicesNamespaces.Add(servicesNamespace);
 
             EntityNamespaces = new EntitiesWithNamespace();
             return EntityNamespaces;
         }
 
-        public EntitiesWithNamespace AddServicesFromNamespaces(List<string> entityNamespaces)
+        public EntitiesWithNamespace AddServicesFromNamespaces(List<string> servicesNamespaces)
         {
             ServicesNamespaces = new ServicesWithNamespace();
-            ServicesNamespaces.ServicesNamespaces = entityNamespaces;
+            ServicesNamespaces.ServicesNamespaces = servicesNamespaces;
+
+            EntityNamespaces = new EntitiesWithNamespace();
+            return EntityNamespaces;
+        }
+
+        public EntitiesWithNamespace AddServicesFromNamespaces(Action<List<string>> servicesNamespaces)
+        {
+            ServicesNamespaces = new ServicesWithNamespace();
+            servicesNamespaces.Invoke(ServicesNamespaces.ServicesNamespaces);
 
             EntityNamespaces = new EntitiesWithNamespace();
             return EntityNamespaces;

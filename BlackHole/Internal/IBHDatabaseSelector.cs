@@ -1,4 +1,5 @@
-﻿using BlackHole.Enums;
+﻿using BlackHole.CoreSupport;
+using BlackHole.Enums;
 using System.Data;
 
 namespace BlackHole.Internal
@@ -48,5 +49,7 @@ namespace BlackHole.Internal
         string GetStringPrimaryKeyCommand();
 
         bool RequiredIdGeneration(BlackHoleIdTypes dataType);
+
+        IExecutionProvider GetExecutionProvider(string connectionString);
     }
 }

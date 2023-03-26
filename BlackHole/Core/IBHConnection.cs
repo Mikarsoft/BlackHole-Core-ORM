@@ -35,6 +35,14 @@ namespace BlackHole.Core
         Task<bool> JustExecuteAsync(string commandText, BHParameters parameters, BHTransaction bHTransaction);
         Task<bool> JustExecuteAsync(string commandText, object parametersObject, BHTransaction bHTransaction);
 
+        T? QueryFirst<T>(string command);
+        T? QueryFirst<T>(string command, BHParameters parameters);
+        T? QueryFirst<T>(string command, object parametersObject);
+
+        T? QueryFirst<T>(string commandText, BHTransaction bHTransaction);
+        T? QueryFirst<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction);
+        T? QueryFirst<T>(string commandText, object parametersObject, BHTransaction bHTransaction);
+
         List<T> Query<T>(string command);
         List<T> Query<T>(string command, BHParameters parameters);
         List<T> Query<T>(string command, object parametersObject);
@@ -42,6 +50,14 @@ namespace BlackHole.Core
         List<T> Query<T>(string commandText, BHTransaction bHTransaction);
         List<T> Query<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction);
         List<T> Query<T>(string commandText, object parametersObject, BHTransaction bHTransaction);
+
+        Task<T?> QueryFirstAsync<T>(string command);
+        Task<T?> QueryFirstAsync<T>(string command, BHParameters parameters);
+        Task<T?> QueryFirstAsync<T>(string command, object parametersObject);
+
+        Task<T?> QueryFirstAsync<T>(string commandText, BHTransaction bHTransaction);
+        Task<T?> QueryFirstAsync<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction);
+        Task<T?> QueryFirstAsync<T>(string commandText, object parametersObject, BHTransaction bHTransaction);
 
         Task<List<T>> QueryAsync<T>(string command);
         Task<List<T>> QueryAsync<T>(string command, BHParameters parameters);
