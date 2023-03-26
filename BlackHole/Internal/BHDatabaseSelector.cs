@@ -1,5 +1,4 @@
 ﻿using BlackHole.CoreSupport;
-using BlackHole.Entities;
 using BlackHole.Enums;
 using BlackHole.ExecutionProviders;
 using BlackHole.Statics;
@@ -43,7 +42,25 @@ namespace BlackHole.Internal
 
         IExecutionProvider IBHDatabaseSelector.GetExecutionProvider(string connectionString)
         {
-            return new MySqlExecutionProvider();
+            IExecutionProvider _Sconnection = new OracleExecutionProvider(connectionString);
+
+            switch (DatabaseStatics.DatabaseType)
+            {
+                case BlackHoleSqlTypes.SqlServer:
+                    _Sconnection = new SqlServerExecutionProvider(connectionString);
+                    break;
+                case BlackHoleSqlTypes.MySql:
+                    _Sconnection = new MySqlExecutionProvider(connectionString);
+                    break;
+                case BlackHoleSqlTypes.Postgres:
+                    _Sconnection = new PostgresExecutionProvider(connectionString);
+                    break;
+                case BlackHoleSqlTypes.SqlLite:
+                    _Sconnection = new SqLiteExecutionProvider(connectionString);
+                    break;
+            }
+
+            return _Sconnection;
         }
 
         /// <summary>
@@ -230,6 +247,9 @@ namespace BlackHole.Internal
                     break;
                 case BlackHoleSqlTypes.SqlLite:
                     PrimaryKeyCommand = @"Id INTEGER PRIMARY KEY AUTOINCREMENT ,";
+                    break;
+                default:
+                    PrimaryKeyCommand = "Id RAW(32) DEFAULT SYS_GUID() PRIMARY KEY ,";
                     break;
             }
             return PrimaryKeyCommand;

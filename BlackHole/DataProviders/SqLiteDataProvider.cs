@@ -9,6 +9,7 @@ namespace BlackHole.DataProviders
 {
     internal class SqLiteDataProvider : IDataProvider
     {
+        #region Constructor
         private readonly string _connectionString;
         internal readonly string insertedOutput = "returning Id";
         internal readonly bool skipQuotes = false;
@@ -23,7 +24,7 @@ namespace BlackHole.DataProviders
             _loggerService = new LoggerService();
 
 
-            if (idType != BlackHoleIdTypes.StringId)
+            if (idType != BlackHoleIdTypes.IntId)
             {
                 useGenerator = true;
             }
@@ -32,7 +33,7 @@ namespace BlackHole.DataProviders
                 useGenerator = false;
             }
         }
-
+        #endregion
 
         #region Internal Processes
         private G? ExecuteEntryScalar<T, G>(string commandText, T entry)
@@ -145,7 +146,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
+                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry);
             }
         }
 
@@ -166,7 +167,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
+                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry, bhTransaction);
             }
         }
 
@@ -187,7 +188,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry);
             }
         }
 
@@ -208,7 +209,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry, bhTransaction);
             }
         }
 
@@ -236,7 +237,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+                string commandText = $"{commandStart}){commandEnd}) {insertedOutput};";
 
                 foreach (T entry in entries)
                 {
@@ -271,7 +272,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+                string commandText = $"{commandStart}){commandEnd}) {insertedOutput};";
 
                 foreach (T entry in entries)
                 {

@@ -9,8 +9,9 @@ namespace BlackHole.DataProviders
 {
     internal class OracleDataProvider : IDataProvider
     {
+        #region Constructor
         private readonly string _connectionString;
-        internal readonly string insertedOutput = "SELECT LAST_INSERT_ID();";
+        internal readonly string insertedOutput = "RETURNING Id INTO : Id";
         internal readonly bool skipQuotes = true;
         private readonly BlackHoleIdTypes _idType;
         private readonly ILoggerService _loggerService;
@@ -22,15 +23,16 @@ namespace BlackHole.DataProviders
             _idType = idType;
             _loggerService = new LoggerService();
 
-            if (idType != BlackHoleIdTypes.IntId)
-            {
-                useGenerator = true;
-            }
-            else
+            if (idType != BlackHoleIdTypes.StringId)
             {
                 useGenerator = false;
             }
+            else
+            {
+                useGenerator = true;
+            }
         }
+        #endregion
 
         #region Internal Processes
         private G? ExecuteEntryScalar<T, G>(string commandText, T entry)
@@ -145,7 +147,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
+                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry);
             }
         }
 
@@ -166,7 +168,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
+                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry, bhTransaction);
             }
         }
 
@@ -187,7 +189,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry);
             }
         }
 
@@ -208,7 +210,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry, bhTransaction);
             }
         }
 
@@ -236,7 +238,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+                string commandText = $"{commandStart}){commandEnd}) {insertedOutput};";
 
                 foreach (T entry in entries)
                 {
@@ -271,7 +273,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+                string commandText = $"{commandStart}){commandEnd}) {insertedOutput};";
 
                 foreach (T entry in entries)
                 {
@@ -764,18 +766,7 @@ namespace BlackHole.DataProviders
 
                         if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
-
-                            if (property.PropertyType == typeof(Guid))
-                            {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
-                            }
-                            else
-                            {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                            }
+                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }
@@ -803,18 +794,7 @@ namespace BlackHole.DataProviders
 
                         if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
-
-                            if (property.PropertyType == typeof(Guid))
-                            {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
-                            }
-                            else
-                            {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                            }
+                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }
@@ -833,15 +813,7 @@ namespace BlackHole.DataProviders
                 foreach (BlackHoleParameter param in bhParameters)
                 {
                     object? value = param.Value;
-
-                    if (value?.GetType() == typeof(Guid))
-                    {
-                        parameters.Add(new OracleParameter(@param.Name, value.ToString()));
-                    }
-                    else
-                    {
-                        parameters.Add(new OracleParameter(@param.Name, value));
-                    }
+                    parameters.Add(new OracleParameter(@param.Name, value));
                 }
             }
         }
@@ -853,32 +825,15 @@ namespace BlackHole.DataProviders
             foreach (PropertyInfo property in propertyInfos)
             {
                 object? value = property.GetValue(item);
-
-                if (value?.GetType() == typeof(Guid))
-                {
-                    parameters.Add(new OracleParameter(@property.Name, value.ToString()));
-                }
-                else
-                {
-                    parameters.Add(new OracleParameter(@property.Name, value));
-                }
+                parameters.Add(new OracleParameter(@property.Name, value));
             }
         }
 
         private G? GenerateId<G>()
         {
-            object? value = default(G);
+            string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
 
-            switch (_idType)
-            {
-                case BlackHoleIdTypes.GuidId:
-                    value = Guid.NewGuid();
-                    break;
-                case BlackHoleIdTypes.StringId:
-                    string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
-                    value = ToHash.GenerateSHA1();
-                    break;
-            }
+            object? value = ToHash.GenerateSHA1();
 
             return (G?)value;
         }

@@ -9,28 +9,28 @@ namespace BlackHole.DataProviders
 {
     internal class SqlServerDataProvider : IDataProvider
     {
+        #region Constructor
         private readonly string _connectionString;
         internal readonly string insertedOutput = "output Inserted.Id";
         internal readonly bool skipQuotes = false;
-        private readonly BlackHoleIdTypes _idType;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
 
         internal SqlServerDataProvider(string connectionString, BlackHoleIdTypes idType)
         {
             _connectionString = "Driver={SQL Server};"+connectionString;
-            _idType = idType;
             _loggerService = new LoggerService();
 
             if (idType != BlackHoleIdTypes.StringId)
             {
-                useGenerator = true;
+                useGenerator = false;
             }
             else
             {
-                useGenerator = false;
+                useGenerator = true;
             }
         }
+        #endregion
 
         #region Internal Processes
         private G? ExecuteEntryScalar<T, G>(string commandText, T entry)
@@ -74,7 +74,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"InsertAsync_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Insert", ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -143,7 +143,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {insertedOutput} {commandEnd});", entry);
             }
         }
 
@@ -164,7 +164,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {insertedOutput} {commandEnd});", entry, bhTransaction);
             }
         }
 
@@ -185,7 +185,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {insertedOutput} {commandEnd});", entry);
             }
         }
 
@@ -206,7 +206,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {insertedOutput} {commandEnd});", entry, bhTransaction);
             }
         }
 
@@ -234,7 +234,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+                string commandText = $"{commandStart}) {insertedOutput} {commandEnd});";
 
                 foreach (T entry in entries)
                 {
@@ -269,7 +269,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+                string commandText = $"{commandStart}) {insertedOutput} {commandEnd});";
 
                 foreach (T entry in entries)
                 {
@@ -380,7 +380,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Update", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -404,7 +404,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Update", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -425,7 +425,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Update", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -448,7 +448,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Update", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -479,13 +479,15 @@ namespace BlackHole.DataProviders
                             }
                         }
                     }
+
                     connection.Close();
                 }
+
                 return result;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -514,8 +516,10 @@ namespace BlackHole.DataProviders
                             }
                         }
                     }
+
                     connection.Close();
                 }
+
                 return result;
             }
             catch (Exception ex)
@@ -752,18 +756,7 @@ namespace BlackHole.DataProviders
 
                         if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
-
-                            if (property.PropertyType == typeof(Guid))
-                            {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
-                            }
-                            else
-                            {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                            }
+                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }
@@ -791,18 +784,7 @@ namespace BlackHole.DataProviders
 
                         if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
-
-                            if (property.PropertyType == typeof(Guid))
-                            {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
-                            }
-                            else
-                            {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                            }
+                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }
@@ -820,16 +802,7 @@ namespace BlackHole.DataProviders
             {
                 foreach (BlackHoleParameter param in bhParameters)
                 {
-                    object? value = param.Value;
-
-                    if (value?.GetType() == typeof(Guid))
-                    {
-                        parameters.Add(new OdbcParameter(@param.Name, value.ToString()));
-                    }
-                    else
-                    {
-                        parameters.Add(new OdbcParameter(@param.Name, value));
-                    }
+                    parameters.Add(new OdbcParameter(@param.Name, param.Value));
                 }
             }
         }
@@ -841,32 +814,15 @@ namespace BlackHole.DataProviders
             foreach (PropertyInfo property in propertyInfos)
             {
                 object? value = property.GetValue(item);
-
-                if (value?.GetType() == typeof(Guid))
-                {
-                    parameters.Add(new OdbcParameter(@property.Name, value.ToString()));
-                }
-                else
-                {
-                    parameters.Add(new OdbcParameter(@property.Name, value));
-                }
+                parameters.Add(new OdbcParameter(@property.Name, value));
             }
         }
 
         private G? GenerateId<G>()
         {
-            object? value = default(G);
+            string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
 
-            switch (_idType)
-            {
-                case BlackHoleIdTypes.GuidId:
-                    value = Guid.NewGuid();
-                    break;
-                case BlackHoleIdTypes.StringId:
-                    string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
-                    value = ToHash.GenerateSHA1();
-                    break;
-            }
+            object? value = ToHash.GenerateSHA1();
 
             return (G?)value;
         }

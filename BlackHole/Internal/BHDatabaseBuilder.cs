@@ -15,7 +15,7 @@ namespace BlackHole.Internal
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             _loggerService = new LoggerService();
-            connection = _multiDatabaseSelector.GetExecutionProvider("a");
+            connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ServerConnection);
         }
 
         /// <summary>
@@ -24,9 +24,6 @@ namespace BlackHole.Internal
         /// <returns></returns>
         bool IBHDatabaseBuilder.DropDatabase()
         {
-            bool success = false;
-            string serverConnection = _multiDatabaseSelector.GetServerConnection();
-
             try
             {
                 bool isLite = _multiDatabaseSelector.IsLite();
@@ -45,51 +42,47 @@ namespace BlackHole.Internal
                         File.Delete(databaseLocation);
                     }
 
-                    success = true;
+                    return true;
                 }
                 else
                 {
-                    //using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
-                    //{
-                        string databaseName = _multiDatabaseSelector.GetDatabaseName();
-                        string CheckDb = "";
-                        bool dbExists = false;
-                        string DropDb = $@"DROP DATABASE IF EXISTS ""{databaseName}""";
+                    string databaseName = _multiDatabaseSelector.GetDatabaseName();
+                    string CheckDb = "";
+                    bool dbExists = false;
+                    string DropDb = $@"DROP DATABASE IF EXISTS ""{databaseName}""";
 
-                        switch (_multiDatabaseSelector.GetSqlTypeId())
-                        {
-                            case 0:
-                                CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
-                                DropDb = $@"USE master;ALTER DATABASE ""{databaseName}"" SET SINGLE_USER WITH ROLLBACK IMMEDIATE;DROP DATABASE ""{databaseName}"";";
-                                break;
-                            case 1:
-                                string DeleteMyShit = $"DROP DATABASE IF EXISTS {databaseName}";
-                                connection.JustExecute(DeleteMyShit, null);
-                                break;
-                            case 2:
-                                CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
-                                DropDb = $@"UPDATE pg_database SET datallowconn = 'false' WHERE datname = '{databaseName}'; SELECT pg_terminate_backend(pg_stat_activity.pid)
-                                FROM pg_stat_activity WHERE pg_stat_activity.datname = '{databaseName}'; DROP DATABASE ""{databaseName}""";
-                                break;
-                        }
+                    switch (_multiDatabaseSelector.GetSqlTypeId())
+                    {
+                        case 0:
+                            CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
+                            dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
+                            DropDb = $@"USE master;ALTER DATABASE ""{databaseName}"" SET SINGLE_USER WITH ROLLBACK IMMEDIATE;DROP DATABASE ""{databaseName}"";";
+                            break;
+                        case 1:
+                            string DeleteMyShit = $"DROP DATABASE IF EXISTS {databaseName}";
+                            connection.JustExecute(DeleteMyShit, null);
+                            break;
+                        case 2:
+                            CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
+                            dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
+                            DropDb = $@"UPDATE pg_database SET datallowconn = 'false' WHERE datname = '{databaseName}'; SELECT pg_terminate_backend(pg_stat_activity.pid)
+                            FROM pg_stat_activity WHERE pg_stat_activity.datname = '{databaseName}'; DROP DATABASE ""{databaseName}""";
+                            break;
+                    }
 
-                        if (dbExists)
-                        {
-                            connection.JustExecute(DropDb, null);
-                        }
-                    //}
-                    success = true;
+                    if (dbExists)
+                    {
+                        connection.JustExecute(DropDb, null);
+                    }
+
+                    return true;
                 }
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString());
-                success = false;
+                return false;
             }
-
-            return success;
         }
 
         /// <summary>
@@ -98,9 +91,6 @@ namespace BlackHole.Internal
         /// <returns></returns>
         bool IBHDatabaseBuilder.CheckDatabaseExistance()
         {
-            bool success = false;
-            string serverConnection = _multiDatabaseSelector.GetServerConnection();
-
             try
             {
                 bool isLite = _multiDatabaseSelector.IsLite();
@@ -114,50 +104,45 @@ namespace BlackHole.Internal
                         var stream = File.Create(databaseLocation);
                         stream.Dispose();
                     }
-                    success = true;
+                    return true;
                 }
                 else
                 {
-                    //using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
-                    //{
-                        string databaseName = _multiDatabaseSelector.GetDatabaseName();
-                        string CheckDb = "";
-                        bool dbExists = true;
-                        string CreateDb = $@"CREATE DATABASE ""{databaseName}""";
+                    string databaseName = _multiDatabaseSelector.GetDatabaseName();
+                    string CheckDb = "";
+                    bool dbExists = true;
+                    string CreateDb = $@"CREATE DATABASE ""{databaseName}""";
 
-                        switch (_multiDatabaseSelector.GetSqlTypeId())
-                        {
-                            case 0:
-                                CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
-                                break;
-                            case 1:
-                                CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName.ToLower()}'";
-                                CreateDb = $"CREATE DATABASE IF NOT EXISTS {databaseName}";
-                                dbExists = connection.ExecuteScalar<string>(CheckDb, null) == databaseName.ToLower();
-                                break;
-                            case 2:
-                                CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
-                                break;
-                        }
+                    switch (_multiDatabaseSelector.GetSqlTypeId())
+                    {
+                        case 0:
+                            CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
+                            dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
+                            break;
+                        case 1:
+                            CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName.ToLower()}'";
+                            CreateDb = $"CREATE DATABASE IF NOT EXISTS {databaseName}";
+                            dbExists = connection.ExecuteScalar<string>(CheckDb, null) == databaseName.ToLower();
+                            break;
+                        case 2:
+                            CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
+                            dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
+                            break;
+                    }
 
-                        if (!dbExists)
-                        {
-                            connection.JustExecute(CreateDb, null);
-                        }
+                    if (!dbExists)
+                    {
+                        connection.JustExecute(CreateDb, null);
+                    }
 
-                    //}
-                    success = true;
+                    return true;
                 }
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString());
-                success = false;
+                return false;
             }
-
-            return success;
         }
 
         /// <summary>
@@ -166,8 +151,6 @@ namespace BlackHole.Internal
         /// <returns></returns>
         bool IBHDatabaseBuilder.DoesDbExists()
         {
-            bool success = false;
-
             try
             {
                 string serverConnection = _multiDatabaseSelector.GetServerConnection();
@@ -180,50 +163,45 @@ namespace BlackHole.Internal
 
                     if (!File.Exists(databaseLocation))
                     {
-                        success = false;
+                        return false;
                     }
                     else
                     {
-                        success = true;
+                        return true;
                     }
                 }
                 else
                 {
                     bool dbExists = true;
 
-                   // using (IDbConnection connection = _multiDatabaseSelector.CreateConnection(serverConnection))
-                    //{
-                        string databaseName = _multiDatabaseSelector.GetDatabaseName();
-                        string CheckDb = "";
+                    string databaseName = _multiDatabaseSelector.GetDatabaseName();
+                    string CheckDb = "";
 
-                        switch (_multiDatabaseSelector.GetSqlTypeId())
-                        {
-                            case 0:
-                                CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
-                                break;
-                            case 1:
-                                CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName}'";
-                                string? dbName = connection.ExecuteScalar<string>(CheckDb, null);
-                                dbExists = dbName?.ToLower() == databaseName.ToLower();
-                                break;
-                            case 2:
-                                CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
-                                dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
-                                break;
-                        }
-                    //}
+                    switch (_multiDatabaseSelector.GetSqlTypeId())
+                    {
+                        case 0:
+                            CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
+                            dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
+                            break;
+                        case 1:
+                            CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName}'";
+                            string? dbName = connection.ExecuteScalar<string>(CheckDb, null);
+                            dbExists = dbName?.ToLower() == databaseName.ToLower();
+                            break;
+                        case 2:
+                            CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
+                            dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
+                            break;
+                    }
 
-                    success = dbExists;
+                    return dbExists;
                 }
             }
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString());
-                success = false;
+                return false;
             }
-
-            return success;
         }
     }
 }

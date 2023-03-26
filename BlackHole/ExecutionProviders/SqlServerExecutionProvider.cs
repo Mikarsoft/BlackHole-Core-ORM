@@ -492,18 +492,7 @@ namespace BlackHole.ExecutionProviders
 
                         if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
-
-                            if (property.PropertyType == typeof(Guid))
-                            {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
-                            }
-                            else
-                            {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                            }
+                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }
@@ -531,18 +520,7 @@ namespace BlackHole.ExecutionProviders
 
                         if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
-
-                            if (property.PropertyType == typeof(Guid))
-                            {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
-                            }
-                            else
-                            {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                            }
+                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }
@@ -561,15 +539,7 @@ namespace BlackHole.ExecutionProviders
                 foreach (BlackHoleParameter param in bhParameters)
                 {
                     object? value = param.Value;
-
-                    if (value?.GetType() == typeof(Guid))
-                    {
-                        parameters.Add(new OdbcParameter(@param.Name, value.ToString()));
-                    }
-                    else
-                    {
-                        parameters.Add(new OdbcParameter(@param.Name, value));
-                    }
+                    parameters.Add(new OdbcParameter(@param.Name, value));
                 }
             }
         }

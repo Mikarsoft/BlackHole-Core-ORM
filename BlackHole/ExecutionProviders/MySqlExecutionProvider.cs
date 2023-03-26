@@ -19,7 +19,7 @@ namespace BlackHole.ExecutionProviders
         }
         #endregion
 
-        #region ExecutionMethods
+        #region Execution Methods
         public G? ExecuteScalar<G>(string commandText, BlackHoleParameter[]? parameters)
         {
             try
@@ -474,7 +474,7 @@ namespace BlackHole.ExecutionProviders
         }
         #endregion
 
-        #region ObjectMapping
+        #region Object Mapping
 
         private T? MapObject<T>(MySqlDataReader reader)
         {
