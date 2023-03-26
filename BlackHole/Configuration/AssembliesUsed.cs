@@ -2,9 +2,13 @@
 
 namespace BlackHole.Configuration
 {
-    internal class AssembliesUsed
+    public class AssembliesUsed
     {
         internal Assembly? ScanAssembly { get; set; }
-        internal string AssName { get; set; } = string.Empty;
+
+        public void UseOtherAssembly(Assembly otherAssembly)
+        {
+            ScanAssembly = otherAssembly;
+        }
     }
 }

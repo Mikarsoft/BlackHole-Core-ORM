@@ -33,13 +33,13 @@ namespace BlackHole.Configuration
             BlackHoleSettings blackHoleSettings = new BlackHoleSettings();
             settings.Invoke(blackHoleSettings);
 
-            if (blackHoleSettings.dataPath == string.Empty)
+            if (blackHoleSettings.directorySettings.DataPath == string.Empty)
             {
-                blackHoleSettings.dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
+                blackHoleSettings.directorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
             }
 
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType,
-                blackHoleSettings.connectionConfig.ConnectionString, blackHoleSettings.dataPath);
+                blackHoleSettings.connectionConfig.ConnectionString, blackHoleSettings.directorySettings.DataPath);
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
             IBHTableBuilder tableBuilder = new BHTableBuilder();
@@ -52,14 +52,33 @@ namespace BlackHole.Configuration
                 services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
                 services.AddScoped(typeof(IBHConnection), typeof(BHConnection));
 
-                tableBuilder.BuildMultipleTables(ScanForEntities(blackHoleSettings.connectionConfig.additionalSettings.EntityNamespaces,
-                    blackHoleSettings.connectionConfig.additionalSettings.AssembliesToUse, assembly));
-
-                services.ScanForServices(blackHoleSettings.connectionConfig.additionalSettings.ServicesNamespaces,
-                    blackHoleSettings.connectionConfig.additionalSettings.AssembliesToUse, assembly);
+                tableBuilder.BuildMultipleTables();
             }
 
             return services;
+        }
+
+        private static void AddServices(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
+        {
+            if(additionalSettings.AssembliesToUse.Count > 0)
+            {
+                if (additionalSettings.useCallingAssembly)
+                {
+                    services.RegisterBHServices(callingAssembly);
+                }
+
+                foreach(Assembly assembly in additionalSettings.AssembliesToUse)
+                {
+                    services.RegisterBHServices(assembly);
+                }
+            }
+            else
+            {
+                if(additionalSettings.ServicesNamespaces != null)
+                {
+
+                }
+            }
         }
 
         private static void ScanForServices( this IServiceCollection services,

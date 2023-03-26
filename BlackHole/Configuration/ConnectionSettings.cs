@@ -46,7 +46,6 @@ namespace BlackHole.Configuration
             return additionalSettings;
         }
 
-
         /// <summary>
         /// Use the data provider for Sqlite
         /// </summary>
