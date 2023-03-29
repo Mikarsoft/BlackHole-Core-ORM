@@ -25,15 +25,23 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 G? Id = default(G);
+                object? result;
                 using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
                     MySqlCommand Command = new MySqlCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    Id = (G?)Command.ExecuteScalar();
+                    result = Command.ExecuteScalar();
+
                     connection.Close();
                 }
+
+                if (result != null)
+                {
+                    Id  = (G)result;
+                }
+
                 return Id;
             }
             catch (Exception ex)

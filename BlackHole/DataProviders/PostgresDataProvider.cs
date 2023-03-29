@@ -21,7 +21,7 @@ namespace BlackHole.DataProviders
             _connectionString = connectionString;
             _loggerService = new LoggerService();
 
-            insertedOutput = $@"returning {tableName}.""Id""";
+            insertedOutput = $@"returning ""{tableName}"".""Id""";
 
             if (idType != BlackHoleIdTypes.StringId)
             {

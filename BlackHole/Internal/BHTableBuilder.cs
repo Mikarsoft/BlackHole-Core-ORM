@@ -3,6 +3,7 @@ using System.Reflection;
 using BlackHole.CoreSupport;
 using BlackHole.Entities;
 using BlackHole.Logger;
+using BlackHole.Statics;
 
 namespace BlackHole.Internal
 {
@@ -20,7 +21,7 @@ namespace BlackHole.Internal
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             _loggerService = new LoggerService();
-            connection = _multiDatabaseSelector.GetExecutionProvider("");
+            connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
             SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
             isMyShit = _multiDatabaseSelector.GetMyShit();
             isLite = _multiDatabaseSelector.IsLite();
@@ -78,72 +79,68 @@ namespace BlackHole.Internal
             bool tExists = false;
             bool success = false;
 
-            //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            //{
-                try
+            try
+            {
+                string tableCheck = $@"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + "')) then 1 else 0 end";
+
+                if (isLite)
                 {
-                    string tableCheck = $@"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + "')) then 1 else 0 end";
+                    tableCheck = $@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'";
+                    tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
+                }
+                else
+                {
+                    tExists = connection.ExecuteScalar<long>(tableCheck, null) == 1;
+                }
 
-                    if (isLite)
+                if (!tExists)
+                {
+                    PropertyInfo[] Properties = TableType.GetProperties();
+                    string creationCommand = $"CREATE TABLE {MyShit(Tablename)} (";
+
+                    creationCommand += GetDatatypeCommand("Int32", new object[0], "Inactive");
+                    creationCommand += GetSqlColumn(new object[0], true);
+
+                    foreach (PropertyInfo Property in Properties)
                     {
-                        tableCheck = $@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'";
-                        tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
-                    }
-                    else
-                    {
-                        tExists = connection.ExecuteScalar<int>(tableCheck, null) == 1;
-                    }
+                        string propertyType = Property.PropertyType.Name;
+                        object[] attributes = Property.GetCustomAttributes(true);
 
-                    if (!tExists)
-                    {
-                        PropertyInfo[] Properties = TableType.GetProperties();
-                        string creationCommand = $"CREATE TABLE {MyShit(Tablename)} (";
-
-                        creationCommand += GetDatatypeCommand("Int32", new object[0], "Inactive");
-                        creationCommand += GetSqlColumn(new object[0], true);
-
-                        foreach (PropertyInfo Property in Properties)
+                        if (Property.Name != "Id")
                         {
-                            string propertyType = Property.PropertyType.Name;
-                            object[] attributes = Property.GetCustomAttributes(true);
+                            creationCommand += GetDatatypeCommand(propertyType, attributes, Property.Name);
 
-                            if (Property.Name != "Id")
+                            creationCommand += GetSqlColumn(attributes, true);
+                        }
+                        else
+                        {
+                            if (TableType.BaseType == typeof(BlackHoleEntity<int>))
                             {
-                                creationCommand += GetDatatypeCommand(propertyType, attributes, Property.Name);
-
-                                creationCommand += GetSqlColumn(attributes, true);
+                                creationCommand += _multiDatabaseSelector.GetPrimaryKeyCommand();
                             }
-                            else
+
+                            if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
                             {
-                                if (TableType.BaseType == typeof(BlackHoleEntity<int>))
-                                {
-                                    creationCommand += _multiDatabaseSelector.GetPrimaryKeyCommand();
-                                }
+                                creationCommand += _multiDatabaseSelector.GetGuidPrimaryKeyCommand();
+                            }
 
-                                if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
-                                {
-                                    creationCommand += _multiDatabaseSelector.GetGuidPrimaryKeyCommand();
-                                }
-
-                                if (TableType.BaseType == typeof(BlackHoleEntity<string>))
-                                {
-                                    creationCommand += _multiDatabaseSelector.GetStringPrimaryKeyCommand();
-                                }
+                            if (TableType.BaseType == typeof(BlackHoleEntity<string>))
+                            {
+                                creationCommand += _multiDatabaseSelector.GetStringPrimaryKeyCommand();
                             }
                         }
-
-                        creationCommand = creationCommand.Substring(0, creationCommand.Length - 2) + ");";
-                        connection.JustExecute(creationCommand , null);
-                        success = true;
                     }
-                }
-                catch (Exception ex)
-                {
-                    success = false;
-                    _loggerService.CreateErrorLogs($"TableBuilder_{Tablename}", ex.Message, ex.ToString());
-                }
-            //}
 
+                    creationCommand = creationCommand.Substring(0, creationCommand.Length - 2) + ");";
+                    connection.JustExecute(creationCommand , null);
+                    success = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                success = false;
+                _loggerService.CreateErrorLogs($"TableBuilder_{Tablename}", ex.Message, ex.ToString());
+            }
             return success;
         }
 
@@ -175,38 +172,35 @@ namespace BlackHole.Internal
         {
             bool updateSchema = false;
 
-            //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            //{
-                string Tablename = MyShit(TableType.Name);
+            string Tablename = MyShit(TableType.Name);
 
-                List<LiteTableInfo> ColumnsInfo = new List<LiteTableInfo>();
-                List<string> ColumnNames = new List<string>();
-                List<string> NewColumnNames = new List<string>();
-                NewColumnNames.Add("Inactive");
+            List<LiteTableInfo> ColumnsInfo = new List<LiteTableInfo>();
+            List<string> ColumnNames = new List<string>();
+            List<string> NewColumnNames = new List<string>();
+            NewColumnNames.Add("Inactive");
 
-                PropertyInfo[] Properties = TableType.GetProperties();
+            PropertyInfo[] Properties = TableType.GetProperties();
 
-                foreach (PropertyInfo Property in Properties)
-                {
-                    NewColumnNames.Add(Property.Name);
-                }
+            foreach (PropertyInfo Property in Properties)
+            {
+                NewColumnNames.Add(Property.Name);
+            }
 
-                string getColumns = $"PRAGMA table_info({Tablename}); ";
-                ColumnsInfo = connection.Query<LiteTableInfo>(getColumns, null);
+            string getColumns = $"PRAGMA table_info({Tablename}); ";
+            ColumnsInfo = connection.Query<LiteTableInfo>(getColumns, null);
 
-                foreach (LiteTableInfo column in ColumnsInfo)
-                {
-                    ColumnNames.Add(column.name);
-                }
+            foreach (LiteTableInfo column in ColumnsInfo)
+            {
+                ColumnNames.Add(column.name);
+            }
 
-                IEnumerable<string> CommonList = new List<string>();
-                CommonList = ColumnNames.Intersect(NewColumnNames);
+            IEnumerable<string> CommonList = new List<string>();
+            CommonList = ColumnNames.Intersect(NewColumnNames);
 
-                if (CommonList.Count() != ColumnNames.Count)
-                {
-                    updateSchema = true;
-                }
-            //}
+            if (CommonList.Count() != ColumnNames.Count)
+            {
+                updateSchema = true;
+            }
 
             if (updateSchema)
             {
@@ -223,82 +217,79 @@ namespace BlackHole.Internal
             string foreignKeys = "";
             string closingCommand = "";
 
-            //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            //{
-                List<LiteTableInfo> ColumnsInfo = new List<LiteTableInfo>();
-                List<string> ColumnNames = new List<string>();
-                List<string> NewColumnNames = new List<string>();
+            List<LiteTableInfo> ColumnsInfo = new List<LiteTableInfo>();
+            List<string> ColumnNames = new List<string>();
+            List<string> NewColumnNames = new List<string>();
 
-                ColumnsInfo = connection.Query<LiteTableInfo>(getColumns, null).ToList();
+            ColumnsInfo = connection.Query<LiteTableInfo>(getColumns, null).ToList();
 
-                foreach (LiteTableInfo column in ColumnsInfo)
+            foreach (LiteTableInfo column in ColumnsInfo)
+            {
+                ColumnNames.Add(column.name);
+            }
+
+            alterTable += GetDatatypeCommand("Int32", new object[0], "Inactive");
+            alterTable += GetSqlColumn(new object[0], true);
+
+            foreach (PropertyInfo Property in Properties)
+            {
+                string propertyType = Property.PropertyType.Name;
+                object[] attributes = Property.GetCustomAttributes(true);
+                NewColumnNames.Add(Property.Name);
+
+                if (Property.Name != "Id")
                 {
-                    ColumnNames.Add(column.name);
+                    alterTable += GetDatatypeCommand(propertyType, attributes, Property.Name);
+
+                    alterTable += GetSqlColumn(attributes, firstTime);
                 }
-
-                alterTable += GetDatatypeCommand("Int32", new object[0], "Inactive");
-                alterTable += GetSqlColumn(new object[0], true);
-
-                foreach (PropertyInfo Property in Properties)
+                else
                 {
-                    string propertyType = Property.PropertyType.Name;
-                    object[] attributes = Property.GetCustomAttributes(true);
-                    NewColumnNames.Add(Property.Name);
-
-                    if (Property.Name != "Id")
+                    if (TableType.BaseType == typeof(BlackHoleEntity<int>))
                     {
-                        alterTable += GetDatatypeCommand(propertyType, attributes, Property.Name);
-
-                        alterTable += GetSqlColumn(attributes, firstTime);
-                    }
-                    else
-                    {
-                        if (TableType.BaseType == typeof(BlackHoleEntity<int>))
-                        {
-                            alterTable += _multiDatabaseSelector.GetPrimaryKeyCommand();
-                        }
-
-                        if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
-                        {
-                            alterTable += _multiDatabaseSelector.GetGuidPrimaryKeyCommand();
-                        }
-
-                        if (TableType.BaseType == typeof(BlackHoleEntity<string>))
-                        {
-                            alterTable += _multiDatabaseSelector.GetStringPrimaryKeyCommand();
-                        }
+                        alterTable += _multiDatabaseSelector.GetPrimaryKeyCommand();
                     }
 
-                    if (attributes.Length > 0)
+                    if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
                     {
-                        object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
+                        alterTable += _multiDatabaseSelector.GetGuidPrimaryKeyCommand();
+                    }
 
-                        if (FK_attribute != null)
-                        {
-                            var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
-                            var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
-                            var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
-                            foreignKeys += LiteConstraint(Tablename, Property.Name, tName, tColumn, cascadeInfo);
-                        }
+                    if (TableType.BaseType == typeof(BlackHoleEntity<string>))
+                    {
+                        alterTable += _multiDatabaseSelector.GetStringPrimaryKeyCommand();
                     }
                 }
 
-                string trasferData = TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old");
-                closingCommand = $"{alterTable}{foreignKeys}";
-                closingCommand = closingCommand.Substring(0, closingCommand.Length - 2);
-                closingCommand = $"{closingCommand});{trasferData} DROP TABLE {Tablename}_Old;";
-                closingCommand += $"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};";
-                closingCommand += $"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;";
+                if (attributes.Length > 0)
+                {
+                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
 
-                try
-                {
-                    connection.JustExecute(closingCommand, null);
+                    if (FK_attribute != null)
+                    {
+                        var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
+                        var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
+                        var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
+                        foreignKeys += LiteConstraint(Tablename, Property.Name, tName, tColumn, cascadeInfo);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _loggerService.CreateErrorLogs($"Constraints_{Tablename}", ex.Message, ex.ToString());
-                }
-            //}
+            }
+
+            string trasferData = TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old");
+            closingCommand = $"{alterTable}{foreignKeys}";
+            closingCommand = closingCommand.Substring(0, closingCommand.Length - 2);
+            closingCommand = $"{closingCommand});{trasferData} DROP TABLE {Tablename}_Old;";
+            closingCommand += $"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};";
+            closingCommand += $"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;";
+
+            try
+            {
+                connection.JustExecute(closingCommand, null);
+            }
+            catch (Exception ex)
+            {
+                _loggerService.CreateErrorLogs($"Constraints_{Tablename}", ex.Message, ex.ToString());
+            }
         }
 
         void ForeignKeyAsignment(Type TableType)

@@ -1,5 +1,4 @@
-﻿using Dapper;
-
+﻿
 namespace BlackHole.Core
 {
     /// <summary>

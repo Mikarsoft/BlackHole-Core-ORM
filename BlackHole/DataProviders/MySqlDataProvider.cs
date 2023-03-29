@@ -858,7 +858,7 @@ namespace BlackHole.DataProviders
         private G? GenerateId<G>()
         {
             object? value = default(G);
-
+            Type type = typeof(G);
             switch (_idType)
             {
                 case BlackHoleIdTypes.GuidId:

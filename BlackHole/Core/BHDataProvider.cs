@@ -41,13 +41,14 @@ namespace BlackHole.Core
                 withActivator = true;
             }
 
+            _dataProviderSelector = new BHDataProviderSelector();
+            _dataProvider = _dataProviderSelector.GetDataProvider(typeof(G),name);
+            isMyShit = _dataProvider.SkipQuotes();
+
             ThisTable = MyShit(name);
             ThisId = MyShit("Id");
             ThisInactive = MyShit("Inactive");
 
-            _dataProviderSelector = new BHDataProviderSelector();
-            _dataProvider = _dataProviderSelector.GetDataProvider(_type,ThisTable);
-            isMyShit = _dataProvider.SkipQuotes();
 
             IList<PropertyInfo> props = new List<PropertyInfo>(_type.GetProperties());
 
