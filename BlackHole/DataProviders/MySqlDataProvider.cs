@@ -155,8 +155,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id){commandEnd},'{Id}');", entry))
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -167,7 +168,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {commandEnd});{insertedOutput}", entry);
             }
         }
 
@@ -176,8 +177,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},'{Id}');", entry, bhTransaction))
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -188,7 +190,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {commandEnd});{insertedOutput}", entry, bhTransaction);
             }
         }
 
@@ -197,8 +199,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry))
+                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -209,7 +212,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd});{insertedOutput}", entry);
             }
         }
 
@@ -218,8 +221,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry, bhTransaction))
+                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -230,7 +234,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd});{insertedOutput}", entry, bhTransaction);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd});{insertedOutput}", entry, bhTransaction);
             }
         }
 
@@ -240,11 +244,12 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = "";
+                string commandText = $"{commandStart},Id) {commandEnd},@Id);";
+
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
                     if (await ExecuteEntryAsync(commandText, entry, bhTransaction))
                     {
@@ -258,7 +263,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+                string commandText = $"{commandStart}) {commandEnd});{insertedOutput}";
 
                 foreach (T entry in entries)
                 {
@@ -275,11 +280,12 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = "";
+                string commandText = $"{commandStart},Id) {commandEnd},@Id);";
+
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
                     if (ExecuteEntry(commandText, entry, bhTransaction))
                     {
@@ -293,7 +299,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd});{insertedOutput}";
+                string commandText = $"{commandStart}) {commandEnd});{insertedOutput}";
 
                 foreach (T entry in entries)
                 {
@@ -355,7 +361,6 @@ namespace BlackHole.DataProviders
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -375,7 +380,6 @@ namespace BlackHole.DataProviders
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -395,7 +399,6 @@ namespace BlackHole.DataProviders
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -417,7 +420,6 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     MySqlCommand Command = new MySqlCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -440,7 +442,6 @@ namespace BlackHole.DataProviders
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -462,7 +463,6 @@ namespace BlackHole.DataProviders
                 {
                     await connection.OpenAsync();
                     MySqlCommand Command = new MySqlCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -476,7 +476,6 @@ namespace BlackHole.DataProviders
                 return false;
             }
         }
-
 
         public T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters)
         {
@@ -563,7 +562,7 @@ namespace BlackHole.DataProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -599,7 +598,7 @@ namespace BlackHole.DataProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -699,7 +698,7 @@ namespace BlackHole.DataProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -728,13 +727,11 @@ namespace BlackHole.DataProviders
                 MySqlConnection? connection = bHTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bHTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
-
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -762,6 +759,18 @@ namespace BlackHole.DataProviders
                 Type type = typeof(T);
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
+
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = (T?)reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
@@ -801,6 +810,18 @@ namespace BlackHole.DataProviders
                 Type type = typeof(T);
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
+
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = (T?)reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
@@ -875,7 +896,7 @@ namespace BlackHole.DataProviders
         private G? GenerateId<G>()
         {
             object? value = default(G);
-            Type type = typeof(G);
+
             switch (_idType)
             {
                 case BlackHoleIdTypes.GuidId:

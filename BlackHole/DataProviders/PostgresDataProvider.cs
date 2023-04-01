@@ -138,8 +138,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id){commandEnd},'{Id}');", entry))
+                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -150,7 +151,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry);
             }
         }
 
@@ -159,8 +160,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},'{Id}');", entry, bhTransaction))
+                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -171,7 +173,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry, bhTransaction);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry, bhTransaction);
             }
         }
 
@@ -180,8 +182,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry))
+                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -192,7 +195,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry);
             }
         }
 
@@ -201,8 +204,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry, bhTransaction))
+                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -213,7 +217,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry, bhTransaction);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry, bhTransaction);
             }
         }
 
@@ -223,11 +227,12 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = "";
+                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id);";
+
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
                     if (await ExecuteEntryAsync(commandText, entry, bhTransaction))
                     {
@@ -241,7 +246,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd}) {insertedOutput};";
+                string commandText = $"{commandStart}) {commandEnd}) {insertedOutput};";
 
                 foreach (T entry in entries)
                 {
@@ -258,11 +263,12 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = "";
+                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id);";
+
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
                     if (ExecuteEntry(commandText, entry, bhTransaction))
                     {
@@ -276,7 +282,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd}) {insertedOutput};";
+                string commandText = $"{commandStart}) {commandEnd}) {insertedOutput};";
 
                 foreach (T entry in entries)
                 {
@@ -338,7 +344,6 @@ namespace BlackHole.DataProviders
                 NpgsqlConnection? connection = bhTransaction.connection as NpgsqlConnection;
                 NpgsqlTransaction? transaction = bhTransaction._transaction as NpgsqlTransaction;
                 NpgsqlCommand Command = new NpgsqlCommand(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -358,7 +363,6 @@ namespace BlackHole.DataProviders
                 NpgsqlConnection? connection = bhTransaction.connection as NpgsqlConnection;
                 NpgsqlTransaction? transaction = bhTransaction._transaction as NpgsqlTransaction;
                 NpgsqlCommand Command = new NpgsqlCommand(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -378,7 +382,6 @@ namespace BlackHole.DataProviders
                 NpgsqlConnection? connection = bhTransaction.connection as NpgsqlConnection;
                 NpgsqlTransaction? transaction = bhTransaction._transaction as NpgsqlTransaction;
                 NpgsqlCommand Command = new NpgsqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -400,7 +403,6 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     NpgsqlCommand Command = new NpgsqlCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -423,7 +425,6 @@ namespace BlackHole.DataProviders
                 NpgsqlConnection? connection = bhTransaction.connection as NpgsqlConnection;
                 NpgsqlTransaction? transaction = bhTransaction._transaction as NpgsqlTransaction;
                 NpgsqlCommand Command = new NpgsqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -445,7 +446,6 @@ namespace BlackHole.DataProviders
                 {
                     await connection.OpenAsync();
                     NpgsqlCommand Command = new NpgsqlCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -663,7 +663,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return new List<T>();
             }
         }

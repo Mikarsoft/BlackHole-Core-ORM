@@ -530,6 +530,12 @@ namespace BlackHole.Internal
                 case "String":
                     defaultValue = "-";
                     break;
+                case "Char":
+                    defaultValue = "-";
+                    break;
+                case "Int16":
+                    defaultValue = "0";
+                    break;
                 case "Int32":
                     defaultValue = "0";
                     break;
@@ -580,33 +586,38 @@ namespace BlackHole.Internal
                         dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[0]}(255) ";
                     }
                     break;
-
-                case "Int32":
+                case "Char":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[1]} ";
                     break;
-                case "Int64":
+                case "Int16":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[2]} ";
                     break;
-                case "Decimal":
+                case "Int32":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[3]} ";
                     break;
-                case "Single":
+                case "Int64":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[4]} ";
                     break;
-                case "Double":
+                case "Decimal":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[5]} ";
                     break;
-                case "Guid":
+                case "Single":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[6]} ";
                     break;
-                case "Boolean":
+                case "Double":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[7]} ";
                     break;
-                case "DateTime":
+                case "Guid":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[8]} ";
                     break;
-                case "Byte[]":
+                case "Boolean":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[9]} ";
+                    break;
+                case "DateTime":
+                    dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[10]} ";
+                    break;
+                case "Byte[]":
+                    dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[11]} ";
                     break;
             }
 
