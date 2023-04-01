@@ -240,7 +240,7 @@ namespace BlackHole.Internal
                     PrimaryKeyCommand = @"""Id"" INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    PrimaryKeyCommand = @"Id INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,";
+                    PrimaryKeyCommand = @"Id int AUTO_INCREMENT primary key NOT NULL ,";
                     break;
                 case BlackHoleSqlTypes.Postgres:
                     PrimaryKeyCommand = @"""Id"" SERIAL PRIMARY KEY ,";
@@ -319,7 +319,7 @@ namespace BlackHole.Internal
                     PrimaryKeyCommand = @"""Id"" UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,";
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    PrimaryKeyCommand = @"Id varchar(50) NOT NULL PRIMARY KEY ,";
+                    PrimaryKeyCommand = @"Id varchar(36) NOT NULL PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.Postgres:
                     PrimaryKeyCommand = @"""Id"" uuid DEFAULT gen_random_uuid() PRIMARY KEY ,";
@@ -416,7 +416,7 @@ namespace BlackHole.Internal
                     SqlDatatypes = new[] { "nvarchar", "int", "bigint", "decimal", "float", "float", "uniqueidentifier", "bit", "datetime", "varbinary" };
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    SqlDatatypes = new[] { "varchar", "char","smallint", "int", "bigint", "decimal", "float", "double", "varchar(50)", "bit", "datetime", "varbinary" };
+                    SqlDatatypes = new[] { "varchar", "char","smallint", "int", "bigint", "decimal", "float", "double", "varchar(36)", "bit", "datetime", "varbinary" };
                     break;
                 case BlackHoleSqlTypes.Postgres:
                     SqlDatatypes = new[] { "varchar", "char", "int2", "int4", "int8", "numeric", "float4", "float8", "uuid", "bool", "timestamp", "bytea" };

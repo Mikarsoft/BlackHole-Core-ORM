@@ -25,28 +25,26 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 G? Id = default(G);
-                object? result;
                 using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
                     connection.Open();
                     MySqlCommand Command = new MySqlCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    result = Command.ExecuteScalar();
+                    object? Result = Command.ExecuteScalar();
 
                     connection.Close();
-                }
 
-                if (result != null)
-                {
-                    Id  = (G)result;
+                    if (Result != null)
+                    {
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
+                    }
                 }
-
                 return Id;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString());
                 return default(G);
             }
         }
@@ -58,16 +56,21 @@ namespace BlackHole.ExecutionProviders
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
-                return (G?)Command.ExecuteScalar();
+                object? Result = Command.ExecuteScalar();
+                
+                if(Result != null)
+                {
+                    return (G?)Convert.ChangeType(Result, typeof(G));
+                }
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
-                return default(G);
+                _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString());
             }
+
+            return default(G);
         }
 
         public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
@@ -81,14 +84,19 @@ namespace BlackHole.ExecutionProviders
                     MySqlCommand Command = new MySqlCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    Id = (G?)await Command.ExecuteScalarAsync();
+                    object? Result = await Command.ExecuteScalarAsync();
                     await connection.CloseAsync();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
+                    }
                 }
                 return Id;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString());
                 return default(G);
             }
         }
@@ -100,16 +108,21 @@ namespace BlackHole.ExecutionProviders
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
-                return (G?)await Command.ExecuteScalarAsync();
+                object? Result = await Command.ExecuteScalarAsync();
+
+                if(Result != null)
+                {
+                    return (G?)Convert.ChangeType(Result, typeof(G));
+                }
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
-                return default(G);
+                _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString());
             }
+
+            return default(G);
         }
 
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters)
@@ -131,7 +144,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -152,7 +165,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -165,7 +178,6 @@ namespace BlackHole.ExecutionProviders
                 {
                     await connection.OpenAsync();
                     MySqlCommand Command = new MySqlCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -175,7 +187,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -187,7 +199,6 @@ namespace BlackHole.ExecutionProviders
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -196,7 +207,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -232,7 +243,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return default(T);
             }
         }
@@ -265,7 +276,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return default(T);
             }
         }
@@ -300,7 +311,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return new List<T>();
             }
         }
@@ -332,7 +343,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return new List<T>();
             }
         }
@@ -368,7 +379,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return default(T);
             }
         }
@@ -401,7 +412,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return default(T);
             }
         }
@@ -436,7 +447,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return new List<T>();
             }
         }
@@ -468,7 +479,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return new List<T>();
             }
         }
@@ -484,6 +495,24 @@ namespace BlackHole.ExecutionProviders
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    if (typeof(T) == typeof(Guid))
+                    {
+                        object? GValue = reader.GetGuid(0);
+                        return (T?)GValue;
+                    }
+
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)Convert.ChangeType(value, typeof(T));
+                    }
+
+                    return default;
+                }
+
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     if (!reader.IsDBNull(i))
@@ -496,13 +525,12 @@ namespace BlackHole.ExecutionProviders
 
                             if (property.PropertyType == typeof(Guid))
                             {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
                             }
                         }
                     }
@@ -523,6 +551,24 @@ namespace BlackHole.ExecutionProviders
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    if (typeof(T) == typeof(Guid))
+                    {
+                        object? GValue = reader.GetGuid(0);
+                        return (T?)GValue;
+                    }
+
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)Convert.ChangeType(value, typeof(T));
+                    }
+
+                    return default;
+                }
+
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     if (!reader.IsDBNull(i))
@@ -535,13 +581,12 @@ namespace BlackHole.ExecutionProviders
 
                             if (property.PropertyType == typeof(Guid))
                             {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
                             }
                         }
                     }

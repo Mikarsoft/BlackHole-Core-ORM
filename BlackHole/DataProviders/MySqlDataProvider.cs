@@ -50,7 +50,7 @@ namespace BlackHole.DataProviders
 
                     if (Result != null)
                     {
-                        Id = (G?)Result;
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
                     }
 
                     connection.Close();
@@ -79,7 +79,7 @@ namespace BlackHole.DataProviders
 
                     if (Result != null)
                     {
-                        Id = (G?)Result;
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
                     }
 
                     await connection.CloseAsync();
@@ -106,7 +106,7 @@ namespace BlackHole.DataProviders
 
                 if(Result!= null)
                 {
-                    return (G?)Result;
+                    return (G?)Convert.ChangeType(Result, typeof(G));
                 }
             }
             catch(Exception ex)
@@ -130,7 +130,7 @@ namespace BlackHole.DataProviders
 
                 if (Result != null)
                 {
-                    return (G?)Result;
+                    return (G?)Convert.ChangeType(Result, typeof(G));
                 }
             }
             catch(Exception ex)
@@ -155,9 +155,8 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
-                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry))
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},'{Id}');", entry))
                 {
                     return Id;
                 }
@@ -177,9 +176,8 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
-                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},'{Id}');", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -199,9 +197,8 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
-                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry))
+                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},'{Id}');", entry))
                 {
                     return Id;
                 }
@@ -221,9 +218,8 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
-                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
+                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},'{Id}');", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -762,11 +758,17 @@ namespace BlackHole.DataProviders
 
                 if (properties.Length == 0 && reader.FieldCount > 0)
                 {
-                    object? value = (T?)reader.GetValue(0);
+                    if (typeof(T) == typeof(Guid))
+                    {
+                        object? GValue = reader.GetGuid(0);
+                        return (T?)GValue;
+                    }
+
+                    object? value = reader.GetValue(0);
 
                     if (value != null)
                     {
-                        return (T?)value;
+                        return (T?)Convert.ChangeType(value, typeof(T));
                     }
 
                     return default;
@@ -784,13 +786,12 @@ namespace BlackHole.DataProviders
 
                             if (property.PropertyType == typeof(Guid))
                             {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
                             }
                         }
                     }
@@ -813,11 +814,17 @@ namespace BlackHole.DataProviders
 
                 if (properties.Length == 0 && reader.FieldCount > 0)
                 {
-                    object? value = (T?)reader.GetValue(0);
+                    if(typeof(T)== typeof(Guid))
+                    {
+                        object? GValue = reader.GetGuid(0);
+                        return (T?)GValue;
+                    }
+
+                    object? value = reader.GetValue(0);
 
                     if (value != null)
                     {
-                        return (T?)value;
+                        return (T?)Convert.ChangeType(value, typeof(T));
                     }
 
                     return default;
@@ -835,13 +842,12 @@ namespace BlackHole.DataProviders
 
                             if (property.PropertyType == typeof(Guid))
                             {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
                             }
                         }
                     }

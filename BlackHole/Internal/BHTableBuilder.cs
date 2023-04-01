@@ -90,7 +90,7 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    tExists = connection.ExecuteScalar<int>(tableCheck, null) == 1;
+                    tExists = connection.ExecuteScalar<long>(tableCheck, null) == 1;
                 }
 
                 if (!tExists)
