@@ -4,11 +4,11 @@ namespace BlackHole.Core
 {
     public class BHParameters
     {
-        internal BlackHoleParameter[] Parameters = new BlackHoleParameter[0];
+        internal List<BlackHoleParameter> Parameters = new List<BlackHoleParameter>();
 
         public void Add(string? Name , object? Value)
         {
-            Parameters.Append(new BlackHoleParameter { Name = @Name , Value = Value });
+            Parameters.Add(new BlackHoleParameter { Name = @Name , Value = Value });
         }
     }
 }

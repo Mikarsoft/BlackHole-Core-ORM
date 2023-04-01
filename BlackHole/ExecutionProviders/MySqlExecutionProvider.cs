@@ -20,7 +20,7 @@ namespace BlackHole.ExecutionProviders
         #endregion
 
         #region Execution Methods
-        public G? ExecuteScalar<G>(string commandText, BlackHoleParameter[]? parameters)
+        public G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public G? ExecuteScalar<G>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction)
+        public G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public async Task<G?> ExecuteScalarAsync<G>(string commandText, BlackHoleParameter[]? parameters)
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -93,7 +93,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public async Task<G?> ExecuteScalarAsync<G>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction)
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
         {
             try
             {
@@ -112,7 +112,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public bool JustExecute(string commandText, BlackHoleParameter[]? parameters)
+        public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public bool JustExecute(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction)
+        public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
         {
             try
             {
@@ -157,7 +157,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public async Task<bool> JustExecuteAsync(string commandText, BlackHoleParameter[]? parameters)
+        public async Task<bool> JustExecuteAsync(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -180,7 +180,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public async Task<bool> JustExecuteAsync(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction)
+        public async Task<bool> JustExecuteAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
         {
             try
             {
@@ -201,7 +201,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public T? QueryFirst<T>(string commandText, BlackHoleParameter[]? parameters)
+        public T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -237,7 +237,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public T? QueryFirst<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
+        public T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction)
         {
             try
             {
@@ -270,7 +270,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public List<T> Query<T>(string command, BlackHoleParameter[]? parameters)
+        public List<T> Query<T>(string command, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -305,7 +305,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public List<T> Query<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
+        public List<T> Query<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction)
         {
             try
             {
@@ -337,7 +337,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public async Task<T?> QueryFirstAsync<T>(string command, BlackHoleParameter[]? parameters)
+        public async Task<T?> QueryFirstAsync<T>(string command, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -373,7 +373,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public async Task<T?> QueryFirstAsync<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
+        public async Task<T?> QueryFirstAsync<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction)
         {
             try
             {
@@ -382,11 +382,7 @@ namespace BlackHole.ExecutionProviders
                 MySqlConnection? connection = bHTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bHTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
-                if (parameters != null)
-                {
-                    Command.Parameters.AddRange(parameters);
-                }
+                ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
@@ -410,7 +406,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public async Task<List<T>> QueryAsync<T>(string command, BlackHoleParameter[]? parameters)
+        public async Task<List<T>> QueryAsync<T>(string command, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -445,7 +441,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        public async Task<List<T>> QueryAsync<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
+        public async Task<List<T>> QueryAsync<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction)
         {
             try
             {
@@ -454,11 +450,7 @@ namespace BlackHole.ExecutionProviders
                 MySqlConnection? connection = bHTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bHTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
-
-                if (parameters != null)
-                {
-                    Command.Parameters.AddRange(parameters);
-                }
+                ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
@@ -562,7 +554,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        private void ArrayToParameters(BlackHoleParameter[]? bhParameters, MySqlParameterCollection parameters)
+        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, MySqlParameterCollection parameters)
         {
             if (bhParameters != null)
             {

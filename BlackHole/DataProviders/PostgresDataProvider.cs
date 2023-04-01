@@ -2,7 +2,6 @@
 using BlackHole.Enums;
 using BlackHole.Logger;
 using Npgsql;
-using System.Data.Common;
 using System.Reflection;
 
 namespace BlackHole.DataProviders
@@ -53,7 +52,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return default(G);
             }
         }
@@ -69,14 +68,20 @@ namespace BlackHole.DataProviders
                     NpgsqlCommand Command = new NpgsqlCommand(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
-                    Id = (G?)await Command.ExecuteScalarAsync();
+                    object? Result = await Command.ExecuteScalarAsync();
+
+                    if(Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
+
                     await connection.CloseAsync();
                 }
                 return Id;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"InsertAsync_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs($"InsertAsync_{typeof(T).Name}", ex.Message, ex.ToString());
                 return default(G);
             }
         }
@@ -95,7 +100,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString());
                 return default(G);
             }
         }
@@ -114,7 +119,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return default(G);
             }
         }
@@ -299,7 +304,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -321,7 +326,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -341,7 +346,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -361,12 +366,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
 
-        public bool JustExecute(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction)
+        public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
         {
             try
             {
@@ -382,12 +387,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+               _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
 
-        public bool JustExecute(string commandText, BlackHoleParameter[]? parameters)
+        public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -406,12 +411,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
 
-        public async Task<bool> JustExecuteAsync(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction)
+        public async Task<bool> JustExecuteAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
         {
             try
             {
@@ -427,12 +432,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
 
-        public async Task<bool> JustExecuteAsync(string commandText, BlackHoleParameter[]? parameters)
+        public async Task<bool> JustExecuteAsync(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -450,13 +455,13 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return false;
             }
         }
 
 
-        public T? QueryFirst<T>(string commandText, BlackHoleParameter[]? parameters)
+        public T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -487,12 +492,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return default(T);
             }
         }
 
-        public List<T> Query<T>(string command, BlackHoleParameter[]? parameters)
+        public List<T> Query<T>(string command, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -522,12 +527,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return new List<T>();
             }
         }
 
-        public async Task<T?> QueryFirstAsync<T>(string command, BlackHoleParameter[]? parameters)
+        public async Task<T?> QueryFirstAsync<T>(string command, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -539,9 +544,9 @@ namespace BlackHole.DataProviders
                     NpgsqlCommand Command = new NpgsqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                    using (NpgsqlDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -558,12 +563,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return default(T);
             }
         }
 
-        public async Task<List<T>> QueryAsync<T>(string command, BlackHoleParameter[]? parameters)
+        public async Task<List<T>> QueryAsync<T>(string command, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -575,9 +580,9 @@ namespace BlackHole.DataProviders
                     NpgsqlCommand Command = new NpgsqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                    using (NpgsqlDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -593,12 +598,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return new List<T>();
             }
         }
 
-        public T? QueryFirst<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
+        public T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction)
         {
             try
             {
@@ -626,12 +631,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return default(T);
             }
         }
 
-        public List<T> Query<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
+        public List<T> Query<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction)
         {
             try
             {
@@ -663,7 +668,7 @@ namespace BlackHole.DataProviders
             }
         }
 
-        public async Task<T?> QueryFirstAsync<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
+        public async Task<T?> QueryFirstAsync<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction)
         {
             try
             {
@@ -672,15 +677,11 @@ namespace BlackHole.DataProviders
                 NpgsqlConnection? connection = bHTransaction.connection as NpgsqlConnection;
                 NpgsqlTransaction? transaction = bHTransaction._transaction as NpgsqlTransaction;
                 NpgsqlCommand Command = new NpgsqlCommand(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
 
-                if (parameters != null)
+                using (NpgsqlDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    Command.Parameters.AddRange(parameters);
-                }
-
-                using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
-                {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -695,12 +696,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return default(T);
             }
         }
 
-        public async Task<List<T>> QueryAsync<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction)
+        public async Task<List<T>> QueryAsync<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction)
         {
             try
             {
@@ -709,15 +710,11 @@ namespace BlackHole.DataProviders
                 NpgsqlConnection? connection = bHTransaction.connection as NpgsqlConnection;
                 NpgsqlTransaction? transaction = bHTransaction._transaction as NpgsqlTransaction;
                 NpgsqlCommand Command = new NpgsqlCommand(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
 
-                if (parameters != null)
+                using (NpgsqlDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    Command.Parameters.AddRange(parameters);
-                }
-
-                using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
-                {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -731,7 +728,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString());
                 return new List<T>();
             }
         }
@@ -746,6 +743,18 @@ namespace BlackHole.DataProviders
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = (T?)reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
+
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     if (!reader.IsDBNull(i))
@@ -766,42 +775,14 @@ namespace BlackHole.DataProviders
             }
         }
 
-        private T? MapObject<T>(DbDataReader reader)
-        {
-            try
-            {
-                Type type = typeof(T);
-                PropertyInfo[] properties = type.GetProperties();
-                object? obj = Activator.CreateInstance(type);
-
-                for (int i = 0; i < reader.FieldCount; i++)
-                {
-                    if (!reader.IsDBNull(i))
-                    {
-                        string propertyName = reader.GetName(i);
-
-                        if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                        }
-                    }
-                }
-                return (T?)obj;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Object Mapping:{ex.Message}");
-            }
-        }
-
-        private void ArrayToParameters(BlackHoleParameter[]? bhParameters, NpgsqlParameterCollection parameters)
+        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, NpgsqlParameterCollection parameters)
         {
             if (bhParameters != null)
             {
                 foreach (BlackHoleParameter param in bhParameters)
                 {
                     object? value = param.Value;
-                    parameters.Add(new NpgsqlParameter(@param.Name, value));
+                    parameters.Add(new NpgsqlParameter(param.Name, value));
                 }
             }
         }

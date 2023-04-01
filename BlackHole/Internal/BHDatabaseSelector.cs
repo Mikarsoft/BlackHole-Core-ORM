@@ -411,14 +411,15 @@ namespace BlackHole.Internal
             string[] SqlDatatypes = new string[10];
             switch (DatabaseStatics.DatabaseType)
             {
+                //                          string , integer , double , decimal , float 
                 case BlackHoleSqlTypes.SqlServer:
                     SqlDatatypes = new[] { "nvarchar", "int", "bigint", "decimal", "float", "float", "uniqueidentifier", "bit", "datetime", "varbinary" };
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    SqlDatatypes = new[] { "varchar", "int", "bigint", "dec", "float", "double", "varchar(50)", "boolean", "datetime", "blob" };
+                    SqlDatatypes = new[] { "varchar", "int", "bigint", "decimal", "float", "double", "varchar(50)", "bit", "datetime", "varbinary" };
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    SqlDatatypes = new[] { "varchar", "integer", "bigint", "numeric(15,2)", "numeric(21,5)", "numeric", "uuid", "boolean", "timestamp", "bytea" };
+                    SqlDatatypes = new[] { "varchar", "int4", "int8", "numeric", "float4", "float8", "uuid", "bool", "timestamp", "bytea" };
                     break;
                 case BlackHoleSqlTypes.SqlLite:
                     SqlDatatypes = new[] { "varchar", "integer", "bigint", "decimal(15,2)", "float", "numeric", "varchar", "boolean", "datetime", "blob" };

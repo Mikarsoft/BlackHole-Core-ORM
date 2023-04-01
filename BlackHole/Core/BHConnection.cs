@@ -254,7 +254,7 @@ namespace BlackHole.Core
             return await _executionProvider.QueryFirstAsync<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction);
         }
 
-        private BlackHoleParameter[] MapObjectToParameters(object parametersObject)
+        private List<BlackHoleParameter> MapObjectToParameters(object parametersObject)
         {
             PropertyInfo[] propertyInfos = parametersObject.GetType().GetProperties();
             BHParameters parameters = new ();

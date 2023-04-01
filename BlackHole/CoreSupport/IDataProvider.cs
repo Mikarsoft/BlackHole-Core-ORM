@@ -20,22 +20,22 @@ namespace BlackHole.CoreSupport
         Task<bool> ExecuteEntryAsync<T>(string commandText, T entry);
         Task<bool> ExecuteEntryAsync<T>(string commandText, T entry, BlackHoleTransaction bhTransaction);
 
-        bool JustExecute(string commandText, BlackHoleParameter[]? parameters);
-        bool JustExecute(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction);
+        bool JustExecute(string commandText, List<BlackHoleParameter>? parameters);
+        bool JustExecute(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction);
 
-        Task<bool> JustExecuteAsync(string commandText, BlackHoleParameter[]? parameters);
-        Task<bool> JustExecuteAsync(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bhTransaction);
+        Task<bool> JustExecuteAsync(string commandText, List<BlackHoleParameter>? parameters);
+        Task<bool> JustExecuteAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction);
 
-        T? QueryFirst<T>(string commandText, BlackHoleParameter[]? parameters);
-        T? QueryFirst<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction);
+        T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters);
+        T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 
-        List<T> Query<T>(string command, BlackHoleParameter[]? parameters);
-        List<T> Query<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction);
+        List<T> Query<T>(string command, List<BlackHoleParameter>? parameters);
+        List<T> Query<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 
-        Task<T?> QueryFirstAsync<T>(string command, BlackHoleParameter[]? parameters);
-        Task<T?> QueryFirstAsync<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction);
+        Task<T?> QueryFirstAsync<T>(string command, List<BlackHoleParameter>? parameters);
+        Task<T?> QueryFirstAsync<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 
-        Task<List<T>> QueryAsync<T>(string command, BlackHoleParameter[]? parameters);
-        Task<List<T>> QueryAsync<T>(string commandText, BlackHoleParameter[]? parameters, BlackHoleTransaction bHTransaction);
+        Task<List<T>> QueryAsync<T>(string command, List<BlackHoleParameter>? parameters);
+        Task<List<T>> QueryAsync<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
     }
 }
