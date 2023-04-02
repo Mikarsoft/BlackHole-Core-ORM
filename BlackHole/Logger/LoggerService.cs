@@ -61,17 +61,6 @@ namespace BlackHole.Logger
                         tw.WriteLine($"Error: {Message}");
                         tw.WriteLine($"Details: {Details}");
                     }
-
-                    //string[] files = Directory.GetFiles(LogsPath, "*.txt", SearchOption.TopDirectoryOnly);
-
-                    //foreach (string file in files)
-                    //{
-                    //    FileInfo fi = new FileInfo(file);
-                    //    if (fi.CreationTime < DateTime.Now.AddDays(-60))
-                    //    {
-                    //        fi.Delete();
-                    //    }
-                    //}
                 }
                 catch (Exception ex)
                 {
