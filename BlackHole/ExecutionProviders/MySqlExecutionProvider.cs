@@ -133,7 +133,6 @@ namespace BlackHole.ExecutionProviders
                 {
                     connection.Open();
                     MySqlCommand Command = new MySqlCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();

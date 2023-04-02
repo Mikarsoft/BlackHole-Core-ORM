@@ -9,5 +9,7 @@ namespace BlackHole.Statics
         internal static string DatabaseName { get; set; } = string.Empty;
         internal static string DataPath { get; set; } = string.Empty;
         internal static BlackHoleSqlTypes DatabaseType { get; set; }
+        internal static bool UseLogsCleaner { get; set; } = true;
+        internal static int CleanUpDays { get; set; }
     }
 }

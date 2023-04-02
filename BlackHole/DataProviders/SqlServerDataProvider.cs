@@ -44,14 +44,19 @@ namespace BlackHole.DataProviders
                     OdbcCommand Command = new OdbcCommand(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
-                    Id = (G?)Command.ExecuteScalar();
+                    object? Result = Command.ExecuteScalar();
                     connection.Close();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
                 }
                 return Id;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
                 return default(G);
             }
         }
@@ -67,14 +72,19 @@ namespace BlackHole.DataProviders
                     OdbcCommand Command = new OdbcCommand(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
-                    Id = (G?)await Command.ExecuteScalarAsync();
+                    object? Result = await Command.ExecuteScalarAsync();
                     await connection.CloseAsync();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
                 }
                 return Id;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Insert", ex.Message, ex.ToString())).Start();
+                _loggerService.CreateErrorLogs($"Insert", ex.Message, ex.ToString());
                 return default(G);
             }
         }
@@ -86,16 +96,20 @@ namespace BlackHole.DataProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
 
-                return (G?)Command.ExecuteScalar();
+                object? Result = Command.ExecuteScalar();
+
+                if (Result != null)
+                {
+                    return (G?)Result;
+                }
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
-                return default(G);
+                _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString());
             }
+            return default(G);
         }
 
         private async Task<G?> ExecuteEntryScalarAsync<T, G>(string commandText, T entry, BlackHoleTransaction bhTransaction)
@@ -105,16 +119,20 @@ namespace BlackHole.DataProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
 
-                return (G?)await Command.ExecuteScalarAsync();
+                object? Result = await Command.ExecuteScalarAsync();
+
+                if (Result != null)
+                {
+                    return (G?)Result;
+                }
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
-                return default(G);
+                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
             }
+            return default(G);
         }
         #endregion
 
@@ -131,8 +149,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id){commandEnd},'{Id}');", entry))
+                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -152,8 +171,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},'{Id}');", entry, bhTransaction))
+                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -173,8 +193,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry))
+                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -194,8 +215,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry, bhTransaction))
+                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -216,11 +238,11 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = "";
+                string commandText = $@"{commandStart},""Id""){commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
                     if (await ExecuteEntryAsync(commandText, entry, bhTransaction))
                     {
@@ -251,11 +273,11 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = "";
+                string commandText = $@"{commandStart},""Id""){commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
                     if (ExecuteEntry(commandText, entry, bhTransaction))
                     {
@@ -416,7 +438,6 @@ namespace BlackHole.DataProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -438,7 +459,6 @@ namespace BlackHole.DataProviders
                 {
                     await connection.OpenAsync();
                     OdbcCommand Command = new OdbcCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
