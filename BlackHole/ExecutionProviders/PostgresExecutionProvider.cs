@@ -65,7 +65,6 @@ namespace BlackHole.ExecutionProviders
                 {
                     return (G?)Result;
                 }
-
             }
             catch (Exception ex)
             {
@@ -99,7 +98,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -111,7 +110,6 @@ namespace BlackHole.ExecutionProviders
                 NpgsqlConnection? connection = bhTransaction.connection as NpgsqlConnection;
                 NpgsqlTransaction? transaction = bhTransaction._transaction as NpgsqlTransaction;
                 NpgsqlCommand Command = new NpgsqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 object? Result = await Command.ExecuteScalarAsync();
@@ -123,7 +121,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
             }
 
             return default(G);
@@ -137,13 +135,11 @@ namespace BlackHole.ExecutionProviders
                 {
                     connection.Open();
                     NpgsqlCommand Command = new NpgsqlCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
                     connection.Close();
                 }
-
                 return true;
             }
             catch (Exception ex)
@@ -160,16 +156,14 @@ namespace BlackHole.ExecutionProviders
                 NpgsqlConnection? connection = bhTransaction.connection as NpgsqlConnection;
                 NpgsqlTransaction? transaction = bhTransaction._transaction as NpgsqlTransaction;
                 NpgsqlCommand Command = new NpgsqlCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
-
                 return true;
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -192,7 +186,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -213,7 +207,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -503,7 +497,7 @@ namespace BlackHole.ExecutionProviders
 
                 if (properties.Length == 0 && reader.FieldCount > 0)
                 {
-                    object? value = (T?)reader.GetValue(0);
+                    object? value = reader.GetValue(0);
 
                     if (value != null)
                     {

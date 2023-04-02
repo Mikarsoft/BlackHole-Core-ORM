@@ -43,7 +43,7 @@ namespace BlackHole.Configuration
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
 
-            bool dbExists = databaseBuilder.CheckDatabaseExistance();
+            bool dbExists = databaseBuilder.CreateDatabase();
 
             if (dbExists)
             {

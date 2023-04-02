@@ -2,7 +2,7 @@
 {
     internal interface IBHDatabaseBuilder
     {
-        bool CheckDatabaseExistance();
+        bool CreateDatabase();
         bool DropDatabase();
         bool DoesDbExists();
     }

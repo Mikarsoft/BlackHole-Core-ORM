@@ -89,7 +89,7 @@ namespace BlackHole.Internal
         /// Creates a new Database if it doesn't exist, in the specified Server or location
         /// </summary>
         /// <returns></returns>
-        bool IBHDatabaseBuilder.CheckDatabaseExistance()
+        bool IBHDatabaseBuilder.CreateDatabase()
         {
             try
             {
