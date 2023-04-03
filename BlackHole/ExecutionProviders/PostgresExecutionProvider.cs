@@ -465,7 +465,7 @@ namespace BlackHole.ExecutionProviders
 
                 using (NpgsqlDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 

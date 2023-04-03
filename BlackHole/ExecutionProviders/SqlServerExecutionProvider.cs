@@ -14,7 +14,7 @@ namespace BlackHole.ExecutionProviders
 
         internal SqlServerExecutionProvider(string connectionString)
         {
-            _connectionString = connectionString;
+            _connectionString = "DSN=SQLDocker;" + connectionString;
             _loggerService = new LoggerService();
         }
         #endregion
@@ -31,8 +31,13 @@ namespace BlackHole.ExecutionProviders
                     OdbcCommand Command = new OdbcCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    Id = (G?)Command.ExecuteScalar();
+                    object? Result = Command.ExecuteScalar();
                     connection.Close();
+
+                    if(Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
                 }
                 return Id;
             }
@@ -50,16 +55,20 @@ namespace BlackHole.ExecutionProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
-                return (G?)Command.ExecuteScalar();
+                object? Result = Command.ExecuteScalar();
+
+                if (Result != null)
+                {
+                    return (G?)Result;
+                }
             }
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
-                return default(G);
             }
+            return default(G);
         }
 
         public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
@@ -73,8 +82,13 @@ namespace BlackHole.ExecutionProviders
                     OdbcCommand Command = new OdbcCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    Id = (G?)await Command.ExecuteScalarAsync();
+                    object? Result = await Command.ExecuteScalarAsync();
                     await connection.CloseAsync();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
                 }
                 return Id;
             }
@@ -92,16 +106,20 @@ namespace BlackHole.ExecutionProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
-                return (G?)await Command.ExecuteScalarAsync();
+                object? Result = await Command.ExecuteScalarAsync();
+
+                if (Result != null)
+                {
+                    return (G?)Result;
+                }
             }
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
-                return default(G);
             }
+            return default(G);
         }
 
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters)
@@ -112,13 +130,11 @@ namespace BlackHole.ExecutionProviders
                 {
                     connection.Open();
                     OdbcCommand Command = new OdbcCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
                     connection.Close();
                 }
-
                 return true;
             }
             catch (Exception ex)
@@ -135,11 +151,9 @@ namespace BlackHole.ExecutionProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
-
                 return true;
             }
             catch (Exception ex)
@@ -157,7 +171,6 @@ namespace BlackHole.ExecutionProviders
                 {
                     await connection.OpenAsync();
                     OdbcCommand Command = new OdbcCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -179,11 +192,9 @@ namespace BlackHole.ExecutionProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
-
                 return true;
             }
             catch (Exception ex)
@@ -343,7 +354,7 @@ namespace BlackHole.ExecutionProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -378,7 +389,7 @@ namespace BlackHole.ExecutionProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -412,7 +423,7 @@ namespace BlackHole.ExecutionProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -446,7 +457,7 @@ namespace BlackHole.ExecutionProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -476,6 +487,18 @@ namespace BlackHole.ExecutionProviders
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
+
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     if (!reader.IsDBNull(i))
@@ -503,6 +526,18 @@ namespace BlackHole.ExecutionProviders
                 Type type = typeof(T);
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
+
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {

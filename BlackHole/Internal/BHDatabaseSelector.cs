@@ -6,7 +6,7 @@ using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.Odbc;
 
 namespace BlackHole.Internal
 {
@@ -19,12 +19,12 @@ namespace BlackHole.Internal
         IDbConnection IBHDatabaseSelector.GetConnection()
         {
             string _connectionString = DatabaseStatics.ConnectionString;
-            IDbConnection _Sconnection = new SqlConnection();
+            IDbConnection _Sconnection = new OdbcConnection();
 
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    _Sconnection = new SqlConnection(_connectionString);
+                    _Sconnection = new OdbcConnection(_connectionString);
                     break;
                 case BlackHoleSqlTypes.MySql:
                     _Sconnection = new MySqlConnection(_connectionString);
@@ -70,12 +70,12 @@ namespace BlackHole.Internal
         /// <returns></returns>
         IDbConnection IBHDatabaseSelector.CreateConnection(string connectionString)
         {
-            IDbConnection _Sconnection = new SqlConnection();
+            IDbConnection _Sconnection = new OdbcConnection();
 
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    _Sconnection = new SqlConnection(connectionString);
+                    _Sconnection = new OdbcConnection(connectionString);
                     break;
                 case BlackHoleSqlTypes.MySql:
                     _Sconnection = new MySqlConnection(connectionString);
@@ -153,12 +153,12 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    IDbConnection _Sconnection = new SqlConnection();
+                    IDbConnection _Sconnection = new OdbcConnection();
 
                     switch (DatabaseStatics.DatabaseType)
                     {
                         case BlackHoleSqlTypes.SqlServer:
-                            _Sconnection = new SqlConnection(serverConnectionString);
+                            _Sconnection = new OdbcConnection(serverConnectionString);
                             break;
                         case BlackHoleSqlTypes.MySql:
                             _Sconnection = new MySqlConnection(serverConnectionString);
@@ -413,7 +413,7 @@ namespace BlackHole.Internal
             {
                 //                          string , integer , double , decimal , float 
                 case BlackHoleSqlTypes.SqlServer:
-                    SqlDatatypes = new[] { "nvarchar", "int", "bigint", "decimal", "float", "float", "uniqueidentifier", "bit", "datetime", "varbinary" };
+                    SqlDatatypes = new[] { "nvarchar", "char", "smallint", "int", "bigint", "decimal", "smallmoney", "float", "uniqueidentifier", "bit", "datetime", "varbinary" };
                     break;
                 case BlackHoleSqlTypes.MySql:
                     SqlDatatypes = new[] { "varchar", "char","smallint", "int", "bigint", "decimal", "float", "double", "varchar(36)", "bit", "datetime", "varbinary" };

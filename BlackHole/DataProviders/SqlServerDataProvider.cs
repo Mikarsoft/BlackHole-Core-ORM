@@ -18,7 +18,8 @@ namespace BlackHole.DataProviders
 
         internal SqlServerDataProvider(string connectionString, BlackHoleIdTypes idType)
         {
-            _connectionString = "Driver={SQL Server};"+connectionString;
+            _connectionString = "DSN=SQLDocker;" + connectionString;
+
             _loggerService = new LoggerService();
 
             if (idType != BlackHoleIdTypes.StringId)
@@ -56,7 +57,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -84,7 +85,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs($"Insert", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs($"Insert", ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -107,7 +108,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
             }
             return default(G);
         }
@@ -130,7 +131,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
             }
             return default(G);
         }
@@ -238,7 +239,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $@"{commandStart},""Id""){commandEnd},@Id);";
+                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -273,7 +274,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $@"{commandStart},""Id""){commandEnd},@Id);";
+                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -353,7 +354,6 @@ namespace BlackHole.DataProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -373,7 +373,6 @@ namespace BlackHole.DataProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -393,11 +392,9 @@ namespace BlackHole.DataProviders
                 OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
                 OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
                 OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
-
                 return true;
             }
             catch (Exception ex)
@@ -415,13 +412,11 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     OdbcCommand Command = new OdbcCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
                     connection.Close();
                 }
-
                 return true;
             }
             catch (Exception ex)
@@ -472,7 +467,6 @@ namespace BlackHole.DataProviders
                 return false;
             }
         }
-
 
         public T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters)
         {
@@ -563,7 +557,7 @@ namespace BlackHole.DataProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -599,7 +593,7 @@ namespace BlackHole.DataProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -698,7 +692,7 @@ namespace BlackHole.DataProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -731,7 +725,7 @@ namespace BlackHole.DataProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -760,6 +754,18 @@ namespace BlackHole.DataProviders
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
+
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     if (!reader.IsDBNull(i))
@@ -787,6 +793,18 @@ namespace BlackHole.DataProviders
                 Type type = typeof(T);
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
+
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {

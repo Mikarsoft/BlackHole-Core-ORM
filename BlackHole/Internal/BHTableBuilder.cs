@@ -575,6 +575,7 @@ namespace BlackHole.Internal
             {
                 case "String":
                     object? CharLength = attributes.Where(x => x.GetType().Name == "VarCharSize").FirstOrDefault();
+                    object? ForeignKeyAtt = attributes.Where(x => x.GetType().Name == "ForeignKey").FirstOrDefault();
 
                     if (CharLength != null)
                     {
@@ -585,6 +586,12 @@ namespace BlackHole.Internal
                     {
                         dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[0]}(255) ";
                     }
+
+                    if(ForeignKeyAtt != null)
+                    {
+                        dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[0]}(50) ";
+                    }
+
                     break;
                 case "Char":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[1]} ";
