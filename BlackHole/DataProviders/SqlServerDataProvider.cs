@@ -3,7 +3,7 @@ using BlackHole.Enums;
 using BlackHole.Logger;
 using System.Data.Common;
 using System.Reflection;
-using System.Data.Odbc;
+using Microsoft.Data.SqlClient;
 
 namespace BlackHole.DataProviders
 {
@@ -12,14 +12,13 @@ namespace BlackHole.DataProviders
         #region Constructor
         private readonly string _connectionString;
         internal readonly string insertedOutput = "output Inserted.Id";
-        internal readonly bool skipQuotes = false;
+        internal readonly bool skipQuotes = true;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
 
         internal SqlServerDataProvider(string connectionString, BlackHoleIdTypes idType)
         {
-            _connectionString = "DSN=SQLDocker;" + connectionString;
-
+            _connectionString = connectionString;
             _loggerService = new LoggerService();
 
             if (idType != BlackHoleIdTypes.StringId)
@@ -39,10 +38,10 @@ namespace BlackHole.DataProviders
             try
             {
                 G? Id = default(G);
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
-                    OdbcCommand Command = new OdbcCommand(commandText, connection);
+                    SqlCommand Command = new SqlCommand(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     object? Result = Command.ExecuteScalar();
@@ -67,10 +66,10 @@ namespace BlackHole.DataProviders
             try
             {
                 G? Id = default(G);
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OdbcCommand Command = new OdbcCommand(commandText, connection);
+                    SqlCommand Command = new SqlCommand(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     object? Result = await Command.ExecuteScalarAsync();
@@ -94,9 +93,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bhTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                Command.CommandType = System.Data.CommandType.Text;
                 ObjectToParameters(entry, Command.Parameters);
 
                 object? Result = Command.ExecuteScalar();
@@ -117,9 +117,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bhTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                Command.CommandType = System.Data.CommandType.Text;
                 ObjectToParameters(entry, Command.Parameters);
 
                 object? Result = await Command.ExecuteScalarAsync();
@@ -152,7 +153,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id);", entry))
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -174,7 +175,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id);", entry, bhTransaction))
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -196,7 +197,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id);", entry))
+                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -218,7 +219,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id);", entry, bhTransaction))
+                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -239,7 +240,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id);";
+                string commandText = $"{commandStart},Id) {commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -274,7 +275,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id);";
+                string commandText = $"{commandStart},Id) {commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -307,10 +308,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
-                    OdbcCommand Command = new OdbcCommand(commandText, connection);
+                    SqlCommand Command = new SqlCommand(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -329,10 +330,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
-                    OdbcCommand Command = new OdbcCommand(commandText, connection);
+                    SqlCommand Command = new SqlCommand(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -351,9 +352,9 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bhTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ObjectToParameters(entry, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -370,9 +371,9 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bhTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ObjectToParameters(entry, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -389,9 +390,9 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bhTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -408,10 +409,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
-                    OdbcCommand Command = new OdbcCommand(commandText, connection);
+                    SqlCommand Command = new SqlCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -430,9 +431,9 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                OdbcConnection? connection = bhTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bhTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bhTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -450,10 +451,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OdbcCommand Command = new OdbcCommand(commandText, connection);
+                    SqlCommand Command = new SqlCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -474,13 +475,13 @@ namespace BlackHole.DataProviders
             {
                 T? result = default(T);
 
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
-                    OdbcCommand Command = new OdbcCommand(commandText, connection);
+                    SqlCommand Command = new SqlCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (OdbcDataReader DataReader = Command.ExecuteReader())
+                    using (SqlDataReader DataReader = Command.ExecuteReader())
                     {
                         while (DataReader.Read())
                         {
@@ -512,13 +513,13 @@ namespace BlackHole.DataProviders
             {
                 List<T> result = new List<T>();
 
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     connection.Open();
-                    OdbcCommand Command = new OdbcCommand(command, connection);
+                    SqlCommand Command = new SqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (OdbcDataReader DataReader = Command.ExecuteReader())
+                    using (SqlDataReader DataReader = Command.ExecuteReader())
                     {
                         while (DataReader.Read())
                         {
@@ -549,10 +550,10 @@ namespace BlackHole.DataProviders
             {
                 T? result = default(T);
 
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OdbcCommand Command = new OdbcCommand(command, connection);
+                    SqlCommand Command = new SqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -585,10 +586,10 @@ namespace BlackHole.DataProviders
             {
                 List<T> result = new List<T>();
 
-                using (OdbcConnection connection = new OdbcConnection(_connectionString))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OdbcCommand Command = new OdbcCommand(command, connection);
+                    SqlCommand Command = new SqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -620,12 +621,12 @@ namespace BlackHole.DataProviders
             {
                 T? result = default(T);
 
-                OdbcConnection? connection = bHTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bHTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bHTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bHTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
-                using (OdbcDataReader DataReader = Command.ExecuteReader())
+                using (SqlDataReader DataReader = Command.ExecuteReader())
                 {
                     while (DataReader.Read())
                     {
@@ -653,12 +654,12 @@ namespace BlackHole.DataProviders
             {
                 List<T> result = new List<T>();
 
-                OdbcConnection? connection = bHTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bHTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bHTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bHTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
-                using (OdbcDataReader DataReader = Command.ExecuteReader())
+                using (SqlDataReader DataReader = Command.ExecuteReader())
                 {
                     while (DataReader.Read())
                     {
@@ -685,9 +686,9 @@ namespace BlackHole.DataProviders
             {
                 T? result = default(T);
 
-                OdbcConnection? connection = bHTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bHTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bHTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bHTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -718,9 +719,9 @@ namespace BlackHole.DataProviders
             {
                 List<T> result = new List<T>();
 
-                OdbcConnection? connection = bHTransaction.connection as OdbcConnection;
-                OdbcTransaction? transaction = bHTransaction._transaction as OdbcTransaction;
-                OdbcCommand Command = new OdbcCommand(commandText, connection, transaction);
+                SqlConnection? connection = bHTransaction.connection as SqlConnection;
+                SqlTransaction? transaction = bHTransaction._transaction as SqlTransaction;
+                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -746,7 +747,7 @@ namespace BlackHole.DataProviders
         #endregion
 
         #region Object Mapping
-        private T? MapObject<T>(OdbcDataReader reader)
+        private T? MapObject<T>(SqlDataReader reader)
         {
             try
             {
@@ -826,25 +827,25 @@ namespace BlackHole.DataProviders
             }
         }
 
-        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, OdbcParameterCollection parameters)
+        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, SqlParameterCollection parameters)
         {
             if (bhParameters != null)
             {
                 foreach (BlackHoleParameter param in bhParameters)
                 {
-                    parameters.Add(new OdbcParameter(@param.Name, param.Value));
+                    parameters.Add(new SqlParameter(param.Name, param.Value));
                 }
             }
         }
 
-        private void ObjectToParameters<T>(T item, OdbcParameterCollection parameters)
+        private void ObjectToParameters<T>(T item, SqlParameterCollection parameters)
         {
             PropertyInfo[] propertyInfos = typeof(T).GetProperties();
 
             foreach (PropertyInfo property in propertyInfos)
             {
                 object? value = property.GetValue(item);
-                parameters.Add(new OdbcParameter(@property.Name, value));
+                parameters.Add(new SqlParameter(@property.Name, value));
             }
         }
 

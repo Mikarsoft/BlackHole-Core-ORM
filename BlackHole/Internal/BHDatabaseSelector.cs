@@ -2,11 +2,11 @@
 using BlackHole.Enums;
 using BlackHole.ExecutionProviders;
 using BlackHole.Statics;
+using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
 using System.Data;
-using System.Data.Odbc;
 
 namespace BlackHole.Internal
 {
@@ -19,12 +19,12 @@ namespace BlackHole.Internal
         IDbConnection IBHDatabaseSelector.GetConnection()
         {
             string _connectionString = DatabaseStatics.ConnectionString;
-            IDbConnection _Sconnection = new OdbcConnection();
+            IDbConnection _Sconnection = new SqlConnection();
 
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    _Sconnection = new OdbcConnection(_connectionString);
+                    _Sconnection = new SqlConnection(_connectionString);
                     break;
                 case BlackHoleSqlTypes.MySql:
                     _Sconnection = new MySqlConnection(_connectionString);
@@ -70,12 +70,12 @@ namespace BlackHole.Internal
         /// <returns></returns>
         IDbConnection IBHDatabaseSelector.CreateConnection(string connectionString)
         {
-            IDbConnection _Sconnection = new OdbcConnection();
+            IDbConnection _Sconnection = new SqlConnection();
 
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    _Sconnection = new OdbcConnection(connectionString);
+                    _Sconnection = new SqlConnection(connectionString);
                     break;
                 case BlackHoleSqlTypes.MySql:
                     _Sconnection = new MySqlConnection(connectionString);
@@ -153,12 +153,12 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    IDbConnection _Sconnection = new OdbcConnection();
+                    IDbConnection _Sconnection = new SqlConnection();
 
                     switch (DatabaseStatics.DatabaseType)
                     {
                         case BlackHoleSqlTypes.SqlServer:
-                            _Sconnection = new OdbcConnection(serverConnectionString);
+                            _Sconnection = new SqlConnection(serverConnectionString);
                             break;
                         case BlackHoleSqlTypes.MySql:
                             _Sconnection = new MySqlConnection(serverConnectionString);
@@ -237,7 +237,7 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = @"""Id"" INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
+                    PrimaryKeyCommand = @"Id INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
                     break;
                 case BlackHoleSqlTypes.MySql:
                     PrimaryKeyCommand = @"Id int AUTO_INCREMENT primary key NOT NULL ,";
@@ -265,7 +265,7 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = @"""Id"" NVARCHAR(50) PRIMARY KEY NOT NULL ,";
+                    PrimaryKeyCommand = @"Id NVARCHAR(50) PRIMARY KEY NOT NULL ,";
                     break;
                 case BlackHoleSqlTypes.MySql:
                     PrimaryKeyCommand = @"Id varchar(50) NOT NULL PRIMARY KEY ,";
@@ -290,7 +290,7 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = @"""Id"" INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
+                    PrimaryKeyCommand = @"Id INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
                     break;
                 case BlackHoleSqlTypes.MySql:
                     PrimaryKeyCommand = @"Id TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) PRIMARY KEY ,";
@@ -316,7 +316,7 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = @"""Id"" UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,";
+                    PrimaryKeyCommand = @"Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,";
                     break;
                 case BlackHoleSqlTypes.MySql:
                     PrimaryKeyCommand = @"Id varchar(36) NOT NULL PRIMARY KEY ,";
@@ -334,7 +334,7 @@ namespace BlackHole.Internal
         bool IsMyShit()
         {
             bool myShit = false;
-            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlLite)
+            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
             {
                 myShit = true;
             }
@@ -349,7 +349,7 @@ namespace BlackHole.Internal
         bool IBHDatabaseSelector.IsMyShittyDb()
         {
             bool myShit = false;
-            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
+            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
             {
                 myShit = true;
             }
