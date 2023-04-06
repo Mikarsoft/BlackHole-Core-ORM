@@ -14,13 +14,14 @@ namespace BlackHole.DataProviders
         internal readonly bool skipQuotes = false;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
+        private string TableName = string.Empty;
 
-        internal PostgresDataProvider(string connectionString, BlackHoleIdTypes idType , string tableName)
+        internal PostgresDataProvider(string connectionString, BlackHoleIdTypes idType, string tableName)
         {
             _connectionString = connectionString;
             _loggerService = new LoggerService();
-
             insertedOutput = $@"returning ""{tableName}"".""Id""";
+            TableName = tableName;
 
             if (idType != BlackHoleIdTypes.StringId)
             {

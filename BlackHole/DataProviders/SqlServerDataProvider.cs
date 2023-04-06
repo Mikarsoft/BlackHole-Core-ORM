@@ -15,11 +15,13 @@ namespace BlackHole.DataProviders
         internal readonly bool skipQuotes = true;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
+        private string TableName = string.Empty;
 
-        internal SqlServerDataProvider(string connectionString, BlackHoleIdTypes idType)
+        internal SqlServerDataProvider(string connectionString, BlackHoleIdTypes idType, string tableName)
         {
             _connectionString = connectionString;
             _loggerService = new LoggerService();
+            TableName = tableName;
 
             if (idType != BlackHoleIdTypes.StringId)
             {
@@ -556,7 +558,7 @@ namespace BlackHole.DataProviders
                     SqlCommand Command = new SqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                    using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
                         while (DataReader.Read())
                         {
@@ -592,7 +594,7 @@ namespace BlackHole.DataProviders
                     SqlCommand Command = new SqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                    using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
                         while (DataReader.Read())
                         {
@@ -691,7 +693,7 @@ namespace BlackHole.DataProviders
                 SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
-                using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
                     while (DataReader.Read())
                     {
@@ -724,7 +726,7 @@ namespace BlackHole.DataProviders
                 SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
-                using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
                     while (DataReader.Read())
                     {
@@ -748,46 +750,6 @@ namespace BlackHole.DataProviders
 
         #region Object Mapping
         private T? MapObject<T>(SqlDataReader reader)
-        {
-            try
-            {
-                Type type = typeof(T);
-                PropertyInfo[] properties = type.GetProperties();
-                object? obj = Activator.CreateInstance(type);
-
-                if (properties.Length == 0 && reader.FieldCount > 0)
-                {
-                    object? value = reader.GetValue(0);
-
-                    if (value != null)
-                    {
-                        return (T?)value;
-                    }
-
-                    return default;
-                }
-
-                for (int i = 0; i < reader.FieldCount; i++)
-                {
-                    if (!reader.IsDBNull(i))
-                    {
-                        string propertyName = reader.GetName(i);
-
-                        if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                        }
-                    }
-                }
-                return (T?)obj;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Object Mapping:{ex.Message}");
-            }
-        }
-
-        private T? MapObject<T>(DbDataReader reader)
         {
             try
             {

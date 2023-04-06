@@ -31,8 +31,13 @@ namespace BlackHole.ExecutionProviders
                     SqliteCommand Command = new SqliteCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    Id = (G?)Command.ExecuteScalar();
+                    object? Result = Command.ExecuteScalar();
                     connection.Close();
+
+                    if(Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
                 }
                 return Id;
             }
@@ -50,16 +55,20 @@ namespace BlackHole.ExecutionProviders
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
                 SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
-                return (G?)Command.ExecuteScalar();
+                object? Result = Command.ExecuteScalar();
+
+                if (Result != null)
+                {
+                    return (G?)Result;
+                }
             }
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
-                return default(G);
             }
+            return default(G);
         }
 
         public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
@@ -73,8 +82,13 @@ namespace BlackHole.ExecutionProviders
                     SqliteCommand Command = new SqliteCommand(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    Id = (G?)await Command.ExecuteScalarAsync();
+                    object? Result = await Command.ExecuteScalarAsync();
                     await connection.CloseAsync();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
                 }
                 return Id;
             }
@@ -92,16 +106,20 @@ namespace BlackHole.ExecutionProviders
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
                 SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
-                return (G?)await Command.ExecuteScalarAsync();
+                object? Result = await Command.ExecuteScalarAsync();
+
+                if (Result != null)
+                {
+                    return (G?)Result;
+                }
             }
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
-                return default(G);
             }
+            return default(G);
         }
 
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters)
@@ -112,13 +130,11 @@ namespace BlackHole.ExecutionProviders
                 {
                     connection.Open();
                     SqliteCommand Command = new SqliteCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
                     connection.Close();
                 }
-
                 return true;
             }
             catch (Exception ex)
@@ -135,11 +151,9 @@ namespace BlackHole.ExecutionProviders
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
                 SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
-
                 return true;
             }
             catch (Exception ex)
@@ -157,7 +171,6 @@ namespace BlackHole.ExecutionProviders
                 {
                     await connection.OpenAsync();
                     SqliteCommand Command = new SqliteCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -179,11 +192,9 @@ namespace BlackHole.ExecutionProviders
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
                 SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
-
                 return true;
             }
             catch (Exception ex)
@@ -341,9 +352,9 @@ namespace BlackHole.ExecutionProviders
                     SqliteCommand Command = new SqliteCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                    using (SqliteDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -376,9 +387,9 @@ namespace BlackHole.ExecutionProviders
                 SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
-                using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                using (SqliteDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -410,9 +421,9 @@ namespace BlackHole.ExecutionProviders
                     SqliteCommand Command = new SqliteCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                    using (SqliteDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -444,9 +455,9 @@ namespace BlackHole.ExecutionProviders
                 SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
-                using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                using (SqliteDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -476,44 +487,23 @@ namespace BlackHole.ExecutionProviders
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
-                for (int i = 0; i < reader.FieldCount; i++)
+                if (properties.Length == 0 && reader.FieldCount > 0)
                 {
-                    if (!reader.IsDBNull(i))
+                    if (typeof(T) == typeof(Guid))
                     {
-                        string propertyName = reader.GetName(i);
-
-                        if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
-
-                            if (property.PropertyType == typeof(Guid))
-                            {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
-                            }
-                            else
-                            {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                            }
-                        }
+                        object? GValue = reader.GetGuid(0);
+                        return (T?)GValue;
                     }
-                }
-                return (T?)obj;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Object Mapping:{ex.Message}");
-            }
-        }
 
-        private T? MapObject<T>(DbDataReader reader)
-        {
-            try
-            {
-                Type type = typeof(T);
-                PropertyInfo[] properties = type.GetProperties();
-                object? obj = Activator.CreateInstance(type);
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)Convert.ChangeType(value, typeof(T));
+                    }
+
+                    return default;
+                }
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {

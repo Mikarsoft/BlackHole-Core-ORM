@@ -16,12 +16,14 @@ namespace BlackHole.DataProviders
         private readonly BlackHoleIdTypes _idType;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
+        private string TableName = string.Empty;
 
-        internal OracleDataProvider(string connectionString, BlackHoleIdTypes idType)
+        internal OracleDataProvider(string connectionString, BlackHoleIdTypes idType, string tableName)
         {
             _connectionString = connectionString;
             _idType = idType;
             _loggerService = new LoggerService();
+            TableName = tableName;
 
             if (idType != BlackHoleIdTypes.StringId)
             {

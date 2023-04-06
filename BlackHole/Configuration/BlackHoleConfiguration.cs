@@ -56,6 +56,11 @@ namespace BlackHole.Configuration
             return services;
         }
 
+        public static IServiceCollection WhiteDwarf(this IServiceCollection services)
+        {
+            return services;
+        }
+
         private static void AddServicesAndTables(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
         {
             IBHTableBuilder tableBuilder = new BHTableBuilder();
