@@ -370,6 +370,228 @@ namespace BlackHole.Core
             return _dataProvider.MultiInsertScalar<T, G>(commandStart, commandEnd, entries, bhTransaction.transaction);
         }
 
+        bool IBHDataProvider<T, G>.UpdateEntryById(T entry)
+        {
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            return _dataProvider.ExecuteEntry(updateCommand, entry);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntryById(T entry, BHTransaction bhTransaction)
+        {
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            return _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry) where Columns : class
+        {
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            return _dataProvider.ExecuteEntry(updateCommand, entry);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
+        {
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            return _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries)
+        {
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            return UpdateMany(entries, updateCommand);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries, BHTransaction bhTransaction)
+        {
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            return UpdateMany(entries, updateCommand, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries) where Columns : class
+        {
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            return UpdateMany(entries, updateCommand);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries, BHTransaction bhTransaction) where Columns : class
+        {
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            return UpdateMany(entries, updateCommand, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
+            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
+
+            if (withActivator)
+            {
+                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive}=0 and {sql.Columns}";
+            }
+
+            return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
+            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
+
+            if (withActivator)
+            {
+                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive}=0 and {sql.Columns}";
+            }
+
+            return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
+            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
+
+            if (withActivator)
+            {
+                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive}=0 and {sql.Columns}";
+            }
+
+            return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters);
+        }
+
+        bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
+            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
+
+            if (withActivator)
+            {
+                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive}=0 and {sql.Columns}";
+            }
+
+            return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.DeleteAllEntries()
+        {
+            string SubCommand = $"Delete from {ThisTable}";
+
+            if (withActivator)
+            {
+                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisInactive}=0";
+            }
+
+            return _dataProvider.JustExecute(SubCommand, null);
+        }
+
+        bool IBHDataProvider<T, G>.DeleteAllEntries(BHTransaction bhTransaction)
+        {
+            string SubCommand = $"Delete from {ThisTable}";
+
+            if (withActivator)
+            {
+                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisInactive}=0";
+            }
+
+            return _dataProvider.JustExecute(SubCommand, null, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.DeleteEntryById(G Id)
+        {
+            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
+
+            if (withActivator)
+            {
+                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisId}=@Id";
+            }
+
+            BHParameters parameters = new BHParameters();
+            parameters.Add("Id", Id);
+
+            return _dataProvider.JustExecute(SubCommand, parameters.Parameters);
+        }
+
+        bool IBHDataProvider<T, G>.DeleteEntryById(G Id, BHTransaction bhTransaction)
+        {
+            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
+
+            if (withActivator)
+            {
+                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisId}=@Id";
+            }
+
+            BHParameters parameters = new BHParameters();
+            parameters.Add("Id", Id);
+
+            return _dataProvider.JustExecute(SubCommand, parameters.Parameters, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id)
+        {
+            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
+            BHParameters parameters = new BHParameters();
+            parameters.Add("Id", Id);
+            return _dataProvider.JustExecute(SubCommand, parameters.Parameters);
+        }
+
+        bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id, BHTransaction bhTransaction)
+        {
+            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
+            BHParameters parameters = new BHParameters();
+            parameters.Add("Id", Id);
+            return _dataProvider.JustExecute(SubCommand, parameters.Parameters, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.ReactivateEntryById(G Id, BHTransaction bhTransaction)
+        {
+            string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
+            BHParameters parameters = new BHParameters();
+            parameters.Add("Id", Id);
+            return _dataProvider.JustExecute(SubCommand, parameters.Parameters, bhTransaction.transaction);
+        }
+
+        bool IBHDataProvider<T, G>.ReactivateEntryById(G Id)
+        {
+            string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
+            BHParameters parameters = new BHParameters();
+            parameters.Add("Id", Id);
+            return _dataProvider.JustExecute(SubCommand, parameters.Parameters);
+        }
+
+        bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
+
+            if (withActivator)
+            {
+                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {sql.Columns}";
+            }
+
+            return _dataProvider.JustExecute(SubCommand, sql.Parameters.Parameters);
+        }
+
+        bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
+
+            if (withActivator)
+            {
+                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {sql.Columns}";
+            }
+
+            return _dataProvider.JustExecute(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+        }
+
         async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync()
         {
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable}";
@@ -659,55 +881,55 @@ namespace BlackHole.Core
             return await _dataProvider.MultiInsertScalarAsync<T, G>(commandStart, commandEnd, entries, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntryById(T entry)
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync(T entry)
         {
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
             return await _dataProvider.ExecuteEntryAsync(updateCommand, entry);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntryById(T entry, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync(T entry, BHTransaction bhTransaction)
         {
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
             return await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry) where Columns : class
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync<Columns>(T entry) where Columns : class
         {
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
             return await _dataProvider.ExecuteEntryAsync(updateCommand, entry);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
         {
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
             return await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries)
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync(List<T> entries)
         {
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
-            return await UpdateMany(entries, updateCommand);
+            return await UpdateManyAsync(entries, updateCommand);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync(List<T> entries, BHTransaction bhTransaction)
         {
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
-            return await UpdateMany(entries, updateCommand, bhTransaction.transaction);
+            return await UpdateManyAsync(entries, updateCommand, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries) where Columns : class
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync<Columns>(List<T> entries) where Columns : class
         {
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
-            return await UpdateMany(entries, updateCommand);
+            return await UpdateManyAsync(entries, updateCommand);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries, BHTransaction bhTransaction) where Columns : class
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync<Columns>(List<T> entries, BHTransaction bhTransaction) where Columns : class
         {
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
-            return await UpdateMany(entries, updateCommand, bhTransaction.transaction);
+            return await UpdateManyAsync(entries, updateCommand, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -722,7 +944,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -737,7 +959,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -752,7 +974,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
+        async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -767,7 +989,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.DeleteAllEntries()
+        async Task<bool> IBHDataProvider<T, G>.DeleteAllEntriesAsync()
         {
             string SubCommand = $"Delete from {ThisTable}";
 
@@ -779,7 +1001,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, null);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.DeleteAllEntries(BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.DeleteAllEntriesAsync(BHTransaction bhTransaction)
         {
             string SubCommand = $"Delete from {ThisTable}";
 
@@ -791,7 +1013,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, null, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.DeleteEntryById(G Id)
+        async Task<bool> IBHDataProvider<T, G>.DeleteEntryByIdAsync(G Id)
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
 
@@ -806,7 +1028,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.DeleteEntryById(G Id, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.DeleteEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
 
@@ -821,7 +1043,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id)
+        async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id)
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
             BHParameters parameters = new BHParameters();
@@ -829,7 +1051,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
             BHParameters parameters = new BHParameters();
@@ -837,7 +1059,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.ReactivateEntryById(G Id, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
             string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
             BHParameters parameters = new BHParameters();
@@ -845,7 +1067,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters, bhTransaction.transaction);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.ReactivateEntryById(G Id)
+        async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id)
         {
             string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
             BHParameters parameters = new BHParameters();
@@ -853,7 +1075,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
+        async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -867,7 +1089,7 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, sql.Parameters.Parameters);
         }
 
-        async Task<bool> IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -881,24 +1103,44 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
         }
 
-        async Task<G?> IBHDataProvider<T, G>.GetIdWhereAsync(Expression<Func<T, bool>> predicate)
+        G? IBHDataProvider<T, G>.GetIdWhere(Expression<Func<T, bool>> predicate)
         {
-            return await GetIdFromPredicate(predicate);
+            return GetIdFromPredicate(predicate);
         }
 
-        async Task<G?> IBHDataProvider<T, G>.GetIdWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        G? IBHDataProvider<T, G>.GetIdWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            return await GetIdFromPredicate(predicate, bhTransaction);
+            return GetIdFromPredicate(predicate, bhTransaction);
         }
 
-        async Task<List<G>> IBHDataProvider<T, G>.GetIdsWhereAsync(Expression<Func<T, bool>> predicate)
+        List<G> IBHDataProvider<T, G>.GetIdsWhere(Expression<Func<T, bool>> predicate)
         {
-            return await GetIdsFromPredicate(predicate);
+            return GetIdsFromPredicate(predicate);
         }
 
-        async Task<List<G>> IBHDataProvider<T, G>.GetIdsWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        List<G> IBHDataProvider<T, G>.GetIdsWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            return await GetIdsFromPredicate(predicate, bhTransaction);
+            return GetIdsFromPredicate(predicate, bhTransaction);
+        }
+
+        async Task<G?> IBHDataProvider<T, G>.GetIdAsyncWhere(Expression<Func<T, bool>> predicate)
+        {
+            return await GetIdFromPredicateAsync(predicate);
+        }
+
+        async Task<G?> IBHDataProvider<T, G>.GetIdAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            return await GetIdFromPredicateAsync(predicate, bhTransaction);
+        }
+
+        async Task<List<G>> IBHDataProvider<T, G>.GetIdsAsyncWhere(Expression<Func<T, bool>> predicate)
+        {
+            return await GetIdsFromPredicateAsync(predicate);
+        }
+
+        async Task<List<G>> IBHDataProvider<T, G>.GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            return await GetIdsFromPredicateAsync(predicate, bhTransaction);
         }
 
         JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
@@ -1020,10 +1262,40 @@ namespace BlackHole.Core
             return result;
         }
 
-        private async Task<bool> UpdateMany(List<T> entries, string updateCommand)
+        private bool UpdateMany(List<T> entries, string updateCommand)
         {
             BlackHoleTransaction bhTransaction = new BlackHoleTransaction();
             
+            foreach (T entry in entries)
+            {
+                _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction);
+            }
+
+            bool result = bhTransaction.Commit();
+            bhTransaction.Dispose();
+
+            return result;
+        }
+
+        private bool UpdateMany(List<T> entries, string updateCommand, BlackHoleTransaction bhTransaction)
+        {
+            bool result = true;
+
+            foreach (T entry in entries)
+            {
+                if(!_dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction))
+                {
+                    result = false;
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<bool> UpdateManyAsync(List<T> entries, string updateCommand)
+        {
+            BlackHoleTransaction bhTransaction = new BlackHoleTransaction();
+
             foreach (T entry in entries)
             {
                 await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction);
@@ -1035,13 +1307,13 @@ namespace BlackHole.Core
             return result;
         }
 
-        private async Task<bool> UpdateMany(List<T> entries, string updateCommand, BlackHoleTransaction bhTransaction)
+        private async Task<bool> UpdateManyAsync(List<T> entries, string updateCommand, BlackHoleTransaction bhTransaction)
         {
             bool result = true;
 
             foreach (T entry in entries)
             {
-                if(!await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction))
+                if (!await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction))
                 {
                     result = false;
                 }
@@ -1050,7 +1322,35 @@ namespace BlackHole.Core
             return result;
         }
 
-        private async Task<G?> GetIdFromPredicate(Expression<Func<T, bool>> predicate)
+        private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate)
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
+
+            if (withActivator)
+            {
+                selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+            }
+
+            return _dataProvider.QueryFirst<G>(selectCommand, sql.Parameters.Parameters);
+        }
+
+        private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
+
+            if (withActivator)
+            {
+                selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+            }
+
+            return _dataProvider.QueryFirst<G>(selectCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+        }
+
+        private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -1064,7 +1364,7 @@ namespace BlackHole.Core
             return await _dataProvider.QueryFirstAsync<G>(selectCommand, sql.Parameters.Parameters);
         }
 
-        private async Task<G?> GetIdFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -1078,7 +1378,35 @@ namespace BlackHole.Core
             return await _dataProvider.QueryFirstAsync<G>(selectCommand, sql.Parameters.Parameters, bhTransaction.transaction);
         }
 
-        private async Task<List<G>> GetIdsFromPredicate(Expression<Func<T, bool>> predicate)
+        private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate)
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
+
+            if (withActivator)
+            {
+                selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+            }
+
+            return _dataProvider.Query<G>(selectCommand, sql.Parameters.Parameters);
+        }
+
+        private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
+            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
+
+            if (withActivator)
+            {
+                selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+            }
+
+            return _dataProvider.Query<G>(selectCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+        }
+
+        private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
@@ -1092,7 +1420,7 @@ namespace BlackHole.Core
             return await _dataProvider.QueryAsync<G>(selectCommand, sql.Parameters.Parameters);
         }
 
-        private async Task<List<G>> GetIdsFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
             List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
             ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
