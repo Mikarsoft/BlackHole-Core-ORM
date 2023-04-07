@@ -68,7 +68,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
             }
 
             return default(G);
@@ -98,7 +98,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -121,7 +121,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString())).Start();
             }
 
             return default(G);
@@ -144,7 +144,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("NonQuery", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -163,7 +163,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("NonQuery", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -186,7 +186,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("NonQueryAsync", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -207,7 +207,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("NonQueryAsync", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -243,7 +243,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"QueryFirst_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -276,7 +276,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"QueryFirst_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -311,7 +311,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Query_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -343,7 +343,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Query_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -379,7 +379,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"QueryFirstAsync_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -412,7 +412,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"QueryFirstAsync_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -447,7 +447,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -479,7 +479,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -523,7 +523,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                throw new Exception($"Object Mapping:{ex.Message}");
+                throw new Exception($"Object Mapping {typeof(T).Name}:{ex.Message}");
             }
         }
 
