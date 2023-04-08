@@ -63,6 +63,7 @@ add 'SuperNova(connectionString,SqlType)' on your IServiceCollection and it will
     <PackageReference Include="MySql.Data" Version="8.0.29" />
     <PackageReference Include="Npgsql" Version="6.0.9" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.90" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.4" />
   </ItemGroup>
 
 </Project>

@@ -77,71 +77,62 @@ namespace BlackHole.Internal
         {
             string Tablename = TableType.Name;
             bool tExists = false;
-            bool success = false;
 
-            try
+            string tableCheck = $@"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + "')) then 1 else 0 end";
+
+            if (isLite)
             {
-                string tableCheck = $@"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + "')) then 1 else 0 end";
+                tableCheck = $@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'";
+                tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
+            }
+            else
+            {
+                tExists = connection.ExecuteScalar<int>(tableCheck, null) == 1;
+            }
 
-                if (isLite)
+            if (!tExists)
+            {
+                PropertyInfo[] Properties = TableType.GetProperties();
+                string creationCommand = $"CREATE TABLE {MyShit(Tablename)} (";
+
+                creationCommand += GetDatatypeCommand("Int32", new object[0], "Inactive");
+                creationCommand += GetSqlColumn(new object[0], true);
+
+                foreach (PropertyInfo Property in Properties)
                 {
-                    tableCheck = $@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'";
-                    tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
-                }
-                else
-                {
-                    tExists = connection.ExecuteScalar<int>(tableCheck, null) == 1;
-                }
+                    string propertyType = Property.PropertyType.Name;
+                    object[] attributes = Property.GetCustomAttributes(true);
 
-                if (!tExists)
-                {
-                    PropertyInfo[] Properties = TableType.GetProperties();
-                    string creationCommand = $"CREATE TABLE {MyShit(Tablename)} (";
-
-                    creationCommand += GetDatatypeCommand("Int32", new object[0], "Inactive");
-                    creationCommand += GetSqlColumn(new object[0], true);
-
-                    foreach (PropertyInfo Property in Properties)
+                    if (Property.Name != "Id")
                     {
-                        string propertyType = Property.PropertyType.Name;
-                        object[] attributes = Property.GetCustomAttributes(true);
+                        creationCommand += GetDatatypeCommand(propertyType, attributes, Property.Name);
 
-                        if (Property.Name != "Id")
+                        creationCommand += GetSqlColumn(attributes, true);
+                    }
+                    else
+                    {
+                        if (TableType.BaseType == typeof(BlackHoleEntity<int>))
                         {
-                            creationCommand += GetDatatypeCommand(propertyType, attributes, Property.Name);
-
-                            creationCommand += GetSqlColumn(attributes, true);
+                            creationCommand += _multiDatabaseSelector.GetPrimaryKeyCommand();
                         }
-                        else
+
+                        if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
                         {
-                            if (TableType.BaseType == typeof(BlackHoleEntity<int>))
-                            {
-                                creationCommand += _multiDatabaseSelector.GetPrimaryKeyCommand();
-                            }
+                            creationCommand += _multiDatabaseSelector.GetGuidPrimaryKeyCommand();
+                        }
 
-                            if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
-                            {
-                                creationCommand += _multiDatabaseSelector.GetGuidPrimaryKeyCommand();
-                            }
-
-                            if (TableType.BaseType == typeof(BlackHoleEntity<string>))
-                            {
-                                creationCommand += _multiDatabaseSelector.GetStringPrimaryKeyCommand();
-                            }
+                        if (TableType.BaseType == typeof(BlackHoleEntity<string>))
+                        {
+                            creationCommand += _multiDatabaseSelector.GetStringPrimaryKeyCommand();
                         }
                     }
-
-                    creationCommand = creationCommand.Substring(0, creationCommand.Length - 2) + ");";
-                    connection.JustExecute(creationCommand , null);
-                    success = true;
                 }
+
+                creationCommand = creationCommand.Substring(0, creationCommand.Length - 2) + ");";
+                return connection.JustExecute(creationCommand , null);
             }
-            catch (Exception ex)
-            {
-                success = false;
-                _loggerService.CreateErrorLogs($"TableBuilder_{Tablename}", ex.Message, ex.ToString());
-            }
-            return success;
+
+            return false;
         }
 
         void AsignForeignKeys(Type TableType)
@@ -282,14 +273,7 @@ namespace BlackHole.Internal
             closingCommand += $"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};";
             closingCommand += $"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;";
 
-            try
-            {
-                connection.JustExecute(closingCommand, null);
-            }
-            catch (Exception ex)
-            {
-                _loggerService.CreateErrorLogs($"Constraints_{Tablename}", ex.Message, ex.ToString());
-            }
+            connection.JustExecute(closingCommand, null);
         }
 
         void ForeignKeyAsignment(Type TableType)
@@ -298,34 +282,24 @@ namespace BlackHole.Internal
             PropertyInfo[] Properties = TableType.GetProperties();
             string alterTable = $" ALTER TABLE {MyShit(Tablename)}";
 
-            //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-            //{
-                foreach (PropertyInfo Property in Properties)
+            foreach (PropertyInfo Property in Properties)
+            {
+                object[] attributes = Property.GetCustomAttributes(true);
+
+                if (attributes.Length > 0)
                 {
-                    object[] attributes = Property.GetCustomAttributes(true);
+                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
 
-                    if (attributes.Length > 0)
+                    if (FK_attribute != null)
                     {
-                        object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
-
-                        if (FK_attribute != null)
-                        {
-                            try
-                            {
-                                var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
-                                var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
-                                var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
-                                string alterColumn = MyShitConstraint(alterTable, Tablename, Property.Name, tName, tColumn, cascadeInfo);
-                                connection.JustExecute(alterColumn, null);
-                            }
-                            catch (Exception ex)
-                            {
-                                _loggerService.CreateErrorLogs($"Constraints_{Tablename}", ex.Message, ex.ToString());
-                            }
-                        }
+                        var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
+                        var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
+                        var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
+                        string alterColumn = MyShitConstraint(alterTable, Tablename, Property.Name, tName, tColumn, cascadeInfo);
+                        connection.JustExecute(alterColumn, null);
                     }
                 }
-            //}
+            }
         }
 
         void UpdateTableSchema(Type TableType)
@@ -344,66 +318,40 @@ namespace BlackHole.Internal
 
                 NewColumnNames.Add("Inactive");
 
-                //using (IDbConnection connection = _multiDatabaseSelector.GetConnection())
-                //{
-                    List<string> ColumnNames = new List<string>();
-                    ColumnNames = connection.Query<string>(getColumns, null);
+                List<string> ColumnNames = new List<string>();
+                ColumnNames = connection.Query<string>(getColumns, null);
 
-                    List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
-                    List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
+                List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
+                List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
 
-                    foreach (string ColumnName in ColumnsToDrop)
+                foreach (string ColumnName in ColumnsToDrop)
+                {
+                    string dropCommand = $"ALTER TABLE {Tablename} DROP COLUMN {MyShit(ColumnName)} ";
+                    connection.JustExecute(dropCommand, null);
+                }
+
+                foreach (string ColumnName in ColumnsToAdd)
+                {
+                    string addCommand = $"ALTER TABLE {Tablename} ADD ";
+                    var Property = Properties.Where(x => x.Name == ColumnName).FirstOrDefault();
+
+                    if (Property != null)
                     {
-                        string dropCommand = $"ALTER TABLE {Tablename} DROP COLUMN {MyShit(ColumnName)} ";
+                        string PropName = Property.Name;
+                        string propertyType = Property.PropertyType.Name;
 
-                        try
-                        {
-                            connection.JustExecute(dropCommand, null);
-                        }
-                        catch (Exception ex)
-                        {
-                            _loggerService.CreateErrorLogs($"ColumnDrop_{Tablename}", ex.Message, ex.ToString());
-                        }
+                        object[] attributes = Property.GetCustomAttributes(true);
+                        addCommand += GetDatatypeCommand(propertyType, attributes, ColumnName);
+                        addCommand += AddColumnConstaints(attributes, Tablename, PropName, propertyType);
+                        connection.JustExecute(addCommand, null);
                     }
 
-                    foreach (string ColumnName in ColumnsToAdd)
+                    if (ColumnName == "Inactive")
                     {
-                        string addCommand = $"ALTER TABLE {Tablename} ADD ";
-                        var Property = Properties.Where(x => x.Name == ColumnName).FirstOrDefault();
-
-                        if (Property != null)
-                        {
-                            string PropName = Property.Name;
-                            string propertyType = Property.PropertyType.Name;
-
-                            object[] attributes = Property.GetCustomAttributes(true);
-                            addCommand += GetDatatypeCommand(propertyType, attributes, ColumnName);
-                            addCommand += AddColumnConstaints(attributes, Tablename, PropName, propertyType);
-
-                            try
-                            {
-                                connection.JustExecute(addCommand, null);
-                            }
-                            catch (Exception ex)
-                            {
-                                _loggerService.CreateErrorLogs($"ColumnAdd_{Tablename}", ex.Message, ex.ToString());
-                            }
-                        }
-
-                        if (ColumnName == "Inactive")
-                        {
-                            addCommand += GetDatatypeCommand("Int32", new object[0], ColumnName);
-                            try
-                            {
-                                connection.JustExecute(addCommand, null);
-                            }
-                            catch (Exception ex)
-                            {
-                                _loggerService.CreateErrorLogs($"ColumnAdd_{Tablename}", ex.Message, ex.ToString());
-                            }
-                        }
+                        addCommand += GetDatatypeCommand("Int32", new object[0], ColumnName);
+                        connection.JustExecute(addCommand, null);
                     }
-                //}
+                }
             }
         }
 

@@ -280,30 +280,6 @@ namespace BlackHole.Internal
             return PrimaryKeyCommand;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        string IBHDatabaseSelector.GetDatePrimaryKeyCommand()
-        {
-            string PrimaryKeyCommand = "";
-            switch (DatabaseStatics.DatabaseType)
-            {
-                case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = @"Id INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    PrimaryKeyCommand = @"Id TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    PrimaryKeyCommand = @"""Id"" timestamp(6) default current_timestamp(6) PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    PrimaryKeyCommand = @"Id timestamp(6) DEFAULT CURRENT_TIMESTAMP(6) ,";
-                    break;
-            }
-            return PrimaryKeyCommand;
-        }
 
         /// <summary>
         /// Based on the selected Sql Type, returns the required addition to the sql command,
@@ -422,7 +398,7 @@ namespace BlackHole.Internal
                     SqlDatatypes = new[] { "varchar", "char", "int2", "int4", "int8", "numeric", "float4", "float8", "uuid", "bool", "timestamp", "bytea" };
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    SqlDatatypes = new[] { "varchar", "integer", "bigint", "decimal(15,2)", "float", "numeric", "varchar", "boolean", "datetime", "blob" };
+                    SqlDatatypes = new[] { "varchar", "char", "int2", "integer", "bigint", "decimal", "float", "numeric", "text", "boolean", "datetime", "blob" };
                     break;
                     //RAW(16) default SYS_GUID()
             }

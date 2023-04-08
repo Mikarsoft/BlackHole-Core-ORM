@@ -44,8 +44,6 @@ namespace BlackHole.Internal
 
         BlackHoleIdTypes GetIdType(Type type);
 
-        string GetDatePrimaryKeyCommand();
-
         string GetStringPrimaryKeyCommand();
 
         bool RequiredIdGeneration(BlackHoleIdTypes dataType);

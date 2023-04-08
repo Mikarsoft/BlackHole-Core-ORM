@@ -53,7 +53,7 @@ namespace BlackHole.DataProviders
 
                     if(Result != null)
                     {
-                        Id = (G?)Result;
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
                     }
                 }
                 return Id;
@@ -81,7 +81,7 @@ namespace BlackHole.DataProviders
 
                     if (Result != null)
                     {
-                        Id = (G?)Result;
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
                     }
                 }
                 return Id;
@@ -107,7 +107,7 @@ namespace BlackHole.DataProviders
 
                 if (Result != null)
                 {
-                    return (G?)Result;
+                    return (G?)Convert.ChangeType(Result, typeof(G));
                 }
             }
             catch (Exception ex)
@@ -131,7 +131,7 @@ namespace BlackHole.DataProviders
 
                 if (Result != null)
                 {
-                    return (G?)Result;
+                    return (G?)Convert.ChangeType(Result, typeof(G));
                 }
             }
             catch (Exception ex)

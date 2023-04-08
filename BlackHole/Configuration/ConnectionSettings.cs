@@ -49,11 +49,11 @@ namespace BlackHole.Configuration
         /// <summary>
         /// Use the data provider for Sqlite
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
+        /// <param name="databaseName">connection string to the database</param>
         /// <returns>Connection additional settings</returns>
-        public ConnectionAdditionalSettings UseSqlite(string connectionString)
+        public ConnectionAdditionalSettings UseSqlite(string databaseName)
         {
-            ConnectionString = connectionString;
+            ConnectionString = databaseName;
             ConnectionType = BlackHoleSqlTypes.SqlLite;
             return additionalSettings;
         }

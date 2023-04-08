@@ -120,9 +120,10 @@ namespace BlackHole.Internal
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
                         case 1:
-                            CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName.ToLower()}'";
+                            CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName}'";
                             CreateDb = $"CREATE DATABASE IF NOT EXISTS {databaseName}";
-                            dbExists = connection.ExecuteScalar<string>(CheckDb, null) == databaseName.ToLower();
+                            string? dbName = connection.ExecuteScalar<string>(CheckDb, null);
+                            dbExists = dbName?.ToLower() == databaseName.ToLower();
                             break;
                         case 2:
                             CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";

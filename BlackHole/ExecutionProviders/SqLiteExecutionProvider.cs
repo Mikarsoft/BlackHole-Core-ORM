@@ -36,7 +36,7 @@ namespace BlackHole.ExecutionProviders
 
                     if(Result != null)
                     {
-                        Id = (G?)Result;
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
                     }
                 }
                 return Id;
@@ -61,7 +61,7 @@ namespace BlackHole.ExecutionProviders
 
                 if (Result != null)
                 {
-                    return (G?)Result;
+                    return (G?)Convert.ChangeType(Result, typeof(G));
                 }
             }
             catch (Exception ex)
@@ -87,7 +87,7 @@ namespace BlackHole.ExecutionProviders
 
                     if (Result != null)
                     {
-                        Id = (G?)Result;
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
                     }
                 }
                 return Id;
@@ -112,7 +112,7 @@ namespace BlackHole.ExecutionProviders
 
                 if (Result != null)
                 {
-                    return (G?)Result;
+                    return (G?)Convert.ChangeType(Result, typeof(G));
                 }
             }
             catch (Exception ex)
@@ -517,13 +517,12 @@ namespace BlackHole.ExecutionProviders
 
                             if (property.PropertyType == typeof(Guid))
                             {
-                                Guid result = Guid.Empty;
-                                Guid.TryParse(reader.GetString(i), out result);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, result);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
                             }
                         }
                     }
