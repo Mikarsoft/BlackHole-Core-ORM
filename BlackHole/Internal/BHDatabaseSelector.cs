@@ -2,48 +2,16 @@
 using BlackHole.Enums;
 using BlackHole.ExecutionProviders;
 using BlackHole.Statics;
-using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
-using MySql.Data.MySqlClient;
-using Npgsql;
-using Oracle.ManagedDataAccess.Client;
-using System.Data;
 
 namespace BlackHole.Internal
 {
     internal class BHDatabaseSelector : IBHDatabaseSelector
     {
         /// <summary>
-        /// Returns and IDBConnection with the specified database
+        /// 
         /// </summary>
+        /// <param name="connectionString"></param>
         /// <returns></returns>
-        IDbConnection IBHDatabaseSelector.GetConnection()
-        {
-            string _connectionString = DatabaseStatics.ConnectionString;
-            IDbConnection _Sconnection = new SqlConnection();
-
-            switch (DatabaseStatics.DatabaseType)
-            {
-                case BlackHoleSqlTypes.SqlServer:
-                    _Sconnection = new SqlConnection(_connectionString);
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    _Sconnection = new MySqlConnection(_connectionString);
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    _Sconnection = new NpgsqlConnection(_connectionString);
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    _Sconnection = new SqliteConnection(_connectionString);
-                    break;
-                case BlackHoleSqlTypes.Oracle:
-                    _Sconnection = new OracleConnection(_connectionString);
-                    break;
-            }
-
-            return _Sconnection;
-        }
-
         IExecutionProvider IBHDatabaseSelector.GetExecutionProvider(string connectionString)
         {
             IExecutionProvider _Sconnection = new OracleExecutionProvider(connectionString);
@@ -76,12 +44,6 @@ namespace BlackHole.Internal
         /// <returns></returns>
         bool IBHDatabaseSelector.IsLite()
         {
-            return CheckSqlLite();
-        }
-
-
-        bool CheckSqlLite()
-        {
             bool lite = false;
 
             if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlLite)
@@ -90,11 +52,6 @@ namespace BlackHole.Internal
             }
 
             return lite;
-        }
-
-        string GetServerConnectionString()
-        {
-            return DatabaseStatics.ServerConnection;
         }
 
         /// <summary>
@@ -185,7 +142,11 @@ namespace BlackHole.Internal
             return PrimaryKeyCommand;
         }
 
-        bool IsMyShit()
+        /// <summary>
+        /// Checks if the dabase type is MySql or SqLite and returns boolean
+        /// </summary>
+        /// <returns></returns>
+        bool IBHDatabaseSelector.GetMyShit()
         {
             bool myShit = false;
             if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
@@ -196,21 +157,12 @@ namespace BlackHole.Internal
         }
 
         /// <summary>
-        /// Checks if the dabase type is MySql or SqLite and returns boolean
-        /// </summary>
-        /// <returns></returns>
-        bool IBHDatabaseSelector.GetMyShit()
-        {
-            return IsMyShit();
-        }
-
-        /// <summary>
         /// Returns the connection string for the sql host server
         /// </summary>
         /// <returns></returns>
         string IBHDatabaseSelector.GetServerConnection()
         {
-            return GetServerConnectionString();
+            return DatabaseStatics.ServerConnection;
         }
 
         /// <summary>

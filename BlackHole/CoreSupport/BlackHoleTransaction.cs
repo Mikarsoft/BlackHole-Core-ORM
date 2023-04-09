@@ -1,4 +1,4 @@
-﻿using BlackHole.Internal;
+﻿using BlackHole.ConnectionProvider;
 using BlackHole.Logger;
 using System.Data;
 
@@ -7,15 +7,14 @@ namespace BlackHole.CoreSupport
     public class BlackHoleTransaction : IDisposable
     {
         public IDbConnection connection;
-        private IBHDatabaseSelector _multiDatabaseSelector;
         public IDbTransaction _transaction;
         private ILoggerService _loggerService;
         private bool commited = false;
 
         public BlackHoleTransaction()
         {
-            _multiDatabaseSelector = new BHDatabaseSelector();
-            connection = _multiDatabaseSelector.GetConnection();
+            ConnectionBuilder connectionBuilder = new ConnectionBuilder();
+            connection = connectionBuilder.GetConnection();
             connection.Open();
             _transaction = connection.BeginTransaction();
             _loggerService = new LoggerService();
@@ -32,7 +31,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs($"Transaction", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Commit", ex.Message, ex.ToString())).Start();
                 result = false;
             }
             return result;
@@ -55,7 +54,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs($"Transaction", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Rollback", ex.Message, ex.ToString())).Start();
                 result = false;
             }
             return result;
@@ -72,7 +71,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs($"Transaction", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Commit", ex.Message, ex.ToString())).Start();
                 _transaction.Rollback();
             }
 

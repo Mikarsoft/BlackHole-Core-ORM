@@ -1,5 +1,6 @@
 ﻿using BlackHole.DataProviders;
 using BlackHole.Enums;
+using BlackHole.ExecutionProviders;
 using BlackHole.Statics;
 
 namespace BlackHole.CoreSupport
@@ -20,7 +21,14 @@ namespace BlackHole.CoreSupport
 
         IExecutionProvider IBHDataProviderSelector.GetExecutionProvider()
         {
-            throw new NotImplementedException();
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => new SqlServerExecutionProvider(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.MySql => new MySqlExecutionProvider(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.Postgres => new PostgresExecutionProvider(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.SqlLite => new SqLiteExecutionProvider(DatabaseStatics.ConnectionString),
+                _ => new OracleExecutionProvider(DatabaseStatics.ConnectionString),
+            };
         }
 
         private BlackHoleIdTypes GetIdType(Type type)

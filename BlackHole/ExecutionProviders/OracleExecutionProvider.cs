@@ -387,7 +387,7 @@ namespace BlackHole.ExecutionProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -421,7 +421,7 @@ namespace BlackHole.ExecutionProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -456,7 +456,7 @@ namespace BlackHole.ExecutionProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -486,6 +486,18 @@ namespace BlackHole.ExecutionProviders
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
+
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     if (!reader.IsDBNull(i))
@@ -513,6 +525,18 @@ namespace BlackHole.ExecutionProviders
                 Type type = typeof(T);
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
+
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {

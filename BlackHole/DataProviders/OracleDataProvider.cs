@@ -91,7 +91,6 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 return (G?)Command.ExecuteScalar();
@@ -111,7 +110,6 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 return (G?)await Command.ExecuteScalarAsync();
@@ -137,8 +135,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id){commandEnd},'{Id}');", entry))
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -158,8 +157,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},'{Id}');", entry, bhTransaction))
+                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -170,7 +170,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry, bhTransaction);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry, bhTransaction);
             }
         }
 
@@ -179,8 +179,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry))
+                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -191,7 +192,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry);
             }
         }
 
@@ -200,8 +201,9 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
+                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id){commandEnd},'{Id}');", entry, bhTransaction))
+                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -212,7 +214,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry, bhTransaction);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry, bhTransaction);
             }
         }
 
@@ -222,11 +224,11 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = "";
+                string commandText = $"{commandStart},Id){commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
                     if (await ExecuteEntryAsync(commandText, entry, bhTransaction))
                     {
@@ -240,7 +242,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd}) {insertedOutput};";
+                string commandText = $"{commandStart}) {commandEnd}) {insertedOutput};";
 
                 foreach (T entry in entries)
                 {
@@ -257,11 +259,11 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = "";
+                string commandText = $"{commandStart},Id) {commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    commandText = $"{commandStart},Id){commandEnd},'{Id}');";
+                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
                     if (ExecuteEntry(commandText, entry, bhTransaction))
                     {
@@ -275,7 +277,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}){commandEnd}) {insertedOutput};";
+                string commandText = $"{commandStart}) {commandEnd}) {insertedOutput};";
 
                 foreach (T entry in entries)
                 {
@@ -338,7 +340,6 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -359,7 +360,6 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
-
                 ObjectToParameters(entry, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -380,11 +380,9 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
-
                 return true;
             }
             catch (Exception ex)
@@ -402,7 +400,6 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText, connection);
-
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -426,11 +423,9 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText, connection);
                 Command.Transaction = transaction;
-
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
-
                 return true;
             }
             catch (Exception ex)
@@ -549,7 +544,7 @@ namespace BlackHole.DataProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -585,7 +580,7 @@ namespace BlackHole.DataProviders
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
-                        while (await DataReader.ReadAsync())
+                        while (DataReader.Read())
                         {
                             T? line = MapObject<T>(DataReader);
 
@@ -689,7 +684,7 @@ namespace BlackHole.DataProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -723,7 +718,7 @@ namespace BlackHole.DataProviders
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
-                    while (await DataReader.ReadAsync())
+                    while (DataReader.Read())
                     {
                         T? line = MapObject<T>(DataReader);
 
@@ -752,6 +747,18 @@ namespace BlackHole.DataProviders
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
+
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     if (!reader.IsDBNull(i))
@@ -779,6 +786,18 @@ namespace BlackHole.DataProviders
                 Type type = typeof(T);
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
+
+                if (properties.Length == 0 && reader.FieldCount > 0)
+                {
+                    object? value = reader.GetValue(0);
+
+                    if (value != null)
+                    {
+                        return (T?)value;
+                    }
+
+                    return default;
+                }
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {

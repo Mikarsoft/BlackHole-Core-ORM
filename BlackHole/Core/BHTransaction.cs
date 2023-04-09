@@ -16,6 +16,11 @@ namespace BlackHole.Core
             return transaction.Commit();
         }
 
+        public bool DoNotCommit()
+        {
+            return transaction.DoNotCommit();
+        }
+
         public bool RollBack()
         {
             return transaction.RollBack();

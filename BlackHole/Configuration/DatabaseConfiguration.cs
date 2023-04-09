@@ -31,6 +31,17 @@ namespace BlackHole.Configuration
 
         private static void ScanOracleString(string connectionString)
         {
+            string[] parts = connectionString.Split(";");
+            string userName = string.Empty;
+
+            foreach (string part in parts)
+            {
+                string tempPart = part.Replace(" ", "").ToLower();
+                if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
+                {
+                    DatabaseStatics.DatabaseName = part;
+                }
+            }
             DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Oracle;
             DatabaseStatics.ConnectionString = connectionString;
             DatabaseStatics.ServerConnection = connectionString;

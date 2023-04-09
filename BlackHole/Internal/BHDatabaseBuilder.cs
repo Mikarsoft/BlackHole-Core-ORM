@@ -69,14 +69,16 @@ namespace BlackHole.Internal
                             FROM pg_stat_activity WHERE pg_stat_activity.datname = '{databaseName}'; DROP DATABASE ""{databaseName}""";
                             break;
                         case 4:
-                            CheckDb = $"SELECT table_name FROM all_tables WHERE owner = 'ROOT';";
-                            List<string> existingTables = connection.Query<string>(CheckDb, null);
-
-                            foreach(string table in existingTables)
+                            if(!string.IsNullOrWhiteSpace(databaseName))
                             {
-                                connection.JustExecute($"DROP TABLE {table} CASCADE CONSTRAINTS;", null);
-                            }
+                                CheckDb = $"SELECT table_name FROM all_tables WHERE owner = '{databaseName}';";
+                                List<string> existingTables = connection.Query<string>(CheckDb, null);
 
+                                foreach (string table in existingTables)
+                                {
+                                    connection.JustExecute($"DROP TABLE {table} CASCADE CONSTRAINTS;", null);
+                                }
+                            }
                             break;
                     }
 
@@ -142,7 +144,6 @@ namespace BlackHole.Internal
                             break;
                         case 4:
                             CheckDb = "select status from v$instance";
-                            var result = connection.ExecuteScalar<string>(CheckDb, null);
                             dbExists = connection.ExecuteScalar<string>(CheckDb, null) == "OPEN";
                             isOracle = true;
                             break;

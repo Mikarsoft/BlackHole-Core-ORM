@@ -6,14 +6,6 @@ namespace BlackHole.Internal
 {
     internal interface IBHDatabaseSelector
     {
-        /// <summary>
-        /// This Method Finds the Type of the Database You are using in your 
-        /// Application and returns the IDbConnection, ready for Use.
-        /// !!Don't forget to dispose the Connection after your Job is done.
-        /// </summary>
-        /// <returns></returns>
-        IDbConnection GetConnection();
-
         string[] SqlDatatypesTranslation();
 
         bool IsLite();
@@ -29,7 +21,6 @@ namespace BlackHole.Internal
         int GetSqlTypeId();
 
         bool GetMyShit();
-
 
         IExecutionProvider GetExecutionProvider(string connectionString);
     }
