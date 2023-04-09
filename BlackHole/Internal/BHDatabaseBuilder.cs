@@ -50,7 +50,6 @@ namespace BlackHole.Internal
                     string CheckDb = "";
                     bool dbExists = false;
                     string DropDb = $@"DROP DATABASE IF EXISTS ""{databaseName}""";
-                    bool isOracle = false;
 
                     switch (_multiDatabaseSelector.GetSqlTypeId())
                     {
@@ -123,6 +122,7 @@ namespace BlackHole.Internal
                     string CheckDb = "";
                     bool dbExists = true;
                     string CreateDb = $@"CREATE DATABASE ""{databaseName}""";
+                    bool isOracle = false;
 
                     switch (_multiDatabaseSelector.GetSqlTypeId())
                     {
@@ -140,11 +140,16 @@ namespace BlackHole.Internal
                             CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
+                        case 4:
+                            CheckDb = "select status from v$instance;";
+                            dbExists = connection.ExecuteScalar<string>(CheckDb, null) == "OPEN";
+                            isOracle = true;
+                            break;
                     }
 
                     if (isOracle)
                     {
-                        return dbExists
+                        return dbExists;
                     }
 
                     if (!dbExists)
@@ -208,6 +213,10 @@ namespace BlackHole.Internal
                         case 2:
                             CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
+                            break;
+                        case 4:
+                            CheckDb = "select status from v$instance;";
+                            dbExists = connection.ExecuteScalar<string>(CheckDb, null) == "OPEN";
                             break;
                     }
 

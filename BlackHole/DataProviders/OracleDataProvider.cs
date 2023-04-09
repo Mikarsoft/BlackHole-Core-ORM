@@ -25,13 +25,13 @@ namespace BlackHole.DataProviders
             _loggerService = new LoggerService();
             TableName = tableName;
 
-            if (idType != BlackHoleIdTypes.StringId)
+            if (idType != BlackHoleIdTypes.IntId)
             {
-                useGenerator = false;
+                useGenerator = true;
             }
             else
             {
-                useGenerator = true;
+                useGenerator = false;
             }
         }
         #endregion

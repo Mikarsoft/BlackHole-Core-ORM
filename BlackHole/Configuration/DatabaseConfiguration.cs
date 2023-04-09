@@ -24,9 +24,15 @@ namespace BlackHole.Configuration
                     ScanLiteString(connectionString);
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    ScanLiteString(connectionString);
+                    ScanOracleString(connectionString);
                     break;
             }
+        }
+
+        private static void ScanOracleString(string connectionString)
+        {
+            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Oracle;
+            DatabaseStatics.ConnectionString = connectionString;
         }
 
         private static void ScanMsSqlString(string connectionString)

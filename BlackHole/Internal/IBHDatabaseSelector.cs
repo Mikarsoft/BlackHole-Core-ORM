@@ -14,39 +14,22 @@ namespace BlackHole.Internal
         /// <returns></returns>
         IDbConnection GetConnection();
 
-        bool TestServerConnection();
-
-        IDbConnection CreateConnection(string connectionString);
-
         string[] SqlDatatypesTranslation();
 
         bool IsLite();
 
-        bool IsTransact();
-
         string GetDatabaseName();
-
-        BlackHoleSqlTypes GetSqlType();
 
         string GetServerConnection();
 
         string GetPrimaryKeyCommand();
-
         string GetGuidPrimaryKeyCommand();
+        string GetStringPrimaryKeyCommand();
 
         int GetSqlTypeId();
 
         bool GetMyShit();
 
-        string[] IdOutput(string tableName, string columnName, bool g);
-
-        bool IsMyShittyDb();
-
-        BlackHoleIdTypes GetIdType(Type type);
-
-        string GetStringPrimaryKeyCommand();
-
-        bool RequiredIdGeneration(BlackHoleIdTypes dataType);
 
         IExecutionProvider GetExecutionProvider(string connectionString);
     }
