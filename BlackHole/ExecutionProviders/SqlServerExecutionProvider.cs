@@ -1,7 +1,6 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Logger;
 using Microsoft.Data.SqlClient;
-using System.Data.Common;
 using System.Reflection;
 
 namespace BlackHole.ExecutionProviders
@@ -352,7 +351,7 @@ namespace BlackHole.ExecutionProviders
                     SqlCommand Command = new SqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                    using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
                         while (DataReader.Read())
                         {
@@ -387,7 +386,7 @@ namespace BlackHole.ExecutionProviders
                 SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
-                using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
                     while (DataReader.Read())
                     {
@@ -421,7 +420,7 @@ namespace BlackHole.ExecutionProviders
                     SqlCommand Command = new SqlCommand(command, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
-                    using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                    using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
                     {
                         while (DataReader.Read())
                         {
@@ -455,7 +454,7 @@ namespace BlackHole.ExecutionProviders
                 SqlCommand Command = new SqlCommand(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
-                using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
+                using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
                 {
                     while (DataReader.Read())
                     {
@@ -480,46 +479,6 @@ namespace BlackHole.ExecutionProviders
         #region ObjectMapping
 
         private T? MapObject<T>(SqlDataReader reader)
-        {
-            try
-            {
-                Type type = typeof(T);
-                PropertyInfo[] properties = type.GetProperties();
-                object? obj = Activator.CreateInstance(type);
-
-                if (properties.Length == 0 && reader.FieldCount > 0)
-                {
-                    object? value = reader.GetValue(0);
-
-                    if (value != null)
-                    {
-                        return (T?)value;
-                    }
-
-                    return default;
-                }
-
-                for (int i = 0; i < reader.FieldCount; i++)
-                {
-                    if (!reader.IsDBNull(i))
-                    {
-                        string propertyName = reader.GetName(i);
-
-                        if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
-                        }
-                    }
-                }
-                return (T?)obj;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Object Mapping {typeof(T).Name}:{ex.Message}");
-            }
-        }
-
-        private T? MapObject<T>(DbDataReader reader)
         {
             try
             {

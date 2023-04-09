@@ -372,6 +372,9 @@ namespace BlackHole.Internal
                 case BlackHoleSqlTypes.SqlLite:
                     sqlTypeId = 3;
                     break;
+                case BlackHoleSqlTypes.Oracle:
+                    sqlTypeId = 4;
+                    break;
             }
             return sqlTypeId;
         }

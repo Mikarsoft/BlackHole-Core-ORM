@@ -44,7 +44,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -67,7 +67,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
             }
 
             return default(G);
@@ -96,7 +96,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString());
+                new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }

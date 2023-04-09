@@ -50,6 +50,7 @@ namespace BlackHole.Internal
                     string CheckDb = "";
                     bool dbExists = false;
                     string DropDb = $@"DROP DATABASE IF EXISTS ""{databaseName}""";
+                    bool isOracle = false;
 
                     switch (_multiDatabaseSelector.GetSqlTypeId())
                     {
@@ -67,6 +68,16 @@ namespace BlackHole.Internal
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             DropDb = $@"UPDATE pg_database SET datallowconn = 'false' WHERE datname = '{databaseName}'; SELECT pg_terminate_backend(pg_stat_activity.pid)
                             FROM pg_stat_activity WHERE pg_stat_activity.datname = '{databaseName}'; DROP DATABASE ""{databaseName}""";
+                            break;
+                        case 4:
+                            CheckDb = $"SELECT table_name FROM all_tables WHERE owner = 'ROOT';";
+                            List<string> existingTables = connection.Query<string>(CheckDb, null);
+
+                            foreach(string table in existingTables)
+                            {
+                                connection.JustExecute($"DROP TABLE {table} CASCADE CONSTRAINTS;", null);
+                            }
+
                             break;
                     }
 
@@ -129,6 +140,11 @@ namespace BlackHole.Internal
                             CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
+                    }
+
+                    if (isOracle)
+                    {
+                        return dbExists
                     }
 
                     if (!dbExists)

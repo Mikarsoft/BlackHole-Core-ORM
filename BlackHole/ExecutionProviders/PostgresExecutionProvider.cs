@@ -1,7 +1,6 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Logger;
 using Npgsql;
-using System.Data.Common;
 using System.Reflection;
 
 namespace BlackHole.ExecutionProviders

@@ -52,6 +52,10 @@ namespace BlackHole.Configuration
                 services.AddScoped(typeof(IBHConnection), typeof(BHConnection));
                 services.AddServicesAndTables(blackHoleSettings.connectionConfig.additionalSettings, assembly);
             }
+            else
+            {
+                throw new Exception("The Host of the database is inaccessible...");
+            }
 
             return services;
         }

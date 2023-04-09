@@ -2,7 +2,6 @@
 using BlackHole.Enums;
 using BlackHole.Logger;
 using Microsoft.Data.Sqlite;
-using System.Data.Common;
 using System.Reflection;
 
 namespace BlackHole.DataProviders

@@ -1,7 +1,6 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Enums;
 using BlackHole.Logger;
-using System.Data.Common;
 using System.Reflection;
 using Microsoft.Data.SqlClient;
 
