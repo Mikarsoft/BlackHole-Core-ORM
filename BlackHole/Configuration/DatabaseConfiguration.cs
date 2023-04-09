@@ -33,6 +33,7 @@ namespace BlackHole.Configuration
         {
             DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Oracle;
             DatabaseStatics.ConnectionString = connectionString;
+            DatabaseStatics.ServerConnection = connectionString;
         }
 
         private static void ScanMsSqlString(string connectionString)

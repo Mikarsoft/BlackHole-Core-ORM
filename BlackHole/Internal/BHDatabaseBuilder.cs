@@ -141,7 +141,8 @@ namespace BlackHole.Internal
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
                         case 4:
-                            CheckDb = "select status from v$instance;";
+                            CheckDb = "select status from v$instance";
+                            var result = connection.ExecuteScalar<string>(CheckDb, null);
                             dbExists = connection.ExecuteScalar<string>(CheckDb, null) == "OPEN";
                             isOracle = true;
                             break;
