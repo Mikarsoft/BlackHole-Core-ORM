@@ -11,8 +11,8 @@ namespace BlackHole.DataProviders
     {
         #region Constructor
         private readonly string _connectionString;
-        internal readonly string insertedOutput = "RETURNING Id INTO : Id";
-        internal readonly bool skipQuotes = true;
+        internal readonly string insertedOutput = @"returning ""Id"" into :Id";
+        internal readonly bool skipQuotes = false;
         private readonly BlackHoleIdTypes _idType;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
@@ -45,10 +45,16 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ObjectToParameters(entry, Command.Parameters);
 
-                    Id = (G?)Command.ExecuteScalar();
+                    Command.ExecuteScalar();
+                    int param = Command.Parameters.IndexOf("Id");
+
+                    if (param > -1)
+                    {
+                        Id = (G?)Command.Parameters[param].Value;
+                    }
                     connection.Close();
                 }
                 return Id;
@@ -68,10 +74,16 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ObjectToParameters(entry, Command.Parameters);
 
-                    Id = (G?)await Command.ExecuteScalarAsync();
+                    await Command.ExecuteScalarAsync();
+                    int param = Command.Parameters.IndexOf("Id");
+
+                    if (param > -1)
+                    {
+                        Id = (G?)Command.Parameters[param].Value;
+                    }
                     await connection.CloseAsync();
                 }
                 return Id;
@@ -89,17 +101,23 @@ namespace BlackHole.DataProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@",":"), connection);
                 Command.Transaction = transaction;
                 ObjectToParameters(entry, Command.Parameters);
 
-                return (G?)Command.ExecuteScalar();
+                Command.ExecuteScalar();
+                int param = Command.Parameters.IndexOf("Id");
+
+                if (param > -1)
+                {
+                    return (G?)Command.Parameters[param].Value;
+                }
             }
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
-                return default(G);
             }
+            return default(G);
         }
 
         private async Task<G?> ExecuteEntryScalarAsync<T, G>(string commandText, T entry, BlackHoleTransaction bhTransaction)
@@ -108,17 +126,23 @@ namespace BlackHole.DataProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
                 ObjectToParameters(entry, Command.Parameters);
 
-                return (G?)await Command.ExecuteScalarAsync();
+                await Command.ExecuteScalarAsync();
+                int param = Command.Parameters.IndexOf("Id");
+
+                if (param > -1)
+                {
+                    return (G?)Command.Parameters[param].Value;
+                }
             }
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
-                return default(G);
             }
+            return default(G);
         }
         #endregion
 
@@ -137,7 +161,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry))
+                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id)", entry))
                 {
                     return Id;
                 }
@@ -148,7 +172,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}){commandEnd}) {insertedOutput};", entry);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {commandEnd}) {insertedOutput}", entry);
             }
         }
 
@@ -159,7 +183,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
+                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id)", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -170,7 +194,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return ExecuteEntryScalar<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry, bhTransaction);
+                return ExecuteEntryScalar<T, G>($"{commandStart}) {commandEnd}) {insertedOutput}", entry, bhTransaction);
             }
         }
 
@@ -181,7 +205,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry))
+                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id)", entry))
                 {
                     return Id;
                 }
@@ -192,7 +216,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd}) {insertedOutput}", entry);
             }
         }
 
@@ -203,7 +227,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart},Id) {commandEnd},@Id);", entry, bhTransaction))
+                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id)", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -214,7 +238,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd}) {insertedOutput};", entry, bhTransaction);
+                return await ExecuteEntryScalarAsync<T, G>($"{commandStart}) {commandEnd}) {insertedOutput}", entry, bhTransaction);
             }
         }
 
@@ -224,7 +248,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $"{commandStart},Id){commandEnd},@Id);";
+                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id)";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -242,7 +266,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}) {commandEnd}) {insertedOutput};";
+                string commandText = $"{commandStart}) {commandEnd}) {insertedOutput}";
 
                 foreach (T entry in entries)
                 {
@@ -259,7 +283,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $"{commandStart},Id) {commandEnd},@Id);";
+                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id)";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -277,7 +301,7 @@ namespace BlackHole.DataProviders
             }
             else
             {
-                string commandText = $"{commandStart}) {commandEnd}) {insertedOutput};";
+                string commandText = $"{commandStart}) {commandEnd}) {insertedOutput}";
 
                 foreach (T entry in entries)
                 {
@@ -295,7 +319,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -317,7 +341,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -338,7 +362,7 @@ namespace BlackHole.DataProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
                 ObjectToParameters(entry, Command.Parameters);
 
@@ -358,7 +382,7 @@ namespace BlackHole.DataProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
                 ObjectToParameters(entry, Command.Parameters);
 
@@ -378,7 +402,7 @@ namespace BlackHole.DataProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
                 ArrayToParameters(parameters, Command.Parameters);
 
@@ -399,13 +423,12 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
                     connection.Close();
                 }
-
                 return true;
             }
             catch (Exception ex)
@@ -421,7 +444,7 @@ namespace BlackHole.DataProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
                 ArrayToParameters(parameters, Command.Parameters);
 
@@ -442,8 +465,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
-
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -468,7 +490,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText, connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -504,7 +526,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(command, connection);
+                    OracleCommand Command = new OracleCommand(command.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -539,7 +561,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(command, connection);
+                    OracleCommand Command = new OracleCommand(command.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -575,7 +597,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(command, connection);
+                    OracleCommand Command = new OracleCommand(command.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -609,7 +631,7 @@ namespace BlackHole.DataProviders
 
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
 
                 ArrayToParameters(parameters, Command.Parameters);
@@ -644,7 +666,7 @@ namespace BlackHole.DataProviders
 
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
 
                 ArrayToParameters(parameters, Command.Parameters);
@@ -678,7 +700,7 @@ namespace BlackHole.DataProviders
 
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
                 ArrayToParameters(parameters, Command.Parameters);
 
@@ -712,7 +734,7 @@ namespace BlackHole.DataProviders
 
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText, connection);
+                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
                 ArrayToParameters(parameters, Command.Parameters);
 
@@ -744,11 +766,24 @@ namespace BlackHole.DataProviders
             try
             {
                 Type type = typeof(T);
+
+                if (type == typeof(string))
+                {
+                    if (reader.FieldCount > 0) return (T?)reader.GetValue(0);
+                    else return default;
+                }
+
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
                 if (properties.Length == 0 && reader.FieldCount > 0)
                 {
+                    if (typeof(T) == typeof(Guid))
+                    {
+                        object? GValue = reader.GetGuid(0);
+                        return (T?)GValue;
+                    }
+
                     object? value = reader.GetValue(0);
 
                     if (value != null)
@@ -767,7 +802,21 @@ namespace BlackHole.DataProviders
 
                         if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
+
+                            if (property.PropertyType == typeof(Guid))
+                            {
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, GuidParser(reader.GetString(i)));
+                            }
+                            else if (property.PropertyType == typeof(bool))
+                            {
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetBoolean(i));
+                            }
+                            else
+                            {
+                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
+                            }
                         }
                     }
                 }
@@ -775,7 +824,8 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                throw new Exception($"Object Mapping:{ex.Message}");
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                return default;
             }
         }
 
@@ -784,11 +834,24 @@ namespace BlackHole.DataProviders
             try
             {
                 Type type = typeof(T);
+
+                if (type == typeof(string))
+                {
+                    if (reader.FieldCount > 0) return (T?)reader.GetValue(0);
+                    else return default;
+                }
+
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
                 if (properties.Length == 0 && reader.FieldCount > 0)
                 {
+                    if (typeof(T) == typeof(Guid))
+                    {
+                        object? GValue = reader.GetGuid(0);
+                        return (T?)GValue;
+                    }
+
                     object? value = reader.GetValue(0);
 
                     if (value != null)
@@ -807,7 +870,21 @@ namespace BlackHole.DataProviders
 
                         if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
                         {
-                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
+
+                            if (property.PropertyType == typeof(Guid))
+                            {
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, GuidParser(reader.GetString(i)));
+                            }
+                            else if (property.PropertyType == typeof(bool))
+                            {
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetBoolean(i));
+                            }
+                            else
+                            {
+                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
+                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
+                            }
                         }
                     }
                 }
@@ -815,7 +892,20 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                throw new Exception($"Object Mapping:{ex.Message}");
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                return default;
+            }
+        }
+
+        private Guid GuidParser(string guid)
+        {
+            try
+            {
+                return Guid.Parse(guid);
+            }
+            catch
+            {
+                return Guid.Empty;
             }
         }
 
@@ -826,7 +916,19 @@ namespace BlackHole.DataProviders
                 foreach (BlackHoleParameter param in bhParameters)
                 {
                     object? value = param.Value;
-                    parameters.Add(new OracleParameter(@param.Name, value));
+
+                    if (value?.GetType() == typeof(Guid))
+                    {
+                        parameters.Add(new OracleParameter(param.Name, value.ToString()));
+                    }
+                    else if (value?.GetType() == typeof(bool))
+                    {
+                        parameters.Add(new OracleParameter(param.Name, (bool)value ? 1 : 0));
+                    }
+                    else
+                    {
+                        parameters.Add(new OracleParameter(param.Name, value));
+                    }
                 }
             }
         }
@@ -838,15 +940,36 @@ namespace BlackHole.DataProviders
             foreach (PropertyInfo property in propertyInfos)
             {
                 object? value = property.GetValue(item);
-                parameters.Add(new OracleParameter(@property.Name, value));
+
+                if (value?.GetType() == typeof(Guid))
+                {
+                    parameters.Add(new OracleParameter(property.Name, value.ToString()));
+                }
+                else if(value?.GetType() == typeof(bool))
+                {
+                    parameters.Add(new OracleParameter(property.Name, (bool)value ? 1 : 0));
+                }
+                else
+                {
+                    parameters.Add(new OracleParameter(property.Name, value));
+                }
             }
         }
 
         private G? GenerateId<G>()
         {
-            string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
+            object? value = default(G);
 
-            object? value = ToHash.GenerateSHA1();
+            switch (_idType)
+            {
+                case BlackHoleIdTypes.GuidId:
+                    value = Guid.NewGuid();
+                    break;
+                case BlackHoleIdTypes.StringId:
+                    string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
+                    value = ToHash.GenerateSHA1();
+                    break;
+            }
 
             return (G?)value;
         }

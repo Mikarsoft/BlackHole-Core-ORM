@@ -49,13 +49,12 @@ namespace BlackHole.DataProviders
                     ObjectToParameters(entry, Command.Parameters);
 
                     object? Result = Command.ExecuteScalar();
+                    connection.Close();
 
                     if (Result != null)
                     {
                         Id = (G?)Convert.ChangeType(Result, typeof(G));
                     }
-
-                    connection.Close();
                 }
                 return Id;
             }
@@ -78,13 +77,12 @@ namespace BlackHole.DataProviders
                     ObjectToParameters(entry, Command.Parameters);
 
                     object? Result = await Command.ExecuteScalarAsync();
+                    await connection.CloseAsync();
 
                     if (Result != null)
                     {
                         Id = (G?)Convert.ChangeType(Result, typeof(G));
                     }
-
-                    await connection.CloseAsync();
                 }
                 return Id;
             }
@@ -756,6 +754,13 @@ namespace BlackHole.DataProviders
             try
             {
                 Type type = typeof(T);
+
+                if (type == typeof(string))
+                {
+                    if (reader.FieldCount > 0) return (T?)reader.GetValue(0);
+                    else return default;
+                }
+
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
@@ -803,7 +808,8 @@ namespace BlackHole.DataProviders
             }
             catch(Exception ex)
             {
-                throw new Exception($"Object Mapping {typeof(T).Name}:{ex.Message}");
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}",ex.Message,ex.ToString())).Start();
+                return default;
             }
         }
 
@@ -812,6 +818,13 @@ namespace BlackHole.DataProviders
             try
             {
                 Type type = typeof(T);
+
+                if (type == typeof(string))
+                {
+                    if (reader.FieldCount > 0) return (T?)reader.GetValue(0);
+                    else return default;
+                }
+
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
@@ -859,7 +872,8 @@ namespace BlackHole.DataProviders
             }
             catch(Exception ex)
             {
-                throw new Exception($"Object Mapping {typeof(T).Name}:{ex.Message}");
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                return default;
             }
         }
 

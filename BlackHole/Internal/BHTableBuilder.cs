@@ -2,6 +2,7 @@
 using System.Reflection;
 using BlackHole.CoreSupport;
 using BlackHole.Entities;
+using BlackHole.Enums;
 using BlackHole.Logger;
 using BlackHole.Statics;
 
@@ -78,16 +79,23 @@ namespace BlackHole.Internal
             string Tablename = TableType.Name;
             bool tExists = false;
 
-            string tableCheck = $@"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + "')) then 1 else 0 end";
+            string tableCheck = "";
 
-            if (isLite)
+            switch (DatabaseStatics.DatabaseType)
             {
-                tableCheck = $@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'";
-                tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
-            }
-            else
-            {
-                tExists = connection.ExecuteScalar<int>(tableCheck, null) == 1;
+                case BlackHoleSqlTypes.SqlLite:
+                    tableCheck = $@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'";
+                    tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
+                    break;
+                case BlackHoleSqlTypes.Oracle:
+                    var dbName = _multiDatabaseSelector.GetDatabaseName();
+                    tableCheck = $"SELECT table_name FROM all_tables WHERE owner ='{dbName}' and TABLE_NAME = '{Tablename}'";
+                    tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
+                    break;
+                default:
+                    tableCheck = $"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + "')) then 1 else 0 end";
+                    tExists = connection.ExecuteScalar<int>(tableCheck, null) == 1;
+                    break;
             }
 
             if (!tExists)
@@ -128,7 +136,7 @@ namespace BlackHole.Internal
                     }
                 }
 
-                creationCommand = creationCommand.Substring(0, creationCommand.Length - 2) + ");";
+                creationCommand = creationCommand.Substring(0, creationCommand.Length - 2) + ")";
                 return connection.JustExecute(creationCommand , null);
             }
 
@@ -432,11 +440,11 @@ namespace BlackHole.Internal
         {
             string constraint = $"ADD CONSTRAINT fk_{Tablename}_{tName}";
 
-            string result = $"{alterTable} {constraint} FOREIGN KEY ({propName}) REFERENCES {tName}({tColumn}) {cascadeInfo};";
+            string result = $"{alterTable} {constraint} FOREIGN KEY ({propName}) REFERENCES {tName}({tColumn}) {cascadeInfo}";
 
             if (!isMyShit)
             {
-                result = $@"{alterTable} {constraint} FOREIGN KEY (""{propName}"") REFERENCES ""{tName}""(""{tColumn}"") {cascadeInfo};";
+                result = $@"{alterTable} {constraint} FOREIGN KEY (""{propName}"") REFERENCES ""{tName}""(""{tColumn}"") {cascadeInfo}";
             }
 
             return result;

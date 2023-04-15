@@ -78,7 +78,7 @@ namespace BlackHole.Internal
                     PrimaryKeyCommand = "Id INTEGER PRIMARY KEY AUTOINCREMENT ,";
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    PrimaryKeyCommand = "Id MEDIUMINT NOT NULL AUTO_INCREMENT ,";
+                    PrimaryKeyCommand = @"""Id"" NUMBER(8,0) GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,";
                     break;
             }
             return PrimaryKeyCommand;
@@ -106,7 +106,7 @@ namespace BlackHole.Internal
                     PrimaryKeyCommand = "Id TEXT PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    PrimaryKeyCommand = "Id Nvarchar2(50) NOT NULL PRIMARY KEY ,";
+                    PrimaryKeyCommand = @"""Id"" varchar2(50) NOT NULL PRIMARY KEY ,";
                     break;
             }
             return PrimaryKeyCommand;
@@ -124,19 +124,19 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = @"Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,";
+                    PrimaryKeyCommand = "Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,";
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    PrimaryKeyCommand = @"Id varchar(36) NOT NULL PRIMARY KEY ,";
+                    PrimaryKeyCommand = "Id varchar(36) NOT NULL PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.Postgres:
                     PrimaryKeyCommand = @"""Id"" uuid DEFAULT gen_random_uuid() PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    PrimaryKeyCommand = @"Id TEXT PRIMARY KEY ,";
+                    PrimaryKeyCommand = "Id TEXT PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    PrimaryKeyCommand = @"Id RAW(32) DEFAULT SYS_GUID() PRIMARY KEY ,";
+                    PrimaryKeyCommand = @"""Id"" varchar2(32) DEFAULT SYS_GUID() PRIMARY KEY ,";
                     break;
             }
             return PrimaryKeyCommand;
@@ -149,7 +149,7 @@ namespace BlackHole.Internal
         bool IBHDatabaseSelector.GetMyShit()
         {
             bool myShit = false;
-            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
+            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres && DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Oracle)
             {
                 myShit = true;
             }
@@ -218,7 +218,7 @@ namespace BlackHole.Internal
                     SqlDatatypes = new[] { "varchar", "char", "int2", "integer", "bigint", "decimal", "float", "numeric", "text", "boolean", "datetime", "blob" };
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    SqlDatatypes = new[] { "NVarchar2", "Char", "Number(4,0)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number(18,0)", "Number", "Raw(16)", "Number(1,0)", "Timestamp", "Blob" };
+                    SqlDatatypes = new[] { "varchar2", "Char", "Number(4,0)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number(18,0)", "Number", "varchar2(36)", "Number(1,0)", "Timestamp", "Blob" };
                     break;
             }
             return SqlDatatypes;

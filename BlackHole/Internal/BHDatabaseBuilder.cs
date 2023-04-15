@@ -71,12 +71,12 @@ namespace BlackHole.Internal
                         case 4:
                             if(!string.IsNullOrWhiteSpace(databaseName))
                             {
-                                CheckDb = $"SELECT table_name FROM all_tables WHERE owner = '{databaseName}';";
+                                CheckDb = $"SELECT table_name FROM all_tables WHERE owner = '{databaseName}'";
                                 List<string> existingTables = connection.Query<string>(CheckDb, null);
 
                                 foreach (string table in existingTables)
                                 {
-                                    connection.JustExecute($"DROP TABLE {table} CASCADE CONSTRAINTS;", null);
+                                    connection.JustExecute($@"DROP TABLE ""{table}"" CASCADE CONSTRAINTS", null);
                                 }
                             }
                             break;
@@ -144,7 +144,8 @@ namespace BlackHole.Internal
                             break;
                         case 4:
                             CheckDb = "select status from v$instance";
-                            dbExists = connection.ExecuteScalar<string>(CheckDb, null) == "OPEN";
+                            string? result = connection.ExecuteScalar<string>(CheckDb, null);
+                            dbExists = result?.ToUpper() == "OPEN";
                             isOracle = true;
                             break;
                     }
@@ -217,8 +218,9 @@ namespace BlackHole.Internal
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
                         case 4:
-                            CheckDb = "select status from v$instance;";
-                            dbExists = connection.ExecuteScalar<string>(CheckDb, null) == "OPEN";
+                            CheckDb = "select status from v$instance";
+                            string? result = connection.ExecuteScalar<string>(CheckDb, null);
+                            dbExists = result?.ToUpper() == "OPEN";
                             break;
                     }
 

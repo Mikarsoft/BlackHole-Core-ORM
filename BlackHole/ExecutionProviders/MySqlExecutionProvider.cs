@@ -491,6 +491,13 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 Type type = typeof(T);
+
+                if (type == typeof(string))
+                {
+                    if (reader.FieldCount > 0) return (T?)reader.GetValue(0);
+                    else return default;
+                }
+
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
@@ -538,7 +545,8 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                throw new Exception($"Object Mapping {typeof(T).Name}:{ex.Message}");
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                return default;
             }
         }
 
@@ -547,6 +555,13 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 Type type = typeof(T);
+
+                if (type == typeof(string))
+                {
+                    if (reader.FieldCount > 0) return (T?)reader.GetValue(0);
+                    else return default;
+                }
+
                 PropertyInfo[] properties = type.GetProperties();
                 object? obj = Activator.CreateInstance(type);
 
@@ -594,7 +609,8 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                throw new Exception($"Object Mapping {typeof(T).Name}:{ex.Message}");
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                return default;
             }
         }
 

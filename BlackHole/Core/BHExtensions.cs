@@ -678,8 +678,8 @@ namespace BlackHole.Core
                 case BlackHoleSqlTypes.SqlLite:
                     SqlDatatypes = new[] { "varchar(500)", "integer", "bigint", "decimal(10,5)", "numeric" };
                     break;
-                default:
-                    SqlDatatypes = new[] { "char", "int", "bigint", "dec", "double" };
+                case BlackHoleSqlTypes.Oracle:
+                    SqlDatatypes = new[] { "varchar2(500)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number" };
                     break;
             }
 
