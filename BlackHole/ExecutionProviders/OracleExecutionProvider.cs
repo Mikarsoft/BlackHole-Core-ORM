@@ -651,6 +651,10 @@ namespace BlackHole.ExecutionProviders
                     {
                         parameters.Add(new OracleParameter(param.Name, value.ToString()));
                     }
+                    else if (value?.GetType() == typeof(bool))
+                    {
+                        parameters.Add(new OracleParameter(param.Name, (bool)value ? 1 : 0));
+                    }
                     else
                     {
                         parameters.Add(new OracleParameter(param.Name, value));

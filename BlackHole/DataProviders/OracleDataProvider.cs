@@ -103,6 +103,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@",":"), connection);
                 Command.Transaction = transaction;
+                Command.BindByName = true;
                 ObjectToParameters(entry, Command.Parameters);
 
                 Command.ExecuteScalar();
@@ -364,7 +365,8 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
-                ObjectToParameters(entry, Command.Parameters);
+                Command.BindByName = true;
+                Command.Parameters.AddRange(ObjectToParameters(entry));
 
                 Command.ExecuteNonQuery();
                 return true;
@@ -931,6 +933,32 @@ namespace BlackHole.DataProviders
                     }
                 }
             }
+        }
+
+        private OracleParameter[] ObjectToParameters<T>(T item)
+        {
+            PropertyInfo[] propertyInfos = typeof(T).GetProperties();
+            OracleParameter[] parameters = new OracleParameter[propertyInfos.Length];
+
+            for (int i = 0; i < propertyInfos.Length; i++)
+            {
+                object? value = propertyInfos[i].GetValue(item);
+
+                if (value?.GetType() == typeof(Guid))
+                {
+                    parameters[i] = new OracleParameter(propertyInfos[i].Name, value.ToString());
+                }
+                else if (value?.GetType() == typeof(bool))
+                {
+                    parameters[i] = new OracleParameter(propertyInfos[i].Name, (bool)value ? 1 : 0);
+                }
+                else
+                {
+                    parameters[i]=new OracleParameter(propertyInfos[i].Name, value);
+                }
+            }
+
+            return parameters;
         }
 
         private void ObjectToParameters<T>(T item, OracleParameterCollection parameters)
