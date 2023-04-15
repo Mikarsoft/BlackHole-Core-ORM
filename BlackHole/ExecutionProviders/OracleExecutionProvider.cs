@@ -43,7 +43,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -68,7 +68,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", commandText, ex.Message, ex.ToString())).Start();
             }
             return default(G);
         }
@@ -96,7 +96,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", commandText, ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -120,7 +120,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Scalar", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString())).Start();
             }
             return default(G);
         }
@@ -143,7 +143,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Execute", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -163,7 +163,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Execute", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Execute", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -185,7 +185,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -205,7 +205,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -241,7 +241,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -276,7 +276,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -311,7 +311,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -345,7 +345,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -381,7 +381,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -415,7 +415,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -450,7 +450,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -483,7 +483,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -554,7 +554,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString())).Start();
                 return default;
             }
         }
@@ -622,7 +622,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString())).Start();
                 return default;
             }
         }

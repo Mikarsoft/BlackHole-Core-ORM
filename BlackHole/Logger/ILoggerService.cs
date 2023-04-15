@@ -8,6 +8,6 @@
         /// <param name="Area">Method</param>
         /// <param name="Message">Error Title</param>
         /// <param name="Details">Error Details</param>
-        void CreateErrorLogs(string Area, string Message, string Details);
+        void CreateErrorLogs(string Area,string commandText, string Message, string Details);
     }
 }

@@ -61,7 +61,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -90,7 +90,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"InsertAsync_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"InsertAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
                 return default(G);
             }
         }
@@ -115,7 +115,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Insert_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
             }
             return default(G);
         }
@@ -140,7 +140,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
             }
             return default(G);
         }
@@ -161,7 +161,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id)", entry))
+                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd}, @Id)", entry))
                 {
                     return Id;
                 }
@@ -183,7 +183,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd},@Id)", entry, bhTransaction))
+                if (ExecuteEntry($@"{commandStart},""Id"") {commandEnd}, @Id)", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -205,7 +205,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id)", entry))
+                if (await ExecuteEntryAsync($@"{commandStart}, ""Id"") {commandEnd}, @Id)", entry))
                 {
                     return Id;
                 }
@@ -227,7 +227,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd},@Id)", entry, bhTransaction))
+                if (await ExecuteEntryAsync($@"{commandStart},""Id"") {commandEnd}, @Id)", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -248,7 +248,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id)";
+                string commandText = $@"{commandStart},""Id"") {commandEnd}, @Id)";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -283,7 +283,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $@"{commandStart},""Id"") {commandEnd},@Id)";
+                string commandText = $@"{commandStart},""Id"") {commandEnd}, @Id)";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -329,7 +329,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -351,7 +351,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -371,7 +371,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -391,7 +391,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -411,7 +411,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -433,7 +433,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -453,7 +453,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -475,7 +475,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -512,12 +512,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Insert", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Insert", commandText, ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
 
-        public List<T> Query<T>(string command, List<BlackHoleParameter>? parameters)
+        public List<T> Query<T>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -526,7 +526,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(command.Replace("@", ":"), connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -547,12 +547,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
 
-        public async Task<T?> QueryFirstAsync<T>(string command, List<BlackHoleParameter>? parameters)
+        public async Task<T?> QueryFirstAsync<T>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -561,7 +561,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(command.Replace("@", ":"), connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -583,12 +583,12 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
 
-        public async Task<List<T>> QueryAsync<T>(string command, List<BlackHoleParameter>? parameters)
+        public async Task<List<T>> QueryAsync<T>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
@@ -597,7 +597,7 @@ namespace BlackHole.DataProviders
                 using (OracleConnection connection = new OracleConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(command.Replace("@", ":"), connection);
+                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -618,7 +618,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -653,7 +653,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -687,7 +687,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -721,7 +721,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return default(T);
             }
         }
@@ -754,7 +754,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Select", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs("Select", commandText, ex.Message, ex.ToString())).Start();
                 return new List<T>();
             }
         }
@@ -824,7 +824,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString())).Start();
                 return default;
             }
         }
@@ -892,7 +892,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString())).Start();
                 return default;
             }
         }

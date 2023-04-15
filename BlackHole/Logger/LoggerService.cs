@@ -46,7 +46,7 @@ namespace BlackHole.Logger
             return hash.ToString();
         }
 
-        public void CreateErrorLogs(string Area, string Message, string Details)
+        public void CreateErrorLogs(string Area,string commandText, string Message, string Details)
         {
             if (canWriteLogs)
             {
@@ -58,6 +58,7 @@ namespace BlackHole.Logger
                     using (var tw = new StreamWriter(pathFile, true))
                     {
                         tw.WriteLine($"Date and Time: {DateTime.Now.ToString("s").Replace(":", ".")}");
+                        tw.WriteLine($"Command : {commandText}");
                         tw.WriteLine($"Error: {Message}");
                         tw.WriteLine($"Details: {Details}");
                     }

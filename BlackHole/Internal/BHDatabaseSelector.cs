@@ -136,7 +136,7 @@ namespace BlackHole.Internal
                     PrimaryKeyCommand = "Id TEXT PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    PrimaryKeyCommand = @"""Id"" varchar2(32) DEFAULT SYS_GUID() PRIMARY KEY ,";
+                    PrimaryKeyCommand = @"""Id"" varchar2(36) NOT NULL PRIMARY KEY ,";
                     break;
             }
             return PrimaryKeyCommand;

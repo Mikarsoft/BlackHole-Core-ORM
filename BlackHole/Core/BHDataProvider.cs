@@ -60,9 +60,9 @@ namespace BlackHole.Core
                     if (prop.Name != "Id")
                     {
                         string property = MyShit(prop.Name);
-                        PropertyNames += $",{property}";
-                        PropertyParams += $",@{prop.Name}";
-                        UpdateParams += $",{property}=@{prop.Name}";
+                        PropertyNames += $", {property}";
+                        PropertyParams += $", @{prop.Name}";
+                        UpdateParams += $",{property} = @{prop.Name}";
                     }
 
                     Columns.Add(prop.Name);
@@ -83,7 +83,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0";
             }
 
             return _dataProvider.Query<T>(SubCommand, null);
@@ -95,7 +95,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0";
             }
 
             return _dataProvider.Query<T>(SubCommand, null, bhTransaction.transaction);
@@ -109,7 +109,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0";
             }
 
             return _dataProvider.Query<Dto>(SubCommand, null);
@@ -123,7 +123,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0";
             }
 
             return _dataProvider.Query<Dto>(SubCommand, null, bhTransaction.transaction);
@@ -135,7 +135,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=1";
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1";
                 entries = _dataProvider.Query<T>(SubCommand, null);
             }
 
@@ -148,7 +148,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=1";
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1";
                 entries = _dataProvider.Query<T>(SubCommand, null, bhTransaction.transaction);
             }
 
@@ -157,14 +157,14 @@ namespace BlackHole.Core
 
         T? IBHDataProvider<T, G>.GetEntryById(G Id)
         {
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id";
 
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
 
             return _dataProvider.QueryFirst<T>(SubCommand, parameters.Parameters);
@@ -172,14 +172,14 @@ namespace BlackHole.Core
 
         T? IBHDataProvider<T, G>.GetEntryById(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id";
 
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
 
             return _dataProvider.QueryFirst<T>(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -189,14 +189,14 @@ namespace BlackHole.Core
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
 
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id";
 
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
 
             return _dataProvider.QueryFirst<Dto>(SubCommand, parameters.Parameters);
@@ -206,14 +206,14 @@ namespace BlackHole.Core
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
 
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id";
 
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
 
             return _dataProvider.QueryFirst<Dto>(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -227,7 +227,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.QueryFirst<T>(SubCommand, sql.Parameters.Parameters);
@@ -241,7 +241,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.QueryFirst<T>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
@@ -256,7 +256,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.QueryFirst<Dto>(SubCommand, sql.Parameters.Parameters);
@@ -271,7 +271,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.QueryFirst<Dto>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
@@ -285,7 +285,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.Query<T>(SubCommand, sql.Parameters.Parameters);
@@ -299,7 +299,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.Query<T>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
@@ -314,7 +314,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.Query<Dto>(SubCommand, sql.Parameters.Parameters);
@@ -329,7 +329,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.Query<Dto>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
@@ -338,21 +338,21 @@ namespace BlackHole.Core
         G? IBHDataProvider<T, G>.InsertEntry(T entry)
         {
             string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams},0";
+            string commandEnd = $"values ({PropertyParams}, 0";
             return _dataProvider.InsertScalar<T, G>(commandStart,commandEnd, entry);
         }
 
         G? IBHDataProvider<T, G>.InsertEntry(T entry, BHTransaction bhTransaction)
         {
-            string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams},0";
+            string commandStart = $"insert into {ThisTable} ({PropertyNames}, {ThisInactive}";
+            string commandEnd = $"values ({PropertyParams}, 0";
             return _dataProvider.InsertScalar<T, G>(commandStart, commandEnd, entry, bhTransaction.transaction);
         }
 
         List<G?> IBHDataProvider<T, G>.InsertEntries(List<T> entries)
         {
             string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams},0";
+            string commandEnd = $"values ({PropertyParams}, 0";
             List<G?> Ids = new List<G?>();
 
             using(BlackHoleTransaction bhTransaction = new BlackHoleTransaction())
@@ -366,43 +366,43 @@ namespace BlackHole.Core
         List<G?> IBHDataProvider<T, G>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
         {
             string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams},0";
+            string commandEnd = $"values ({PropertyParams}, 0";
             return _dataProvider.MultiInsertScalar<T, G>(commandStart, commandEnd, entries, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById(T entry)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
             return _dataProvider.ExecuteEntry(updateCommand, entry);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById(T entry, BHTransaction bhTransaction)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
             return _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id";
             return _dataProvider.ExecuteEntry(updateCommand, entry);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id";
             return _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
             return UpdateMany(entries, updateCommand);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries, BHTransaction bhTransaction)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
             return UpdateMany(entries, updateCommand, bhTransaction.transaction);
         }
 
@@ -427,7 +427,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive}=0 and {sql.Columns}";
+                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters);
@@ -442,7 +442,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive}=0 and {sql.Columns}";
+                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
@@ -457,7 +457,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive}=0 and {sql.Columns}";
+                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters);
@@ -472,7 +472,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive}=0 and {sql.Columns}";
+                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
@@ -484,7 +484,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisInactive}=0";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0";
             }
 
             return _dataProvider.JustExecute(SubCommand, null);
@@ -496,7 +496,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisInactive}=0";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0";
             }
 
             return _dataProvider.JustExecute(SubCommand, null, bhTransaction.transaction);
@@ -504,11 +504,11 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteEntryById(G Id)
         {
-            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id";
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisId}=@Id";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id";
             }
 
             BHParameters parameters = new BHParameters();
@@ -519,11 +519,11 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteEntryById(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id";
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisId}=@Id";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id";
             }
 
             BHParameters parameters = new BHParameters();
@@ -534,7 +534,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id)
         {
-            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
+            string SubCommand = $"delete from {ThisTable} where {ThisId}= @Id and {ThisInactive} = 1";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters);
@@ -542,7 +542,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
+            string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -550,7 +550,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.ReactivateEntryById(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
+            string SubCommand = $"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -558,7 +558,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.ReactivateEntryById(G Id)
         {
-            string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
+            string SubCommand = $"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters);
@@ -572,7 +572,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {sql.Columns}";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
 
             return _dataProvider.JustExecute(SubCommand, sql.Parameters.Parameters);
@@ -598,7 +598,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0";
             }
 
             return await _dataProvider.QueryAsync<T>(SubCommand,null);
@@ -610,7 +610,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0";
             }
 
             return await _dataProvider.QueryAsync<T>(SubCommand, null ,bhTransaction.transaction);
@@ -624,7 +624,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0";
             }
 
             return await _dataProvider.QueryAsync<Dto>(SubCommand, null);
@@ -640,7 +640,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0";
             }
 
             return await _dataProvider.QueryAsync<Dto>(SubCommand, null, bhTransaction.transaction);
@@ -650,7 +650,7 @@ namespace BlackHole.Core
         {
             if (withActivator)
             {
-                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=1";
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1";
                 return await _dataProvider.QueryAsync<T>(SubCommand, null);
             }
 
@@ -661,7 +661,7 @@ namespace BlackHole.Core
         {
             if (withActivator)
             {
-                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=1";
+                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1";
                 return await _dataProvider.QueryAsync<T>(SubCommand, null, bhTransaction.transaction);
             }
 
@@ -670,13 +670,13 @@ namespace BlackHole.Core
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id)
         {
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
 
             return await _dataProvider.QueryFirstAsync<T>(SubCommand, parameters.Parameters);
@@ -684,13 +684,13 @@ namespace BlackHole.Core
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
 
             return await _dataProvider.QueryFirstAsync<T>(SubCommand, parameters.Parameters,bhTransaction.transaction);
@@ -700,14 +700,14 @@ namespace BlackHole.Core
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
 
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id";
 
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
 
             return await _dataProvider.QueryFirstAsync<Dto>(SubCommand, parameters.Parameters);
@@ -717,14 +717,14 @@ namespace BlackHole.Core
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
 
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id";
 
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId}=@Id and {ThisInactive}=0";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
 
             return await _dataProvider.QueryFirstAsync<Dto>(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -738,7 +738,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.QueryFirstAsync<T>(SubCommand, sql.Parameters.Parameters);
@@ -752,7 +752,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.QueryFirstAsync<T>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
@@ -767,7 +767,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.QueryFirstAsync<Dto>(SubCommand, sql.Parameters.Parameters);
@@ -782,7 +782,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.QueryFirstAsync<Dto>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
@@ -796,7 +796,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.QueryAsync<T>(SubCommand, sql.Parameters.Parameters);
@@ -810,7 +810,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.QueryAsync<T>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
@@ -825,7 +825,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.QueryAsync<Dto>(SubCommand, sql.Parameters.Parameters);
@@ -840,7 +840,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
+                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.QueryAsync<Dto>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
@@ -849,21 +849,21 @@ namespace BlackHole.Core
         async Task<G?> IBHDataProvider<T, G>.InsertEntryAsync(T entry)
         {
             string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams},0";
+            string commandEnd = $"values ({PropertyParams}, 0";
             return await _dataProvider.InsertScalarAsync<T, G>(commandStart, commandEnd, entry);
         }
 
         async Task<G?> IBHDataProvider<T, G>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
         {
             string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams},0";
+            string commandEnd = $"values ({PropertyParams}, 0";
             return await _dataProvider.InsertScalarAsync<T, G>(commandStart, commandEnd, entry, bhTransaction.transaction);
         }
 
         async Task<List<G?>> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries)
         {
             string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams},0";
+            string commandEnd = $"values ({PropertyParams}, 0";
             List<G?> Ids = new List<G?>();
 
             using(BlackHoleTransaction bhTransaction = new BlackHoleTransaction())
@@ -877,55 +877,55 @@ namespace BlackHole.Core
         async Task<List<G?>> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
         {
             string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams},0";
+            string commandEnd = $"values ({PropertyParams}, 0";
             return await _dataProvider.MultiInsertScalarAsync<T, G>(commandStart, commandEnd, entries, bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync(T entry)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
             return await _dataProvider.ExecuteEntryAsync(updateCommand, entry);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync(T entry, BHTransaction bhTransaction)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
             return await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync<Columns>(T entry) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id";
             return await _dataProvider.ExecuteEntryAsync(updateCommand, entry);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id";
             return await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync(List<T> entries)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
             return await UpdateManyAsync(entries, updateCommand);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync(List<T> entries, BHTransaction bhTransaction)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
             return await UpdateManyAsync(entries, updateCommand, bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync<Columns>(List<T> entries) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id";
             return await UpdateManyAsync(entries, updateCommand);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync<Columns>(List<T> entries, BHTransaction bhTransaction) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
+            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id";
             return await UpdateManyAsync(entries, updateCommand, bhTransaction.transaction);
         }
 
@@ -938,7 +938,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive}=0 and {sql.Columns}";
+                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters);
@@ -953,7 +953,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive}=0 and {sql.Columns}";
+                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
@@ -968,7 +968,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive}=0 and {sql.Columns}";
+                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters);
@@ -983,7 +983,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive}=0 and {sql.Columns}";
+                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
             return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
@@ -995,7 +995,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisInactive}=0";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0";
             }
 
             return await _dataProvider.JustExecuteAsync(SubCommand, null);
@@ -1007,7 +1007,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisInactive}=0";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0";
             }
 
             return await _dataProvider.JustExecuteAsync(SubCommand, null, bhTransaction.transaction);
@@ -1015,11 +1015,11 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntryByIdAsync(G Id)
         {
-            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id";
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisId}=@Id";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id";
             }
 
             BHParameters parameters = new BHParameters();
@@ -1030,11 +1030,11 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id";
+            string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id";
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {ThisId}=@Id";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id";
             }
 
             BHParameters parameters = new BHParameters();
@@ -1045,7 +1045,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id)
         {
-            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
+            string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters);
@@ -1053,7 +1053,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"delete from {ThisTable} where {ThisId}=@Id and {ThisInactive}=1";
+            string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -1061,7 +1061,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
+            string SubCommand = $"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -1069,7 +1069,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id)
         {
-            string SubCommand = $"update {ThisTable} set {ThisInactive}=0 where {ThisId}=@Id and {ThisInactive}=1";
+            string SubCommand = $"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1";
             BHParameters parameters = new BHParameters();
             parameters.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters);
@@ -1083,7 +1083,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {sql.Columns}";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
 
             return await _dataProvider.JustExecuteAsync(SubCommand, sql.Parameters.Parameters);
@@ -1097,7 +1097,7 @@ namespace BlackHole.Core
 
             if (withActivator)
             {
-                SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {sql.Columns}";
+                SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
 
             return await _dataProvider.JustExecuteAsync(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);

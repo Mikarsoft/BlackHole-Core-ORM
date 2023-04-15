@@ -31,7 +31,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Commit", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Commit", "Commit", ex.Message, ex.ToString())).Start();
                 result = false;
             }
             return result;
@@ -54,7 +54,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Rollback", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Rollback", "Rollback", ex.Message, ex.ToString())).Start();
                 result = false;
             }
             return result;
@@ -71,7 +71,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Commit", ex.Message, ex.ToString())).Start();
+                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Commit", "Commit", ex.Message, ex.ToString())).Start();
                 _transaction.Rollback();
             }
 

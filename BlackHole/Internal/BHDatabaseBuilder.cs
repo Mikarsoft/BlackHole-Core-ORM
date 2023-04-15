@@ -24,6 +24,8 @@ namespace BlackHole.Internal
         /// <returns></returns>
         bool IBHDatabaseBuilder.DropDatabase()
         {
+            string CheckDb = "";
+
             try
             {
                 bool isLite = _multiDatabaseSelector.IsLite();
@@ -47,7 +49,6 @@ namespace BlackHole.Internal
                 else
                 {
                     string databaseName = _multiDatabaseSelector.GetDatabaseName();
-                    string CheckDb = "";
                     bool dbExists = false;
                     string DropDb = $@"DROP DATABASE IF EXISTS ""{databaseName}""";
 
@@ -92,7 +93,7 @@ namespace BlackHole.Internal
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString());
+                _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -103,6 +104,8 @@ namespace BlackHole.Internal
         /// <returns></returns>
         bool IBHDatabaseBuilder.CreateDatabase()
         {
+            string CheckDb = "";
+
             try
             {
                 bool isLite = _multiDatabaseSelector.IsLite();
@@ -121,7 +124,6 @@ namespace BlackHole.Internal
                 else
                 {
                     string databaseName = _multiDatabaseSelector.GetDatabaseName();
-                    string CheckDb = "";
                     bool dbExists = true;
                     string CreateDb = $@"CREATE DATABASE ""{databaseName}""";
                     bool isOracle = false;
@@ -165,7 +167,7 @@ namespace BlackHole.Internal
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString());
+                _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
                 return false;
             }
         }
@@ -176,6 +178,8 @@ namespace BlackHole.Internal
         /// <returns></returns>
         bool IBHDatabaseBuilder.DoesDbExists()
         {
+            string CheckDb = "";
+
             try
             {
                 string serverConnection = _multiDatabaseSelector.GetServerConnection();
@@ -200,7 +204,6 @@ namespace BlackHole.Internal
                     bool dbExists = true;
 
                     string databaseName = _multiDatabaseSelector.GetDatabaseName();
-                    string CheckDb = "";
 
                     switch (_multiDatabaseSelector.GetSqlTypeId())
                     {
@@ -229,7 +232,7 @@ namespace BlackHole.Internal
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString());
+                _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
                 return false;
             }
         }
