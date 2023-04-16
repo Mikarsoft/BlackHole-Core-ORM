@@ -46,6 +46,7 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ObjectToParameters(entry, Command.Parameters);
 
                     Command.ExecuteScalar();
@@ -75,6 +76,7 @@ namespace BlackHole.DataProviders
                 {
                     await connection.OpenAsync();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ObjectToParameters(entry, Command.Parameters);
 
                     await Command.ExecuteScalarAsync();
@@ -129,6 +131,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
+                Command.BindByName = true;
                 ObjectToParameters(entry, Command.Parameters);
 
                 await Command.ExecuteScalarAsync();
@@ -321,6 +324,7 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ObjectToParameters(entry, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -343,6 +347,7 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ObjectToParameters(entry, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -366,7 +371,7 @@ namespace BlackHole.DataProviders
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
                 Command.BindByName = true;
-                Command.Parameters.AddRange(ObjectToParameters(entry));
+                ObjectToParameters(entry, Command.Parameters);
 
                 Command.ExecuteNonQuery();
                 return true;
@@ -386,6 +391,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
+                Command.BindByName = true;
                 ObjectToParameters(entry, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -406,6 +412,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
+                Command.BindByName = true;
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -426,6 +433,7 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -448,6 +456,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
+                Command.BindByName = true;
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -468,6 +477,7 @@ namespace BlackHole.DataProviders
                 {
                     await connection.OpenAsync();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -493,6 +503,7 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -529,6 +540,7 @@ namespace BlackHole.DataProviders
                 {
                     connection.Open();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -564,6 +576,7 @@ namespace BlackHole.DataProviders
                 {
                     await connection.OpenAsync();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -600,6 +613,7 @@ namespace BlackHole.DataProviders
                 {
                     await connection.OpenAsync();
                     OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
+                    Command.BindByName = true;
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -635,7 +649,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
-
+                Command.BindByName = true;
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -670,7 +684,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
-
+                Command.BindByName = true;
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -704,6 +718,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
+                Command.BindByName = true;
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -738,6 +753,7 @@ namespace BlackHole.DataProviders
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
                 Command.Transaction = transaction;
+                Command.BindByName = true;
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -782,7 +798,7 @@ namespace BlackHole.DataProviders
                 {
                     if (typeof(T) == typeof(Guid))
                     {
-                        object? GValue = reader.GetGuid(0);
+                        object? GValue = GuidParser(reader.GetString(0));
                         return (T?)GValue;
                     }
 
@@ -850,7 +866,7 @@ namespace BlackHole.DataProviders
                 {
                     if (typeof(T) == typeof(Guid))
                     {
-                        object? GValue = reader.GetGuid(0);
+                        object? GValue = GuidParser(reader.GetString(0));
                         return (T?)GValue;
                     }
 
@@ -933,32 +949,6 @@ namespace BlackHole.DataProviders
                     }
                 }
             }
-        }
-
-        private OracleParameter[] ObjectToParameters<T>(T item)
-        {
-            PropertyInfo[] propertyInfos = typeof(T).GetProperties();
-            OracleParameter[] parameters = new OracleParameter[propertyInfos.Length];
-
-            for (int i = 0; i < propertyInfos.Length; i++)
-            {
-                object? value = propertyInfos[i].GetValue(item);
-
-                if (value?.GetType() == typeof(Guid))
-                {
-                    parameters[i] = new OracleParameter(propertyInfos[i].Name, value.ToString());
-                }
-                else if (value?.GetType() == typeof(bool))
-                {
-                    parameters[i] = new OracleParameter(propertyInfos[i].Name, (bool)value ? 1 : 0);
-                }
-                else
-                {
-                    parameters[i]=new OracleParameter(propertyInfos[i].Name, value);
-                }
-            }
-
-            return parameters;
         }
 
         private void ObjectToParameters<T>(T item, OracleParameterCollection parameters)
