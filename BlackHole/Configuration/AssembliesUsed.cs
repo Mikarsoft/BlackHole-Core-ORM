@@ -13,7 +13,7 @@ namespace BlackHole.Configuration
         /// Scans a specified assembly for BlackHole Entities and Services
         /// and uses only them.
         /// </summary>
-        /// <param name="otherAssembly"></param>
+        /// <param name="otherAssembly">Full Assembly</param>
         public void UseOtherAssembly(Assembly otherAssembly)
         {
             ScanAssembly = otherAssembly;

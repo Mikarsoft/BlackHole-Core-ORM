@@ -12,7 +12,8 @@ namespace BlackHole.Configuration
         internal AssembliesUsed? AssemblyToUse { get; set; }
 
         /// <summary>
-        /// 
+        /// Using only the services that are in the
+        /// specified Namespace and inherit from BlackHole Services Classes.
         /// </summary>
         /// <param name="servicesNamespace"></param>
         /// <returns></returns>
@@ -24,7 +25,8 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
-        /// 
+        /// Using only the services that are in the
+        /// specified Namespaces and inherit from BlackHole Services Classes.
         /// </summary>
         /// <param name="servicesNamespaces"></param>
         /// <returns></returns>
@@ -36,9 +38,10 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
-        /// 
+        /// Scans a specified assembly for BlackHole Entities and Services
+        /// and uses only them.
         /// </summary>
-        /// <param name="otherAssembly"></param>
+        /// <param name="otherAssembly">Full Assembly</param>
         public void UseOtherAssembly(Assembly otherAssembly)
         {
             AssemblyToUse = new AssembliesUsed();
