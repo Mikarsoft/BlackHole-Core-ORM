@@ -1,6 +1,10 @@
 ﻿
 namespace BlackHole.Configuration
 {
+    /// <summary>
+    /// The full configuration object.
+    /// It contains all the settings for this library.
+    /// </summary>
     public class BlackHoleSettings
     {
         public DataPathSettings directorySettings { get; set; } = new DataPathSettings();

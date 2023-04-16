@@ -3,6 +3,11 @@ using System.Reflection;
 
 namespace BlackHole.Configuration
 {
+    /// <summary>
+    /// Additional configuration object 
+    /// for the Namespaces and the Assemblies that
+    /// will be used by the BlackHole.
+    /// </summary>
     public class ConnectionAdditionalSettings
     {
         internal EntitiesWithNamespace? EntityNamespaces { get; set; }
@@ -10,6 +15,12 @@ namespace BlackHole.Configuration
         internal List<Assembly> AssembliesToUse { get; set; } = new List<Assembly>();
         internal bool useCallingAssembly { get; set; } = true;
 
+        /// <summary>
+        /// Using only the Entities that are in the specified 
+        /// Namespace.
+        /// </summary>
+        /// <param name="entityNamespace">Namespace Full Name 'MyProject.Entities....'</param>
+        /// <returns></returns>
         public ServicesWithNamespace UseEntitiesInNamespace(string entityNamespace)
         {
             EntityNamespaces = new EntitiesWithNamespace();
@@ -19,6 +30,11 @@ namespace BlackHole.Configuration
             return ServicesNamespaces;
         }
 
+        /// <summary>
+        /// Using only the Entities in the specified Namespaces.
+        /// </summary>
+        /// <param name="entityNamespaces">List of Namespaces Full Names</param>
+        /// <returns></returns>
         public ServicesWithNamespace UseEntitiesInNamespaces(List<string> entityNamespaces)
         {
             EntityNamespaces = new EntitiesWithNamespace();
@@ -28,6 +44,11 @@ namespace BlackHole.Configuration
             return ServicesNamespaces;
         }
 
+        /// <summary>
+        /// Using only the Entities in the specified Namespaces.
+        /// </summary>
+        /// <param name="entityNamespaces">List of Namespaces Full Names</param>
+        /// <returns></returns>
         public ServicesWithNamespace UseEntitiesInNamespaces(Action<List<string>> entityNamespaces)
         {
             EntityNamespaces = new EntitiesWithNamespace();
@@ -37,6 +58,12 @@ namespace BlackHole.Configuration
             return ServicesNamespaces;
         }
 
+        /// <summary>
+        /// Using only the services that are in the
+        /// specified Namespace and inherit from BlackHole Services Classes.
+        /// </summary>
+        /// <param name="servicesNamespace">Namespace Full Name 'MyProject.Services....'</param>
+        /// <returns></returns>
         public EntitiesWithNamespace AddServicesFromNamespace(string servicesNamespace)
         {
             ServicesNamespaces = new ServicesWithNamespace();
@@ -46,6 +73,12 @@ namespace BlackHole.Configuration
             return EntityNamespaces;
         }
 
+        /// <summary>
+        /// Using only the services that are in the
+        /// specified Namespaces and inherit from BlackHole Services Classes.
+        /// </summary>
+        /// <param name="servicesNamespaces">List of Namespaces Full Names</param>
+        /// <returns></returns>
         public EntitiesWithNamespace AddServicesFromNamespaces(List<string> servicesNamespaces)
         {
             ServicesNamespaces = new ServicesWithNamespace();
@@ -55,6 +88,12 @@ namespace BlackHole.Configuration
             return EntityNamespaces;
         }
 
+        /// <summary>
+        /// Using only the services that are in the
+        /// specified Namespaces and inherit from BlackHole Services Classes.
+        /// </summary>
+        /// <param name="servicesNamespaces">List of Namespaces Full Names</param>
+        /// <returns></returns>
         public EntitiesWithNamespace AddServicesFromNamespaces(Action<List<string>> servicesNamespaces)
         {
             ServicesNamespaces = new ServicesWithNamespace();
@@ -64,36 +103,66 @@ namespace BlackHole.Configuration
             return EntityNamespaces;
         }
 
+        /// <summary>
+        /// Using BlackHole Entities and BlackHole Services ONLY from the 
+        /// specified Assembly
+        /// </summary>
+        /// <param name="otherAssembly">Full Assembly</param>
         public void UseOtherAssembly(Assembly otherAssembly)
         {
             AssembliesToUse.Add(otherAssembly);
             useCallingAssembly = false;
         }
 
+        /// <summary>
+        /// Using BlackHole Entities and BlackHole Services ONLY from the 
+        /// specified Assemblies
+        /// </summary>
+        /// <param name="otherAssemblies">List of Assemblies</param>
         public void UseOtherAssemblies(List<Assembly> otherAssemblies)
         {
             AssembliesToUse = otherAssemblies;
             useCallingAssembly = false;
         }
 
+        /// <summary>
+        /// Using BlackHole Entities and BlackHole Services ONLY from the 
+        /// specified Assemblies
+        /// </summary>
+        /// <param name="otherAssemblies">List of Assemblies</param>
         public void UseOtherAssemblies(Action<List<Assembly>> otherAssemblies)
         {
             otherAssemblies.Invoke(AssembliesToUse);
             useCallingAssembly = false;
         }
 
+        /// <summary>
+        /// Using BlackHole Entities and BlackHole Services from the 
+        /// specified Assembly and the Calling Assembly
+        /// </summary>
+        /// <param name="additionalAssembly">Full Assembly</param>
         public void UseAdditionalAssembly(Assembly additionalAssembly)
         {
             AssembliesToUse.Add(additionalAssembly);
             useCallingAssembly = true;
         }
 
+        /// <summary>
+        /// Using BlackHole Entities and BlackHole Services from the 
+        /// specified Assemblies and the Calling Assembly
+        /// </summary>
+        /// <param name="additionalAssemblies">List of Assemblies</param>
         public void UseAdditionalAssemblies(List<Assembly> additionalAssemblies)
         {
             AssembliesToUse = additionalAssemblies;
             useCallingAssembly = true;
         }
 
+        /// <summary>
+        /// Using BlackHole Entities and BlackHole Services from the 
+        /// specified Assemblies and the Calling Assembly
+        /// </summary>
+        /// <param name="additionalAssemblies">List of Assemblies</param>
         public void UseAdditionalAssemblies(Action<List<Assembly>> additionalAssemblies)
         {
             additionalAssemblies.Invoke(AssembliesToUse);

@@ -1,12 +1,12 @@
 ﻿using BlackHole.Statics;
 
-namespace BlackHole.Logger
+namespace BlackHole.Configuration
 {
     internal class LogsCleaner
     {
         private string LogsPath { get; set; } = string.Empty;
 
-        LogsCleaner()
+        internal LogsCleaner()
         {
             LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
 
@@ -28,13 +28,14 @@ namespace BlackHole.Logger
                         Thread.CurrentThread.IsBackground = true;
                         LogsCleanProcedure.StartJob(DatabaseStatics.CleanUpDays, LogsPath);
                     });
-
+                    Console.WriteLine("Starting Cleaner Thread..");
                     CleanerThread.Name = "BlackHoleLogsCleaner";
                     CleanerThread.Start();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
+                DatabaseStatics.UseLogsCleaner = false;
                 Console.WriteLine(ex.Message);
             }
         }
@@ -53,7 +54,7 @@ namespace BlackHole.Logger
 
             double loops = CalculateLoops();
             double loopsCounter = 0;
-            int days = daysBefore * (-1);
+            int days = daysBefore * -1;
 
             while (startCleaning)
             {
@@ -94,7 +95,7 @@ namespace BlackHole.Logger
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }

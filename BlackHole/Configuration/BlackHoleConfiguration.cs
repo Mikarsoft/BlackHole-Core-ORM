@@ -13,18 +13,15 @@ namespace BlackHole.Configuration
     {
 
         /// <summary>
-        /// Generates a database , based on the inserted connection string, to an
-        /// Existing Sql Server.The connection string Must lead to the server and the 
-        /// Database part of the connection string will be used to create the database.
-        /// It uses the BlackHole Entities and Services of the Calling Assembly.
-        /// With Extta Config you can choose a specific namespace for the entities 
-        /// and another one for the services that will be used.
-        /// You can also choose if the services will be automatically or manually registered.
-        /// If you don't specify these options , all entities and services in the assebly will
-        /// be used automatically.
+        /// <para>Generates a Database , based on the inserted connection string, to an
+        /// Existing Database Server.</para><para>The connection string Must lead to the server and the 
+        /// Database part of the connection string will be used to create the database.</para>
+        /// <para>It uses the BlackHole Entities and Services of the Calling Assembly or
+        /// other Assemblies depending on the settings.</para>
+        /// <para>You can choose to use only specific namespaces for the Entities and the Services.</para>
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="settings"></param>
+        /// <param name="services">IServiceCollection</param>
+        /// <param name="settings">Black Hole Settings Class</param>
         /// <returns></returns>
         public static IServiceCollection SuperNova(this IServiceCollection services, Action<BlackHoleSettings> settings)
         {
@@ -38,8 +35,17 @@ namespace BlackHole.Configuration
                 blackHoleSettings.directorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
             }
 
+            bool useLogsCleaner = false;
+            int daysToClean = 60;
+
+            if (blackHoleSettings.directorySettings.UseLogsCleaner)
+            {
+                useLogsCleaner = true;
+                daysToClean = blackHoleSettings.directorySettings.DaysForCleanUp;
+            }
+
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType,
-                blackHoleSettings.connectionConfig.ConnectionString, blackHoleSettings.directorySettings.DataPath);
+                blackHoleSettings.connectionConfig.ConnectionString, blackHoleSettings.directorySettings.DataPath,useLogsCleaner,daysToClean);
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
 
@@ -57,11 +63,6 @@ namespace BlackHole.Configuration
                 throw new Exception("The Host of the database is inaccessible...");
             }
 
-            return services;
-        }
-
-        public static IServiceCollection WhiteDwarf(this IServiceCollection services)
-        {
             return services;
         }
 
@@ -176,14 +177,14 @@ namespace BlackHole.Configuration
             return databaseBuilder.DropDatabase();
         }
 
-        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath)
+        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, bool useLogsCleaner , int daysToClean)
         {
             if(SqlType == BlackHoleSqlTypes.SqlLite)
             {
                 ConnectionString = Path.Combine(DataPath, $"{ConnectionString}.db3");
             }
 
-            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, DataPath);
+            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, DataPath,useLogsCleaner,daysToClean);
         }
     }
 }

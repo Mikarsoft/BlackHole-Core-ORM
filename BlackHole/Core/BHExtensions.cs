@@ -89,9 +89,9 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Performs an Outer Join between the First and the Second specified Entities. 
-        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// <para>Important => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
-        /// Execution and you might get some null values on the exported DTOs.
+        /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
         /// <typeparam name="Tsource">First Entity</typeparam>
         /// <typeparam name="TOther">Second Entity</typeparam>

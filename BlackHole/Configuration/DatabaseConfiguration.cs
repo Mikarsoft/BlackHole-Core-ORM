@@ -5,9 +5,11 @@ namespace BlackHole.Configuration
 {
     internal static class DatabaseConfiguration
     {
-        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string LogsPath)
+        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string LogsPath, bool useLogsCleaner , int daysToClean)
         {
             DatabaseStatics.DataPath = LogsPath;
+            DatabaseStatics.UseLogsCleaner = useLogsCleaner;
+            DatabaseStatics.CleanUpDays = daysToClean;
 
             switch (sqlType)
             {
@@ -26,6 +28,11 @@ namespace BlackHole.Configuration
                 case BlackHoleSqlTypes.Oracle:
                     ScanOracleString(connectionString);
                     break;
+            }
+
+            if (DatabaseStatics.UseLogsCleaner)
+            {
+                new LogsCleaner();
             }
         }
 

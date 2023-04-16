@@ -1,6 +1,9 @@
 ﻿
 namespace BlackHole.Configuration
 {
+    /// <summary>
+    /// Settings for the path of the BlackHole logs and Sqlite database.
+    /// </summary>
     public class DataPathSettings
     {
         internal string DataPath { get; set; } = string.Empty;
@@ -12,7 +15,7 @@ namespace BlackHole.Configuration
         /// Sqlite databases, Logs and other data that will
         /// be required for the features in later updates
         /// </summary>
-        /// <param name="DataPath">Full path of the data folder</param>
+        /// <param name="dataPath">Full path of the data folder</param>
         public void SetDataPath(string dataPath)
         {
             DataPath = dataPath;
@@ -23,7 +26,8 @@ namespace BlackHole.Configuration
         /// Sqlite databases, Logs and other data that will
         /// be required for the features in later updates
         /// </summary>
-        /// <param name="DataPath">Full path of the data folder</param>
+        /// <param name="dataPath">Full path of the data folder</param>
+        /// <param name="useLogsCleaner">Choose if the logs will be automatically cleaned</param>
         public void SetDataPath(string dataPath, bool useLogsCleaner)
         {
             UseLogsCleaner = useLogsCleaner;
@@ -35,7 +39,8 @@ namespace BlackHole.Configuration
         /// Sqlite databases, Logs and other data that will
         /// be required for the features in later updates
         /// </summary>
-        /// <param name="DataPath">Full path of the data folder</param>
+        /// <param name="dataPath">Full path of the data folder</param>
+        /// <param name="cleanUpDays">Choose the age of the logs before they get deleted</param>
         public void SetDataPath(string dataPath, int cleanUpDays)
         {
             DataPath = dataPath;
