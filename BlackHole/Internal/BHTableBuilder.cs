@@ -185,10 +185,6 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            string getTableFk = $"PRAGMA foreign_key_list({Tablename});";
-            List<SqLiteForeignKeySchema> SchemaInfo = new List<SqLiteForeignKeySchema>();
-            SchemaInfo = connection.Query<SqLiteForeignKeySchema>(getTableFk, null);
-
             string getColumns = $"PRAGMA table_info({Tablename}); ";
             ColumnsInfo = connection.Query<SqLiteTableInfo>(getColumns, null);
 
@@ -224,6 +220,10 @@ namespace BlackHole.Internal
             List<string> ColumnNames = new List<string>();
             List<string> NewColumnNames = new List<string>();
 
+            string getTableFk = $"PRAGMA foreign_key_list({Tablename});";
+            List<SqLiteForeignKeySchema> SchemaInfo = new List<SqLiteForeignKeySchema>();
+            SchemaInfo = connection.Query<SqLiteForeignKeySchema>(getTableFk, null);
+
             ColumnsInfo = connection.Query<SqLiteTableInfo>(getColumns, null).ToList();
 
             foreach (SqLiteTableInfo column in ColumnsInfo)
@@ -233,6 +233,7 @@ namespace BlackHole.Internal
 
             alterTable += GetDatatypeCommand("Int32", new object[0], "Inactive");
             alterTable += GetSqlColumn(new object[0], true);
+            NewColumnNames.Add("Inactive");
 
             foreach (PropertyInfo Property in Properties)
             {
@@ -282,9 +283,23 @@ namespace BlackHole.Internal
             {
                 List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
 
-                if(ColumnsToAdd.Count > 0)
+                foreach(string ColumnName in ColumnsToAdd)
                 {
-                    NewColumnNames.AddRange(ColumnsToAdd);
+                    SqLiteTableInfo? columnInfo = ColumnsInfo.Where(x => x.name == ColumnName).FirstOrDefault();
+                    SqLiteForeignKeySchema? fkC = SchemaInfo.Where(x => x.from == ColumnName).FirstOrDefault();
+
+                    if(columnInfo != null)
+                    {
+                        NewColumnNames.Add(ColumnName);
+
+                        //string nullability = columnInfo.notnull ? "NOT NULL, " : "NULL, ";
+                        alterTable += $"{columnInfo.name} {columnInfo.type} NULL, ";
+
+                        if(fkC != null)
+                        {
+                            foreignKeys += $"CONSTRAINT fk_{Tablename}_{fkC.table} FOREIGN KEY ({fkC.from}) REFERENCES {fkC.table}({fkC.to}) on delete {fkC.on_delete}, ";
+                        }
+                    }
                 }
             }
 
