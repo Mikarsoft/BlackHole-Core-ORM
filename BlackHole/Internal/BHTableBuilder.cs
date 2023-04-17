@@ -279,7 +279,7 @@ namespace BlackHole.Internal
                 }
             }
 
-            if (!DatabaseStatics.isDevMove)
+            if (!DatabaseStatics.IsDevMove)
             {
                 List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
 
@@ -360,7 +360,7 @@ namespace BlackHole.Internal
 
                 List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
 
-                if (DatabaseStatics.isDevMove)
+                if (DatabaseStatics.IsDevMove)
                 {
                     List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
 

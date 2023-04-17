@@ -12,6 +12,6 @@ namespace BlackHole.Statics
         internal static bool UseLogsCleaner { get; set; } = true;
         internal static int CleanUpDays { get; set; }
         internal static bool UseLogging { get; set; } = true;
-        internal static bool isDevMove { get; set; } = false;
+        internal static bool IsDevMove { get; set; } = false;
     }
 }

@@ -26,6 +26,11 @@ namespace BlackHole.Internal
         {
             string CheckDb = "";
 
+            if (!DatabaseStatics.IsDevMove)
+            {
+                return false;
+            }
+
             try
             {
                 bool isLite = _multiDatabaseSelector.IsLite();

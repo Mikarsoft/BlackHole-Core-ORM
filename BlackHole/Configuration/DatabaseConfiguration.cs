@@ -7,7 +7,7 @@ namespace BlackHole.Configuration
     {
         internal static void SetMode(bool isDevMode)
         {
-            DatabaseStatics.isDevMove = isDevMode;
+            DatabaseStatics.IsDevMove = isDevMode;
         }
 
         internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string LogsPath, bool useLogsCleaner , int daysToClean, bool useLogging)
