@@ -5,11 +5,26 @@ namespace BlackHole.Configuration
 {
     internal static class DatabaseConfiguration
     {
-        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string LogsPath, bool useLogsCleaner , int daysToClean)
+        internal static void SetMode(bool isDevMode)
+        {
+            DatabaseStatics.isDevMove = isDevMode;
+        }
+
+        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string LogsPath, bool useLogsCleaner , int daysToClean, bool useLogging)
         {
             DatabaseStatics.DataPath = LogsPath;
-            DatabaseStatics.UseLogsCleaner = useLogsCleaner;
-            DatabaseStatics.CleanUpDays = daysToClean;
+
+            if (useLogging)
+            {
+                DatabaseStatics.UseLogging = useLogging;
+                DatabaseStatics.UseLogsCleaner = useLogsCleaner;
+                DatabaseStatics.CleanUpDays = daysToClean;
+            }
+            else
+            {
+                DatabaseStatics.UseLogging = useLogging;
+                DatabaseStatics.UseLogsCleaner = false;
+            }
 
             switch (sqlType)
             {

@@ -1,7 +1,7 @@
 ﻿
 namespace BlackHole.Core
 {
-    internal interface IBHConnection
+    public interface IBHConnection
     {
         G? ExecuteScalar<G>(string commandText);
         G? ExecuteScalar<G>(string commandText, BHParameters parameters);

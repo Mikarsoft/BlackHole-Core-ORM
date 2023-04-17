@@ -44,8 +44,10 @@ namespace BlackHole.Configuration
                 daysToClean = blackHoleSettings.directorySettings.DaysForCleanUp;
             }
 
-            ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType,
-                blackHoleSettings.connectionConfig.ConnectionString, blackHoleSettings.directorySettings.DataPath,useLogsCleaner,daysToClean);
+            SetMode(blackHoleSettings.isInDevMode);
+
+            ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString, 
+                blackHoleSettings.directorySettings.DataPath,useLogsCleaner, daysToClean, blackHoleSettings.directorySettings.UseLogger);
 
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
 
@@ -177,14 +179,19 @@ namespace BlackHole.Configuration
             return databaseBuilder.DropDatabase();
         }
 
-        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, bool useLogsCleaner , int daysToClean)
+        internal static void SetMode(bool isDevMode)
+        {
+            DatabaseConfiguration.SetMode(isDevMode);
+        }
+
+        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, bool useLogsCleaner , int daysToClean, bool useLogging)
         {
             if(SqlType == BlackHoleSqlTypes.SqlLite)
             {
                 ConnectionString = Path.Combine(DataPath, $"{ConnectionString}.db3");
             }
 
-            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, DataPath,useLogsCleaner,daysToClean);
+            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, DataPath,useLogsCleaner,daysToClean , useLogging);
         }
     }
 }

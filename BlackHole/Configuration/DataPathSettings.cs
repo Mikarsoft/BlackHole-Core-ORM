@@ -9,6 +9,7 @@ namespace BlackHole.Configuration
         internal string DataPath { get; set; } = string.Empty;
         internal int DaysForCleanUp { get; set; } = 60;
         internal bool UseLogsCleaner { get; set; } = true;
+        internal bool UseLogger { get; set; } = true;
 
         /// <summary>
         /// Set the path of the folder where BlackHole will store
@@ -18,6 +19,20 @@ namespace BlackHole.Configuration
         /// <param name="dataPath">Full path of the data folder</param>
         public void SetDataPath(string dataPath)
         {
+            DataPath = dataPath;
+        }
+
+        /// <summary>
+        /// <para>Set the path of the folder where BlackHole will store
+        /// Sqlite databases and other data that will
+        /// be required for the features in later updates.</para>
+        /// Also disables the error logs.
+        /// </summary>
+        /// <param name="dataPath">Full path of the data folder</param>
+        public void SetDataPathWithoutLogging(string dataPath)
+        {
+            UseLogsCleaner = false;
+            UseLogger = false;
             DataPath = dataPath;
         }
 
@@ -45,6 +60,29 @@ namespace BlackHole.Configuration
         {
             DataPath = dataPath;
             DaysForCleanUp = cleanUpDays;
+        }
+
+        /// <summary>
+        /// Disables the error logs and using the default folder path
+        /// for Sqlite and other data that will
+        /// be required for the features in later updates
+        /// </summary>
+        public void DisableLogging()
+        {
+            UseLogger = false;
+            UseLogsCleaner = false;
+        }
+
+        /// <summary>
+        /// Disbales the logs cleaner thread and using the default folder path
+        /// for Sqlite, Logs and other data that will
+        /// be required for the features in later updates.
+        /// <para>Warning. By disabling the logs cleaner, possible error log files
+        /// will pile up over time, taking storage in your system</para>
+        /// </summary>
+        public void DisableLogsCleaner()
+        {
+            UseLogsCleaner = false;
         }
     }
 }

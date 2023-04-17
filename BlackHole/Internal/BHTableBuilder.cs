@@ -173,7 +173,7 @@ namespace BlackHole.Internal
 
             string Tablename = MyShit(TableType.Name);
 
-            List<LiteTableInfo> ColumnsInfo = new List<LiteTableInfo>();
+            List<SqLiteTableInfo> ColumnsInfo = new List<SqLiteTableInfo>();
             List<string> ColumnNames = new List<string>();
             List<string> NewColumnNames = new List<string>();
             NewColumnNames.Add("Inactive");
@@ -185,10 +185,14 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            string getColumns = $"PRAGMA table_info({Tablename}); ";
-            ColumnsInfo = connection.Query<LiteTableInfo>(getColumns, null);
+            string getTableFk = $"PRAGMA foreign_key_list({Tablename});";
+            List<SqLiteForeignKeySchema> SchemaInfo = new List<SqLiteForeignKeySchema>();
+            SchemaInfo = connection.Query<SqLiteForeignKeySchema>(getTableFk, null);
 
-            foreach (LiteTableInfo column in ColumnsInfo)
+            string getColumns = $"PRAGMA table_info({Tablename}); ";
+            ColumnsInfo = connection.Query<SqLiteTableInfo>(getColumns, null);
+
+            foreach (SqLiteTableInfo column in ColumnsInfo)
             {
                 ColumnNames.Add(column.name);
             }
@@ -216,13 +220,13 @@ namespace BlackHole.Internal
             string foreignKeys = "";
             string closingCommand = "";
 
-            List<LiteTableInfo> ColumnsInfo = new List<LiteTableInfo>();
+            List<SqLiteTableInfo> ColumnsInfo = new List<SqLiteTableInfo>();
             List<string> ColumnNames = new List<string>();
             List<string> NewColumnNames = new List<string>();
 
-            ColumnsInfo = connection.Query<LiteTableInfo>(getColumns, null).ToList();
+            ColumnsInfo = connection.Query<SqLiteTableInfo>(getColumns, null).ToList();
 
-            foreach (LiteTableInfo column in ColumnsInfo)
+            foreach (SqLiteTableInfo column in ColumnsInfo)
             {
                 ColumnNames.Add(column.name);
             }
@@ -271,6 +275,16 @@ namespace BlackHole.Internal
                         var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
                         foreignKeys += LiteConstraint(Tablename, Property.Name, tName, tColumn, cascadeInfo);
                     }
+                }
+            }
+
+            if (!DatabaseStatics.isDevMove)
+            {
+                List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
+
+                if(ColumnsToAdd.Count > 0)
+                {
+                    NewColumnNames.AddRange(ColumnsToAdd);
                 }
             }
 
@@ -330,12 +344,16 @@ namespace BlackHole.Internal
                 ColumnNames = connection.Query<string>(getColumns, null);
 
                 List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
-                List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
 
-                foreach (string ColumnName in ColumnsToDrop)
+                if (DatabaseStatics.isDevMove)
                 {
-                    string dropCommand = $"ALTER TABLE {Tablename} DROP COLUMN {MyShit(ColumnName)} ";
-                    connection.JustExecute(dropCommand, null);
+                    List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
+
+                    foreach (string ColumnName in ColumnsToDrop)
+                    {
+                        string dropCommand = $"ALTER TABLE {Tablename} DROP COLUMN {MyShit(ColumnName)} ";
+                        connection.JustExecute(dropCommand, null);
+                    }
                 }
 
                 foreach (string ColumnName in ColumnsToAdd)

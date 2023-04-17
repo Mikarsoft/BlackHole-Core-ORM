@@ -6,21 +6,29 @@ namespace BlackHole.Logger
 {
     internal class LoggerService : ILoggerService
     {
-        bool canWriteLogs { get; set; }
+        bool canWriteLogs { get; set; } = false;
         string LogsPath { get; set; }
 
         internal LoggerService()
         {
             try
             {
-                LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
-
-                if (!Directory.Exists(LogsPath))
+                if (DatabaseStatics.UseLogging)
                 {
-                    Directory.CreateDirectory(LogsPath);
-                }
+                    LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
 
-                canWriteLogs = true;
+                    if (!Directory.Exists(LogsPath))
+                    {
+                        Directory.CreateDirectory(LogsPath);
+                    }
+
+                    canWriteLogs = true;
+                }
+                else
+                {
+                    LogsPath = string.Empty;
+                    canWriteLogs = false;
+                }
             }
             catch
             {
@@ -30,7 +38,7 @@ namespace BlackHole.Logger
             }
         }
 
-        public string LogHashId(string text)
+        private string LogHashId(string text)
         {
             var sh = SHA1.Create();
             var hash = new StringBuilder();

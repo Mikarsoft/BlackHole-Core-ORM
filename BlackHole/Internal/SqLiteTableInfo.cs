@@ -1,6 +1,6 @@
 ﻿namespace BlackHole.Internal
 {
-    public class LiteTableInfo
+    public class SqLiteTableInfo
     {
         public int cid { get; set; }
         public string name { get; set; } = string.Empty;
