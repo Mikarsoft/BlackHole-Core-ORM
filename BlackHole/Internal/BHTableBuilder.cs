@@ -14,6 +14,7 @@ namespace BlackHole.Internal
         private ILoggerService _loggerService;
         private readonly IExecutionProvider connection;
 
+        private List<DataConstraints> AllConstraints { get; set; }
         private string[] SqlDatatypes;
         private bool isMyShit;
         private bool isLite;
@@ -26,6 +27,7 @@ namespace BlackHole.Internal
             SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
             isMyShit = _multiDatabaseSelector.GetMyShit();
             isLite = _multiDatabaseSelector.IsLite();
+            AllConstraints = GetConstraints();
         }
 
         /// <summary>
@@ -402,7 +404,7 @@ namespace BlackHole.Internal
             {
                 foreach (string ColumnName in ColumnsToDrop)
                 {
-                    string dropCommand = $"ALTER TABLE {MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)} ";
+                    string dropCommand = $"ALTER TABLE {MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)} CASCADE CONSTRAINTS ";
                     connection.JustExecute(dropCommand, null);
                 }
             }
@@ -511,17 +513,89 @@ namespace BlackHole.Internal
             }
         }
 
+        private List<DataConstraints> GetConstraints()
+        {
+            List<DataConstraints> constraints = new List<DataConstraints>();
+
+            switch (DatabaseStatics.DatabaseType)
+            {
+                case BlackHoleSqlTypes.SqlServer:
+                    constraints = LoadMsSqlConstraints();
+                    break;
+                case BlackHoleSqlTypes.MySql:
+                    constraints = LoadMySqlConstraints();
+                    break;
+                case BlackHoleSqlTypes.Postgres:
+                    constraints = LoadPgConstraints();
+                    break;
+                case BlackHoleSqlTypes.Oracle:
+                    constraints = LoadOracleConstraints();
+                    break;
+            }
+
+            return constraints;
+        }
+
+        private List<DataConstraints> LoadMySqlConstraints()
+        {
+            List<DataConstraints> Constraints = new List<DataConstraints>();
+            string GetConstrainsCommand = @"SELECT K.TABLE_NAME, K.COLUMN_NAME, K.REFERENCED_TABLE_NAME, C.IS_NULLABLE as DELETE_RULE, K.CONSTRAINT_NAME FROM
+                INFORMATION_SCHEMA.KEY_COLUMN_USAGE K
+                INNER JOIN INFORMATION_SCHEMA.COLUMNS C ON (C.COLUMN_NAME= K.COLUMN_NAME AND C.TABLE_NAME=K.TABLE_NAME)
+                WHERE REFERENCED_TABLE_NAME is not null";
+            Constraints = connection.Query<DataConstraints>(GetConstrainsCommand, null);
+            return Constraints;
+        }
+
+        private List<DataConstraints> LoadMsSqlConstraints()
+        {
+            List<DataConstraints> Constraints = new List<DataConstraints>();
+            string GetConstrainsCommand = @"SELECT K.TABLE_NAME,K.COLUMN_NAME,REFERENCED_TABLE_NAME=TC.TABLE_NAME,T.DELETE_RULE,T.CONSTRAINT_NAME FROM
+	            INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS T
+	            INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON TC.CONSTRAINT_NAME=T.UNIQUE_CONSTRAINT_NAME
+                INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE K ON K.CONSTRAINT_NAME= T.CONSTRAINT_NAME
+                INNER JOIN INFORMATION_SCHEMA.COLUMNS C ON (C.COLUMN_NAME= K.COLUMN_NAME AND C.TABLE_NAME=K.TABLE_NAME)";
+            Constraints = connection.Query<DataConstraints>(GetConstrainsCommand, null);
+            return Constraints;
+        }
+
+        private List<DataConstraints> LoadOracleConstraints()
+        {
+            List<DataConstraints> Constraints = new List<DataConstraints>();
+            string GetConstrainsCommand = @"SELECT a.table_name, a.column_name, a.constraint_name, c_pk.table_name REFERENCED_TABLE_NAME, c.delete_rule
+                FROM all_cons_columns a
+                JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name
+                JOIN all_constraints c_pk ON c.r_owner = c_pk.owner AND c.r_constraint_name = c_pk.constraint_name
+                WHERE c.constraint_type = 'R' and a.owner =" + $"'{_multiDatabaseSelector.GetDatabaseName()}'";
+            Constraints = connection.Query<DataConstraints>(GetConstrainsCommand, null);
+            return Constraints;
+        }
+
+        private List<DataConstraints> LoadPgConstraints()
+        {
+            List<DataConstraints> Constraints = new List<DataConstraints>();
+            string GetConstrainsCommand = @"SELECT T.TABLE_NAME, K.COLUMN_NAME,CU.TABLE_NAME AS REFERENCED_TABLE_NAME,
+                C.IS_NULLABLE AS DELETE_RULE, CU.CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS T
+                INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE K ON K.CONSTRAINT_NAME = T.CONSTRAINT_NAME
+                INNER JOIN INFORMATION_SCHEMA.COLUMNS C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME)
+                INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CU ON CU.CONSTRAINT_NAME = T.CONSTRAINT_NAME
+                WHERE T.CONSTRAINT_TYPE = 'FOREIGN KEY'";
+            Constraints = connection.Query<DataConstraints>(GetConstrainsCommand, null);
+            return Constraints;
+        }
+
         private string GetOracleDataType(OracleTableInfo columnInfo)
         {
             string DataType = columnInfo.DATA_TYPE;
 
-            if(columnInfo.DATA_PRECISION == 0)
+            if(DataType.ToLower().Contains("varchar"))
             {
-                DataType += $"({columnInfo.DATA_LENGTH})";
+                return DataType + $"({columnInfo.DATA_LENGTH})";
             }
-            else
+
+            if(DataType.ToLower() == "number")
             {
-                DataType += $"({columnInfo.DATA_PRECISION,0})";
+                 return DataType + $"({columnInfo.DATA_PRECISION,0})";
             }
 
             return DataType;
