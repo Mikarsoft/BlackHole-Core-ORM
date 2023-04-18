@@ -787,19 +787,18 @@ namespace BlackHole.DataProviders
                     if (!reader.IsDBNull(i))
                     {
                         string propertyName = reader.GetName(i);
+                        PropertyInfo? property = properties.Where(x => string.Equals(x.Name, propertyName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
-                        if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
+                        if (property != null)
                         {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
-
                             if (property.PropertyType == typeof(Guid))
                             {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetGuid(i));
+                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
                                 object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
+                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, propValue);
                             }
                         }
                     }
@@ -852,18 +851,18 @@ namespace BlackHole.DataProviders
                     {
                         string propertyName = reader.GetName(i);
 
-                        if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            PropertyInfo property = properties.Where(x => x.Name == propertyName).First();
+                        PropertyInfo? property = properties.Where(x => string.Equals(x.Name, propertyName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
+                        if (property != null)
+                        {
                             if (property.PropertyType == typeof(Guid))
                             {
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetGuid(i));
+                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
                                 object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
-                                obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, propValue);
+                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, propValue);
                             }
                         }
                     }

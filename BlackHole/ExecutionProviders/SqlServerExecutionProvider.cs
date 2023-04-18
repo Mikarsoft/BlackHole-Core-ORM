@@ -510,10 +510,11 @@ namespace BlackHole.ExecutionProviders
                     if (!reader.IsDBNull(i))
                     {
                         string propertyName = reader.GetName(i);
+                        PropertyInfo? property = properties.Where(x => string.Equals(x.Name, propertyName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 
-                        if (properties.Any(m => string.Equals(m.Name, propertyName, StringComparison.OrdinalIgnoreCase)))
+                        if (property != null)
                         {
-                            obj?.GetType()?.GetProperty(propertyName)?.SetValue(obj, reader.GetValue(i));
+                            obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }

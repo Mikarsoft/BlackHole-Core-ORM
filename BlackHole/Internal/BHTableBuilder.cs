@@ -408,25 +408,105 @@ namespace BlackHole.Internal
             }
             else
             {
-                if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+                string setColumnToNull = "";
+                List<SqlTableInfo> TableInfo = new List<SqlTableInfo>();
+                switch (DatabaseStatics.DatabaseType)
                 {
-                    string getColumnInfo = @$"SELECT Column_name, Data_type, data_length, data_precision, NULLABLE From all_tab_cols 
+                    case BlackHoleSqlTypes.Oracle:
+                        string getColumnInfo = @$"SELECT Column_name, Data_type, data_length, data_precision, NULLABLE From all_tab_cols 
                                            where owner = '{_multiDatabaseSelector.GetDatabaseName()}' and TABLE_NAME = '{TableName}'";
-                    List<OracleTableInfo> OraTableInfo = connection.Query<OracleTableInfo>(getColumnInfo, null);
 
-                    if(OraTableInfo.Count > 0)
-                    {
-                        foreach (string ColumnName in ColumnsToDrop)
+                        List<OracleTableInfo> OraTableInfo = connection.Query<OracleTableInfo>(getColumnInfo, null);
+
+                        if (OraTableInfo.Count > 0)
                         {
-                            OracleTableInfo? columnInfo = OraTableInfo.Where(x => x.COLUMN_NAME == ColumnName).FirstOrDefault();
-                            if(columnInfo != null)
+                            foreach (string ColumnName in ColumnsToDrop)
                             {
-                                string DataType = GetOracleDataType(columnInfo);
-                                string setToNullable = $"ALTER TABLE {MyShit(TableName)} Modify ({MyShit(ColumnName)} NULL)";
-                                connection.JustExecute(setToNullable, null);
+                                OracleTableInfo? columnInfo = OraTableInfo.Where(x => x.COLUMN_NAME.ToLower() == ColumnName.ToLower()).FirstOrDefault();
+                                if (columnInfo != null)
+                                {
+                                    string DataType = GetOracleDataType(columnInfo);
+                                    string setToNullable = $"ALTER TABLE {MyShit(TableName)} Modify ({MyShit(ColumnName)} NULL)";
+                                    connection.JustExecute(setToNullable, null);
+                                }
                             }
                         }
-                    }
+                        break;
+                    case BlackHoleSqlTypes.MySql:
+                        setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable, column_type 
+                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}';";
+
+                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
+
+                        if (TableInfo.Count > 0)
+                        {
+                            foreach (string ColumnName in ColumnsToDrop)
+                            {
+                                SqlTableInfo? columnInfo = TableInfo.Where(x => x.column_name.ToLower() == ColumnName.ToLower()).FirstOrDefault();
+                                if (columnInfo != null)
+                                {
+                                    string DataType = columnInfo.column_type;
+                                    string setToNullable = $"ALTER TABLE {MyShit(TableName)} MODIFY {MyShit(ColumnName)} {DataType} NULL ";
+                                    connection.JustExecute(setToNullable, null);
+                                }
+                            }
+                        }
+
+                        break;
+                    case BlackHoleSqlTypes.Postgres:
+                        setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable, udt_name 
+                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}';";
+
+                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
+
+                        if (TableInfo.Count > 0)
+                        {
+                            foreach (string ColumnName in ColumnsToDrop)
+                            {
+                                SqlTableInfo? columnInfo = TableInfo.Where(x => x.column_name.ToLower() == ColumnName.ToLower()).FirstOrDefault();
+                                if (columnInfo != null)
+                                {
+                                    string DataType = columnInfo.udt_name;
+
+                                    if(columnInfo.character_maximum_length > 0)
+                                    {
+                                        DataType += $"({columnInfo.character_maximum_length})";
+                                    }
+
+                                    string setToNullable = $"ALTER TABLE {MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
+                                    connection.JustExecute(setToNullable, null);
+                                }
+                            }
+                        }
+
+                        break;
+                    default:
+                        setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable 
+                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}';";
+
+                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
+
+                        if (TableInfo.Count > 0)
+                        {
+                            foreach (string ColumnName in ColumnsToDrop)
+                            {
+                                SqlTableInfo? columnInfo = TableInfo.Where(x => x.column_name.ToLower() == ColumnName.ToLower()).FirstOrDefault();
+                                if (columnInfo != null)
+                                {
+                                    string DataType = columnInfo.data_type;
+
+                                    if (columnInfo.character_maximum_length > 0)
+                                    {
+                                        DataType += $"({columnInfo.character_maximum_length})";
+                                    }
+
+                                    string setToNullable = $"ALTER TABLE {MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
+                                    connection.JustExecute(setToNullable, null);
+                                }
+                            }
+                        }
+
+                        break;
                 }
             }
         }
