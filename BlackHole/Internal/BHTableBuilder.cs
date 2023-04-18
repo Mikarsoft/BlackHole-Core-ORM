@@ -292,7 +292,6 @@ namespace BlackHole.Internal
                     {
                         NewColumnNames.Add(ColumnName);
 
-                        //string nullability = columnInfo.notnull ? "NOT NULL, " : "NULL, ";
                         alterTable += $"{columnInfo.name} {columnInfo.type} NULL, ";
 
                         if(fkC != null)
@@ -341,65 +340,117 @@ namespace BlackHole.Internal
 
         void UpdateTableSchema(Type TableType)
         {
-            if (TableType.BaseType == typeof(BlackHoleEntity))
+            string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}'";
+
+            if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
             {
-                string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}';";
-                PropertyInfo[] Properties = TableType.GetProperties();
-                string Tablename = MyShit(TableType.Name);
-                List<string> NewColumnNames = new List<string>();
+                string owner = _multiDatabaseSelector.GetDatabaseName();
+                getColumns = $"SELECT Column_name From all_tab_cols where owner = '{owner}' and TABLE_NAME = '{TableType.Name}'";
+            }
 
-                foreach (PropertyInfo Property in Properties)
+            PropertyInfo[] Properties = TableType.GetProperties();
+            string Tablename = MyShit(TableType.Name);
+            List<string> NewColumnNames = new List<string>();
+
+            foreach (PropertyInfo Property in Properties)
+            {
+                NewColumnNames.Add(Property.Name);
+            }
+
+            NewColumnNames.Add("Inactive");
+
+            List<string> ColumnNames = new List<string>();
+            ColumnNames = connection.Query<string>(getColumns, null);
+
+            List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
+            List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
+
+            DropColumns(ColumnsToDrop, TableType.Name);
+
+            foreach (string ColumnName in ColumnsToAdd)
+            {
+                string addCommand = $"ALTER TABLE {Tablename} ADD ";
+                var Property = Properties.Where(x => x.Name == ColumnName).FirstOrDefault();
+
+                if (Property != null)
                 {
-                    NewColumnNames.Add(Property.Name);
-                }
+                    string PropName = Property.Name;
+                    string propertyType = Property.PropertyType.Name;
 
-                NewColumnNames.Add("Inactive");
+                    object[] attributes = Property.GetCustomAttributes(true);
+                    addCommand += GetDatatypeCommand(propertyType, attributes, ColumnName);
+                    addCommand += AddColumnConstaints(attributes, TableType.Name, PropName, propertyType);
+                    string[] AllCommands = addCommand.Split("##");
 
-                List<string> ColumnNames = new List<string>();
-                ColumnNames = connection.Query<string>(getColumns, null);
-
-                List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
-
-                if (DatabaseStatics.IsDevMove)
-                {
-                    List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
-
-                    foreach (string ColumnName in ColumnsToDrop)
+                    foreach(string commandText in AllCommands)
                     {
-                        string dropCommand = $"ALTER TABLE {Tablename} DROP COLUMN {MyShit(ColumnName)} ";
-                        connection.JustExecute(dropCommand, null);
+                        connection.JustExecute(commandText, null);
                     }
                 }
 
-                foreach (string ColumnName in ColumnsToAdd)
+                if (ColumnName == "Inactive")
                 {
-                    string addCommand = $"ALTER TABLE {Tablename} ADD ";
-                    var Property = Properties.Where(x => x.Name == ColumnName).FirstOrDefault();
+                    addCommand += GetDatatypeCommand("Int32", new object[0], ColumnName);
+                    connection.JustExecute(addCommand, null);
+                }
+            }
+        }
 
-                    if (Property != null)
+        private void DropColumns(List<string> ColumnsToDrop, string TableName)
+        {
+            if (DatabaseStatics.IsDevMove)
+            {
+                foreach (string ColumnName in ColumnsToDrop)
+                {
+                    string dropCommand = $"ALTER TABLE {MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)} ";
+                    connection.JustExecute(dropCommand, null);
+                }
+            }
+            else
+            {
+                if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+                {
+                    string getColumnInfo = @$"SELECT Column_name, Data_type, data_length, data_precision, NULLABLE From all_tab_cols 
+                                           where owner = '{_multiDatabaseSelector.GetDatabaseName()}' and TABLE_NAME = '{TableName}'";
+                    List<OracleTableInfo> OraTableInfo = connection.Query<OracleTableInfo>(getColumnInfo, null);
+
+                    if(OraTableInfo.Count > 0)
                     {
-                        string PropName = Property.Name;
-                        string propertyType = Property.PropertyType.Name;
-
-                        object[] attributes = Property.GetCustomAttributes(true);
-                        addCommand += GetDatatypeCommand(propertyType, attributes, ColumnName);
-                        addCommand += AddColumnConstaints(attributes, Tablename, PropName, propertyType);
-                        connection.JustExecute(addCommand, null);
-                    }
-
-                    if (ColumnName == "Inactive")
-                    {
-                        addCommand += GetDatatypeCommand("Int32", new object[0], ColumnName);
-                        connection.JustExecute(addCommand, null);
+                        foreach (string ColumnName in ColumnsToDrop)
+                        {
+                            OracleTableInfo? columnInfo = OraTableInfo.Where(x => x.COLUMN_NAME == ColumnName).FirstOrDefault();
+                            if(columnInfo != null)
+                            {
+                                string DataType = GetOracleDataType(columnInfo);
+                                string setToNullable = $"ALTER TABLE {MyShit(TableName)} Modify ({MyShit(ColumnName)} NULL)";
+                                connection.JustExecute(setToNullable, null);
+                            }
+                        }
                     }
                 }
             }
         }
 
+        private string GetOracleDataType(OracleTableInfo columnInfo)
+        {
+            string DataType = columnInfo.DATA_TYPE;
+
+            if(columnInfo.DATA_PRECISION == 0)
+            {
+                DataType += $"({columnInfo.DATA_LENGTH})";
+            }
+            else
+            {
+                DataType += $"({columnInfo.DATA_PRECISION,0})";
+            }
+
+            return DataType;
+        }
+
         string AddColumnConstaints(object[] attributes, string Tablename, string PropName, string PropType)
         {
-            string constraintsCommand = "NULL;";
-            string alterTable = $"ALTER TABLE {Tablename}";
+            string constraintsCommand = "NULL ##";
+            string alterTable = $"ALTER TABLE {MyShit(Tablename)}";
 
             if (attributes.Length > 0)
             {
@@ -424,7 +475,7 @@ namespace BlackHole.Internal
                             constraintsCommand = $"{constraintsCommand} {MyShitConstraint(alterTable, Tablename, PropName, tName, tColumn, cascadeInfo)}";
                             break;
                         case "NotNullable":
-                            constraintsCommand = $"NOT NULL DEFAULT '{GetDefaultValue(PropType)}';";
+                            constraintsCommand = $"DEFAULT '{GetDefaultValue(PropType)}' NOT NULL ";
                             break;
                     }
                 }
