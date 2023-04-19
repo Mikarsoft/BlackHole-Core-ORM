@@ -404,7 +404,16 @@ namespace BlackHole.Internal
             {
                 foreach (string ColumnName in ColumnsToDrop)
                 {
-                    string dropCommand = $"ALTER TABLE {MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)} CASCADE CONSTRAINTS ";
+                    List<DataConstraints> columnForeignKeys = AllConstraints.Where(x => x.TABLE_NAME.ToLower() == TableName.ToLower()
+                            && x.COLUMN_NAME.ToLower() == ColumnName.ToLower()).ToList();
+
+                    foreach(DataConstraints columnConstraint in columnForeignKeys)
+                    {
+                        string dropConstraint = $"ALTER TABLE {MyShit(TableName)} DROP CONSTRAINT {columnConstraint.CONSTRAINT_NAME}";
+                        connection.JustExecute(dropConstraint, null);
+                    }
+
+                    string dropCommand = $"ALTER TABLE {MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)}";
                     connection.JustExecute(dropCommand, null);
                 }
             }
