@@ -18,21 +18,29 @@ add 'SuperNova(connectionString,SqlType)' on your IServiceCollection and it will
     <PackageProjectUrl>https://mikarsoft.com</PackageProjectUrl>
     <PackageIcon>mikarsoft.png</PackageIcon>
     <RepositoryUrl>https://github.com/Mikarsoft/BlackHole-Core-ORM</RepositoryUrl>
-    <PackageTags>ORM;MySql;Postgres;SqlServer;Data;Provider;Autoincrement;Object;Relational;Mapping;Easy;Black;Hole;Mikarsoft</PackageTags>
+    <PackageTags>ORM;MySql;Postgres;SqlServer;Oracle;Data;Provider;Autoincrement;Object;Relational;Mapping;Easy;Black;Hole;Mikarsoft</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseFile>..\LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>0.9.1</AssemblyVersion>
-    <FileVersion>0.9.1</FileVersion>
+    <AssemblyVersion>6.0.0</AssemblyVersion>
+    <FileVersion>6.0.0</FileVersion>
   </PropertyGroup>
 	<PropertyGroup>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-		<Version>0.9.1</Version>
+		<Version>6.0.0</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>- Added Transactions
--Unified Entities and Providers in One (ReadMe)
--fixed a MySql bug on casting a type to the same type in Joins</PackageReleaseNotes>
+		<PackageReleaseNotes>-Replaced Dapper with Custom Mappers that are 3 times faster
+-Added more Methods to the BHDataProvider
+-Added IBHConnection Interface for custom commands.
+-Improved Configuration made it simpler with more options
+-Added Logs Cleaner to automatically clean up the logs that are aged more than x days.
+-Added Support for Oracle Database
+-Added developer mode that allows dropping columns and constraints on entity changes. But when it's set to false, protects the production database from data loss, by disabling columns dropping. And instead it makes them nullable, if the property of the entity has been deleted.
+-Added BHParameters for custom queries and commands.
+-Improved transaction adding RoleBack option and performing automatic Rollback if the transaction fails.
+-Added configuration option to load Entities and Services from selected Namespaces or Other Assemblies. This way you can make your Apps transform into different App, depending on the configuration.
+-Code clean up and redesign. Organized namespaces better for more efficiency. The user now has all the configuration Items into 'BlackHole.Configuration' namespace. All the Functionalities into 'BlackHole.Core' namespace. And all the Attributes for the entities into the 'BlackHole.Entities' namespace.</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
