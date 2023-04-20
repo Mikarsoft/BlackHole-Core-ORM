@@ -2,8 +2,9 @@
 A fully automated, very easy to use and setup, with many new features, Object Relational Mapping Library, for .Net Core 6 and 7. Using Custom Data Providers that are 3x times faster than EF Core and Dapper. Many interfaces for easy Reading and Writing Data. Extention Methods for Joining any tables.
 It Supports SQL SERVER, MYSQL, POSTGRESQL, ORACLE and SQLITE.
 
-- 6.0.0  is released.
-  - changes => 
+6.0.0  is released.
+
+  Changes:
   
    - Replaced Dapper with Custom Mappers that are 3 times faster
    
@@ -38,14 +39,16 @@ It Supports SQL SERVER, MYSQL, POSTGRESQL, ORACLE and SQLITE.
 
 
 
+Example:
+ -Find an Example Project here => [BlackHole Example](https://github.com/Mikarsoft/BlackHole-Example-Project)
 
-An Example Project is coming soon with the Documentation here => [BlackHole Example](https://github.com/Mikarsoft/BlackHole-Example-Project)
-
-I am still working on the documentation but here are some quick steps to use this ORM
+Quick Start:
 
 - In Your project install Black.Hole.ORM from nuget
 
-- In your Program.cs add 'using BlackHole.Configuration' and 'using BlackHole.Enums'
+- In your Program.cs add 'using BlackHole.Configuration'
+  Add the following line into your IServiceCollection =>
+    services.SuperNova(settings => settings.IsDeveloperMode(devmode == "dev").AddDatabase(connection => connection.UseOracle(connectionString)))
 
 - Create some Entities in any folder that Inherit from the class 'BlackHoleEntity<int>' for Entities that are using Integer as Id,
   or 'BlackHoleEntity<Guid>' for Entities that are using Guid as Id
@@ -53,27 +56,24 @@ I am still working on the documentation but here are some quick steps to use thi
 
 - Add properties on your Entities except the Id property that already exists in the BlackHoleEntity class.
 
-- Add in your entities 'using BlackHole.Attributes.ColumnAttributes' 
-  to be able to use '[ForeignKey(typeof(Entity))]' , '[NotNullable]' and '[VarCharSize(int)]' attributes on your Entity's properties
+- Add in your entities 'using BlackHole.Entities' 
+  to be able to use '[ForeignKey(typeof(Entity), nullability)]' , '[NotNullable]' and '[VarCharSize(int)]' attributes on your Entity's properties
   * You can also use 'UseActivator' attribute on your Entity, to take advantage of the 'IsActive' column in case you need to keep the
   data after delete.
 
 - Make your services Inherit from 'BlackHoleScoped' or 'BlackHoleSingleton' or 'BlackHoleTransient' so they will be automatically
-  registered on the Startup without needing services.Add(<>). (using BlackHole.Entities)
-
-- On your IServiceCollection 'services' 
-  add services.SuperNova(new BlackHoleBaseConfig{ string ConnectionString, enum BHSqlTypes.SqlType, string LogsPath });
-  *The database name in the connection string is your choice. Just make sure that the server of the sql exists*
-  *if you don't have any Postgres or MySql or Microsoft Sql Server setup, you can use SqLite with a more simple command =>
-  services.SuperNovaLite(string databaseName);
+  registered on the Startup without needing services.Add(<>). (using BlackHole.Services)
   
  - Last step , go to your services or your controllers and add the Interfaces for the DataProviders =>
-  private readonly BHDataProvider<Entity,IdType> _entityService; => Example BHDataProvider<Customer,Guid> _customerService;
+  private readonly IBHDataProvider<Entity,IdType> _entityService;
+  Example: IBHDataProvider<Customer,Guid> _customerService;
+ 
+ - For custom queries and commands, use the IBHConnection Interface that is already Injected with Dependency Injection.
   
  - Done! You are ready to use all the functionality of the Data Providers in your services.
   * there are descriptions on the methods of what they do
    
-   *The Ids are created automatically on Insert and they get returned.
+   * The Ids are created automatically on Insert and they get returned.
    * The cascade on Foreign keys is automatic and it depends on the Nullability of the column
    
  I will soon upload here a more detailed guide of all the functionalities of this ORM, such as Stored Views and Joins
