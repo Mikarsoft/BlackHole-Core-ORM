@@ -66,7 +66,7 @@ Quick Start:
   
  - Last step , go to your services or your controllers and add the Interfaces for the DataProviders =>
   private readonly IBHDataProvider<Entity,IdType> _entityService;
-  Example: IBHDataProvider<Customer,Guid> _customerService;
+  Example: IBHDataProvider<Customer,Guid> _customerService; (using BlackHole.Core)
  
  - For custom queries and commands, use the IBHConnection Interface that is already Injected with Dependency Injection.
   
