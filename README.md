@@ -56,9 +56,9 @@ Quick Start:
 
 - Add properties on your Entities except the Id property that already exists in the BlackHoleEntity class.
 
-- Add in your entities 'using BlackHole.Entities' 
-  to be able to use '[ForeignKey(typeof(Entity), nullability)]' , '[NotNullable]' and '[VarCharSize(int)]' attributes on your Entity's properties
-  * You can also use 'UseActivator' attribute on your Entity, to take advantage of the 'IsActive' column in case you need to keep the
+- Add Attributes to the properties of your Entities' 
+  '[ForeignKey(typeof(Entity), nullability)]' , '[NotNullable]' and '[VarCharSize(int)]'
+  * You can also use '[UseActivator]' attribute on your Entity, to take advantage of the 'IsActive' column in case you need to keep the
   data after delete.
 
 - Make your services Inherit from 'BlackHoleScoped' or 'BlackHoleSingleton' or 'BlackHoleTransient' so they will be automatically
