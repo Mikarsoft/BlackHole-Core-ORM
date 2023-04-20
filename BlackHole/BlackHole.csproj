@@ -11,7 +11,7 @@
 Like Mapping Entities directly to DTO, Lets you create Joins between Tables,
 Stores Joins as Views for later use and more. It Creates and updates the Database based 
 on the Entities properties. Registers automatically all services on the startup.
-Supports SQL Server,MySql,Postgres and SqLite, with Int and Guid Autoincrement. 
+Supports SQL Server,MySql,Postgres, Oracle and SqLite, with Int and Guid Autoincrement. 
 Just make your Entities, 
 add 'SuperNova(connectionString,SqlType)' on your IServiceCollection and it will do the rest.</Description>
     <Copyright>Copyright (c) 2023, Mikarsoft Ltd</Copyright>
