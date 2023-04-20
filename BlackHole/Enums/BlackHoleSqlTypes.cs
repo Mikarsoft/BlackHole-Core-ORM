@@ -4,7 +4,7 @@ namespace BlackHole.Enums
     /// <summary>
     /// The Supported Sql types of this Tool
     /// </summary>
-    public enum BlackHoleSqlTypes
+    internal enum BlackHoleSqlTypes
     {
         SqlServer,
         MySql,

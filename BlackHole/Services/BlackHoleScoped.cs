@@ -9,6 +9,10 @@
         public object ServiceType { get; set; }
         public object? InterfaceType { get; set; }
 
+        /// <summary>
+        /// Make a service Inherit from this class
+        /// to automatically get registered as Scoped
+        /// </summary>
         public BlackHoleScoped()
         {
             Type type = GetType();

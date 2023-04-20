@@ -2,6 +2,10 @@
 
 namespace BlackHole.Entities
 {
+    /// <summary>
+    /// Black Hole Entity. The table is database is based on this
+    /// </summary>
+    /// <typeparam name="G"></typeparam>
     public abstract class BlackHoleEntity<G> : BlackHoleEntity
     {
         [PrimaryKey]

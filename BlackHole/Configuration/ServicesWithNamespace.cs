@@ -4,7 +4,7 @@ using System.Reflection;
 namespace BlackHole.Configuration
 {
     /// <summary>
-    /// 
+    /// Settings for the Services Namespaces that will be used
     /// </summary>
     public class ServicesWithNamespace
     {

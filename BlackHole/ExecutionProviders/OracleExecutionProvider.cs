@@ -518,7 +518,6 @@ namespace BlackHole.ExecutionProviders
                 }
 
                 PropertyInfo[] properties = type.GetProperties();
-                object? obj = Activator.CreateInstance(type);
 
                 if (properties.Length == 0 && reader.FieldCount > 0)
                 {
@@ -537,6 +536,8 @@ namespace BlackHole.ExecutionProviders
 
                     return default;
                 }
+
+                object? obj = Activator.CreateInstance(type);
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
@@ -586,7 +587,6 @@ namespace BlackHole.ExecutionProviders
                 }
 
                 PropertyInfo[] properties = type.GetProperties();
-                object? obj = Activator.CreateInstance(type);
 
                 if (properties.Length == 0 && reader.FieldCount > 0)
                 {
@@ -605,6 +605,8 @@ namespace BlackHole.ExecutionProviders
 
                     return default;
                 }
+
+                object? obj = Activator.CreateInstance(type);
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {

@@ -63,6 +63,17 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
+        /// Uses the default data path for the logs, 
+        /// and once per day cleans up the logs that are
+        /// older than the selected days.
+        /// </summary>
+        /// <param name="cleanUpDays"></param>
+        public void SetLogsCleanUpDays(int cleanUpDays)
+        {
+            DaysForCleanUp = cleanUpDays;
+        }
+
+        /// <summary>
         /// Disables the error logs and using the default folder path
         /// for Sqlite and other data that will
         /// be required for the features in later updates

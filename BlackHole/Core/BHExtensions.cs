@@ -15,11 +15,12 @@ namespace BlackHole.Core
     /// </summary>
     public static class BHExtensions
     {
+        #region Joins
         /// <summary>
         /// Performs a Right Join between the First and the Second specified Entities. 
-        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// <para>!!Important!! => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
-        /// Execution and you might get some null values on the exported DTOs.
+        /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
         /// <typeparam name="Tsource">First Entity</typeparam>
         /// <typeparam name="TOther">Second Entity</typeparam>
@@ -53,9 +54,9 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Performs a Left Join between the First and the Second specified Entities. 
-        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// <para>!!Important!! => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
-        /// Execution and you might get some null values on the exported DTOs.
+        /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
         /// <typeparam name="Tsource">First Entity</typeparam>
         /// <typeparam name="TOther">Second Entity</typeparam>
@@ -89,7 +90,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Performs an Outer Join between the First and the Second specified Entities. 
-        /// <para>Important => For safety reasons, The first Entity must have been used 
+        /// <para>!!Important!! => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
         /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
@@ -125,9 +126,9 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Performs an Inner Join between the First and the Second specified Entities. 
-        /// !!Important!! => For safety reasons, The first Entity must have been used 
+        /// <para>!!Important!! => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
-        /// Execution and you might get some null values on the exported DTOs.
+        /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
         /// <typeparam name="Tsource">First Entity</typeparam>
         /// <typeparam name="TOther">Second Entity</typeparam>
@@ -158,7 +159,9 @@ namespace BlackHole.Core
 
             return newJoin.CreateJoin(key, otherkey, "inner");
         }
+        #endregion
 
+        #region Additional Join Methods
         /// <summary>
         /// Uses Additional columns to the Join
         /// </summary>
@@ -223,13 +226,14 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Casts a column of the second Entity as a column of the 
-        /// output's DTO. !!Important!! => There are some restrictions
+        /// output's DTO. 
+        /// <para>!!Important!! => There are some restrictions
         /// to the types of the properties that can be casted. Read the Documentation
         /// for details. If a data type is not allowed to be converted to another type,
-        /// then the cast will be ignored in the Execution and the DTO column will be null. 
-        /// !!Tip!! => Cast has priority over normal mapping, For example the Column Id of the DTO is 
+        /// then the cast will be ignored in the Execution and the DTO column will be null.</para>
+        /// <para>Tip: Cast has priority over normal mapping, For example the Column Id of the DTO is 
         /// by default mapped to the First Entity of all Joins. If you want to map a different
-        /// Entity's Id into that column, use a Cast.
+        /// Entity's Id into that column, use a Cast.</para>
         /// </summary>
         /// <typeparam name="Dto">Class of the Output</typeparam>
         /// <typeparam name="Tsource">First Entity</typeparam>
@@ -271,14 +275,15 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Casts a column of the second Entity as a column of the 
-        /// output's DTO. !!Important!! => There are some restrictions
+        /// Casts a column of the first Entity as a column of the 
+        /// output's DTO. 
+        /// <para>!!Important!! => There are some restrictions
         /// to the types of the properties that can be casted. Read the Documentation
         /// for details. If a data type is not allowed to be converted to another type,
-        /// then the cast will be ignored in the Execution and the DTO column will be null. 
-        /// !!Tip!! => Cast has priority over normal mapping, For example the Column Id of the DTO is 
+        /// then the cast will be ignored in the Execution and the DTO column will be null.</para>
+        /// <para>Tip: Cast has priority over normal mapping, For example the Column Id of the DTO is 
         /// by default mapped to the First Entity of all Joins. If you want to map a different
-        /// Entity's Id into that column, use a Cast.
+        /// Entity's Id into that column, use a Cast.</para>
         /// </summary>
         /// <typeparam name="Dto">Class of the Output</typeparam>
         /// <typeparam name="Tsource">First Entity</typeparam>
@@ -419,16 +424,20 @@ namespace BlackHole.Core
             };
         }
 
+        #endregion
+
+        #region Execution Methods
+
         /// <summary>
         /// Stores the Joins Data with the DTO Class as Identifier
         /// and then you can execute them as many times as you want
         /// using the 'IBlackHoleViewStorage' Interface.
-        /// With this method, the program doesn't have to calculate the
-        /// Joins Data multiple times and it executes the Joins faster.
-        /// This method is recommended if the parameters in the current
+        /// <para>Benefit: With this method, the program doesn't have to calculate the
+        /// Joins Data multiple times and it executes the Joins faster.</para>
+        /// <para>Tip: This method is recommended if the parameters in the current
         /// Joins Data are not depending on the user's inputs.
         /// Run your Joins Once in the StartUp of your program and store them
-        /// as Views.
+        /// as Views.</para>
         /// </summary>
         /// <typeparam name="Dto"></typeparam>
         /// <param name="data"></param>
@@ -508,6 +517,64 @@ namespace BlackHole.Core
                     TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                     commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
                     return connection.Query<Dto>(commandText, data.DynamicParams.Parameters, bHTransaction.transaction);
+
+                }
+                catch (Exception ex)
+                {
+                    LoggerService logs = new LoggerService();
+                    logs.CreateErrorLogs($"ViewExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
+                }
+            }
+            return new List<Dto>();
+        }
+
+        /// <summary>
+        /// Executes the Joins Data from The View Storage
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
+        internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data) where Dto : BlackHoleDto
+        {
+            if (data.DtoType == typeof(Dto))
+            {
+                string commandText = "";
+                try
+                {
+                    IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                    data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                    TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                    commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                    return await connection.QueryAsync<Dto>(commandText, data.DynamicParams.Parameters);
+                }
+                catch (Exception ex)
+                {
+                    LoggerService logs = new LoggerService();
+                    logs.CreateErrorLogs($"ViewExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
+                }
+            }
+
+            return new List<Dto>();
+        }
+
+        /// <summary>
+        /// Transaction. Executes the Joins Data from The View Storage
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
+        internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : BlackHoleDto
+        {
+            if (data.DtoType == typeof(Dto))
+            {
+                string commandText = "";
+                try
+                {
+                    IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                    data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                    TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                    commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                    return await connection.QueryAsync<Dto>(commandText, data.DynamicParams.Parameters, bHTransaction.transaction);
 
                 }
                 catch (Exception ex)
@@ -618,6 +685,10 @@ namespace BlackHole.Core
                 return new List<Dto>();
             }
         }
+
+        #endregion
+
+        #region Internal Functionality
 
         private static string RejectInactiveEntities(this List<TableLetters> involvedTables, string whereCommand, bool isMyShit)
         {
@@ -1158,5 +1229,6 @@ namespace BlackHole.Core
 
             return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value };
         }
+        #endregion
     }
 }

@@ -1,9 +1,15 @@
-﻿using BlackHole.CoreSupport;
-using BlackHole.Entities;
+﻿using BlackHole.Entities;
 using System.Linq.Expressions;
 
 namespace BlackHole.Core
 {
+    /// <summary>
+    /// Provides all the functionality to communicate with the database with more than 100
+    /// methods and commands.
+    /// <para>For custom commands, use IBHConnection Interface</para>
+    /// </summary>
+    /// <typeparam name="T">Type of Entity</typeparam>
+    /// <typeparam name="G">Type of Entity Id</typeparam>
     public interface IBHDataProvider<T, G> where T : BlackHoleEntity<G>
     {
         /// <summary>

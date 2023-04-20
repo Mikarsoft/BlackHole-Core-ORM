@@ -22,7 +22,7 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="services">IServiceCollection</param>
         /// <param name="settings">Black Hole Settings Class</param>
-        /// <returns></returns>
+        /// <returns>IService Collection with BlackHole Services added</returns>
         public static IServiceCollection SuperNova(this IServiceCollection services, Action<BlackHoleSettings> settings)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
@@ -162,7 +162,7 @@ namespace BlackHole.Configuration
         /// <summary>
         /// Checks the database's condition
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Database is Up</returns>
         public static bool TestDatabase()
         {
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
@@ -170,9 +170,9 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
-        /// Closes all connections and drops the database
+        /// Closes all connections and drops the database. Works only in Developer Mode
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Success Boolean</returns>
         public static bool DropDatabase()
         {
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();

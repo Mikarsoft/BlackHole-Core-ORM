@@ -29,13 +29,13 @@ namespace BlackHole.CoreSupport
         T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters);
         T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 
-        List<T> Query<T>(string command, List<BlackHoleParameter>? parameters);
+        List<T> Query<T>(string commandText, List<BlackHoleParameter>? parameters);
         List<T> Query<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 
-        Task<T?> QueryFirstAsync<T>(string command, List<BlackHoleParameter>? parameters);
+        Task<T?> QueryFirstAsync<T>(string commandText, List<BlackHoleParameter>? parameters);
         Task<T?> QueryFirstAsync<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 
-        Task<List<T>> QueryAsync<T>(string command, List<BlackHoleParameter>? parameters);
+        Task<List<T>> QueryAsync<T>(string commandText, List<BlackHoleParameter>? parameters);
         Task<List<T>> QueryAsync<T>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
     }
 }

@@ -11,7 +11,7 @@ namespace BlackHole.CoreSupport
         private ILoggerService _loggerService;
         private bool commited = false;
 
-        public BlackHoleTransaction()
+        internal BlackHoleTransaction()
         {
             ConnectionBuilder connectionBuilder = new ConnectionBuilder();
             connection = connectionBuilder.GetConnection();
@@ -20,7 +20,7 @@ namespace BlackHole.CoreSupport
             _loggerService = new LoggerService();
         }
 
-        public bool Commit()
+        internal bool Commit()
         {
             commited = true;
             bool result = false;
@@ -37,13 +37,13 @@ namespace BlackHole.CoreSupport
             return result;
         }
 
-        public bool DoNotCommit()
+        internal bool DoNotCommit()
         {
             commited = true;
             return commited;
         }
 
-        public bool RollBack()
+        internal bool RollBack()
         {
             commited = true;
             bool result = false;
