@@ -41,7 +41,7 @@ It Supports SQL SERVER, MYSQL, POSTGRESQL, ORACLE and SQLITE.
 
 Example:
 
- -Find an Example Project here => [BlackHole Example](https://github.com/Mikarsoft/BlackHole-Example-Project)
+ -Find an Example Project here => [BlackHole Example](https://github.com/Mikarsoft/BlackHole-Example-Project){:target="_blank"}
  
 Documentation:
 
