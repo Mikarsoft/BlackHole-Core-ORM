@@ -923,10 +923,25 @@ namespace BlackHole.Core
             int allow = 2;
             string typeTotype = firstType.Name + secondType.Name;
 
+            if(firstType == typeof(Guid))
+            {
+                BlackHoleSqlTypes sqlType = DatabaseStatics.DatabaseType;
+                if(sqlType != BlackHoleSqlTypes.Postgres && sqlType != BlackHoleSqlTypes.SqlServer)
+                {
+                    allow = 1;
+                }
+            }
+
             if (firstType.Name != secondType.Name)
             {
                 switch (typeTotype)
                 {
+                    case "Int16Int32":
+                        break;
+                    case "Int16String":
+                        break;
+                    case "Int16Int64":
+                        break;
                     case "Int32String":
                         break;
                     case "Int32Int64":
