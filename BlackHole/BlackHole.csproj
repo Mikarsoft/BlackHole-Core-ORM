@@ -12,8 +12,8 @@ Like Mapping Entities directly to DTO, Lets you create Joins between Tables,
 Stores Joins as Views for later use and more. It Creates and updates the Database based 
 on the Entities properties. Registers automatically all services on the startup.
 Supports SQL Server,MySql,Postgres, Oracle and SqLite, with Int and Guid Autoincrement. 
-Just make your Entities, 
-add 'SuperNova(connectionString,SqlType)' on your IServiceCollection and it will do the rest.</Description>
+Just make your Entities.
+Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</Description>
     <Copyright>Copyright (c) 2023, Mikarsoft Ltd</Copyright>
     <PackageProjectUrl>https://mikarsoft.com</PackageProjectUrl>
     <PackageIcon>mikarsoft.png</PackageIcon>
@@ -23,12 +23,12 @@ add 'SuperNova(connectionString,SqlType)' on your IServiceCollection and it will
     <PackageLicenseFile>..\LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>6.0.0</AssemblyVersion>
-    <FileVersion>6.0.0</FileVersion>
+    <AssemblyVersion>6.0.1</AssemblyVersion>
+    <FileVersion>6.0.1</FileVersion>
   </PropertyGroup>
 	<PropertyGroup>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-		<Version>6.0.0</Version>
+		<Version>6.0.1</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>-Replaced Dapper with Custom Mappers that are 3 times faster
 -Added more Methods to the BHDataProvider

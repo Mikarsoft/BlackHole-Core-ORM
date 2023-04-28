@@ -192,7 +192,7 @@ namespace BlackHole.Core
         /// Classic Execute without output.
         /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
-        /// <param name="commandTex">Command Text</param>
+        /// <param name="commandText">Command Text</param>
         /// <returns>Success Boolean</returns>
         public bool JustExecute(string commandText)
         {
