@@ -7,6 +7,7 @@ namespace BlackHole.Core
         internal BinaryExpression? operation { get; set; }
         public MemberExpression? leftMember { get; set; }
         internal MemberExpression? rightMember { get; set; }
+        internal MethodCallExpression? methodMember { get; set; }
         internal ExpressionType expressionType { get; set; }
         internal object? memberValue { get; set; }
         internal bool rightChecked { get; set; }

@@ -1454,11 +1454,12 @@ namespace BlackHole.Core
             BinaryExpression? currentOperation = operation;
             MemberExpression? leftMember = currentOperation?.Left as MemberExpression;
             MemberExpression? rightMember = currentOperation?.Right as MemberExpression;
+            MethodCallExpression? methodMember = expression as MethodCallExpression;
 
             int currentIndx = 0;
             bool startTranslate = false;
 
-            if (operation != null)
+            if (operation != null || methodMember != null)
             {
                 startTranslate = true;
 
@@ -1467,6 +1468,7 @@ namespace BlackHole.Core
                     operation = operation,
                     leftMember = operation?.Left as MemberExpression,
                     rightMember = operation?.Right as MemberExpression,
+                    methodMember = methodMember,
                     expressionType = operation != null ? operation.NodeType : ExpressionType.Default,
                     rightChecked = false,
                     leftChecked = false,
@@ -1476,7 +1478,7 @@ namespace BlackHole.Core
 
             while (startTranslate)
             {
-                if (expressionTree[currentIndx].operation != null)
+                if (expressionTree[currentIndx].operation != null || expressionTree[currentIndx].methodMember != null)
                 {
                     if (expressionTree[currentIndx].expressionType == ExpressionType.AndAlso || expressionTree[currentIndx].expressionType == ExpressionType.OrElse)
                     {
@@ -1485,12 +1487,14 @@ namespace BlackHole.Core
                         if (!expressionTree[currentIndx].leftChecked)
                         {
                             currentOperation = expressionTree[currentIndx].operation?.Left as BinaryExpression;
+                            methodMember = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
                             expressionTree[currentIndx].leftChecked = true;
                             addTotree = true;
                         }
                         else if (!expressionTree[currentIndx].rightChecked && expressionTree[currentIndx].leftChecked)
                         {
                             currentOperation = expressionTree[currentIndx].operation?.Right as BinaryExpression;
+                            methodMember = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
                             expressionTree[currentIndx].rightChecked = true;
                             addTotree = true;
                         }
@@ -1506,6 +1510,7 @@ namespace BlackHole.Core
                                 operation = currentOperation,
                                 leftMember = currentOperation?.Left as MemberExpression,
                                 rightMember = currentOperation?.Right as MemberExpression,
+                                methodMember = methodMember,
                                 expressionType = currentOperation != null ? currentOperation.NodeType : ExpressionType.Default,
                                 rightChecked = false,
                                 leftChecked = false,
@@ -1544,6 +1549,15 @@ namespace BlackHole.Core
                                 value = Expression.Lambda(rightBinary).Compile().DynamicInvoke();
                             }
 
+                            if(methodMember != null)
+                            {
+                                var func = methodMember.Method;
+                                var arguments = methodMember.Arguments;
+                                var obj = methodMember.Object;
+                                
+                                value = new {castedOn = obj?.Type, method = func, arguments = arguments, property = obj };
+                            }
+
                             expressionTree[currentIndx].memberValue = value;
                         }
 
@@ -1564,7 +1578,8 @@ namespace BlackHole.Core
         {
             string result = "";
             BHParameters parameters = new BHParameters();
-            List<ExpressionsData> children = data.Where(x => x.memberValue != null).ToList();
+            List<MethodCallExpression> InvokeMethods = new List<MethodCallExpression>();
+            List<ExpressionsData> children = data.Where(x => x.memberValue != null && x.methodMember == null).ToList();
             string[] translations = new string[children.Count];
             int index = 0;
             foreach (ExpressionsData child in children)
@@ -1607,7 +1622,7 @@ namespace BlackHole.Core
                 }
             }
 
-            List<ExpressionsData> parents = data.Where(x => x.memberValue == null).ToList();
+            List<ExpressionsData> parents = data.Where(x => x.memberValue == null && x.methodMember == null).ToList();
 
             if (parents.Count > 1)
             {
@@ -1630,15 +1645,24 @@ namespace BlackHole.Core
                         {
                             parameters.Add(parentParams.ParamName,parentParams.Value);
                         }
+
                         parent.sqlCommand = $"({parent.sqlCommand} {parentParams.Column} {parents[parentsCount - 1 - i].sqlCommand})";
                         index++;
                     }
                 }
             }
 
+            foreach(ExpressionsData methodData in data.Where(x=>x.methodMember != null).ToList())
+            {
+                if(methodData.methodMember != null)
+                {
+                    InvokeMethods.Add(methodData.methodMember);
+                }
+            }
+
             result = data[0].sqlCommand;
 
-            return new ColumnsAndParameters { Columns = result, Parameters = parameters, Count = index };
+            return new ColumnsAndParameters { Columns = result, Parameters = parameters, Count = index, InvokeMethods = InvokeMethods };
         }
 
         private ColumnAndParameter TranslateExpression(ExpressionsData expression, int index)
@@ -1646,6 +1670,7 @@ namespace BlackHole.Core
             string? column = string.Empty;
             string? parameter = string.Empty;
             object? value = new object();
+            MethodCallExpression? invokeMethod = null;
             string[]? variable = new string[2];
 
             switch (expression.expressionType)
@@ -1702,7 +1727,7 @@ namespace BlackHole.Core
                     break;
             }
 
-            return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value };
+            return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value, InvokeMethod = invokeMethod };
         }
 
         private ColumnsAndParameters AdditionalParameters(ColumnsAndParameters colsAndParams, object item)
