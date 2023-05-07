@@ -1451,17 +1451,19 @@ namespace BlackHole.Core
             List<ExpressionsData> expressionTree = new List<ExpressionsData>();
 
             BinaryExpression? currentOperation = expression as BinaryExpression;
+            MethodCallExpression? methodCallOperation = expression as MethodCallExpression;
 
             int currentIndx = 0;
             bool startTranslate = false;
 
-            if (currentOperation != null)
+            if (currentOperation != null || methodCallOperation != null)
             {
                 startTranslate = true;
 
                 expressionTree.Add(new ExpressionsData()
                 {
                     operation = currentOperation,
+                    leftMethodMember = methodCallOperation,
                     leftMember = currentOperation?.Left as MemberExpression,
                     rightMember = currentOperation?.Right as MemberExpression,
                     expressionType = currentOperation != null ? currentOperation.NodeType : ExpressionType.Default,
@@ -1473,23 +1475,23 @@ namespace BlackHole.Core
 
             while (startTranslate)
             {
-                if(expressionTree[currentIndx].operation != null)
+                bool addTotree = false;
+
+                if (expressionTree[currentIndx].operation != null)
                 {
                     if (expressionTree[currentIndx].expressionType == ExpressionType.AndAlso || expressionTree[currentIndx].expressionType == ExpressionType.OrElse)
                     {
-                        bool addTotree = false;
 
                         BinaryExpression? leftOperation = expressionTree[currentIndx].operation?.Left as BinaryExpression;
                         BinaryExpression? rightOperation = expressionTree[currentIndx].operation?.Right as BinaryExpression;
-                        MethodCallExpression? rightMethod = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
-                        MethodCallExpression? leftMethod = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
-
+                        MethodCallExpression? leftCallOperation = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
+                        MethodCallExpression? rightCallOperation = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
 
                         if (!expressionTree[currentIndx].leftChecked && leftOperation != null){
                             expressionTree.Add(new ExpressionsData()
                             {
                                 operation = leftOperation,
-                                methodMember = leftMethod,
+                                leftMethodMember = leftCallOperation,
                                 expressionType = leftOperation != null ? leftOperation.NodeType : ExpressionType.Default,
                                 rightChecked = false,
                                 leftChecked = false,
@@ -1505,7 +1507,7 @@ namespace BlackHole.Core
                             expressionTree.Add(new ExpressionsData()
                             {
                                 operation = rightOperation,
-                                methodMember = rightMethod,
+                                leftMethodMember = rightCallOperation,
                                 expressionType = rightOperation != null ? rightOperation.NodeType : ExpressionType.Default,
                                 rightChecked = false,
                                 leftChecked = false,
@@ -1520,10 +1522,6 @@ namespace BlackHole.Core
                         {
                             currentIndx = expressionTree.Count - 1;
                         }
-                        else
-                        {
-                            currentIndx -= 1;
-                        }
                     }
                     else
                     {
@@ -1532,7 +1530,7 @@ namespace BlackHole.Core
                             MemberExpression? rightMember = expressionTree[currentIndx].operation?.Right as MemberExpression;
                             ConstantExpression? rightConstant = expressionTree[currentIndx].operation?.Right as ConstantExpression;
                             BinaryExpression? rightBinary = expressionTree[currentIndx].operation?.Right as BinaryExpression;
-                            MethodCallExpression? rightMethodCall = currentOperation?.Right as MethodCallExpression;
+                            MethodCallExpression? rightmethodMember = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
 
                             if (rightMember != null)
                             {
@@ -1556,48 +1554,9 @@ namespace BlackHole.Core
                                 expressionTree[currentIndx].memberValue = Expression.Lambda(rightBinary).Compile().DynamicInvoke();
                             }
 
-                            if (rightMethodCall != null)
+                            if (rightmethodMember != null)
                             {
-                                var func = rightMethodCall.Method;
-                                var arguments = rightMethodCall.Arguments;
-                                var obj = rightMethodCall.Object;
-
-                                List<object?> MethodArguments = new List<object?>();
-
-                                foreach (var argumnent in arguments)
-                                {
-                                    MemberExpression? argMemmber = argumnent as MemberExpression;
-                                    ConstantExpression? argConstant = argumnent as ConstantExpression;
-                                    BinaryExpression? argBinary = argumnent as BinaryExpression;
-                                    MethodCallExpression? argMethod = argumnent as MethodCallExpression;
-
-                                    if (argMemmber != null)
-                                    {
-                                        if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                        {
-                                            MethodArguments.Add(argMemmber);
-                                        }
-                                        else
-                                        {
-                                            MethodArguments.Add(Expression.Lambda(argMemmber).Compile().DynamicInvoke());
-                                        }
-                                    }
-
-                                    if (argConstant != null)
-                                    {
-                                        MethodArguments.Add(argConstant?.Value);
-                                    }
-
-                                    if (argBinary != null)
-                                    {
-                                        MethodArguments.Add(Expression.Lambda(argBinary).Compile().DynamicInvoke());
-                                    }
-
-                                    if (argMethod != null)
-                                    {
-                                        MethodArguments.Add(Expression.Lambda(argMethod).Compile().DynamicInvoke());
-                                    }
-                                }
+                                expressionTree[currentIndx].rightMethodMember = rightmethodMember;
                             }
 
                             expressionTree[currentIndx].rightChecked = true;
@@ -1608,7 +1567,7 @@ namespace BlackHole.Core
                             MemberExpression? leftMember = expressionTree[currentIndx].operation?.Left as MemberExpression;
                             ConstantExpression? leftConstant = expressionTree[currentIndx].operation?.Left as ConstantExpression;
                             BinaryExpression? leftBinary = expressionTree[currentIndx].operation?.Left as BinaryExpression;
-                            MethodCallExpression? leftMethodCall = currentOperation?.Left as MethodCallExpression;
+                            MethodCallExpression? leftmethodMember = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
 
                             if (leftMember != null)
                             {
@@ -1632,60 +1591,89 @@ namespace BlackHole.Core
                                 expressionTree[currentIndx].memberValue = Expression.Lambda(leftBinary).Compile().DynamicInvoke();
                             }
 
-                            if(leftMethodCall != null)
+                            if(leftmethodMember != null)
                             {
-                                var func = leftMethodCall.Method;
-                                var arguments = leftMethodCall.Arguments;
-                                var obj = leftMethodCall.Object;
-
-                                List<object?> MethodArguments = new List<object?>();
-
-                                foreach (var argumnent in arguments)
-                                {
-                                    MemberExpression? argMemmber = argumnent as MemberExpression;
-                                    ConstantExpression? argConstant = argumnent as ConstantExpression;
-                                    BinaryExpression? argBinary = argumnent as BinaryExpression;
-                                    MethodCallExpression? argMethod = argumnent as MethodCallExpression;
-
-                                    if (argMemmber != null)
-                                    {
-                                        if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                        {
-                                            MethodArguments.Add(argMemmber);
-                                        }
-                                        else
-                                        {
-                                            MethodArguments.Add(Expression.Lambda(argMemmber).Compile().DynamicInvoke());
-                                        }
-                                    }
-
-                                    if (argConstant != null)
-                                    {
-                                        MethodArguments.Add(argConstant?.Value);
-                                    }
-
-                                    if (argBinary != null)
-                                    {
-                                        MethodArguments.Add(Expression.Lambda(argBinary).Compile().DynamicInvoke());
-                                    }
-
-                                    if (argMethod != null)
-                                    {
-                                        MethodArguments.Add(Expression.Lambda(argMethod).Compile().DynamicInvoke());
-                                    }
-                                }
+                                expressionTree[currentIndx].leftMethodMember = leftmethodMember;
                             }
 
                             expressionTree[currentIndx].leftChecked = true;
                         }
-                        currentIndx -= 1;
                     }
                 }
 
-                //if (expressionTree[currentIndx].methodMember != null)
-                //{
-                //    currentIndx -= 1;
-                //}
+                MethodCallExpression? leftMethodMember = expressionTree[currentIndx].leftMethodMember;
+
+                if (leftMethodMember != null)
+                {
+                    var func = leftMethodMember.Method;
+                    var arguments = leftMethodMember.Arguments;
+                    var obj = leftMethodMember.Object;
+
+                    if (!expressionTree[currentIndx].methodChecked) 
+                    {
+                        List<object?> MethodArguments = new List<object?>();
+                        bool cleanOfMembers = true;
+                        object?[] parameters = new object[arguments.Count];
+
+                        for (int i = 0; i < arguments.Count; i++)
+                        {
+                            MemberExpression? argMemmber = arguments[i] as MemberExpression;
+                            ConstantExpression? argConstant = arguments[i] as ConstantExpression;
+                            BinaryExpression? argBinary = arguments[i] as BinaryExpression;
+                            MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
+
+                            if (argMemmber != null)
+                            {
+                                if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                {
+                                    cleanOfMembers = false;
+                                    MethodArguments.Add(argMemmber.Member);
+                                }
+                                else
+                                {
+                                    parameters[i] = Expression.Lambda(argMemmber).Compile().DynamicInvoke();
+                                    MethodArguments.Add(parameters[i]);
+                                }
+                            }
+
+                            if (argConstant != null)
+                            {
+                                parameters[i] = argConstant.Value;
+                                MethodArguments.Add(argConstant.Value);
+                            }
+
+                            if (argBinary != null)
+                            {
+                                parameters[i] = Expression.Lambda(argBinary).Compile().DynamicInvoke();
+                                MethodArguments.Add(parameters[i]);
+                            }
+
+                            if (argMethod != null)
+                            {
+                                parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
+                                MethodArguments.Add(parameters[i]);
+                            }
+                        }
+
+                        if(cleanOfMembers)
+                        {
+                            if(obj != null)
+                            {
+                                object? skata = Activator.CreateInstance(obj.Type, null);
+                                expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
+                            }
+                        }
+                        else
+                        {
+                            expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
+                        }
+                    }
+                }
+
+                if (!addTotree)
+                {
+                    currentIndx -= 1;
+                }
 
                 if (currentIndx < 0)
                 {
