@@ -1650,8 +1650,21 @@ namespace BlackHole.Core
 
                             if (argMethod != null)
                             {
-                                parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
-                                MethodArguments.Add(parameters[i]);
+                                foreach(var arg in argMethod.Arguments)
+                                {
+                                    MemberExpression? SubargMemmber = arg as MemberExpression;
+
+                                    if (SubargMemmber?.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                    {
+                                        cleanOfMembers = false;
+                                    }
+                                }
+
+                                if (cleanOfMembers)
+                                {
+                                    parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
+                                    MethodArguments.Add(parameters[i]);
+                                }
                             }
                         }
 
