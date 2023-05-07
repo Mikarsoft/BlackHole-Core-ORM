@@ -5,9 +5,10 @@ namespace BlackHole.Core
     internal class ExpressionsData
     {
         internal BinaryExpression? operation { get; set; }
+        internal MethodCallExpression? methodMember { get; set; }
         public MemberExpression? leftMember { get; set; }
         internal MemberExpression? rightMember { get; set; }
-        internal MethodCallExpression? methodMember { get; set; }
+        internal List<MethodExpressionData> methodData { get; set; } = new List<MethodExpressionData>();
         internal ExpressionType expressionType { get; set; }
         internal object? memberValue { get; set; }
         internal bool rightChecked { get; set; }
