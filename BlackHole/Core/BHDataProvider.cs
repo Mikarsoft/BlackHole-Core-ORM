@@ -1487,7 +1487,8 @@ namespace BlackHole.Core
                         MethodCallExpression? leftCallOperation = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
                         MethodCallExpression? rightCallOperation = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
 
-                        if (!expressionTree[currentIndx].leftChecked && leftOperation != null){
+                        if (!expressionTree[currentIndx].leftChecked && (leftOperation != null || leftCallOperation != null))
+                        {
                             expressionTree.Add(new ExpressionsData()
                             {
                                 operation = leftOperation,
@@ -1502,12 +1503,12 @@ namespace BlackHole.Core
                             addTotree = true;
                         }
 
-                        if (!expressionTree[currentIndx].rightChecked && rightOperation != null)
+                        if (!expressionTree[currentIndx].rightChecked && (rightOperation != null || rightCallOperation != null))
                         {
                             expressionTree.Add(new ExpressionsData()
                             {
                                 operation = rightOperation,
-                                leftMethodMember = rightCallOperation,
+                                rightMethodMember = rightCallOperation,
                                 expressionType = rightOperation != null ? rightOperation.NodeType : ExpressionType.Default,
                                 rightChecked = false,
                                 leftChecked = false,
@@ -1602,6 +1603,7 @@ namespace BlackHole.Core
                 }
 
                 MethodCallExpression? leftMethodMember = expressionTree[currentIndx].leftMethodMember;
+                MethodCallExpression? rightMethodMember = expressionTree[currentIndx].rightMethodMember;
 
                 if (leftMethodMember != null)
                 {
@@ -1627,6 +1629,7 @@ namespace BlackHole.Core
                                 if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
                                 {
                                     cleanOfMembers = false;
+                                    obj = argMemmber;
                                     MethodArguments.Add(argMemmber.Member);
                                 }
                                 else
@@ -1671,6 +1674,87 @@ namespace BlackHole.Core
                         if(cleanOfMembers)
                         {
                             if(obj != null)
+                            {
+                                object? skata = Activator.CreateInstance(obj.Type, null);
+                                expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
+                            }
+                        }
+                        else
+                        {
+                            expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
+                        }
+                    }
+                }
+
+                if (rightMethodMember != null)
+                {
+                    var func = rightMethodMember.Method;
+                    var arguments = rightMethodMember.Arguments;
+                    var obj = rightMethodMember.Object;
+
+                    if (!expressionTree[currentIndx].methodChecked)
+                    {
+                        List<object?> MethodArguments = new List<object?>();
+                        bool cleanOfMembers = true;
+                        object?[] parameters = new object[arguments.Count];
+
+                        for (int i = 0; i < arguments.Count; i++)
+                        {
+                            MemberExpression? argMemmber = arguments[i] as MemberExpression;
+                            ConstantExpression? argConstant = arguments[i] as ConstantExpression;
+                            BinaryExpression? argBinary = arguments[i] as BinaryExpression;
+                            MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
+
+                            if (argMemmber != null)
+                            {
+                                if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                {
+                                    cleanOfMembers = false;
+                                    obj = argMemmber;
+                                    MethodArguments.Add(argMemmber.Member);
+                                }
+                                else
+                                {
+                                    parameters[i] = Expression.Lambda(argMemmber).Compile().DynamicInvoke();
+                                    MethodArguments.Add(parameters[i]);
+                                }
+                            }
+
+                            if (argConstant != null)
+                            {
+                                parameters[i] = argConstant.Value;
+                                MethodArguments.Add(argConstant.Value);
+                            }
+
+                            if (argBinary != null)
+                            {
+                                parameters[i] = Expression.Lambda(argBinary).Compile().DynamicInvoke();
+                                MethodArguments.Add(parameters[i]);
+                            }
+
+                            if (argMethod != null)
+                            {
+                                foreach (var arg in argMethod.Arguments)
+                                {
+                                    MemberExpression? SubargMemmber = arg as MemberExpression;
+
+                                    if (SubargMemmber?.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                    {
+                                        cleanOfMembers = false;
+                                    }
+                                }
+
+                                if (cleanOfMembers)
+                                {
+                                    parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
+                                    MethodArguments.Add(parameters[i]);
+                                }
+                            }
+                        }
+
+                        if (cleanOfMembers)
+                        {
+                            if (obj != null)
                             {
                                 object? skata = Activator.CreateInstance(obj.Type, null);
                                 expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
@@ -2029,7 +2113,7 @@ namespace BlackHole.Core
                     break;
                 case ExpressionType.Equal:
                     value = expression?.memberValue;
-                    variable = expression?.leftMember?.ToString().Split(".");
+                    variable = expression?.leftMember != null? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
                     column = $"{MyShit(variable?[1])} = @{variable?[1]}{index}";
                     if (value == null)
                     {
@@ -2038,13 +2122,13 @@ namespace BlackHole.Core
                     parameter = $"{variable?[1]}{index}";
                     break;
                 case ExpressionType.GreaterThanOrEqual:
-                    variable = expression?.leftMember?.ToString().Split(".");
+                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
                     column = $"{MyShit(variable?[1])} >= @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
                     value = expression?.memberValue;
                     break;
                 case ExpressionType.LessThanOrEqual:
-                    variable = expression?.leftMember?.ToString().Split(".");
+                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
                     column = $"{MyShit(variable?[1])} <= @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
                     value = expression?.memberValue;
@@ -2056,14 +2140,14 @@ namespace BlackHole.Core
                     value = expression?.memberValue;
                     break;
                 case ExpressionType.GreaterThan:
-                    variable = expression?.leftMember?.ToString().Split(".");
+                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
                     column = $"{MyShit(variable?[1])} > @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
                     value = expression?.memberValue;
                     break;
                 case ExpressionType.NotEqual:
                     value = expression?.memberValue;
-                    variable = expression?.leftMember?.ToString().Split(".");
+                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
                     column = $"{MyShit(variable?[1])} != @{variable?[1]}{index}";
                     if (value == null)
                     {
