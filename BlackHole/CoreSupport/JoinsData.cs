@@ -1,5 +1,5 @@
 ﻿
-namespace BlackHole.Core
+namespace BlackHole.CoreSupport
 {
     /// <summary>
     /// Stores All the required data to perform the Joins in this class
@@ -14,7 +14,7 @@ namespace BlackHole.Core
         internal List<string?> Letters { get; set; } = new List<string?>();
         internal string Joins { get; set; } = string.Empty;
         internal string WherePredicates { get; set; } = string.Empty;
-        internal BHParameters DynamicParams { get; set; } = new BHParameters();
+        internal List<BlackHoleParameter> DynamicParams { get; set; } = new List<BlackHoleParameter>();
         internal int HelperIndex { get; set; }
         internal bool isMyShit { get; set; }
         internal bool Ignore { get; set; }
@@ -34,7 +34,7 @@ namespace BlackHole.Core
         internal List<string?> Letters { get; set; } = new List<string?>();
         internal string Joins { get; set; } = string.Empty;
         internal string WherePredicates { get; set; } = string.Empty;
-        internal BHParameters DynamicParams { get; set; } = new BHParameters();
+        internal List<BlackHoleParameter> DynamicParams { get; set; } = new List<BlackHoleParameter>();
         internal int HelperIndex { get; set; }
         internal bool isMyShit { get; set; }
         internal bool Ignore { get; set; }
@@ -56,7 +56,7 @@ namespace BlackHole.Core
         internal List<string?> Letters { get; set; } = new List<string?>();
         internal string Joins { get; set; } = string.Empty;
         internal string WherePredicates { get; set; } = string.Empty;
-        internal BHParameters DynamicParams { get; set; } = new BHParameters();
+        internal List<BlackHoleParameter> DynamicParams { get; set; } = new List<BlackHoleParameter>();
         internal int HelperIndex { get; set; }
         internal bool isMyShit { get; set; }
         internal bool Ignore { get; set; }

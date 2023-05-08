@@ -344,7 +344,7 @@ namespace BlackHole.Core
             }
 
             string? letter = data.TablesToLetters.Where(x => x.Table == typeof(Tsource)).First().Letter;
-            ColumnsAndParameters colsAndParams = predicate.Body.SplitMembersExtension(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
+            ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<Tsource>(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
             data.DynamicParams = colsAndParams.Parameters;
             data.ParamsCount = colsAndParams.Count;
 
@@ -381,7 +381,7 @@ namespace BlackHole.Core
             }
 
             string? letter = data.TablesToLetters.Where(x => x.Table == typeof(TOther)).First().Letter;
-            ColumnsAndParameters colsAndParams = predicate.Body.SplitMembersExtension(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
+            ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TOther>(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
             data.DynamicParams = colsAndParams.Parameters;
             data.ParamsCount = colsAndParams.Count;
 
@@ -487,7 +487,7 @@ namespace BlackHole.Core
                     data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                     TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                     commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                    return connection.Query<Dto>(commandText, data.DynamicParams.Parameters);
+                    return connection.Query<Dto>(commandText, data.DynamicParams);
                 }
                 catch (Exception ex)
                 {
@@ -516,7 +516,7 @@ namespace BlackHole.Core
                     data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                     TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                     commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                    return connection.Query<Dto>(commandText, data.DynamicParams.Parameters, bHTransaction.transaction);
+                    return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
 
                 }
                 catch (Exception ex)
@@ -545,7 +545,7 @@ namespace BlackHole.Core
                     data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                     TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                     commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                    return await connection.QueryAsync<Dto>(commandText, data.DynamicParams.Parameters);
+                    return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
                 }
                 catch (Exception ex)
                 {
@@ -574,7 +574,7 @@ namespace BlackHole.Core
                     data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                     TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                     commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                    return await connection.QueryAsync<Dto>(commandText, data.DynamicParams.Parameters, bHTransaction.transaction);
+                    return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
 
                 }
                 catch (Exception ex)
@@ -601,7 +601,7 @@ namespace BlackHole.Core
                 data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                 TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                 commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                return connection.Query<Dto>(commandText, data.DynamicParams.Parameters);
+                return connection.Query<Dto>(commandText, data.DynamicParams);
             }
             catch (Exception ex)
             {
@@ -626,7 +626,7 @@ namespace BlackHole.Core
                 data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                 TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                 commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                return connection.Query<Dto>(commandText, data.DynamicParams.Parameters, bHTransaction.transaction);
+                return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
             }
             catch (Exception ex)
             {
@@ -651,7 +651,7 @@ namespace BlackHole.Core
                 data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                 TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                 commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams.Parameters);
+                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
             }
             catch (Exception ex)
             {
@@ -676,7 +676,7 @@ namespace BlackHole.Core
                 data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                 TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                 commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams.Parameters, bHTransaction.transaction);
+                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
             }
             catch (Exception ex)
             {
@@ -1178,7 +1178,7 @@ namespace BlackHole.Core
 
             result = data[0].sqlCommand;
 
-            return new ColumnsAndParameters { Columns = result, Parameters = parameters, Count = index };
+            return new ColumnsAndParameters { Columns = result, Parameters = parameters.Parameters, Count = index };
         }
 
         private static ColumnAndParameter TranslateExpressionExtension(this ExpressionsData expression, int index, bool isMyShit, string? letter)

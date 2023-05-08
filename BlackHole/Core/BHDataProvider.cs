@@ -1,6 +1,5 @@
 ﻿using BlackHole.Entities;
 using System.Reflection;
-using System.Data;
 using System.Linq.Expressions;
 using BlackHole.CoreSupport;
 
@@ -221,8 +220,7 @@ namespace BlackHole.Core
 
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null , 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -230,13 +228,12 @@ namespace BlackHole.Core
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.QueryFirst<T>(SubCommand, sql.Parameters.Parameters);
+            return _dataProvider.QueryFirst<T>(SubCommand, sql.Parameters);
         }
 
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -244,14 +241,14 @@ namespace BlackHole.Core
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.QueryFirst<T>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<T>(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -259,14 +256,13 @@ namespace BlackHole.Core
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.QueryFirst<Dto>(SubCommand, sql.Parameters.Parameters);
+            return _dataProvider.QueryFirst<Dto>(SubCommand, sql.Parameters);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -274,13 +270,12 @@ namespace BlackHole.Core
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.QueryFirst<Dto>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<Dto>(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -288,13 +283,12 @@ namespace BlackHole.Core
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.Query<T>(SubCommand, sql.Parameters.Parameters);
+            return _dataProvider.Query<T>(SubCommand, sql.Parameters);
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -302,14 +296,13 @@ namespace BlackHole.Core
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.Query<T>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<T>(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -317,14 +310,13 @@ namespace BlackHole.Core
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.Query<Dto>(SubCommand, sql.Parameters.Parameters);
+            return _dataProvider.Query<Dto>(SubCommand, sql.Parameters);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -332,7 +324,7 @@ namespace BlackHole.Core
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.Query<Dto>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<Dto>(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         G? IBHDataProvider<T, G>.InsertEntry(T entry)
@@ -420,62 +412,61 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
-            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
 
             if (withActivator)
             {
                 updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters);
+            return _dataProvider.JustExecute(updateCommand, sql.Parameters);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
-            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
 
             if (withActivator)
             {
                 updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute(updateCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
-            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
 
             if (withActivator)
             {
                 updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters);
+            return _dataProvider.JustExecute(updateCommand, sql.Parameters);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
-            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
 
             if (withActivator)
             {
                 updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return _dataProvider.JustExecute(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute(updateCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.DeleteAllEntries()
@@ -566,8 +557,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -575,13 +565,12 @@ namespace BlackHole.Core
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
 
-            return _dataProvider.JustExecute(SubCommand, sql.Parameters.Parameters);
+            return _dataProvider.JustExecute(SubCommand, sql.Parameters);
         }
 
         bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -589,7 +578,7 @@ namespace BlackHole.Core
                 SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {sql.Columns}";
             }
 
-            return _dataProvider.JustExecute(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync()
@@ -732,8 +721,7 @@ namespace BlackHole.Core
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -741,13 +729,12 @@ namespace BlackHole.Core
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryFirstAsync<T>(SubCommand, sql.Parameters.Parameters);
+            return await _dataProvider.QueryFirstAsync<T>(SubCommand, sql.Parameters);
         }
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -755,14 +742,14 @@ namespace BlackHole.Core
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryFirstAsync<T>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<T>(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -770,14 +757,14 @@ namespace BlackHole.Core
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryFirstAsync<Dto>(SubCommand, sql.Parameters.Parameters);
+            return await _dataProvider.QueryFirstAsync<Dto>(SubCommand, sql.Parameters);
         }
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -785,13 +772,12 @@ namespace BlackHole.Core
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryFirstAsync<Dto>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<Dto>(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -799,13 +785,12 @@ namespace BlackHole.Core
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryAsync<T>(SubCommand, sql.Parameters.Parameters);
+            return await _dataProvider.QueryAsync<T>(SubCommand, sql.Parameters);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -813,14 +798,14 @@ namespace BlackHole.Core
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryAsync<T>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<T>(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -828,14 +813,14 @@ namespace BlackHole.Core
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryAsync<Dto>(SubCommand, sql.Parameters.Parameters);
+            return await _dataProvider.QueryAsync<Dto>(SubCommand, sql.Parameters);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -843,7 +828,7 @@ namespace BlackHole.Core
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryAsync<Dto>(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<Dto>(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<G?> IBHDataProvider<T, G>.InsertEntryAsync(T entry)
@@ -931,62 +916,62 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
-            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
 
             if (withActivator)
             {
                 updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters);
+            return await _dataProvider.JustExecuteAsync(updateCommand, sql.Parameters);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
-            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
 
             if (withActivator)
             {
                 updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.JustExecuteAsync(updateCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
-            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
 
             if (withActivator)
             {
                 updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters);
+            return await _dataProvider.JustExecuteAsync(updateCommand, sql.Parameters);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
-            ColumnsAndParameters additionalSql = AdditionalParameters(sql, entry);
 
             if (withActivator)
             {
                 updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
 
-            return await _dataProvider.JustExecuteAsync(updateCommand, additionalSql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.JustExecuteAsync(updateCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteAllEntriesAsync()
@@ -1077,8 +1062,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1086,13 +1070,12 @@ namespace BlackHole.Core
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
 
-            return await _dataProvider.JustExecuteAsync(SubCommand, sql.Parameters.Parameters);
+            return await _dataProvider.JustExecuteAsync(SubCommand, sql.Parameters);
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1100,7 +1083,7 @@ namespace BlackHole.Core
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
 
-            return await _dataProvider.JustExecuteAsync(SubCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.JustExecuteAsync(SubCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         G? IBHDataProvider<T, G>.GetIdWhere(Expression<Func<T, bool>> predicate)
@@ -1324,8 +1307,7 @@ namespace BlackHole.Core
 
         private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1333,13 +1315,12 @@ namespace BlackHole.Core
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
 
-            return _dataProvider.QueryFirst<G>(selectCommand, sql.Parameters.Parameters);
+            return _dataProvider.QueryFirst<G>(selectCommand, sql.Parameters);
         }
 
         private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1347,13 +1328,12 @@ namespace BlackHole.Core
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
 
-            return _dataProvider.QueryFirst<G>(selectCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<G>(selectCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1361,13 +1341,12 @@ namespace BlackHole.Core
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryFirstAsync<G>(selectCommand, sql.Parameters.Parameters);
+            return await _dataProvider.QueryFirstAsync<G>(selectCommand, sql.Parameters);
         }
 
         private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1375,13 +1354,12 @@ namespace BlackHole.Core
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryFirstAsync<G>(selectCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<G>(selectCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1389,13 +1367,12 @@ namespace BlackHole.Core
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
 
-            return _dataProvider.Query<G>(selectCommand, sql.Parameters.Parameters);
+            return _dataProvider.Query<G>(selectCommand, sql.Parameters);
         }
 
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1403,13 +1380,12 @@ namespace BlackHole.Core
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
 
-            return _dataProvider.Query<G>(selectCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<G>(selectCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1417,13 +1393,12 @@ namespace BlackHole.Core
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryAsync<G>(selectCommand, sql.Parameters.Parameters);
+            return await _dataProvider.QueryAsync<G>(selectCommand, sql.Parameters);
         }
 
         private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            List<ExpressionsData> expressionTree = SplitMembers(predicate.Body);
-            ColumnsAndParameters sql = ExpressionTreeToSql(expressionTree);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
             if (withActivator)
@@ -1431,7 +1406,7 @@ namespace BlackHole.Core
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
 
-            return await _dataProvider.QueryAsync<G>(selectCommand, sql.Parameters.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<G>(selectCommand, sql.Parameters, bhTransaction.transaction);
         }
 
         private string MyShit(string? propName)
@@ -1444,733 +1419,6 @@ namespace BlackHole.Core
             }
 
             return result;
-        }
-
-        private List<ExpressionsData> SplitMembers(Expression expression)
-        {
-            List<ExpressionsData> expressionTree = new List<ExpressionsData>();
-
-            BinaryExpression? currentOperation = expression as BinaryExpression;
-            MethodCallExpression? methodCallOperation = expression as MethodCallExpression;
-
-            int currentIndx = 0;
-            bool startTranslate = false;
-
-            if (currentOperation != null || methodCallOperation != null)
-            {
-                startTranslate = true;
-
-                expressionTree.Add(new ExpressionsData()
-                {
-                    operation = currentOperation,
-                    leftMethodMember = methodCallOperation,
-                    leftMember = currentOperation?.Left as MemberExpression,
-                    rightMember = currentOperation?.Right as MemberExpression,
-                    expressionType = currentOperation != null ? currentOperation.NodeType : ExpressionType.Default,
-                    rightChecked = false,
-                    leftChecked = false,
-                    memberValue = null
-                });
-            }
-
-            while (startTranslate)
-            {
-                bool addTotree = false;
-
-                if (expressionTree[currentIndx].operation != null)
-                {
-                    if (expressionTree[currentIndx].expressionType == ExpressionType.AndAlso || expressionTree[currentIndx].expressionType == ExpressionType.OrElse)
-                    {
-
-                        BinaryExpression? leftOperation = expressionTree[currentIndx].operation?.Left as BinaryExpression;
-                        BinaryExpression? rightOperation = expressionTree[currentIndx].operation?.Right as BinaryExpression;
-                        MethodCallExpression? leftCallOperation = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
-                        MethodCallExpression? rightCallOperation = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
-
-                        if (!expressionTree[currentIndx].leftChecked && (leftOperation != null || leftCallOperation != null))
-                        {
-                            expressionTree.Add(new ExpressionsData()
-                            {
-                                operation = leftOperation,
-                                leftMethodMember = leftCallOperation,
-                                expressionType = leftOperation != null ? leftOperation.NodeType : ExpressionType.Default,
-                                rightChecked = false,
-                                leftChecked = false,
-                                memberValue = null,
-                                parentIndex = currentIndx
-                            });
-                            expressionTree[currentIndx].leftChecked = true;
-                            addTotree = true;
-                        }
-
-                        if (!expressionTree[currentIndx].rightChecked && (rightOperation != null || rightCallOperation != null))
-                        {
-                            expressionTree.Add(new ExpressionsData()
-                            {
-                                operation = rightOperation,
-                                rightMethodMember = rightCallOperation,
-                                expressionType = rightOperation != null ? rightOperation.NodeType : ExpressionType.Default,
-                                rightChecked = false,
-                                leftChecked = false,
-                                memberValue = null,
-                                parentIndex = currentIndx
-                            });
-                            expressionTree[currentIndx].rightChecked = true;
-                            addTotree = true;
-                        }
-
-                        if (addTotree)
-                        {
-                            currentIndx = expressionTree.Count - 1;
-                        }
-                    }
-                    else
-                    {
-                        if (!expressionTree[currentIndx].rightChecked)
-                        {
-                            MemberExpression? rightMember = expressionTree[currentIndx].operation?.Right as MemberExpression;
-                            ConstantExpression? rightConstant = expressionTree[currentIndx].operation?.Right as ConstantExpression;
-                            BinaryExpression? rightBinary = expressionTree[currentIndx].operation?.Right as BinaryExpression;
-                            MethodCallExpression? rightmethodMember = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
-
-                            if (rightMember != null)
-                            {
-                                if (rightMember.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                {
-                                    expressionTree[currentIndx].rightMember = rightMember;
-                                }
-                                else
-                                {
-                                    expressionTree[currentIndx].memberValue = Expression.Lambda(rightMember).Compile().DynamicInvoke();
-                                }
-                            }
-
-                            if (rightConstant != null)
-                            {
-                                expressionTree[currentIndx].memberValue = rightConstant?.Value;
-                            }
-
-                            if (rightBinary != null)
-                            {
-                                expressionTree[currentIndx].memberValue = Expression.Lambda(rightBinary).Compile().DynamicInvoke();
-                            }
-
-                            if (rightmethodMember != null)
-                            {
-                                expressionTree[currentIndx].rightMethodMember = rightmethodMember;
-                            }
-
-                            expressionTree[currentIndx].rightChecked = true;
-                        }
-
-                        if (!expressionTree[currentIndx].leftChecked)
-                        {
-                            MemberExpression? leftMember = expressionTree[currentIndx].operation?.Left as MemberExpression;
-                            ConstantExpression? leftConstant = expressionTree[currentIndx].operation?.Left as ConstantExpression;
-                            BinaryExpression? leftBinary = expressionTree[currentIndx].operation?.Left as BinaryExpression;
-                            MethodCallExpression? leftmethodMember = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
-
-                            if (leftMember != null)
-                            {
-                                if (leftMember.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                {
-                                    expressionTree[currentIndx].leftMember = leftMember;
-                                }
-                                else
-                                {
-                                    expressionTree[currentIndx].memberValue = Expression.Lambda(leftMember).Compile().DynamicInvoke();
-                                }
-                            }
-
-                            if (leftConstant != null)
-                            {
-                                expressionTree[currentIndx].memberValue = leftConstant?.Value;
-                            }
-
-                            if (leftBinary != null)
-                            {
-                                expressionTree[currentIndx].memberValue = Expression.Lambda(leftBinary).Compile().DynamicInvoke();
-                            }
-
-                            if(leftmethodMember != null)
-                            {
-                                expressionTree[currentIndx].leftMethodMember = leftmethodMember;
-                            }
-
-                            expressionTree[currentIndx].leftChecked = true;
-                        }
-                    }
-                }
-
-                MethodCallExpression? leftMethodMember = expressionTree[currentIndx].leftMethodMember;
-                MethodCallExpression? rightMethodMember = expressionTree[currentIndx].rightMethodMember;
-
-                if (leftMethodMember != null)
-                {
-                    var func = leftMethodMember.Method;
-                    var arguments = leftMethodMember.Arguments;
-                    var obj = leftMethodMember.Object;
-
-                    if (!expressionTree[currentIndx].methodChecked) 
-                    {
-                        List<object?> MethodArguments = new List<object?>();
-                        bool cleanOfMembers = true;
-                        object?[] parameters = new object[arguments.Count];
-
-                        for (int i = 0; i < arguments.Count; i++)
-                        {
-                            MemberExpression? argMemmber = arguments[i] as MemberExpression;
-                            ConstantExpression? argConstant = arguments[i] as ConstantExpression;
-                            BinaryExpression? argBinary = arguments[i] as BinaryExpression;
-                            MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
-
-                            if (argMemmber != null)
-                            {
-                                if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                {
-                                    cleanOfMembers = false;
-                                    obj = argMemmber;
-                                    MethodArguments.Add(argMemmber.Member);
-                                }
-                                else
-                                {
-                                    parameters[i] = Expression.Lambda(argMemmber).Compile().DynamicInvoke();
-                                    MethodArguments.Add(parameters[i]);
-                                }
-                            }
-
-                            if (argConstant != null)
-                            {
-                                parameters[i] = argConstant.Value;
-                                MethodArguments.Add(argConstant.Value);
-                            }
-
-                            if (argBinary != null)
-                            {
-                                parameters[i] = Expression.Lambda(argBinary).Compile().DynamicInvoke();
-                                MethodArguments.Add(parameters[i]);
-                            }
-
-                            if (argMethod != null)
-                            {
-                                foreach(var arg in argMethod.Arguments)
-                                {
-                                    MemberExpression? SubargMemmber = arg as MemberExpression;
-
-                                    if (SubargMemmber?.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                    {
-                                        cleanOfMembers = false;
-                                    }
-                                }
-
-                                if (cleanOfMembers)
-                                {
-                                    parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
-                                    MethodArguments.Add(parameters[i]);
-                                }
-                            }
-                        }
-
-                        if(cleanOfMembers)
-                        {
-                            if(obj != null)
-                            {
-                                object? skata = Activator.CreateInstance(obj.Type, null);
-                                expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
-                            }
-                        }
-                        else
-                        {
-                            expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
-                        }
-                    }
-                }
-
-                if (rightMethodMember != null)
-                {
-                    var func = rightMethodMember.Method;
-                    var arguments = rightMethodMember.Arguments;
-                    var obj = rightMethodMember.Object;
-
-                    if (!expressionTree[currentIndx].methodChecked)
-                    {
-                        List<object?> MethodArguments = new List<object?>();
-                        bool cleanOfMembers = true;
-                        object?[] parameters = new object[arguments.Count];
-
-                        for (int i = 0; i < arguments.Count; i++)
-                        {
-                            MemberExpression? argMemmber = arguments[i] as MemberExpression;
-                            ConstantExpression? argConstant = arguments[i] as ConstantExpression;
-                            BinaryExpression? argBinary = arguments[i] as BinaryExpression;
-                            MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
-
-                            if (argMemmber != null)
-                            {
-                                if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                {
-                                    cleanOfMembers = false;
-                                    obj = argMemmber;
-                                    MethodArguments.Add(argMemmber.Member);
-                                }
-                                else
-                                {
-                                    parameters[i] = Expression.Lambda(argMemmber).Compile().DynamicInvoke();
-                                    MethodArguments.Add(parameters[i]);
-                                }
-                            }
-
-                            if (argConstant != null)
-                            {
-                                parameters[i] = argConstant.Value;
-                                MethodArguments.Add(argConstant.Value);
-                            }
-
-                            if (argBinary != null)
-                            {
-                                parameters[i] = Expression.Lambda(argBinary).Compile().DynamicInvoke();
-                                MethodArguments.Add(parameters[i]);
-                            }
-
-                            if (argMethod != null)
-                            {
-                                foreach (var arg in argMethod.Arguments)
-                                {
-                                    MemberExpression? SubargMemmber = arg as MemberExpression;
-
-                                    if (SubargMemmber?.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                    {
-                                        cleanOfMembers = false;
-                                    }
-                                }
-
-                                if (cleanOfMembers)
-                                {
-                                    parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
-                                    MethodArguments.Add(parameters[i]);
-                                }
-                            }
-                        }
-
-                        if (cleanOfMembers)
-                        {
-                            if (obj != null)
-                            {
-                                object? skata = Activator.CreateInstance(obj.Type, null);
-                                expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
-                            }
-                        }
-                        else
-                        {
-                            expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
-                        }
-                    }
-                }
-
-                if (!addTotree)
-                {
-                    currentIndx -= 1;
-                }
-
-                if (currentIndx < 0)
-                {
-                    startTranslate = false;
-                }
-            }
-
-            return expressionTree;
-        }
-
-        private List<ExpressionsData> SplitMembersOld(Expression expression)
-        {
-            List<ExpressionsData> expressionTree = new List<ExpressionsData>();
-
-            BinaryExpression? operation = expression as BinaryExpression;
-            BinaryExpression? currentOperation = operation;
-            MemberExpression? leftMember = currentOperation?.Left as MemberExpression;
-            MemberExpression? rightMember = currentOperation?.Right as MemberExpression;
-            MethodCallExpression? methodMember = expression as MethodCallExpression;
-
-            int currentIndx = 0;
-            bool startTranslate = false;
-
-            if (operation != null || methodMember != null)
-            {
-                startTranslate = true;
-
-                expressionTree.Add(new ExpressionsData()
-                {
-                    operation = operation,
-                    leftMember = operation?.Left as MemberExpression,
-                    rightMember = operation?.Right as MemberExpression,
-                    expressionType = operation != null ? operation.NodeType : ExpressionType.Default,
-                    rightChecked = false,
-                    leftChecked = false,
-                    memberValue = null
-                });
-            }
-
-            while (startTranslate)
-            {
-                if (expressionTree[currentIndx].operation != null)
-                {
-                    if (expressionTree[currentIndx].expressionType == ExpressionType.AndAlso || expressionTree[currentIndx].expressionType == ExpressionType.OrElse)
-                    {
-                        bool addTotree = false;
-
-                        if (!expressionTree[currentIndx].leftChecked)
-                        {
-                            currentOperation = expressionTree[currentIndx].operation?.Left as BinaryExpression;
-                            methodMember = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
-                            expressionTree[currentIndx].leftChecked = true;
-                            addTotree = true;
-                        }
-                        else if (!expressionTree[currentIndx].rightChecked && expressionTree[currentIndx].leftChecked)
-                        {
-                            currentOperation = expressionTree[currentIndx].operation?.Right as BinaryExpression;
-                            methodMember = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
-                            expressionTree[currentIndx].rightChecked = true;
-                            addTotree = true;
-                        }
-                        else
-                        {
-                            currentIndx -= 1;
-                        }
-
-                        if (addTotree)
-                        {
-                            expressionTree.Add(new ExpressionsData()
-                            {
-                                operation = currentOperation,
-                                leftMember = currentOperation?.Left as MemberExpression,
-                                rightMember = currentOperation?.Right as MemberExpression,
-                                expressionType = currentOperation != null ? currentOperation.NodeType : ExpressionType.Default,
-                                rightChecked = false,
-                                leftChecked = false,
-                                memberValue = null,
-                                parentIndex = currentIndx
-                            });
-
-                            currentIndx = expressionTree.Count - 1;
-                        }
-                    }
-                    else
-                    {
-                        if (!expressionTree[currentIndx].leftChecked || !expressionTree[currentIndx].rightChecked)
-                        {
-                            rightMember = currentOperation?.Right as MemberExpression;
-                            ConstantExpression? rightConstant = currentOperation?.Right as ConstantExpression;
-                            BinaryExpression? rightBinary = currentOperation?.Right as BinaryExpression;
-                            MethodCallExpression? rightMethodCall = currentOperation?.Right as MethodCallExpression;
-
-                            expressionTree[currentIndx].leftChecked = true;
-                            expressionTree[currentIndx].rightChecked = true;
-
-                            object? value = null;
-
-                            if (rightMember != null)
-                            {
-                                if (rightMember.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                {
-                                    bool isMyMember = true;
-                                }
-                                else
-                                {
-                                    value = Expression.Lambda(rightMember).Compile().DynamicInvoke();
-                                }
-                            }
-
-                            if (rightConstant != null)
-                            {
-                                value = rightConstant?.Value;
-                            }
-
-                            if (rightBinary != null)
-                            {
-                                value = Expression.Lambda(rightBinary).Compile().DynamicInvoke();
-                            }
-
-                            if(methodMember != null)
-                            {
-                                var func = methodMember.Method;
-                                var arguments = methodMember.Arguments;
-                                var obj = methodMember.Object;
-
-                                List<object?> MethodArguments = new List<object?>();
-
-                                foreach (var argumnent in arguments)
-                                {
-                                    MemberExpression? argMemmber = argumnent as MemberExpression;
-                                    ConstantExpression? argConstant = argumnent as ConstantExpression;
-                                    BinaryExpression? argBinary = argumnent as BinaryExpression;
-                                    MethodCallExpression? argMethod = argumnent as MethodCallExpression;
-
-                                    if (argMemmber != null)
-                                    {
-                                        if(argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
-                                        {
-                                            bool isMyMember = true;
-                                        }
-                                        //MethodArguments.Add(Expression.Lambda(argMemmber).Compile().DynamicInvoke());
-                                    }
-
-                                    if (argConstant != null)
-                                    {
-                                        MethodArguments.Add(rightConstant?.Value);
-                                    }
-
-                                    if (argBinary != null)
-                                    {
-                                        MethodArguments.Add(Expression.Lambda(argBinary).Compile().DynamicInvoke());
-                                    }
-
-                                    if (argMethod != null)
-                                    {
-                                        MethodArguments.Add(Expression.Lambda(argMethod).Compile().DynamicInvoke());
-                                    }
-                                }
-
-                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
-                            }
-
-                            if(rightMethodCall != null)
-                            {
-                                var func = rightMethodCall.Method;
-                                var arguments = rightMethodCall.Arguments;
-                                var obj = rightMethodCall.Object;
-
-                                List<object?> MethodArguments = new List<object?>();
-
-                                foreach(var argumnent in arguments)
-                                {
-                                    MemberExpression? argMemmber = argumnent as MemberExpression;
-                                    ConstantExpression? argConstant = argumnent as ConstantExpression;
-                                    BinaryExpression? argBinary = argumnent as BinaryExpression;
-                                    MethodCallExpression? argMethod = argumnent as MethodCallExpression;
-
-                                    if (argMemmber != null)
-                                    {
-                                        //MethodArguments.Add(Expression.Lambda(argMemmber).Compile().DynamicInvoke());
-                                    }
-
-                                    if(argConstant != null)
-                                    {
-                                        MethodArguments.Add(rightConstant?.Value);
-                                    }
-
-                                    if (argBinary != null)
-                                    {
-                                        MethodArguments.Add(Expression.Lambda(argBinary).Compile().DynamicInvoke());
-                                    }
-
-                                    if(argMethod != null)
-                                    {
-                                        MethodArguments.Add(Expression.Lambda(argMethod).Compile().DynamicInvoke());
-                                    }
-
-                                }
-
-                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData {MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj});
-                            }
-
-                            expressionTree[currentIndx].memberValue = value;
-                        }
-
-                        currentIndx -= 1;
-                    }
-                }
-
-                if (currentIndx < 0)
-                {
-                    startTranslate = false;
-                }
-            }
-
-            return expressionTree;
-        }
-
-        private ColumnsAndParameters ExpressionTreeToSql(List<ExpressionsData> data)
-        {
-            string result = "";
-            BHParameters parameters = new BHParameters();
-            List<MethodCallExpression> InvokeMethods = new List<MethodCallExpression>();
-            List<ExpressionsData> children = data.Where(x => x.memberValue != null).ToList();
-            string[] translations = new string[children.Count];
-            int index = 0;
-            foreach (ExpressionsData child in children)
-            {
-                ExpressionsData parent = data[child.parentIndex];
-                if (parent.leftChecked)
-                {
-                    if(child.methodData.Count > 0)
-                    {
-
-                    }
-                    else
-                    {
-                        ColumnAndParameter childParams = TranslateExpression(child, index);
-
-                        if (childParams.ParamName != string.Empty)
-                        {
-                            parameters.Add(childParams.ParamName, childParams.Value);
-                        }
-
-                        parent.sqlCommand = $"{childParams.Column}";
-                    }
-
-                    parent.leftChecked = false;
-                    index++;
-                }
-                else
-                {
-                    if (child.methodData.Count > 0)
-                    {
-
-                    }
-                    else
-                    {
-                        ColumnAndParameter parentCols = TranslateExpression(parent, index);
-
-                        if (parentCols.ParamName != string.Empty)
-                        {
-                            parameters.Add(parentCols.ParamName, parentCols.Value);
-                        }
-
-                        index++;
-
-                        ColumnAndParameter childCols = TranslateExpression(child, index);
-
-                        if (childCols.ParamName != string.Empty)
-                        {
-                            parameters.Add(childCols.ParamName, childCols.Value);
-                        }
-
-                        parent.sqlCommand = $"({parent.sqlCommand} {parentCols.Column} {childCols.Column})";
-                    }
-
-                    index++;
-                }
-            }
-
-            List<ExpressionsData> parents = data.Where(x => x.memberValue == null).ToList();
-
-            if (parents.Count > 1)
-            {
-                parents.RemoveAt(0);
-                int parentsCount = parents.Count;
-
-                for (int i = 0; i < parentsCount; i++)
-                {
-                    ExpressionsData parent = data[parents[parentsCount - 1 - i].parentIndex];
-
-                    if (parent.leftChecked)
-                    {
-                        parent.sqlCommand = parents[parentsCount - 1 - i].sqlCommand;
-                        parent.leftChecked = false;
-                    }
-                    else
-                    {
-                        if (parent.methodData.Count > 0)
-                        {
-
-                        }
-                        else
-                        {
-                            ColumnAndParameter parentParams = TranslateExpression(parent, index);
-                            if (parentParams.ParamName != string.Empty)
-                            {
-                                parameters.Add(parentParams.ParamName, parentParams.Value);
-                            }
-
-                            parent.sqlCommand = $"({parent.sqlCommand} {parentParams.Column} {parents[parentsCount - 1 - i].sqlCommand})";
-                        }
-
-                        index++;
-                    }
-                }
-            }
-
-            result = data[0].sqlCommand;
-
-            return new ColumnsAndParameters { Columns = result, Parameters = parameters, Count = index, InvokeMethods = InvokeMethods };
-        }
-
-        private ColumnAndParameter TranslateExpression(ExpressionsData expression, int index)
-        {
-            string? column = string.Empty;
-            string? parameter = string.Empty;
-            object? value = new object();
-            MethodCallExpression? invokeMethod = null;
-            string[]? variable = new string[2];
-
-            switch (expression.expressionType)
-            {
-                case ExpressionType.AndAlso:
-                    column = " and ";
-                    break;
-                case ExpressionType.OrElse:
-                    column = " or ";
-                    break;
-                case ExpressionType.Equal:
-                    value = expression?.memberValue;
-                    variable = expression?.leftMember != null? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
-                    column = $"{MyShit(variable?[1])} = @{variable?[1]}{index}";
-                    if (value == null)
-                    {
-                        column = $"{MyShit(variable?[1])} is @{variable?[1]}{index}";
-                    }
-                    parameter = $"{variable?[1]}{index}";
-                    break;
-                case ExpressionType.GreaterThanOrEqual:
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
-                    column = $"{MyShit(variable?[1])} >= @{variable?[1]}{index}";
-                    parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
-                    break;
-                case ExpressionType.LessThanOrEqual:
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
-                    column = $"{MyShit(variable?[1])} <= @{variable?[1]}{index}";
-                    parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
-                    break;
-                case ExpressionType.LessThan:
-                    variable = expression?.leftMember?.ToString().Split(".");
-                    column = $"{MyShit(variable?[1])} < @{variable?[1]}{index}";
-                    parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
-                    break;
-                case ExpressionType.GreaterThan:
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
-                    column = $"{MyShit(variable?[1])} > @{variable?[1]}{index}";
-                    parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
-                    break;
-                case ExpressionType.NotEqual:
-                    value = expression?.memberValue;
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
-                    column = $"{MyShit(variable?[1])} != @{variable?[1]}{index}";
-                    if (value == null)
-                    {
-                        column = $"{MyShit(variable?[1])} is not @{variable?[1]}{index}";
-                    }
-                    parameter = $"{variable?[1]}{index}";
-                    break;
-            }
-
-            return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value, InvokeMethod = invokeMethod };
-        }
-
-        private ColumnsAndParameters AdditionalParameters(ColumnsAndParameters colsAndParams, object item)
-        {
-            Type type = item.GetType();
-            PropertyInfo[] props = type.GetProperties();
-
-            foreach (var prop in props)
-            {
-                colsAndParams.Parameters.Add(prop.Name,prop.GetValue(item));
-            }
-
-            return colsAndParams;
         }
 
         private string CompareDtoToEntity(Type dto)

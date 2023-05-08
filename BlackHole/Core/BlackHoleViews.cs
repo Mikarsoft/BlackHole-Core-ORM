@@ -1,4 +1,6 @@
-﻿namespace BlackHole.Core
+﻿using BlackHole.CoreSupport;
+
+namespace BlackHole.Core
 {
     internal static class BlackHoleViews
     {

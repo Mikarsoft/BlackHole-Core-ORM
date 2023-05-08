@@ -1,12 +1,12 @@
-﻿
+﻿using BlackHole.Core;
 using System.Linq.Expressions;
 
-namespace BlackHole.Core
+namespace BlackHole.CoreSupport
 {
     internal class ColumnsAndParameters
     {
         internal string Columns { get; set; } = "";
-        internal BHParameters Parameters { get; set; } = new BHParameters();
+        internal List<BlackHoleParameter> Parameters { get; set; } = new List<BlackHoleParameter>();
         internal int Count { get; set; }
         internal List<MethodCallExpression> InvokeMethods { get; set; } = new List<MethodCallExpression>();
     }

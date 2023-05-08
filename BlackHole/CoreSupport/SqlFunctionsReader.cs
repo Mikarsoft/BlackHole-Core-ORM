@@ -1,5 +1,4 @@
-﻿
-namespace BlackHole.Core
+﻿namespace BlackHole.CoreSupport
 {
     internal class SqlFunctionsReader
     {

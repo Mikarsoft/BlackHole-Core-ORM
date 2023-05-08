@@ -1,4 +1,5 @@
-﻿using BlackHole.Entities;
+﻿using BlackHole.CoreSupport;
+using BlackHole.Entities;
 using System.Linq.Expressions;
 
 namespace BlackHole.Core

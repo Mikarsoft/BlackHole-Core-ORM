@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
-namespace BlackHole.Core
+namespace BlackHole.CoreSupport
 {
     internal class MethodExpressionData
     {
