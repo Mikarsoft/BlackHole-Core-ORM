@@ -2,44 +2,59 @@
 {
     internal class SqlFunctionsReader
     {
-        internal string functionName { get; set; }
-        internal string propertyType { get; set; }
-        internal object? dataValue { get; set; }
-        internal bool methodNotFound { get; set; }
+        internal string SqlCommand { get; set; }
+        internal object? ParameterValue { get; set; }
+        internal string Letter { get; set; }
 
-        internal SqlFunctionsReader(string MethodName)
+        internal SqlFunctionsReader(MethodExpressionData MethodData)
         {
-            switch (MethodName)
+            switch (MethodData.MethodName)
             {
                 case "Contains":
                     break;
-                case "Like":
+                case "SqlLike":
                     break;
-                case "Concat":
+                case "SqlConcat":
                     break;
                 case "ToUpper":
                     break;
                 case "ToLower":
                     break;
-                case "Translate":
+                case "SqlUpper":
+                    break;
+                case "SqlLower":
+                    break;
+                case "SqlRight":
+                    break;
+                case "SqlLeft":
                     break;
                 case "Replace":
                     break;
                 case "Length":
                     break;
-                case "Average":
+                case "SqlReverse":
                     break;
-                case "Floor":
+                case "SqlAverage":
+                    break;
+                case "SqlAbsolut":
+                    break;
+                case "SqlFloor":
+                    break;
+                case "SqlCeiling":
                     break;
                 case "Remainder":
                     break;
-                case "Max":
+                case "SqlPower":
                     break;
-                case "Min":
+                case "SqlMax":
                     break;
-                case "Power":
+                case "SqlMin":
                     break;
-                case "Sum":
+                case "SqlSum":
+                    break;
+                case "SqlDateAfter":
+                    break;
+                case "SqlDateBefore":
                     break;
             }
         }

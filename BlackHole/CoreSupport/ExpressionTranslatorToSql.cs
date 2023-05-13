@@ -161,171 +161,174 @@ namespace BlackHole.CoreSupport
                     }
                 }
 
-                MethodCallExpression? leftMethodMember = expressionTree[currentIndx].leftMethodMember;
-                MethodCallExpression? rightMethodMember = expressionTree[currentIndx].rightMethodMember;
-
-                if (leftMethodMember != null)
+                if (expressionTree[currentIndx].methodData.Count == 0)
                 {
-                    var func = leftMethodMember.Method;
-                    var arguments = leftMethodMember.Arguments;
-                    var obj = leftMethodMember.Object;
+                    MethodCallExpression? leftMethodMember = expressionTree[currentIndx].leftMethodMember;
+                    MethodCallExpression? rightMethodMember = expressionTree[currentIndx].rightMethodMember;
 
-                    if (!expressionTree[currentIndx].methodChecked)
+                    if (leftMethodMember != null)
                     {
-                        List<object?> MethodArguments = new List<object?>();
-                        bool cleanOfMembers = true;
-                        object?[] parameters = new object[arguments.Count];
+                        var func = leftMethodMember.Method;
+                        var arguments = leftMethodMember.Arguments;
+                        var obj = leftMethodMember.Object;
 
-                        for (int i = 0; i < arguments.Count; i++)
+                        if (!expressionTree[currentIndx].methodChecked)
                         {
-                            MemberExpression? argMemmber = arguments[i] as MemberExpression;
-                            ConstantExpression? argConstant = arguments[i] as ConstantExpression;
-                            BinaryExpression? argBinary = arguments[i] as BinaryExpression;
-                            MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
+                            List<object?> MethodArguments = new List<object?>();
+                            bool cleanOfMembers = true;
+                            object?[] parameters = new object[arguments.Count];
 
-                            if (argMemmber != null)
+                            for (int i = 0; i < arguments.Count; i++)
                             {
-                                if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                MemberExpression? argMemmber = arguments[i] as MemberExpression;
+                                ConstantExpression? argConstant = arguments[i] as ConstantExpression;
+                                BinaryExpression? argBinary = arguments[i] as BinaryExpression;
+                                MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
+
+                                if (argMemmber != null)
                                 {
-                                    cleanOfMembers = false;
-                                    obj = argMemmber;
-                                    MethodArguments.Add(argMemmber.Member);
-                                }
-                                else
-                                {
-                                    parameters[i] = Expression.Lambda(argMemmber).Compile().DynamicInvoke();
-                                    MethodArguments.Add(parameters[i]);
-                                }
-                            }
-
-                            if (argConstant != null)
-                            {
-                                parameters[i] = argConstant.Value;
-                                MethodArguments.Add(argConstant.Value);
-                            }
-
-                            if (argBinary != null)
-                            {
-                                parameters[i] = Expression.Lambda(argBinary).Compile().DynamicInvoke();
-                                MethodArguments.Add(parameters[i]);
-                            }
-
-                            if (argMethod != null)
-                            {
-                                foreach (var arg in argMethod.Arguments)
-                                {
-                                    MemberExpression? SubargMemmber = arg as MemberExpression;
-
-                                    if (SubargMemmber?.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                    if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
                                     {
                                         cleanOfMembers = false;
+                                        obj = argMemmber;
+                                        MethodArguments.Add(argMemmber.Member);
+                                    }
+                                    else
+                                    {
+                                        parameters[i] = Expression.Lambda(argMemmber).Compile().DynamicInvoke();
+                                        MethodArguments.Add(parameters[i]);
                                     }
                                 }
 
-                                if (cleanOfMembers)
+                                if (argConstant != null)
                                 {
-                                    parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
+                                    parameters[i] = argConstant.Value;
+                                    MethodArguments.Add(argConstant.Value);
+                                }
+
+                                if (argBinary != null)
+                                {
+                                    parameters[i] = Expression.Lambda(argBinary).Compile().DynamicInvoke();
                                     MethodArguments.Add(parameters[i]);
                                 }
-                            }
-                        }
 
-                        if (cleanOfMembers)
-                        {
-                            if (obj != null)
-                            {
-                                object? skata = Activator.CreateInstance(obj.Type, null);
-                                expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
+                                if (argMethod != null)
+                                {
+                                    foreach (var arg in argMethod.Arguments)
+                                    {
+                                        MemberExpression? SubargMemmber = arg as MemberExpression;
+
+                                        if (SubargMemmber?.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                        {
+                                            cleanOfMembers = false;
+                                        }
+                                    }
+
+                                    if (cleanOfMembers)
+                                    {
+                                        parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
+                                        MethodArguments.Add(parameters[i]);
+                                    }
+                                }
                             }
-                        }
-                        else
-                        {
-                            expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
+
+                            if (cleanOfMembers)
+                            {
+                                if (obj != null)
+                                {
+                                    object? skata = Activator.CreateInstance(obj.Type, null);
+                                    expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
+                                }
+                            }
+                            else
+                            {
+                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
+                            }
                         }
                     }
-                }
 
-                if (rightMethodMember != null)
-                {
-                    var func = rightMethodMember.Method;
-                    var arguments = rightMethodMember.Arguments;
-                    var obj = rightMethodMember.Object;
-
-                    if (!expressionTree[currentIndx].methodChecked)
+                    if (rightMethodMember != null)
                     {
-                        List<object?> MethodArguments = new List<object?>();
-                        bool cleanOfMembers = true;
-                        object?[] parameters = new object[arguments.Count];
+                        var func = rightMethodMember.Method;
+                        var arguments = rightMethodMember.Arguments;
+                        var obj = rightMethodMember.Object;
 
-                        for (int i = 0; i < arguments.Count; i++)
+                        if (!expressionTree[currentIndx].methodChecked)
                         {
-                            MemberExpression? argMemmber = arguments[i] as MemberExpression;
-                            ConstantExpression? argConstant = arguments[i] as ConstantExpression;
-                            BinaryExpression? argBinary = arguments[i] as BinaryExpression;
-                            MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
+                            List<object?> MethodArguments = new List<object?>();
+                            bool cleanOfMembers = true;
+                            object?[] parameters = new object[arguments.Count];
 
-                            if (argMemmber != null)
+                            for (int i = 0; i < arguments.Count; i++)
                             {
-                                if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                MemberExpression? argMemmber = arguments[i] as MemberExpression;
+                                ConstantExpression? argConstant = arguments[i] as ConstantExpression;
+                                BinaryExpression? argBinary = arguments[i] as BinaryExpression;
+                                MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
+
+                                if (argMemmber != null)
                                 {
-                                    cleanOfMembers = false;
-                                    obj = argMemmber;
-                                    MethodArguments.Add(argMemmber.Member);
-                                }
-                                else
-                                {
-                                    parameters[i] = Expression.Lambda(argMemmber).Compile().DynamicInvoke();
-                                    MethodArguments.Add(parameters[i]);
-                                }
-                            }
-
-                            if (argConstant != null)
-                            {
-                                parameters[i] = argConstant.Value;
-                                MethodArguments.Add(argConstant.Value);
-                            }
-
-                            if (argBinary != null)
-                            {
-                                parameters[i] = Expression.Lambda(argBinary).Compile().DynamicInvoke();
-                                MethodArguments.Add(parameters[i]);
-                            }
-
-                            if (argMethod != null)
-                            {
-                                foreach (var arg in argMethod.Arguments)
-                                {
-                                    MemberExpression? SubargMemmber = arg as MemberExpression;
-
-                                    if (SubargMemmber?.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                    if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
                                     {
                                         cleanOfMembers = false;
+                                        obj = argMemmber;
+                                        MethodArguments.Add(argMemmber.Member);
+                                    }
+                                    else
+                                    {
+                                        parameters[i] = Expression.Lambda(argMemmber).Compile().DynamicInvoke();
+                                        MethodArguments.Add(parameters[i]);
                                     }
                                 }
 
-                                if (cleanOfMembers)
+                                if (argConstant != null)
                                 {
-                                    parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
+                                    parameters[i] = argConstant.Value;
+                                    MethodArguments.Add(argConstant.Value);
+                                }
+
+                                if (argBinary != null)
+                                {
+                                    parameters[i] = Expression.Lambda(argBinary).Compile().DynamicInvoke();
                                     MethodArguments.Add(parameters[i]);
                                 }
-                            }
-                        }
 
-                        if (cleanOfMembers)
-                        {
-                            if (obj != null)
-                            {
-                                object? skata = Activator.CreateInstance(obj.Type, null);
-                                expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
+                                if (argMethod != null)
+                                {
+                                    foreach (var arg in argMethod.Arguments)
+                                    {
+                                        MemberExpression? SubargMemmber = arg as MemberExpression;
+
+                                        if (SubargMemmber?.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                        {
+                                            cleanOfMembers = false;
+                                        }
+                                    }
+
+                                    if (cleanOfMembers)
+                                    {
+                                        parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
+                                        MethodArguments.Add(parameters[i]);
+                                    }
+                                }
                             }
-                        }
-                        else
-                        {
-                            expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
+
+                            if (cleanOfMembers)
+                            {
+                                if (obj != null)
+                                {
+                                    object? skata = Activator.CreateInstance(obj.Type, null);
+                                    expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
+                                }
+                            }
+                            else
+                            {
+                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
+                            }
                         }
                     }
                 }
-
+                
                 if (!addTotree)
                 {
                     currentIndx -= 1;
@@ -455,7 +458,6 @@ namespace BlackHole.CoreSupport
             string? column = string.Empty;
             string? parameter = string.Empty;
             object? value = new object();
-            MethodCallExpression? invokeMethod = null;
             string[]? variable = new string[2];
             string subLetter = letter != string.Empty ? $"{letter}." : string.Empty;
 
@@ -513,7 +515,7 @@ namespace BlackHole.CoreSupport
                     break;
             }
 
-            return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value, InvokeMethod = invokeMethod };
+            return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value};
         }
 
         internal static string SkipNameQuotes(this string? propName, bool isMyShit)
