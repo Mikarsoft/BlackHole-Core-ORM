@@ -352,19 +352,22 @@ namespace BlackHole.CoreSupport
                 parameters = new List<BlackHoleParameter>();
             }
 
-            List<ExpressionsData> children = data.Where(x => x.memberValue != null).ToList();
+            List<ExpressionsData> children = data.Where(x => x.memberValue != null || x.methodData.Count > 0).ToList();
             string[] translations = new string[children.Count];
 
             foreach (ExpressionsData child in children)
             {
                 ExpressionsData parent = data[child.parentIndex];
-                if (parent.leftChecked)
-                {
-                    if (child.methodData.Count > 0)
-                    {
 
-                    }
-                    else
+                if (child.methodData.Count > 0)
+                {
+                    SqlFunctionsReader sqlFunctionResult = new SqlFunctionsReader(child.methodData[0], index, letter);
+                    parent.sqlCommand = $"{sqlFunctionResult.SqlCommand}";
+                    parent.leftChecked = false;
+                }
+                else
+                {
+                    if (parent.leftChecked)
                     {
                         ColumnAndParameter childParams = child.TranslateExpression(index, isMyShit, letter);
 
@@ -374,16 +377,9 @@ namespace BlackHole.CoreSupport
                         }
 
                         parent.sqlCommand = $"{childParams.Column}";
-                    }
 
-                    parent.leftChecked = false;
-                    index++;
-                }
-                else
-                {
-                    if (child.methodData.Count > 0)
-                    {
-
+                        parent.leftChecked = false;
+                        index++;
                     }
                     else
                     {
@@ -391,7 +387,7 @@ namespace BlackHole.CoreSupport
 
                         if (parentCols.ParamName != string.Empty)
                         {
-                            parameters.Add( new BlackHoleParameter { Name = parentCols.ParamName, Value = parentCols.Value });
+                            parameters.Add(new BlackHoleParameter { Name = parentCols.ParamName, Value = parentCols.Value });
                         }
 
                         index++;
@@ -404,13 +400,12 @@ namespace BlackHole.CoreSupport
                         }
 
                         parent.sqlCommand = $"({parent.sqlCommand} {parentCols.Column} {childCols.Column})";
+                        index++;
                     }
-
-                    index++;
                 }
             }
 
-            List<ExpressionsData> parents = data.Where(x => x.memberValue == null).ToList();
+            List<ExpressionsData> parents = data.Where(x => x.memberValue == null && x.methodData.Count == 0).ToList();
 
             if (parents.Count > 1)
             {
@@ -428,20 +423,14 @@ namespace BlackHole.CoreSupport
                     }
                     else
                     {
-                        if (parent.methodData.Count > 0)
-                        {
+                        ColumnAndParameter parentParams = parent.TranslateExpression(index, isMyShit, letter);
 
-                        }
-                        else
+                        if (parentParams.ParamName != string.Empty)
                         {
-                            ColumnAndParameter parentParams = parent.TranslateExpression(index, isMyShit, letter);
-                            if (parentParams.ParamName != string.Empty)
-                            {
-                                parameters.Add(new BlackHoleParameter { Name = parentParams.ParamName, Value = parentParams.Value });
-                            }
-
-                            parent.sqlCommand = $"({parent.sqlCommand} {parentParams.Column} {parents[parentsCount - 1 - i].sqlCommand})";
+                            parameters.Add(new BlackHoleParameter { Name = parentParams.ParamName, Value = parentParams.Value });
                         }
+
+                        parent.sqlCommand = $"({parent.sqlCommand} {parentParams.Column} {parents[parentsCount - 1 - i].sqlCommand})";
 
                         index++;
                     }
@@ -460,6 +449,7 @@ namespace BlackHole.CoreSupport
             object? value = new object();
             string[]? variable = new string[2];
             string subLetter = letter != string.Empty ? $"{letter}." : string.Empty;
+            string sqlOperator = "=";
 
             switch (expression.expressionType)
             {
@@ -480,26 +470,62 @@ namespace BlackHole.CoreSupport
                     parameter = $"{variable?[1]}{index}";
                     break;
                 case ExpressionType.GreaterThanOrEqual:
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
-                    column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} >= @{variable?[1]}{index}";
+                    if(expression?.leftMember != null)
+                    {
+                        variable = expression?.leftMember.ToString().Split(".");
+                        sqlOperator = ">=";
+                    }
+                    else
+                    {
+                        variable = expression?.rightMember?.ToString().Split(".");
+                        sqlOperator = "<=";
+                    }
+                    column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} {sqlOperator} @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
                     value = expression?.memberValue;
                     break;
                 case ExpressionType.LessThanOrEqual:
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
-                    column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} <= @{variable?[1]}{index}";
+                    if (expression?.leftMember != null)
+                    {
+                        variable = expression?.leftMember.ToString().Split(".");
+                        sqlOperator = "<=";
+                    }
+                    else
+                    {
+                        variable = expression?.rightMember?.ToString().Split(".");
+                        sqlOperator = ">=";
+                    }
+                    column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} {sqlOperator} @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
                     value = expression?.memberValue;
                     break;
                 case ExpressionType.LessThan:
-                    variable = expression?.leftMember?.ToString().Split(".");
-                    column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} < @{variable?[1]}{index}";
+                    if (expression?.leftMember != null)
+                    {
+                        variable = expression?.leftMember.ToString().Split(".");
+                        sqlOperator = "<";
+                    }
+                    else
+                    {
+                        variable = expression?.rightMember?.ToString().Split(".");
+                        sqlOperator = ">";
+                    }
+                    column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} {sqlOperator} @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
                     value = expression?.memberValue;
                     break;
                 case ExpressionType.GreaterThan:
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
-                    column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} > @{variable?[1]}{index}";
+                    if (expression?.leftMember != null)
+                    {
+                        variable = expression?.leftMember.ToString().Split(".");
+                        sqlOperator = ">";
+                    }
+                    else
+                    {
+                        variable = expression?.rightMember?.ToString().Split(".");
+                        sqlOperator = "<";
+                    }
+                    column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} {sqlOperator} @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
                     value = expression?.memberValue;
                     break;
