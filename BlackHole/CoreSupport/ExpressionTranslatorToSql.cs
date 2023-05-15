@@ -94,7 +94,9 @@ namespace BlackHole.CoreSupport
 
                             if (rightMember != null)
                             {
-                                if (rightMember.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                string? typeName = rightMember.Member.ReflectedType?.FullName;
+
+                                if (typeName != null && (typeName == typeof(T).BaseType?.FullName || typeName == typeof(T).FullName))
                                 {
                                     expressionTree[currentIndx].rightMember = rightMember;
                                 }
@@ -131,7 +133,9 @@ namespace BlackHole.CoreSupport
 
                             if (leftMember != null)
                             {
-                                if (leftMember.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                string? typeName = leftMember.Member.ReflectedType?.FullName;
+
+                                if (typeName != null && (typeName == typeof(T).BaseType?.FullName || typeName == typeof(T).FullName))
                                 {
                                     expressionTree[currentIndx].leftMember = leftMember;
                                 }
@@ -187,7 +191,9 @@ namespace BlackHole.CoreSupport
 
                                 if (argMemmber != null)
                                 {
-                                    if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                    string? typeName = argMemmber.Member.ReflectedType?.FullName;
+
+                                    if (typeName != null && (typeName == typeof(T).BaseType?.FullName || typeName == typeof(T).FullName))
                                     {
                                         cleanOfMembers = false;
                                         obj = argMemmber;
@@ -242,7 +248,14 @@ namespace BlackHole.CoreSupport
                             }
                             else
                             {
-                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
+                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData 
+                                { 
+                                    MethodName = func.Name, 
+                                    MethodArguments = MethodArguments,
+                                    CastedOn = obj ,
+                                    ComparedValue = expressionTree[currentIndx].memberValue,
+                                    CompareProperty = expressionTree[currentIndx].rightMember
+                                });
                             }
                         }
                     }
@@ -268,7 +281,9 @@ namespace BlackHole.CoreSupport
 
                                 if (argMemmber != null)
                                 {
-                                    if (argMemmber.Member.ReflectedType?.FullName == typeof(T).FullName)
+                                    string? typeName = argMemmber.Member.ReflectedType?.FullName;
+
+                                    if (typeName!= null && (typeName == typeof(T).BaseType?.FullName || typeName == typeof(T).FullName))
                                     {
                                         cleanOfMembers = false;
                                         obj = argMemmber;
@@ -323,7 +338,14 @@ namespace BlackHole.CoreSupport
                             }
                             else
                             {
-                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData { MethodName = func.Name, MethodArguments = MethodArguments, CastedOn = obj });
+                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData
+                                {
+                                    MethodName = func.Name,
+                                    MethodArguments = MethodArguments,
+                                    CastedOn = obj,
+                                    ComparedValue = expressionTree[currentIndx].memberValue,
+                                    CompareProperty = expressionTree[currentIndx].leftMember
+                                });
                             }
                         }
                     }
@@ -405,7 +427,7 @@ namespace BlackHole.CoreSupport
                 }
             }
 
-            List<ExpressionsData> parents = data.Where(x => x.memberValue == null && x.methodData.Count == 0).ToList();
+            List<ExpressionsData> parents = data.Where(x => x.memberValue == null && x.methodData.Count == 0 && x.expressionType != ExpressionType.Default).ToList();
 
             if (parents.Count > 1)
             {
@@ -538,6 +560,9 @@ namespace BlackHole.CoreSupport
                         column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} is not @{variable?[1]}{index}";
                     }
                     parameter = $"{variable?[1]}{index}";
+                    break;
+                case ExpressionType.Default:
+                    column = "1=1";
                     break;
             }
 

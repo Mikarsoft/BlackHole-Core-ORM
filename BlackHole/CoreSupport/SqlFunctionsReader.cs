@@ -1,4 +1,6 @@
-﻿namespace BlackHole.CoreSupport
+﻿using System.Linq.Expressions;
+
+namespace BlackHole.CoreSupport
 {
     internal class SqlFunctionsReader
     {
@@ -12,17 +14,14 @@
             {
                 if(MethodData.CastedOn.Type == typeof(string))
                 {
-                    SqlCommand = MethodData.MethodName;
                     UseStringMethods(MethodData);
                 }
                 else if(MethodData.CastedOn.Type == typeof(DateTime))
                 {
-                    SqlCommand = MethodData.MethodName;
                     UseDateTimeMethods(MethodData);
                 }
                 else
                 {
-                    SqlCommand = MethodData.MethodName;
                     UseNumericMethods(MethodData);
                 }
             }
@@ -33,6 +32,7 @@
             switch (NumericMethodData.MethodName)
             {
                 case "SqlAverage":
+                    SqlCommand = $"{NumericMethodData.CompareProperty} >= Average({NumericMethodData.CastedOn?.ToString()}) ";
                     break;
                 case "SqlAbsolut":
                     break;
@@ -60,6 +60,7 @@
                 case "Contains":
                     break;
                 case "SqlLike":
+                    SqlCommand = $"{StringMethodData.CastedOn?.ToString()} Like '{StringMethodData.MethodArguments[1]}'";
                     break;
                 case "SqlConcat":
                     break;
@@ -83,6 +84,7 @@
                     break;
             }
         }
+
 
         internal void UseDateTimeMethods(MethodExpressionData DateMethodData)
         {

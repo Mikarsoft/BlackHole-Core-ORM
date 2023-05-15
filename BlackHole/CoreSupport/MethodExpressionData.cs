@@ -9,5 +9,6 @@ namespace BlackHole.CoreSupport
         internal string MethodName { get; set; } = string.Empty;
         internal ExpressionType OperatorType { get; set; }
         internal object? ComparedValue { get; set; }
+        internal MemberExpression? CompareProperty { get; set; }
     }
 }
