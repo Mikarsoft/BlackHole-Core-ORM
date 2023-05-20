@@ -175,11 +175,16 @@ namespace BlackHole.CoreSupport
                         var func = leftMethodMember.Method;
                         var arguments = leftMethodMember.Arguments;
                         var obj = leftMethodMember.Object;
+                        bool cleanOfMembers = true;
+
+                        if (obj?.NodeType == ExpressionType.MemberAccess)
+                        {
+                            cleanOfMembers = false;
+                        }
 
                         if (!expressionTree[currentIndx].methodChecked)
                         {
                             List<object?> MethodArguments = new List<object?>();
-                            bool cleanOfMembers = true;
                             object?[] parameters = new object[arguments.Count];
 
                             for (int i = 0; i < arguments.Count; i++)
@@ -242,7 +247,7 @@ namespace BlackHole.CoreSupport
                             {
                                 if (obj != null)
                                 {
-                                    object? skata = Activator.CreateInstance(obj.Type, null);
+                                    object? skata = obj.Type != typeof(string) ? Activator.CreateInstance(obj.Type, null) : string.Empty;
                                     expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
                                 }
                             }
@@ -254,7 +259,10 @@ namespace BlackHole.CoreSupport
                                     MethodArguments = MethodArguments,
                                     CastedOn = obj ,
                                     ComparedValue = expressionTree[currentIndx].memberValue,
-                                    CompareProperty = expressionTree[currentIndx].rightMember
+                                    CompareProperty = expressionTree[currentIndx].rightMember,
+                                    OperatorType = expressionTree[currentIndx].expressionType,
+                                    ReverseOperator = true,
+                                    TableName = typeof(T).Name
                                 });
                             }
                         }
@@ -265,11 +273,16 @@ namespace BlackHole.CoreSupport
                         var func = rightMethodMember.Method;
                         var arguments = rightMethodMember.Arguments;
                         var obj = rightMethodMember.Object;
+                        bool cleanOfMembers = true;
+
+                        if (obj?.NodeType == ExpressionType.MemberAccess)
+                        {
+                            cleanOfMembers = false;
+                        }
 
                         if (!expressionTree[currentIndx].methodChecked)
                         {
                             List<object?> MethodArguments = new List<object?>();
-                            bool cleanOfMembers = true;
                             object?[] parameters = new object[arguments.Count];
 
                             for (int i = 0; i < arguments.Count; i++)
@@ -332,7 +345,7 @@ namespace BlackHole.CoreSupport
                             {
                                 if (obj != null)
                                 {
-                                    object? skata = Activator.CreateInstance(obj.Type, null);
+                                    object? skata = obj.Type != typeof(string) ? Activator.CreateInstance(obj.Type, null) : string.Empty;
                                     expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
                                 }
                             }
@@ -344,7 +357,10 @@ namespace BlackHole.CoreSupport
                                     MethodArguments = MethodArguments,
                                     CastedOn = obj,
                                     ComparedValue = expressionTree[currentIndx].memberValue,
-                                    CompareProperty = expressionTree[currentIndx].leftMember
+                                    CompareProperty = expressionTree[currentIndx].leftMember,
+                                    OperatorType = expressionTree[currentIndx].expressionType,
+                                    ReverseOperator = false,
+                                    TableName = typeof(T).Name
                                 });
                             }
                         }
@@ -383,7 +399,13 @@ namespace BlackHole.CoreSupport
 
                 if (child.methodData.Count > 0)
                 {
-                    SqlFunctionsReader sqlFunctionResult = new SqlFunctionsReader(child.methodData[0], index, letter);
+                    SqlFunctionsReader sqlFunctionResult = new SqlFunctionsReader(child.methodData[0], index, letter, isMyShit);
+
+                    if (sqlFunctionResult.ParamName != string.Empty)
+                    {
+                        parameters.Add(new BlackHoleParameter { Name = sqlFunctionResult.ParamName, Value = sqlFunctionResult.Value });
+                    }
+
                     parent.sqlCommand = $"{sqlFunctionResult.SqlCommand}";
                     parent.leftChecked = false;
                 }

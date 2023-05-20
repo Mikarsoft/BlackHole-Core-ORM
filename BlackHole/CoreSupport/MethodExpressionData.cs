@@ -10,5 +10,7 @@ namespace BlackHole.CoreSupport
         internal ExpressionType OperatorType { get; set; }
         internal object? ComparedValue { get; set; }
         internal MemberExpression? CompareProperty { get; set; }
+        internal bool ReverseOperator { get; set; }
+        internal string TableName { get; set; } = string.Empty;
     }
 }

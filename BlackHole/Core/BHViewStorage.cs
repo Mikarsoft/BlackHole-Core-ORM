@@ -1,5 +1,5 @@
 ﻿using BlackHole.CoreSupport;
-using BlackHole.Entities;
+
 namespace BlackHole.Core
 {
     public class BHViewStorage : IBHViewStorage

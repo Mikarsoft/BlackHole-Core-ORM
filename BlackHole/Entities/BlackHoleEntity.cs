@@ -3,7 +3,7 @@
 namespace BlackHole.Entities
 {
     /// <summary>
-    /// Black Hole Entity. The table is database is based on this
+    /// Black Hole Entity. The table in database is based on this
     /// </summary>
     /// <typeparam name="G"></typeparam>
     public abstract class BlackHoleEntity<G> : BlackHoleEntity
