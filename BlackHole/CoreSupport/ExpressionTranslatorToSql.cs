@@ -193,6 +193,7 @@ namespace BlackHole.CoreSupport
                                 ConstantExpression? argConstant = arguments[i] as ConstantExpression;
                                 BinaryExpression? argBinary = arguments[i] as BinaryExpression;
                                 MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
+                                LambdaExpression? argLambda = arguments[i] as LambdaExpression;
 
                                 if (argMemmber != null)
                                 {
@@ -240,6 +241,13 @@ namespace BlackHole.CoreSupport
                                         parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
                                         MethodArguments.Add(parameters[i]);
                                     }
+                                }
+
+                                if(argLambda != null)
+                                {
+                                    expressionTree[currentIndx].rightMember = argLambda.Body as MemberExpression;
+                                    //aTable = insideMember?.Member.ReflectedType?.Name;
+                                    //string? PropertyName = insideMember?.Member.Name;
                                 }
                             }
 
@@ -291,6 +299,7 @@ namespace BlackHole.CoreSupport
                                 ConstantExpression? argConstant = arguments[i] as ConstantExpression;
                                 BinaryExpression? argBinary = arguments[i] as BinaryExpression;
                                 MethodCallExpression? argMethod = arguments[i] as MethodCallExpression;
+                                LambdaExpression? argLambda = arguments[i] as LambdaExpression;
 
                                 if (argMemmber != null)
                                 {
@@ -338,6 +347,13 @@ namespace BlackHole.CoreSupport
                                         parameters[i] = Expression.Lambda(argMethod).Compile().DynamicInvoke();
                                         MethodArguments.Add(parameters[i]);
                                     }
+                                }
+
+                                if (argLambda != null)
+                                {
+                                    expressionTree[currentIndx].leftMember = argLambda.Body as MemberExpression;
+                                    //aTable = insideMember?.Member.ReflectedType?.Name;
+                                    //string? PropertyName = insideMember?.Member.Name;
                                 }
                             }
 

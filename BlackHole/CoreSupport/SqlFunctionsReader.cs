@@ -42,6 +42,17 @@ namespace BlackHole.CoreSupport
         {
             switch (NumericMethodData.MethodName)
             {
+                case "SqlEqualTo":
+                    if (NumericMethodData.CompareProperty != null)
+                    {
+                        string? aTable = NumericMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                        string? PropertyName = NumericMethodData.CompareProperty.Member?.Name;
+                        if (aTable != null && PropertyName != null)
+                        {
+
+                        }
+                    }
+                    break;
                 case "SqlAverage":
                     if(NumericMethodData.CompareProperty != null && NumericMethodData.CastedOn != null)
                     {
@@ -78,6 +89,17 @@ namespace BlackHole.CoreSupport
         {
             switch (StringMethodData.MethodName)
             {
+                case "SqlEqualTo":
+                    if (StringMethodData.CompareProperty != null)
+                    {
+                        string? aTable = StringMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                        string? PropertyName = StringMethodData.CompareProperty.Member?.Name;
+                        if (aTable != null && PropertyName != null)
+                        {
+
+                        }
+                    }
+                    break;
                 case "Contains":
                     if (StringMethodData.MethodArguments.Count == 1)
                     {
@@ -130,6 +152,17 @@ namespace BlackHole.CoreSupport
         {
             switch (DateMethodData.MethodName)
             {
+                case "SqlEqualTo":
+                    if(DateMethodData.CompareProperty != null)
+                    {
+                        string? aTable = DateMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                        string? PropertyName = DateMethodData.CompareProperty.Member?.Name;
+                        if(aTable != null && PropertyName != null)
+                        {
+
+                        }
+                    }
+                    break;
                 case "SqlDateAfter":
                     break;
                 case "SqlDateBefore":
