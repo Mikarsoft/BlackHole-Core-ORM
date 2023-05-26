@@ -11,7 +11,6 @@ namespace BlackHole.Internal
     internal class BHTableBuilder : IBHTableBuilder
     {
         private IBHDatabaseSelector _multiDatabaseSelector;
-        private ILoggerService _loggerService;
         private readonly IExecutionProvider connection;
 
         private List<DataConstraints> AllConstraints { get; set; }
@@ -22,7 +21,6 @@ namespace BlackHole.Internal
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
-            _loggerService = new LoggerService();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
             SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
             isMyShit = _multiDatabaseSelector.GetMyShit();
@@ -37,6 +35,8 @@ namespace BlackHole.Internal
         /// <param name="TableTypes"></param>
         void IBHTableBuilder.BuildMultipleTables(List<Type> TableTypes)
         {
+            DatabaseStatics.InitializeData = true;
+
             bool[] Builded = new bool[TableTypes.Count];
 
             for (int i = 0; i < Builded.Length; i++)
@@ -64,6 +64,8 @@ namespace BlackHole.Internal
         /// <param name="TableType"></param>
         void IBHTableBuilder.BuildTable(Type TableType)
         {
+            DatabaseStatics.InitializeData = true;
+
             bool keepUp = CreateTable(TableType);
 
             if (keepUp)
@@ -142,6 +144,7 @@ namespace BlackHole.Internal
                 return connection.JustExecute(creationCommand , null);
             }
 
+            DatabaseStatics.InitializeData = false;
             return false;
         }
 

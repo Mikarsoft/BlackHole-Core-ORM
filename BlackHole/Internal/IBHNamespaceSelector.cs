@@ -4,6 +4,8 @@ namespace BlackHole.Internal
 {
     internal interface IBHNamespaceSelector
     {
+        List<Type> GetInitialData(Assembly ass);
+
         List<Type> GetAllBHEntities(Assembly ass);
         List<Type> GetBHEntitiesInNamespace(string nameSpace, Assembly ass);
         List<Type> GetBHEntitiesInNamespaces(List<string> nameSpaces, Assembly ass);

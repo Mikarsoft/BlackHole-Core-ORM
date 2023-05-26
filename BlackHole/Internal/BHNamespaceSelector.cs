@@ -6,6 +6,14 @@ namespace BlackHole.Internal
 {
     internal class BHNamespaceSelector : IBHNamespaceSelector
     {
+        List<Type> IBHNamespaceSelector.GetInitialData(Assembly ass)
+        {
+            List<Type> types = new List<Type>();
+            Type type = typeof(IBHInitialData);
+            types = ass.GetTypes().Where(p => type.IsAssignableFrom(p)).ToList();
+            return types;
+        }
+
         List<Type> IBHNamespaceSelector.GetAllBHEntities(Assembly ass)
         {
             List<Type> types = new List<Type>();

@@ -5,5 +5,6 @@
         bool CreateDatabase();
         bool DropDatabase();
         bool DoesDbExists();
+        bool IsCreatedFirstTime();
     }
 }

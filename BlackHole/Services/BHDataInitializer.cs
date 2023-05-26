@@ -21,7 +21,7 @@ namespace BlackHole.Services
             commandsAndParameters.Add(new InitialCommandsAndParameters { commandText = commandText, comandParameters = entity });
         }
 
-        public void InsertFile(string filePath)
+        public void InsertFromFile(string filePath)
         {
             if (File.Exists(filePath))
             {

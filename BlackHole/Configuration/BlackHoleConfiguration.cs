@@ -58,7 +58,7 @@ namespace BlackHole.Configuration
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
                 services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
                 services.AddScoped(typeof(IBHConnection), typeof(BHConnection));
-                services.AddServicesAndTables(blackHoleSettings.connectionConfig.additionalSettings, assembly);
+                services.AddServicesAndTables(blackHoleSettings.connectionConfig.additionalSettings, assembly, databaseBuilder);
             }
             else
             {
@@ -68,10 +68,11 @@ namespace BlackHole.Configuration
             return services;
         }
 
-        private static void AddServicesAndTables(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
+        private static void AddServicesAndTables(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, IBHDatabaseBuilder databaseBuilder)
         {
             IBHTableBuilder tableBuilder = new BHTableBuilder();
             IBHNamespaceSelector namespaceSelector = new BHNamespaceSelector();
+            BHInitialDataBuilder dataBuilder = new BHInitialDataBuilder();
 
             if (additionalSettings.AssembliesToUse.Count > 0)
             {
@@ -79,12 +80,22 @@ namespace BlackHole.Configuration
                 {
                     services.RegisterBHServices(callingAssembly);
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
+
+                    if (!databaseBuilder.IsCreatedFirstTime())
+                    {
+                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
+                    }
                 }
 
                 foreach(Assembly assembly in additionalSettings.AssembliesToUse)
                 {
                     services.RegisterBHServices(assembly);
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly));
+
+                    if (!databaseBuilder.IsCreatedFirstTime())
+                    {
+                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
+                    }
                 }
             }
             else
@@ -134,6 +145,11 @@ namespace BlackHole.Configuration
                     {
                         tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembliesToUse.ScanAssembly));
                     }
+
+                    if (!databaseBuilder.IsCreatedFirstTime())
+                    {
+                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembliesToUse.ScanAssembly));
+                    }
                 }
                 else
                 {
@@ -154,6 +170,11 @@ namespace BlackHole.Configuration
                     else
                     {
                         tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
+                    }
+
+                    if (!databaseBuilder.IsCreatedFirstTime())
+                    {
+                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
                     }
                 }
             }

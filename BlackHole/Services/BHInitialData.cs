@@ -4,6 +4,6 @@ namespace BlackHole.Services
 {
     public interface IBHInitialData
     {
-        public void DefaultData(BHDataInitializer initializer);
+        void DefaultData(BHDataInitializer initializer);
     }
 }

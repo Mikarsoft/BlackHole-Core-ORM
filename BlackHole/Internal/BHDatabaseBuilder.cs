@@ -241,5 +241,10 @@ namespace BlackHole.Internal
                 return false;
             }
         }
+
+        bool IBHDatabaseBuilder.IsCreatedFirstTime()
+        {
+            return DatabaseStatics.InitializeData;
+        }
     }
 }
