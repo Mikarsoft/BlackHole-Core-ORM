@@ -100,7 +100,7 @@ namespace BlackHole.Internal
 
                     if (dbExists)
                     {
-                        connection.JustExecute(DropDb, null);
+                        return connection.JustExecute(DropDb, null);
                     }
 
                     return true;
@@ -146,7 +146,7 @@ namespace BlackHole.Internal
                 else
                 {
                     string databaseName = _multiDatabaseSelector.GetDatabaseName();
-                    bool dbExists = true;
+                    bool dbExists = false;
                     string CreateDb = $@"CREATE DATABASE ""{databaseName}""";
                     bool isOracle = false;
 
@@ -181,7 +181,7 @@ namespace BlackHole.Internal
 
                     if (!dbExists)
                     {
-                        connection.JustExecute(CreateDb, null);
+                        return connection.JustExecute(CreateDb, null);
                     }
 
                     return true;

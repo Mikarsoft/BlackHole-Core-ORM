@@ -112,11 +112,13 @@ namespace BlackHole.Configuration
             if (DropDatabase())
             {
                 Console.WriteLine("_bhLog_ \t Database was successfully dropped.");
+                Console.WriteLine("_bhLog_");
                 return 0;
             }
             else
             {
                 Console.WriteLine("_bhLog_ \t There was a problem with database drop.");
+                Console.WriteLine("_bhLog_");
                 return 307;
             }
         }
