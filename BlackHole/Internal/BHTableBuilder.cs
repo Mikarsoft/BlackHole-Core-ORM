@@ -11,6 +11,7 @@ namespace BlackHole.Internal
     {
         private IBHDatabaseSelector _multiDatabaseSelector;
         private readonly IExecutionProvider connection;
+        private SqlExportWriter sqlWriter { get; set; }
 
         private List<DataConstraints> AllConstraints { get; set; }
         private string[] SqlDatatypes;
@@ -25,6 +26,7 @@ namespace BlackHole.Internal
             isMyShit = _multiDatabaseSelector.GetMyShit();
             isLite = _multiDatabaseSelector.IsLite();
             AllConstraints = GetConstraints();
+            sqlWriter = new SqlExportWriter("2_TablesSql");
         }
 
         /// <summary>
@@ -53,6 +55,11 @@ namespace BlackHole.Internal
                 {
                     UpdateSchema(TableTypes[j]);
                 }
+            }
+
+            if (CliCommand.ExportSql)
+            {
+                sqlWriter.CreateSqlFile();
             }
         }
 
@@ -286,12 +293,6 @@ namespace BlackHole.Internal
 
             if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
             {
-                CliConsoleLogs("Warning:");
-                CliConsoleLogs("BlackHole is not in Dev Mode. Columns will change to nullable instead of dropping.");
-                CliConsoleLogs("If you want to drop the columns run the update command using the '-f' or '--force' argument");
-                CliConsoleLogs(" ");
-                CliConsoleLogs("Example : bhl update -f");
-
                 List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
 
                 foreach(string ColumnName in ColumnsToAdd)
@@ -397,8 +398,11 @@ namespace BlackHole.Internal
 
                     foreach(string commandText in AllCommands)
                     {
-                        connection.JustExecute(commandText, null);
-                        CliConsoleLogs($"{commandText};");
+                        if (!string.IsNullOrEmpty(commandText))
+                        {
+                            connection.JustExecute(commandText, null);
+                            CliConsoleLogs($"{commandText};");
+                        }
                     }
                 }
 
@@ -434,12 +438,6 @@ namespace BlackHole.Internal
             }
             else
             {
-                CliConsoleLogs("Warning:");
-                CliConsoleLogs("BlackHole is not in Dev Mode. Columns will change to nullable instead of dropping.");
-                CliConsoleLogs("If you want to drop the columns run the update command using the '-f' or '--force' argument");
-                CliConsoleLogs(" ");
-                CliConsoleLogs("Example : bhl update -f");
-
                 string setColumnToNull = "";
                 List<SqlTableInfo> TableInfo = new List<SqlTableInfo>();
                 switch (DatabaseStatics.DatabaseType)
@@ -802,6 +800,32 @@ namespace BlackHole.Internal
                 Console.WriteLine("_bhLog_");
                 Console.Write($"_bhLog_{logCommand}");
                 Console.WriteLine("_bhLog_");
+            }
+
+            if (CliCommand.ExportSql)
+            {
+                sqlWriter.AddSqlCommand(logCommand);
+            }
+        }
+
+        void CliConsoleLogsNoSpace(string logCommand)
+        {
+            if (CliCommand.CliExecution)
+            {
+                Console.WriteLine($"_bhLog_{logCommand}");
+            }
+        }
+
+        void IBHTableBuilder.UpdateWithoutForceWarning()
+        {
+            if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
+            {
+                CliConsoleLogsNoSpace("Warning:");
+                CliConsoleLogsNoSpace("BlackHole is not in Dev Mode. Columns of deleted properties will change to nullable instead of dropping.");
+                CliConsoleLogsNoSpace("If you want to drop some columns, run the update command using the '-f' or '--force' argument");
+                CliConsoleLogsNoSpace("");
+                CliConsoleLogsNoSpace("Example : bhl update -f");
+                CliConsoleLogsNoSpace("");
             }
         }
 

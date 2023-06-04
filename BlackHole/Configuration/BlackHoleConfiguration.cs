@@ -339,6 +339,9 @@ namespace BlackHole.Configuration
                     }
                 }
             }
+            Console.WriteLine("_bhLog_ \t Update finished");
+            Console.WriteLine("_bhLog_");
+            tableBuilder.UpdateWithoutForceWarning();
         }
 
         /// <summary>

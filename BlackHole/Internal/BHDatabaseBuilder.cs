@@ -10,12 +10,14 @@ namespace BlackHole.Internal
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
         private readonly ILoggerService _loggerService;
         private readonly IExecutionProvider connection;
+        private SqlExportWriter sqlWriter { get; set; }
 
         internal BHDatabaseBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             _loggerService = new LoggerService();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ServerConnection);
+            sqlWriter = new SqlExportWriter("1_DatabaseSql");
         }
 
         /// <summary>
@@ -181,6 +183,12 @@ namespace BlackHole.Internal
 
                     if (!dbExists)
                     {
+                        if (CliCommand.ExportSql)
+                        {
+                            sqlWriter.AddSqlCommand($"{CreateDb};");
+                            sqlWriter.CreateSqlFile();
+                        }
+
                         return connection.JustExecute(CreateDb, null);
                     }
 

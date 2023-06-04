@@ -15,5 +15,10 @@
         /// </summary>
         /// <param name="TableType">Entity</param>
         void BuildTable(Type TableType);
+
+        /// <summary>
+        /// Cli Warning message in case the project is not in Dev mode.
+        /// </summary>
+        void UpdateWithoutForceWarning();
     }
 }

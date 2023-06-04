@@ -8,10 +8,12 @@ namespace BlackHole.Internal
     internal class BHInitialDataBuilder
     {
         private readonly IBHConnection connection;
+        private SqlExportWriter sqlWriter { get; set; }
 
         internal BHInitialDataBuilder()
         {
             connection = new BHConnection();
+            sqlWriter = new SqlExportWriter("3_InitialDataSql");
         }
 
         internal void InsertDefaultData(List<Type> initialDataClasses)
@@ -37,6 +39,11 @@ namespace BlackHole.Internal
                         if (result)
                         {
                             CliConsoleLogs($"{colsParams.commandText};");
+
+                            if (CliCommand.ExportSql)
+                            {
+                                sqlWriter.AddSqlCommand($"{colsParams.commandText};");
+                            }
                         }
                         else
                         {
@@ -44,6 +51,11 @@ namespace BlackHole.Internal
                         }
                     }
                 }
+            }
+
+            if (CliCommand.ExportSql)
+            {
+                sqlWriter.CreateSqlFile();
             }
 
             CliConsoleLogs("Default data were inserted.");
