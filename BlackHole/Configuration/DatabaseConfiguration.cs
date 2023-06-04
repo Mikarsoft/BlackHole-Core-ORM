@@ -10,7 +10,7 @@ namespace BlackHole.Configuration
             DatabaseStatics.IsDevMove = isDevMode;
         }
 
-        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string LogsPath, bool useLogsCleaner , int daysToClean, bool useLogging)
+        internal static void LogsSettings(string LogsPath, bool useLogsCleaner, int daysToClean, bool useLogging)
         {
             DatabaseStatics.DataPath = LogsPath;
 
@@ -26,6 +26,14 @@ namespace BlackHole.Configuration
                 DatabaseStatics.UseLogsCleaner = false;
             }
 
+            if (DatabaseStatics.UseLogsCleaner)
+            {
+                new LogsCleaner();
+            }
+        }
+
+        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType)
+        {
             switch (sqlType)
             {
                 case BlackHoleSqlTypes.SqlServer:
@@ -43,11 +51,6 @@ namespace BlackHole.Configuration
                 case BlackHoleSqlTypes.Oracle:
                     ScanOracleString(connectionString);
                     break;
-            }
-
-            if (DatabaseStatics.UseLogsCleaner)
-            {
-                new LogsCleaner();
             }
         }
 

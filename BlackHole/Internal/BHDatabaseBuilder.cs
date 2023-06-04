@@ -26,8 +26,18 @@ namespace BlackHole.Internal
         {
             string CheckDb = "";
 
-            if (!DatabaseStatics.IsDevMove)
+            if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
             {
+                if (CliCommand.CliExecution)
+                {
+                    Console.WriteLine("_bhLog_");
+                    Console.WriteLine("_bhLog_ \t Warning : ", Console.ForegroundColor = ConsoleColor.Yellow);
+                    Console.WriteLine("_bhLog_ \t BlackHole is not in Dev mode. If you want to drop the database,", Console.ForegroundColor = ConsoleColor.White);
+                    Console.WriteLine("_bhLog_ \t either set BlackHole in Dev mode, or use the argument '-f' or '--force' after the drop command.");
+                    Console.WriteLine("_bhLog_");
+                    Console.WriteLine("_bhLog_ \t Example : 'bhl drop -f");
+                }
+
                 return false;
             }
 
@@ -99,6 +109,13 @@ namespace BlackHole.Internal
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
+
+                if (CliCommand.CliExecution)
+                {
+                    Console.WriteLine("_bhLog_ Drop Database Error: "+ex.Message, Console.ForegroundColor = ConsoleColor.Red);
+                    Console.WriteLine("_bhLog_", Console.ForegroundColor = ConsoleColor.White);
+                }
+
                 return false;
             }
         }
@@ -173,6 +190,13 @@ namespace BlackHole.Internal
             catch (Exception ex)
             {
                 _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
+
+                if (CliCommand.CliExecution)
+                {
+                    Console.WriteLine("_bhLog_ Create Database Error: " + ex.Message, Console.ForegroundColor = ConsoleColor.Red);
+                    Console.WriteLine("_bhLog_", Console.ForegroundColor = ConsoleColor.White);
+                }
+
                 return false;
             }
         }
