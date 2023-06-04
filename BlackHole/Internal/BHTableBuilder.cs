@@ -3,7 +3,6 @@ using System.Reflection;
 using BlackHole.CoreSupport;
 using BlackHole.Entities;
 using BlackHole.Enums;
-using BlackHole.Logger;
 using BlackHole.Statics;
 
 namespace BlackHole.Internal
@@ -141,6 +140,7 @@ namespace BlackHole.Internal
                 }
 
                 creationCommand = creationCommand.Substring(0, creationCommand.Length - 2) + ")";
+                CliConsoleLogs($"{creationCommand};");
                 return connection.JustExecute(creationCommand , null);
             }
 
@@ -284,8 +284,14 @@ namespace BlackHole.Internal
                 }
             }
 
-            if (!DatabaseStatics.IsDevMove)
+            if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
             {
+                CliConsoleLogs("Warning:");
+                CliConsoleLogs("BlackHole is not in Dev Mode. Columns will change to nullable instead of dropping.");
+                CliConsoleLogs("If you want to drop the columns run the update command using the '-f' or '--force' argument");
+                CliConsoleLogs(" ");
+                CliConsoleLogs("Example : bhl update -f");
+
                 List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
 
                 foreach(string ColumnName in ColumnsToAdd)
@@ -315,6 +321,7 @@ namespace BlackHole.Internal
             closingCommand += $"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;";
 
             connection.JustExecute(closingCommand, null);
+            CliConsoleLogs($"{closingCommand};");
         }
 
         void ForeignKeyAsignment(Type TableType)
@@ -338,6 +345,7 @@ namespace BlackHole.Internal
                         var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
                         string alterColumn = MyShitConstraint(alterTable, Tablename, Property.Name, tName, tColumn, cascadeInfo);
                         connection.JustExecute(alterColumn, null);
+                        CliConsoleLogs($"{alterColumn};");
                     }
                 }
             }
@@ -390,6 +398,7 @@ namespace BlackHole.Internal
                     foreach(string commandText in AllCommands)
                     {
                         connection.JustExecute(commandText, null);
+                        CliConsoleLogs($"{commandText};");
                     }
                 }
 
@@ -397,13 +406,14 @@ namespace BlackHole.Internal
                 {
                     addCommand += GetDatatypeCommand("Int32", new object[0], ColumnName);
                     connection.JustExecute(addCommand, null);
+                    CliConsoleLogs($"{addCommand};");
                 }
             }
         }
 
         private void DropColumns(List<string> ColumnsToDrop, string TableName)
         {
-            if (DatabaseStatics.IsDevMove)
+            if (DatabaseStatics.IsDevMove || CliCommand.ForceAction)
             {
                 foreach (string ColumnName in ColumnsToDrop)
                 {
@@ -414,14 +424,22 @@ namespace BlackHole.Internal
                     {
                         string dropConstraint = $"ALTER TABLE {MyShit(TableName)} DROP CONSTRAINT {columnConstraint.CONSTRAINT_NAME}";
                         connection.JustExecute(dropConstraint, null);
+                        CliConsoleLogs($"{dropConstraint};");
                     }
 
                     string dropCommand = $"ALTER TABLE {MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)}";
                     connection.JustExecute(dropCommand, null);
+                    CliConsoleLogs($"{dropCommand};");
                 }
             }
             else
             {
+                CliConsoleLogs("Warning:");
+                CliConsoleLogs("BlackHole is not in Dev Mode. Columns will change to nullable instead of dropping.");
+                CliConsoleLogs("If you want to drop the columns run the update command using the '-f' or '--force' argument");
+                CliConsoleLogs(" ");
+                CliConsoleLogs("Example : bhl update -f");
+
                 string setColumnToNull = "";
                 List<SqlTableInfo> TableInfo = new List<SqlTableInfo>();
                 switch (DatabaseStatics.DatabaseType)
@@ -442,6 +460,7 @@ namespace BlackHole.Internal
                                     string DataType = GetOracleDataType(columnInfo);
                                     string setToNullable = $"ALTER TABLE {MyShit(TableName)} Modify ({MyShit(ColumnName)} NULL)";
                                     connection.JustExecute(setToNullable, null);
+                                    CliConsoleLogs($"{setToNullable};");
                                 }
                             }
                         }
@@ -462,6 +481,7 @@ namespace BlackHole.Internal
                                     string DataType = columnInfo.column_type;
                                     string setToNullable = $"ALTER TABLE {MyShit(TableName)} MODIFY {MyShit(ColumnName)} {DataType} NULL ";
                                     connection.JustExecute(setToNullable, null);
+                                    CliConsoleLogs($"{setToNullable};");
                                 }
                             }
                         }
@@ -489,6 +509,7 @@ namespace BlackHole.Internal
 
                                     string setToNullable = $"ALTER TABLE {MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
                                     connection.JustExecute(setToNullable, null);
+                                    CliConsoleLogs($"{setToNullable};");
                                 }
                             }
                         }
@@ -516,6 +537,7 @@ namespace BlackHole.Internal
 
                                     string setToNullable = $"ALTER TABLE {MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
                                     connection.JustExecute(setToNullable, null);
+                                    CliConsoleLogs($"{setToNullable};");
                                 }
                             }
                         }
@@ -771,6 +793,16 @@ namespace BlackHole.Internal
                     break;
             }
             return defaultValue;
+        }
+
+        void CliConsoleLogs(string logCommand)
+        {
+            if (CliCommand.CliExecution)
+            {
+                Console.WriteLine("_bhLog_");
+                Console.Write($"_bhLog_{logCommand}");
+                Console.WriteLine("_bhLog_");
+            }
         }
 
         string GetDatatypeCommand(string PropertyType, object[] attributes, string Propertyname)

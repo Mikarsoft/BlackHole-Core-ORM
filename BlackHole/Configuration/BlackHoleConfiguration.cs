@@ -96,8 +96,9 @@ namespace BlackHole.Configuration
             {
                 Console.WriteLine("_bhLog_ \t The database is ready.");
                 Console.WriteLine("_bhLog_ \t Creating or Updating the tables..");
-
                 CreateOrUpdateTables(additionalSettings, callingAssembly, databaseBuilder);
+                Console.WriteLine("_bhLog_");
+
                 return 0;
             }
             else
@@ -155,7 +156,7 @@ namespace BlackHole.Configuration
                     services.RegisterBHServices(callingAssembly);
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
 
-                    if (!databaseBuilder.IsCreatedFirstTime())
+                    if (databaseBuilder.IsCreatedFirstTime())
                     {
                         dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
                     }
@@ -166,7 +167,7 @@ namespace BlackHole.Configuration
                     services.RegisterBHServices(assembly);
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly));
 
-                    if (!databaseBuilder.IsCreatedFirstTime())
+                    if (databaseBuilder.IsCreatedFirstTime())
                     {
                         dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
                     }
@@ -220,7 +221,7 @@ namespace BlackHole.Configuration
                         tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembliesToUse.ScanAssembly));
                     }
 
-                    if (!databaseBuilder.IsCreatedFirstTime())
+                    if (databaseBuilder.IsCreatedFirstTime())
                     {
                         dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembliesToUse.ScanAssembly));
                     }
@@ -246,7 +247,7 @@ namespace BlackHole.Configuration
                         tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
                     }
 
-                    if (!databaseBuilder.IsCreatedFirstTime())
+                    if (databaseBuilder.IsCreatedFirstTime())
                     {
                         dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
                     }
@@ -266,7 +267,7 @@ namespace BlackHole.Configuration
                 {
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
 
-                    if (!databaseBuilder.IsCreatedFirstTime())
+                    if (databaseBuilder.IsCreatedFirstTime())
                     {
                         dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
                     }
@@ -276,7 +277,7 @@ namespace BlackHole.Configuration
                 {
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly));
 
-                    if (!databaseBuilder.IsCreatedFirstTime())
+                    if (databaseBuilder.IsCreatedFirstTime())
                     {
                         dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
                     }
@@ -316,7 +317,7 @@ namespace BlackHole.Configuration
                         tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembliesToUse.ScanAssembly));
                     }
 
-                    if (!databaseBuilder.IsCreatedFirstTime())
+                    if (databaseBuilder.IsCreatedFirstTime())
                     {
                         dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembliesToUse.ScanAssembly));
                     }
@@ -332,7 +333,7 @@ namespace BlackHole.Configuration
                         tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
                     }
 
-                    if (!databaseBuilder.IsCreatedFirstTime())
+                    if (databaseBuilder.IsCreatedFirstTime())
                     {
                         dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
                     }

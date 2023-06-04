@@ -1,5 +1,6 @@
 ﻿using BlackHole.Core;
 using BlackHole.Services;
+using BlackHole.Statics;
 using System.Reflection;
 
 namespace BlackHole.Internal
@@ -15,10 +16,11 @@ namespace BlackHole.Internal
 
         internal void InsertDefaultData(List<Type> initialDataClasses)
         {
-            foreach(Type initialData in initialDataClasses)
+            CliConsoleLogs("Default data Initializer start..");
+
+            foreach (Type initialData in initialDataClasses)
             {
                 object? instance = Activator.CreateInstance(initialData);
-
                 MethodInfo? method = initialData.GetMethod("DefaultData");
 
                 if(instance !=null && method != null)
@@ -30,19 +32,31 @@ namespace BlackHole.Internal
 
                     foreach(InitialCommandsAndParameters colsParams in initializer.commandsAndParameters)
                     {
-                        if(colsParams.comandParameters != null)
+                        bool result = connection.JustExecute(colsParams.commandText);
+
+                        if (result)
                         {
-                            connection.JustExecute(colsParams.commandText, colsParams.comandParameters);
+                            CliConsoleLogs($"{colsParams.commandText};");
                         }
                         else
                         {
-                            connection.JustExecute(colsParams.commandText);
+                            CliConsoleLogs($"Something went wrong with this command : {colsParams.commandText};");
                         }
                     }
                 }
             }
 
-            Console.WriteLine("Default Data Initialized");
+            CliConsoleLogs("Default data were inserted.");
+        }
+
+        void CliConsoleLogs(string logCommand)
+        {
+            if (CliCommand.CliExecution)
+            {
+                Console.WriteLine("_bhLog_");
+                Console.Write($"_bhLog_{logCommand}");
+                Console.WriteLine("_bhLog_");
+            }
         }
     }
 }
