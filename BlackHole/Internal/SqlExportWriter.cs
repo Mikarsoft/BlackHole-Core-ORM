@@ -59,6 +59,28 @@ namespace BlackHole.Internal
             SqlCommandsList.Add(commandText);
         }
 
+        internal void DeleteSqlFolder()
+        {
+            try
+            {
+                Console.WriteLine("_bhLog_");
+                Console.WriteLine($"_bhLog_ Deleting Sql Folder... : {SqlFilesPath}");
+
+                if (Directory.Exists(SqlFilesPath))
+                {
+                    Directory.Delete(SqlFilesPath, true);
+                }
+                Console.WriteLine($"_bhLog_ \t Sql Folder has been deleted.");
+                Console.WriteLine("_bhLog_");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("_bhLog_");
+                Console.WriteLine($"_bhLog_ Failed to delete Sql Directory : {ex.Message}");
+                Console.WriteLine("_bhLog_");
+            }
+        }
+
         internal void CreateSqlFile()
         {
             if (canWriteFiles && SqlCommandsList.Count > 0)
@@ -66,6 +88,9 @@ namespace BlackHole.Internal
                 try
                 {
                     string pathFile = Path.Combine(SqlFilesPath, $"{SqlFileName}.sql");
+
+                    Console.WriteLine("_bhLog_");
+                    Console.WriteLine($"_bhLog_ Creating Sql File... : {pathFile}");
 
                     if (File.Exists(pathFile))
                     {
@@ -87,10 +112,14 @@ namespace BlackHole.Internal
                             }
                         }
                     }
+                    Console.WriteLine("_bhLog_ \t Sql file has been created");
+                    Console.WriteLine("_bhLog_");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    Console.WriteLine("_bhLog_");
+                    Console.WriteLine($"_bhLog_ Sql Writer Error : {ex.Message}");
+                    Console.WriteLine("_bhLog_");
                 }
             }
         }

@@ -100,6 +100,11 @@ namespace BlackHole.Internal
                             break;
                     }
 
+                    if (CliCommand.ExportSql)
+                    {
+                        sqlWriter.DeleteSqlFolder();
+                    }
+
                     if (dbExists)
                     {
                         return connection.JustExecute(DropDb, null);
