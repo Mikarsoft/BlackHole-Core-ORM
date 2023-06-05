@@ -19,8 +19,12 @@ namespace BlackHole.Internal
         string GetStringPrimaryKeyCommand();
 
         int GetSqlTypeId();
-
         bool GetMyShit();
+
+        string TableSchemaCheck();
+        string GetDatabaseSchema();
+        string GetDatabaseSchemaFk();
+        string GetOwnerName();
 
         IExecutionProvider GetExecutionProvider(string connectionString);
     }

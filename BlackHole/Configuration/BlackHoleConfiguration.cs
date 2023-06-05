@@ -92,8 +92,9 @@ namespace BlackHole.Configuration
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
 
             bool dbExists = databaseBuilder.CreateDatabase();
+            databaseBuilder.CreateDatabaseSchema();
 
-            if(dbExists)
+            if (dbExists)
             {
                 Console.WriteLine("_bhLog_ \t The database is ready.");
                 Console.WriteLine("_bhLog_ \t Creating or Updating the tables..");
@@ -135,6 +136,7 @@ namespace BlackHole.Configuration
             IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
 
             bool dbExists = databaseBuilder.CreateDatabase();
+            databaseBuilder.CreateDatabaseSchema();
 
             if (dbExists)
             {

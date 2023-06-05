@@ -18,11 +18,18 @@ namespace BlackHole.Internal
         private bool isMyShit;
         private bool isLite;
 
+        private string tableSchemaCheck { get; set; }
+        private string tableSchema { get; set; }
+        private string tableSchemaFk { get; set; }
+
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
             SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
+            tableSchemaCheck = _multiDatabaseSelector.TableSchemaCheck();
+            tableSchema = _multiDatabaseSelector.GetDatabaseSchema();
+            tableSchemaFk = _multiDatabaseSelector.GetDatabaseSchemaFk();
             isMyShit = _multiDatabaseSelector.GetMyShit();
             isLite = _multiDatabaseSelector.IsLite();
             AllConstraints = GetConstraints();
@@ -103,7 +110,7 @@ namespace BlackHole.Internal
                     tExists = connection.ExecuteScalar<string>(tableCheck, null) == Tablename;
                     break;
                 default:
-                    tableCheck = $"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + "')) then 1 else 0 end";
+                    tableCheck = $"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + $"' {tableSchemaCheck})) then 1 else 0 end";
                     tExists = connection.ExecuteScalar<int>(tableCheck, null) == 1;
                     break;
             }
@@ -111,7 +118,7 @@ namespace BlackHole.Internal
             if (!tExists)
             {
                 PropertyInfo[] Properties = TableType.GetProperties();
-                string creationCommand = $"CREATE TABLE {MyShit(Tablename)} (";
+                string creationCommand = $"CREATE TABLE {tableSchema}{MyShit(Tablename)} (";
 
                 creationCommand += GetDatatypeCommand("Int32", new object[0], "Inactive");
                 creationCommand += GetSqlColumn(new object[0], true);
@@ -329,7 +336,7 @@ namespace BlackHole.Internal
         {
             string Tablename = TableType.Name;
             PropertyInfo[] Properties = TableType.GetProperties();
-            string alterTable = $" ALTER TABLE {MyShit(Tablename)}";
+            string alterTable = $" ALTER TABLE {tableSchema}{MyShit(Tablename)}";
 
             foreach (PropertyInfo Property in Properties)
             {
@@ -426,12 +433,12 @@ namespace BlackHole.Internal
 
                     foreach(DataConstraints columnConstraint in columnForeignKeys)
                     {
-                        string dropConstraint = $"ALTER TABLE {MyShit(TableName)} DROP CONSTRAINT {columnConstraint.CONSTRAINT_NAME}";
+                        string dropConstraint = $"ALTER TABLE {tableSchema}{MyShit(TableName)} DROP CONSTRAINT {columnConstraint.CONSTRAINT_NAME}";
                         connection.JustExecute(dropConstraint, null);
                         CliConsoleLogs($"{dropConstraint};");
                     }
 
-                    string dropCommand = $"ALTER TABLE {MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)}";
+                    string dropCommand = $"ALTER TABLE {tableSchema}{MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)}";
                     connection.JustExecute(dropCommand, null);
                     CliConsoleLogs($"{dropCommand};");
                 }
@@ -465,7 +472,7 @@ namespace BlackHole.Internal
                         break;
                     case BlackHoleSqlTypes.MySql:
                         setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable, column_type 
-                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}';";
+                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}' {tableSchemaCheck};";
 
                         TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
 
@@ -477,7 +484,7 @@ namespace BlackHole.Internal
                                 if (columnInfo != null)
                                 {
                                     string DataType = columnInfo.column_type;
-                                    string setToNullable = $"ALTER TABLE {MyShit(TableName)} MODIFY {MyShit(ColumnName)} {DataType} NULL ";
+                                    string setToNullable = $"ALTER TABLE {tableSchema}{MyShit(TableName)} MODIFY {MyShit(ColumnName)} {DataType} NULL ";
                                     connection.JustExecute(setToNullable, null);
                                     CliConsoleLogs($"{setToNullable};");
                                 }
@@ -487,7 +494,7 @@ namespace BlackHole.Internal
                         break;
                     case BlackHoleSqlTypes.Postgres:
                         setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable, udt_name 
-                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}';";
+                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}' {tableSchemaCheck};";
 
                         TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
 
@@ -505,7 +512,7 @@ namespace BlackHole.Internal
                                         DataType += $"({columnInfo.character_maximum_length})";
                                     }
 
-                                    string setToNullable = $"ALTER TABLE {MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
+                                    string setToNullable = $"ALTER TABLE {tableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
                                     connection.JustExecute(setToNullable, null);
                                     CliConsoleLogs($"{setToNullable};");
                                 }
@@ -515,7 +522,7 @@ namespace BlackHole.Internal
                         break;
                     default:
                         setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable 
-                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}';";
+                                            from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}' {tableSchemaCheck};";
 
                         TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
 
@@ -533,7 +540,7 @@ namespace BlackHole.Internal
                                         DataType += $"({columnInfo.character_maximum_length})";
                                     }
 
-                                    string setToNullable = $"ALTER TABLE {MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
+                                    string setToNullable = $"ALTER TABLE {tableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
                                     connection.JustExecute(setToNullable, null);
                                     CliConsoleLogs($"{setToNullable};");
                                 }
@@ -636,7 +643,7 @@ namespace BlackHole.Internal
         string AddColumnConstaints(object[] attributes, string Tablename, string PropName, string PropType)
         {
             string constraintsCommand = "NULL ##";
-            string alterTable = $"ALTER TABLE {MyShit(Tablename)}";
+            string alterTable = $"ALTER TABLE {tableSchema}{MyShit(Tablename)}";
 
             if (attributes.Length > 0)
             {
@@ -708,13 +715,13 @@ namespace BlackHole.Internal
 
         string MyShitConstraint(string alterTable, string Tablename, string propName, object? tName, object? tColumn, object? cascadeInfo)
         {
-            string constraint = $"ADD CONSTRAINT fk_{Tablename}_{tName}";
+            string constraint = $"ADD CONSTRAINT fk_{Tablename}_{tName}{tableSchemaFk}";
 
-            string result = $"{alterTable} {constraint} FOREIGN KEY ({propName}) REFERENCES {tName}({tColumn}) {cascadeInfo}";
+            string result = $"{alterTable} {constraint} FOREIGN KEY ({propName}) REFERENCES {tableSchema}{tName}({tColumn}) {cascadeInfo}";
 
             if (!isMyShit)
             {
-                result = $@"{alterTable} {constraint} FOREIGN KEY (""{propName}"") REFERENCES ""{tName}""(""{tColumn}"") {cascadeInfo}";
+                result = $@"{alterTable} {constraint} FOREIGN KEY (""{propName}"") REFERENCES {tableSchema}""{tName}""(""{tColumn}"") {cascadeInfo}";
             }
 
             return result;

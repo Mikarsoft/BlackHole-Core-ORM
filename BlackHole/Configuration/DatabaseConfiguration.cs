@@ -34,11 +34,6 @@ namespace BlackHole.Configuration
 
         internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema)
         {
-            if(databaseSchema != string.Empty)
-            {
-                DatabaseStatics.DatabaseSchema = databaseSchema;
-            }
-
             switch (sqlType)
             {
                 case BlackHoleSqlTypes.SqlServer:
@@ -56,6 +51,11 @@ namespace BlackHole.Configuration
                 case BlackHoleSqlTypes.Oracle:
                     ScanOracleString(connectionString);
                     break;
+            }
+
+            if (databaseSchema != string.Empty && DatabaseStatics.OwnerName != string.Empty)
+            {
+                DatabaseStatics.DatabaseSchema = databaseSchema;
             }
         }
 
@@ -85,6 +85,12 @@ namespace BlackHole.Configuration
             foreach (string part in parts)
             {
                 string tempPart = part.Replace(" ", "").ToLower();
+
+                if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
+                {
+                    DatabaseStatics.OwnerName = part;
+                }
+
                 if (tempPart.Contains("database=") || tempPart.Contains("initialcatalog="))
                 {
                     DatabaseStatics.DatabaseName = part;
@@ -111,6 +117,12 @@ namespace BlackHole.Configuration
             foreach (string part in parts)
             {
                 string tempPart = part.Replace(" ", "").ToLower();
+
+                if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
+                {
+                    DatabaseStatics.OwnerName = part;
+                }
+
                 if (tempPart.Contains("database="))
                 {
                     DatabaseStatics.DatabaseName = part;
@@ -137,6 +149,12 @@ namespace BlackHole.Configuration
             foreach (string part in parts)
             {
                 string tempPart = part.Replace(" ", "").ToLower();
+
+                if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
+                {
+                    DatabaseStatics.OwnerName = part;
+                }
+
                 if (tempPart.Contains("database=") || tempPart.Contains("location="))
                 {
                     DatabaseStatics.DatabaseName = part;

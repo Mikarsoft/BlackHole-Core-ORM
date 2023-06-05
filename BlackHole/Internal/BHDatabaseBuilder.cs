@@ -12,7 +12,7 @@ namespace BlackHole.Internal
         private readonly ILoggerService _loggerService;
         private readonly IExecutionProvider connection;
         private string SchemaCreationCommand { get; set; } = string.Empty;
-
+        private string dbSchema { get; set; }
         private SqlExportWriter sqlWriter { get; set; }
 
         internal BHDatabaseBuilder()
@@ -21,6 +21,7 @@ namespace BlackHole.Internal
             _loggerService = new LoggerService();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ServerConnection);
             sqlWriter = new SqlExportWriter("1_DatabaseSql");
+            dbSchema = DatabaseStatics.DatabaseSchema;
         }
 
         /// <summary>
@@ -157,6 +158,7 @@ namespace BlackHole.Internal
                 else
                 {
                     string databaseName = _multiDatabaseSelector.GetDatabaseName();
+                    string ownerName = _multiDatabaseSelector.GetOwnerName();
                     bool dbExists = false;
                     string CreateDb = $@"CREATE DATABASE ""{databaseName}""";
                     bool isOracle = false;
@@ -164,24 +166,23 @@ namespace BlackHole.Internal
                     switch (_multiDatabaseSelector.GetSqlTypeId())
                     {
                         case 0:
-                            SchemaCreationCommand = "";
+                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {DatabaseStatics.DatabaseSchema} AUTHORIZATION {ownerName}";
                             CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
                         case 1:
-                            SchemaCreationCommand = "";
+                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {DatabaseStatics.DatabaseSchema} AUTHORIZATION {ownerName}";
                             CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName}'";
                             CreateDb = $"CREATE DATABASE IF NOT EXISTS {databaseName}";
                             string? dbName = connection.ExecuteScalar<string>(CheckDb, null);
                             dbExists = dbName?.ToLower() == databaseName.ToLower();
                             break;
                         case 2:
-                            SchemaCreationCommand = "";
+                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {DatabaseStatics.DatabaseSchema} AUTHORIZATION {ownerName}";
                             CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
                         case 4:
-                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {DatabaseStatics.DatabaseSchema} AUTHORIZATION {databaseName}";
                             CheckDb = "select status from v$instance";
                             string? result = connection.ExecuteScalar<string>(CheckDb, null);
                             dbExists = result?.ToUpper() == "OPEN";
@@ -205,6 +206,7 @@ namespace BlackHole.Internal
                         return connection.JustExecute(CreateDb, null);
                     }
 
+                    dbSchema = string.Empty;
                     return true;
                 }
             }
@@ -289,9 +291,30 @@ namespace BlackHole.Internal
 
         bool IBHDatabaseBuilder.CreateDatabaseSchema()
         {
-            if(DatabaseStatics.DatabaseSchema != string.Empty)
+            if(dbSchema != string.Empty)
             {
                 IBHConnection connection = new BHConnection();
+                if (connection.JustExecute(SchemaCreationCommand))
+                {
+                    if (CliCommand.CliExecution)
+                    {
+                        Console.WriteLine("_bhLog_");
+                        Console.WriteLine($"_bhLog_ Created Schema : {dbSchema}.");
+                    }
+
+                    if (CliCommand.ExportSql)
+                    {
+                        sqlWriter.AddSqlCommand(SchemaCreationCommand);
+                    }
+                }
+                else
+                {
+                    if (CliCommand.CliExecution)
+                    {
+                        Console.WriteLine("_bhLog_");
+                        Console.WriteLine($"_bhLog_ Error : Failed to Created Schema {dbSchema}.");
+                    }
+                }
             }
 
             return false;

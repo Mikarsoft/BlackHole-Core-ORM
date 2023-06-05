@@ -224,6 +224,34 @@ namespace BlackHole.Internal
             return SqlDatatypes;
         }
 
+        string IBHDatabaseSelector.TableSchemaCheck()
+        {
+            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            {
+                return $"and table_schema = '{DatabaseStatics.DatabaseSchema}";
+            }
+
+            return string.Empty;
+        }
+
+        string IBHDatabaseSelector.GetDatabaseSchema()
+        {
+            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            {
+                return $"{DatabaseStatics.DatabaseSchema}.";
+            }
+            return string.Empty;
+        }
+
+        string IBHDatabaseSelector.GetDatabaseSchemaFk()
+        {
+            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            {
+                return $"{DatabaseStatics.DatabaseSchema}";
+            }
+            return string.Empty;
+        }
+
         /// <summary>
         /// Return the name of the database in string
         /// </summary>
@@ -247,6 +275,26 @@ namespace BlackHole.Internal
             }
 
             return databaseName;
+        }
+
+        string IBHDatabaseSelector.GetOwnerName()
+        {
+            string databaseName = string.Empty;
+
+            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite && DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Oracle)
+            {
+                try
+                {
+                    if(DatabaseStatics.OwnerName != string.Empty)
+                    {
+                        string[] dbLinkSplit = DatabaseStatics.OwnerName.Split("=");
+                        return dbLinkSplit[1];
+                    }
+                }
+                catch { databaseName = string.Empty; }
+            }
+
+            return string.Empty;
         }
     }
 }

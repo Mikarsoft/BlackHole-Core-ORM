@@ -31,6 +31,15 @@ namespace BlackHole.CoreSupport
             };
         }
 
+        string IBHDataProviderSelector.GetDatabaseSchema()
+        {
+            if(DatabaseStatics.DatabaseSchema != string.Empty)
+            {
+                return $"{DatabaseStatics.DatabaseSchema}.";
+            }
+            return string.Empty;
+        }
+
         private BlackHoleIdTypes GetIdType(Type type)
         {
             if (type == typeof(int))
