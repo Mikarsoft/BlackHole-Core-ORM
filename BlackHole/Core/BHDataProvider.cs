@@ -48,7 +48,6 @@ namespace BlackHole.Core
             ThisId = MyShit("Id");
             ThisInactive = MyShit("Inactive");
 
-
             IList<PropertyInfo> props = new List<PropertyInfo>(_type.GetProperties());
 
             foreach (PropertyInfo prop in props)

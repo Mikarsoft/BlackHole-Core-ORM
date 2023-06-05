@@ -5,6 +5,7 @@ namespace BlackHole.Statics
     internal static class DatabaseStatics
     {
         internal static string ConnectionString { get; set; } = string.Empty;
+        internal static string DatabaseSchema { get; set; } = string.Empty;
         internal static string ServerConnection { get; set; } = string.Empty;
         internal static string DatabaseName { get; set; } = string.Empty;
         internal static string DataPath { get; set; } = string.Empty;

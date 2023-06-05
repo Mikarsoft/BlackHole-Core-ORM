@@ -47,7 +47,7 @@ namespace BlackHole.Configuration
             SetMode(blackHoleSettings.isInDevMode);
 
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString, 
-                blackHoleSettings.directorySettings.DataPath);
+                blackHoleSettings.directorySettings.DataPath,blackHoleSettings.connectionConfig.TableSchema);
 
             bool cliMode = CliCommandReader.ReadCliJson(assembly);
 
@@ -375,14 +375,14 @@ namespace BlackHole.Configuration
             DatabaseConfiguration.SetMode(isDevMode);
         }
 
-        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath)
+        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema)
         {
             if(SqlType == BlackHoleSqlTypes.SqlLite)
             {
                 ConnectionString = Path.Combine(DataPath, $"{ConnectionString}.db3");
             }
 
-            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType);
+            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, databaseSchema);
         }
 
         internal static void DataPathAndLogs(string DataPath, bool useLogsCleaner, int daysToClean, bool useLogger)

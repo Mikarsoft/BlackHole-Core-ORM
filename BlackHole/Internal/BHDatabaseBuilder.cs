@@ -1,4 +1,5 @@
-﻿using BlackHole.CoreSupport;
+﻿using BlackHole.Core;
+using BlackHole.CoreSupport;
 using BlackHole.Logger;
 using BlackHole.Statics;
 using Microsoft.Data.Sqlite;
@@ -10,6 +11,8 @@ namespace BlackHole.Internal
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
         private readonly ILoggerService _loggerService;
         private readonly IExecutionProvider connection;
+        private string SchemaCreationCommand { get; set; } = string.Empty;
+
         private SqlExportWriter sqlWriter { get; set; }
 
         internal BHDatabaseBuilder()
@@ -141,6 +144,7 @@ namespace BlackHole.Internal
 
                 if (isLite)
                 {
+                    SchemaCreationCommand = "";
                     string databaseLocation = _multiDatabaseSelector.GetServerConnection();
 
                     if (!File.Exists(databaseLocation))
@@ -160,20 +164,24 @@ namespace BlackHole.Internal
                     switch (_multiDatabaseSelector.GetSqlTypeId())
                     {
                         case 0:
+                            SchemaCreationCommand = "";
                             CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
                         case 1:
+                            SchemaCreationCommand = "";
                             CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName}'";
                             CreateDb = $"CREATE DATABASE IF NOT EXISTS {databaseName}";
                             string? dbName = connection.ExecuteScalar<string>(CheckDb, null);
                             dbExists = dbName?.ToLower() == databaseName.ToLower();
                             break;
                         case 2:
+                            SchemaCreationCommand = "";
                             CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
                         case 4:
+                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {DatabaseStatics.DatabaseSchema} AUTHORIZATION {databaseName}";
                             CheckDb = "select status from v$instance";
                             string? result = connection.ExecuteScalar<string>(CheckDb, null);
                             dbExists = result?.ToUpper() == "OPEN";
@@ -277,6 +285,16 @@ namespace BlackHole.Internal
                 _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
                 return false;
             }
+        }
+
+        bool IBHDatabaseBuilder.CreateDatabaseSchema()
+        {
+            if(DatabaseStatics.DatabaseSchema != string.Empty)
+            {
+                IBHConnection connection = new BHConnection();
+            }
+
+            return false;
         }
 
         bool IBHDatabaseBuilder.IsCreatedFirstTime()

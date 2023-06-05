@@ -32,8 +32,13 @@ namespace BlackHole.Configuration
             }
         }
 
-        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType)
+        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema)
         {
+            if(databaseSchema != string.Empty)
+            {
+                DatabaseStatics.DatabaseSchema = databaseSchema;
+            }
+
             switch (sqlType)
             {
                 case BlackHoleSqlTypes.SqlServer:
