@@ -72,6 +72,7 @@ namespace BlackHole.Configuration
                     exitCode = DropDatabaseCliProcess();
                     break;
                 case CliCommandTypes.Parse:
+                    exitCode = ParseDatabaseCliProcess();
                     break;
                 case CliCommandTypes.Default:
                     services.BuildDatabaseAndServices(blackHoleSettings.connectionConfig.additionalSettings, assembly);
@@ -106,6 +107,11 @@ namespace BlackHole.Configuration
                 Console.WriteLine("_bhLog_ \t An error occured while creating the database.");
                 return 508;
             }
+        }
+
+        private static int ParseDatabaseCliProcess()
+        {
+            return 0;
         }
 
         private static int DropDatabaseCliProcess()

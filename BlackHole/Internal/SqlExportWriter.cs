@@ -112,7 +112,7 @@ namespace BlackHole.Internal
                             }
                         }
                     }
-                    Console.WriteLine("_bhLog_ \t Sql file has been created");
+                    Console.WriteLine("_bhLog_ \t Sql file has been created.");
                     Console.WriteLine("_bhLog_");
                 }
                 catch (Exception ex)
