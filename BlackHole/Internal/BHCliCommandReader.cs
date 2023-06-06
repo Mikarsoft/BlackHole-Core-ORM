@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace BlackHole.Internal
 {
-    internal static class CliCommandReader
+    internal static class BHCliCommandReader
     {
         internal static bool ReadCliJson(Assembly assembly)
         {

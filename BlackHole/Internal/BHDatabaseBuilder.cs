@@ -14,14 +14,14 @@ namespace BlackHole.Internal
         private bool ExistingDb { get; set; } = false;
         private string SchemaCreationCommand { get; set; } = string.Empty;
         private string dbSchema { get; set; }
-        private SqlExportWriter sqlWriter { get; set; }
+        private BHSqlExportWriter sqlWriter { get; set; }
 
         internal BHDatabaseBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             _loggerService = new LoggerService();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ServerConnection);
-            sqlWriter = new SqlExportWriter("1_DatabaseSql");
+            sqlWriter = new BHSqlExportWriter("1_DatabaseSql");
             dbSchema = DatabaseStatics.DatabaseSchema;
         }
 

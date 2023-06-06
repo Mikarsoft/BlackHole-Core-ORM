@@ -11,7 +11,7 @@ namespace BlackHole.Internal
     {
         private IBHDatabaseSelector _multiDatabaseSelector;
         private readonly IExecutionProvider connection;
-        private SqlExportWriter sqlWriter { get; set; }
+        private BHSqlExportWriter sqlWriter { get; set; }
 
         private List<DataConstraints> AllConstraints { get; set; }
         private string[] SqlDatatypes;
@@ -33,7 +33,7 @@ namespace BlackHole.Internal
             isMyShit = _multiDatabaseSelector.GetMyShit();
             isLite = _multiDatabaseSelector.IsLite();
             AllConstraints = GetConstraints();
-            sqlWriter = new SqlExportWriter("2_TablesSql");
+            sqlWriter = new BHSqlExportWriter("2_TablesSql");
         }
 
         /// <summary>

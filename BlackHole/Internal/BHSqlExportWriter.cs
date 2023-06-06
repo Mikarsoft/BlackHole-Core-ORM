@@ -2,14 +2,14 @@
 
 namespace BlackHole.Internal
 {
-    internal class SqlExportWriter
+    internal class BHSqlExportWriter
     {
         private string SqlFilesPath { get; set; }
         private bool canWriteFiles { get; set; }
         private string SqlFileName { get; set; }
         private List<string> SqlCommandsList { get; set; }
 
-        internal SqlExportWriter(string fileName)
+        internal BHSqlExportWriter(string fileName)
         {
             SqlFileName = fileName;
             SqlCommandsList = new List<string>();

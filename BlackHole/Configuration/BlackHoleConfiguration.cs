@@ -49,7 +49,7 @@ namespace BlackHole.Configuration
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString, 
                 blackHoleSettings.directorySettings.DataPath,blackHoleSettings.connectionConfig.TableSchema);
 
-            bool cliMode = CliCommandReader.ReadCliJson(assembly);
+            bool cliMode = BHCliCommandReader.ReadCliJson(assembly);
 
             if (cliMode)
             {
@@ -59,7 +59,7 @@ namespace BlackHole.Configuration
 
             DataPathAndLogs(blackHoleSettings.directorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.directorySettings.UseLogger);
 
-            CliCommandSettings cliSettings = CliCommandReader.GetCliCommandSettings();
+            CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
 
             int exitCode = 0;
 
