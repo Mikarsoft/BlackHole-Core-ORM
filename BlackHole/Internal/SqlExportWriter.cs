@@ -96,6 +96,10 @@ namespace BlackHole.Internal
                     {
                         using(var sw = File.AppendText(pathFile))
                         {
+                            sw.WriteLine("");
+                            sw.WriteLine($"-- update at: {DateTime.Now} --");
+                            sw.WriteLine("");
+
                             foreach (string commandText in SqlCommandsList)
                             {
                                 sw.WriteLine($"{commandText}");
@@ -106,6 +110,10 @@ namespace BlackHole.Internal
                     {
                         using (var tw = new StreamWriter(pathFile, true))
                         {
+                            tw.WriteLine("");
+                            tw.WriteLine($"-- update at: {DateTime.Now} --");
+                            tw.WriteLine("");
+
                             foreach (string commandText in SqlCommandsList)
                             {
                                 tw.WriteLine($"{commandText}");

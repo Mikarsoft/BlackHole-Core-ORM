@@ -11,6 +11,7 @@ namespace BlackHole.Internal
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
         private readonly ILoggerService _loggerService;
         private readonly IExecutionProvider connection;
+        private bool ExistingDb { get; set; } = false;
         private string SchemaCreationCommand { get; set; } = string.Empty;
         private string dbSchema { get; set; }
         private SqlExportWriter sqlWriter { get; set; }
@@ -166,7 +167,7 @@ namespace BlackHole.Internal
                     switch (_multiDatabaseSelector.GetSqlTypeId())
                     {
                         case 0:
-                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {DatabaseStatics.DatabaseSchema} AUTHORIZATION {ownerName}";
+                            SchemaCreationCommand = $"IF NOT EXISTS ( SELECT  * FROM sys.schemas WHERE name = '{DatabaseStatics.DatabaseSchema}' ) BEGIN EXEC('CREATE SCHEMA [{DatabaseStatics.DatabaseSchema}]') END";
                             CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
@@ -200,12 +201,12 @@ namespace BlackHole.Internal
                         if (CliCommand.ExportSql)
                         {
                             sqlWriter.AddSqlCommand($"{CreateDb};");
-                            sqlWriter.CreateSqlFile();
                         }
 
                         return connection.JustExecute(CreateDb, null);
                     }
 
+                    ExistingDb = true;
                     dbSchema = string.Empty;
                     return true;
                 }
@@ -315,6 +316,11 @@ namespace BlackHole.Internal
                         Console.WriteLine($"_bhLog_ Error : Failed to Created Schema {dbSchema}.");
                     }
                 }
+            }
+
+            if (CliCommand.ExportSql && !ExistingDb)
+            {
+                sqlWriter.CreateSqlFile();
             }
 
             return false;

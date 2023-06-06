@@ -228,7 +228,7 @@ namespace BlackHole.Internal
         {
             if (DatabaseStatics.DatabaseSchema != string.Empty)
             {
-                return $"and table_schema = '{DatabaseStatics.DatabaseSchema}";
+                return $"and table_schema = '{DatabaseStatics.DatabaseSchema}'";
             }
 
             return string.Empty;

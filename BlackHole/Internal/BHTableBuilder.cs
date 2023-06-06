@@ -361,7 +361,7 @@ namespace BlackHole.Internal
 
         void UpdateTableSchema(Type TableType)
         {
-            string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}'";
+            string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}' {tableSchemaCheck}";
 
             if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
             {
@@ -390,7 +390,7 @@ namespace BlackHole.Internal
 
             foreach (string ColumnName in ColumnsToAdd)
             {
-                string addCommand = $"ALTER TABLE {Tablename} ADD ";
+                string addCommand = $"ALTER TABLE {tableSchema}{Tablename} ADD ";
                 var Property = Properties.Where(x => x.Name == ColumnName).FirstOrDefault();
 
                 if (Property != null)
