@@ -1132,7 +1132,7 @@ namespace BlackHole.Core
 
         JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.OuterJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            return CreateFirstJoin<TOther, Dto>(key, otherKey, "outer");
+            return CreateFirstJoin<TOther, Dto>(key, otherKey, "full outer");
         }
 
         JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.LeftJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)

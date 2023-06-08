@@ -121,7 +121,7 @@ namespace BlackHole.Core
                 Ignore = data.Ignore
             };
 
-            return newJoin.CreateJoin(key, otherkey, "outer");
+            return newJoin.CreateJoin(key, otherkey, "full outer");
         }
 
         /// <summary>

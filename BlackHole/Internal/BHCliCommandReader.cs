@@ -57,20 +57,27 @@ namespace BlackHole.Internal
                 saveExecutionSql = CliCommand.ExportSql
             };
 
-            switch (CliCommand.BHRun)
+            if (CliCommand.CliExecution)
             {
-                case "update":
-                    cliSettings.commandType = CliCommandTypes.Update;
-                    break;
-                case "drop":
-                    cliSettings.commandType = CliCommandTypes.Drop;
-                    break;
-                case "parse":
-                    cliSettings.commandType = CliCommandTypes.Parse;
-                    break;
-                default:
-                    cliSettings.commandType = CliCommandTypes.Default;
-                    break;
+                switch (CliCommand.BHRun)
+                {
+                    case "update":
+                        cliSettings.commandType = CliCommandTypes.Update;
+                        break;
+                    case "drop":
+                        cliSettings.commandType = CliCommandTypes.Drop;
+                        break;
+                    case "parse":
+                        cliSettings.commandType = CliCommandTypes.Parse;
+                        break;
+                    default:
+                        cliSettings.commandType = CliCommandTypes.Default;
+                        break;
+                }
+            }
+            else
+            {
+                cliSettings.commandType = CliCommandTypes.Default;
             }
 
             return cliSettings;
