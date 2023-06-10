@@ -120,21 +120,5 @@ namespace BlackHole.Configuration
             ConnectionType = BlackHoleSqlTypes.Postgres;
             return additionalSettings;
         }
-
-        /// <summary>
-        /// <para>Use the data provider for MySql.</para>
-        /// <para>Do not use the Name of an Existing Database.</para>
-        /// <para>BlackHole is going to create the database, based on the
-        /// connection string.</para>
-        /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseMySql(string connectionString, string schema)
-        {
-            ConnectionString = connectionString;
-            TableSchema = schema;
-            ConnectionType = BlackHoleSqlTypes.MySql;
-            return additionalSettings;
-        }
     }
 }
