@@ -52,6 +52,8 @@ namespace BlackHole.Internal
                 Builded[i] = CreateTable(TableTypes[i]);
             }
 
+            CliConsoleLogs("");
+
             for (int j = 0; j < Builded.Length; j++)
             {
                 if (Builded[j])
@@ -329,7 +331,7 @@ namespace BlackHole.Internal
             closingCommand += $"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;";
 
             connection.JustExecute(closingCommand, null);
-            CliConsoleLogs($"{closingCommand};");
+            CliConsoleLogs($"{closingCommand}");
         }
 
         void ForeignKeyAsignment(Type TableType)

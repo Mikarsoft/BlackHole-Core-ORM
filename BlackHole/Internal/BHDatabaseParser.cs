@@ -17,15 +17,15 @@ namespace BlackHole.Internal
 
         internal void ParseDatabase()
         {
-            string parseCommand = GetParseCommand();
-
-            List<TableParsingInfo> tableInfo = connection.Query<TableParsingInfo>(parseCommand, null);
+            List<TableParsingInfo> tableInfo = GetDatabaseInformation();
         }
 
-        internal string GetParseCommand()
+        internal List<TableParsingInfo> GetDatabaseInformation()
         {
             string parseCommand = string.Empty;
             string schemaCheck = GetSchemaCheckCommand();
+
+            List<TableParsingInfo> parsingData = new List<TableParsingInfo>();
 
             switch (DatabaseStatics.DatabaseType)
             {
@@ -41,6 +41,7 @@ namespace BlackHole.Internal
                         left join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC on RC.CONSTRAINT_NAME = K.CONSTRAINT_NAME
                         left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON TC.CONSTRAINT_NAME= RC.UNIQUE_CONSTRAINT_NAME " +
                         $" {schemaCheck} order by TableName";
+                    parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.Postgres:
                     parseCommand = @"select K.table_name as TableName, K.column_name as ColumnName, K.udt_name as DataType,
@@ -56,6 +57,7 @@ namespace BlackHole.Internal
                         left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS T on T.CONSTRAINT_NAME = C.CONSTRAINT_NAME 
                         left join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CU on CU.CONSTRAINT_NAME = T.CONSTRAINT_NAME " +
                         $" {schemaCheck} order by TableName";
+                    parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.MySql:
                     parseCommand = @"select K.TABLE_NAME as TableName, K.COLUMN_NAME as ColumnName, K.DATA_TYPE as DataType, 
@@ -69,6 +71,7 @@ namespace BlackHole.Internal
                         from INFORMATION_SCHEMA.COLUMNS K 
 		                left outer join information_schema.key_column_usage C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME) " +
                         $"where K.TABLE_SCHEMA ='{schemaCheck}' order by TableName";
+                    parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.Oracle:
                     parseCommand = @"select col.table_name as TableName, col.column_name as ColumnName, col.data_type as DataType, col.data_length as MaxLength,
@@ -82,10 +85,51 @@ namespace BlackHole.Internal
                         left join all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name
                         left JOIN all_constraints c_pk ON c.r_owner = c_pk.owner AND c.r_constraint_name = c_pk.constraint_name "+
                         $"where col.owner ='{schemaCheck}' order by TableName";
+                    parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
+                    break;
+                case BlackHoleSqlTypes.SqlLite:
+                    parsingData = SqLiteParsing();
                     break;
             }
 
-            return parseCommand;
+            return parsingData;
+        }
+
+        internal List<TableParsingInfo> SqLiteParsing()
+        {
+            List<TableParsingInfo> parsingLiteData = new List<TableParsingInfo>();
+
+            List<string> tableNames = connection.Query<string>("SELECT name FROM sqlite_master  where type = 'table' and name != 'sqlite_sequence';", null);
+
+            foreach(string tableName in tableNames)
+            {
+                List<SqLiteTableInfo> tableInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({tableName});", null);
+                List<SqLiteForeignKeySchema> foreignKeys = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({tableName});", null);
+
+                foreach(SqLiteTableInfo info in tableInfo)
+                {
+                    TableParsingInfo parsingLine = new TableParsingInfo
+                    {
+                        TableName = tableName,
+                        ColumnName = info.name,
+                        DataType = info.type,
+                        Nullable = !info.notnull,
+                        PrimaryKey = info.pk
+                    };
+
+                    SqLiteForeignKeySchema? foreignKey = foreignKeys.Where(x => x.from == parsingLine.ColumnName).FirstOrDefault();
+
+                    if(foreignKey != null)
+                    {
+                        parsingLine.DeleteRule = foreignKey.on_delete;
+                        parsingLine.ReferencedTable = foreignKey.table;
+                    }
+
+                    parsingLiteData.Add(parsingLine);
+                }
+            }
+
+            return parsingLiteData;
         }
 
         internal string GetSchemaCheckCommand()
