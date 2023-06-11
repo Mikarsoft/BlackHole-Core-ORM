@@ -18,6 +18,49 @@ namespace BlackHole.Internal
         internal void ParseDatabase()
         {
             List<TableParsingInfo> tableInfo = GetDatabaseInformation();
+            EntityCodeGenerator(tableInfo);
+        }
+
+        internal void EntityCodeGenerator(List<TableParsingInfo> parsingData)
+        {
+            string scriptsPath = Path.Combine(DatabaseStatics.DataPath, "BHEntities");
+            string applicationName = "MyApp";
+
+            List<string> TableNames = parsingData.Select(parsingData => parsingData.TableName).Distinct().ToList();
+
+            if (!Directory.Exists(scriptsPath))
+            {
+                Directory.CreateDirectory(scriptsPath);
+            }
+
+            foreach(string tableName in TableNames)
+            {
+                List<TableParsingInfo> tableInfo = parsingData.Where(x => x.TableName == tableName).ToList();
+
+                string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
+                EntityScript += " { \n";
+                EntityScript += $"\t public class {tableName} : BlackHoleEntity<int> \n";
+                EntityScript += "\t { \n";
+
+                foreach(TableParsingInfo columnInfo in tableInfo)
+                {
+                    if (!columnInfo.PrimaryKey)
+                    {
+                        EntityScript += $"\t\t public string {columnInfo.ColumnName}" + " {get; set;} = string.Empty; \n";
+                    }
+                }
+
+                EntityScript += "\t } \n";
+                EntityScript += " } \n";
+
+                string pathFile = Path.Combine(scriptsPath, $"{tableName}.cs");
+
+                using (var tw = new StreamWriter(pathFile, true))
+                {
+                    tw.Write(EntityScript);
+                }
+
+            }
         }
 
         internal List<TableParsingInfo> GetDatabaseInformation()
