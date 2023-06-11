@@ -39,7 +39,7 @@ namespace BlackHole.Internal
                         left outer join sys.indexes i ON ic.object_id = i.object_id AND ic.index_id = i.index_id
                         left outer join INFORMATION_SCHEMA.KEY_COLUMN_USAGE K on K.COLUMN_NAME = c.name and K.TABLE_NAME = tb.name
                         left join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC on RC.CONSTRAINT_NAME = K.CONSTRAINT_NAME
-                        left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON TC.CONSTRAINT_NAME= RC.UNIQUE_CONSTRAINT_NAME" +
+                        left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON TC.CONSTRAINT_NAME= RC.UNIQUE_CONSTRAINT_NAME " +
                         $" {schemaCheck} order by TableName";
                     break;
                 case BlackHoleSqlTypes.Postgres:
@@ -54,7 +54,7 @@ namespace BlackHole.Internal
 						from INFORMATION_SCHEMA.COLUMNS K 
                         left join INFORMATION_SCHEMA.KEY_COLUMN_USAGE C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME)
                         left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS T on T.CONSTRAINT_NAME = C.CONSTRAINT_NAME 
-                        left join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CU on CU.CONSTRAINT_NAME = T.CONSTRAINT_NAME" +
+                        left join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CU on CU.CONSTRAINT_NAME = T.CONSTRAINT_NAME " +
                         $" {schemaCheck} order by TableName";
                     break;
                 case BlackHoleSqlTypes.MySql:
@@ -67,10 +67,21 @@ namespace BlackHole.Internal
                              else '' end as DeleteRule,
                         C.REFERENCED_TABLE_NAME as ReferencedTable, C.CONSTRAINT_NAME as ConstraintName
                         from INFORMATION_SCHEMA.COLUMNS K 
-		                left outer join information_schema.key_column_usage C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME)" +
+		                left outer join information_schema.key_column_usage C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME) " +
                         $"where K.TABLE_SCHEMA ='{schemaCheck}' order by TableName";
                     break;
-                default:
+                case BlackHoleSqlTypes.Oracle:
+                    parseCommand = @"select col.table_name as TableName, col.column_name as ColumnName, col.data_type as DataType, col.data_length as MaxLength,
+                        col.data_precision as NumPrecision, col.data_scale as NumScale,
+                        case when col.nullable = 'Y' then 1 else 0 end as Nullable,
+                        case when c.constraint_type = 'P' then 1 else 0 end as PrimaryKey,
+                        c.delete_rule as DeleteRule, c.constraint_name as ConstraintName,
+                        case when c.constraint_type = 'R' then c_pk.table_name else '' end as ReferencedTable
+                        from sys.all_tab_columns col
+                        left join sys.all_cons_columns a on (a.column_name = col.column_name and a.table_name = col.table_name and a.owner = col.owner and a.position is not null)
+                        left join all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name
+                        left JOIN all_constraints c_pk ON c.r_owner = c_pk.owner AND c.r_constraint_name = c_pk.constraint_name "+
+                        $"where col.owner ='{schemaCheck}' order by TableName";
                     break;
             }
 
@@ -94,6 +105,9 @@ namespace BlackHole.Internal
                     case BlackHoleSqlTypes.MySql:
                         schemaCheck = _multiDatabaseSelector.GetDatabaseName();
                         break;
+                    case BlackHoleSqlTypes.Oracle:
+                        schemaCheck = _multiDatabaseSelector.GetDatabaseName();
+                        break;
                     default:
                         break;
                 }
@@ -109,6 +123,9 @@ namespace BlackHole.Internal
                         schemaCheck = $"where K.table_schema = 'public'";
                         break;
                     case BlackHoleSqlTypes.MySql:
+                        schemaCheck = _multiDatabaseSelector.GetDatabaseName();
+                        break;
+                    case BlackHoleSqlTypes.Oracle:
                         schemaCheck = _multiDatabaseSelector.GetDatabaseName();
                         break;
                     default:

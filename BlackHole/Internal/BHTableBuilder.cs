@@ -603,7 +603,7 @@ namespace BlackHole.Internal
             List<DataConstraints> Constraints = new List<DataConstraints>();
             string GetConstrainsCommand = @"SELECT a.table_name, a.column_name, a.constraint_name, c_pk.table_name REFERENCED_TABLE_NAME, c.delete_rule
                 FROM all_cons_columns a
-                JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name
+                join all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name
                 JOIN all_constraints c_pk ON c.r_owner = c_pk.owner AND c.r_constraint_name = c_pk.constraint_name
                 WHERE c.constraint_type = 'R' and a.owner =" + $"'{_multiDatabaseSelector.GetDatabaseName()}'";
             Constraints = connection.Query<DataConstraints>(GetConstrainsCommand, null);
