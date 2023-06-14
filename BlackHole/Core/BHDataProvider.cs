@@ -1170,7 +1170,7 @@ namespace BlackHole.Core
             firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther });
             firstJoin.Letters.Add(parameterOther);
 
-            firstJoin.Joins = $" {joinType} join {MyShit(typeof(TOther).Name)} {parameterOther} on {parameterOther}.{MyShit(propNameOther)} = {parameter}.{MyShit(propName)}";
+            firstJoin.Joins = $" {joinType} join {_dataProviderSelector.GetDatabaseSchema()}{MyShit(typeof(TOther).Name)} {parameterOther} on {parameterOther}.{MyShit(propNameOther)} = {parameter}.{MyShit(propName)}";
             firstJoin.OccupiedDtoProps = BindPropertiesToDto(typeof(TOther), typeof(Dto), parameter, parameterOther);
             return firstJoin;
         }

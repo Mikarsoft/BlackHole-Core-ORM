@@ -15,4 +15,22 @@ namespace BlackHole.Internal
         public string ReferencedTable { get; set; } = string.Empty;
         public string ConstraintName { get; set; } = string.Empty;
     }
+
+    internal class TableAspectsInfo
+    {
+        internal string TableName { get; set; } = string.Empty;
+        internal List<TableParsingInfo> TableColumns { get; set; } = new List<TableParsingInfo>();
+        internal bool InCompatibleIdColumn { get; set; }
+        internal bool MissingInactiveColumn { get; set; }
+        internal bool GeneralError { get; set; }
+        internal bool IncompatibleIdDataType { get; set; }
+
+        internal bool BothIncompatible
+        {
+            get
+            {
+                return InCompatibleIdColumn && MissingInactiveColumn;
+            }
+        }
+    }
 }

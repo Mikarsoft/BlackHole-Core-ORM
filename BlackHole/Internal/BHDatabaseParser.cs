@@ -1,6 +1,7 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Enums;
 using BlackHole.Statics;
+using System.Net;
 
 namespace BlackHole.Internal
 {
@@ -17,32 +18,28 @@ namespace BlackHole.Internal
 
         internal void ParseDatabase()
         {
-            List<TableParsingInfo> tableInfo = GetDatabaseInformation();
+            List<TableAspectsInfo> tableInfo = GetDatabaseInformation();
             EntityCodeGenerator(tableInfo);
         }
 
-        internal void EntityCodeGenerator(List<TableParsingInfo> parsingData)
+        internal void EntityCodeGenerator(List<TableAspectsInfo> parsingData)
         {
             string scriptsPath = Path.Combine(DatabaseStatics.DataPath, "BHEntities");
             string applicationName = "MyApp";
-
-            List<string> TableNames = parsingData.Select(parsingData => parsingData.TableName).Distinct().ToList();
 
             if (!Directory.Exists(scriptsPath))
             {
                 Directory.CreateDirectory(scriptsPath);
             }
 
-            foreach(string tableName in TableNames)
+            foreach(TableAspectsInfo tableAspectInf in parsingData)
             {
-                List<TableParsingInfo> tableInfo = parsingData.Where(x => x.TableName == tableName).ToList();
-
                 string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
                 EntityScript += " { \n";
-                EntityScript += $"\t public class {tableName} : BlackHoleEntity<int> \n";
+                EntityScript += $"\t public class {tableAspectInf.TableName} : BlackHoleEntity<int> \n";
                 EntityScript += "\t { \n";
 
-                foreach(TableParsingInfo columnInfo in tableInfo)
+                foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns)
                 {
                     if (!columnInfo.PrimaryKey)
                     {
@@ -53,21 +50,48 @@ namespace BlackHole.Internal
                 EntityScript += "\t } \n";
                 EntityScript += " } \n";
 
-                string pathFile = Path.Combine(scriptsPath, $"{tableName}.cs");
+                string pathFile = Path.Combine(scriptsPath, $"{tableAspectInf.TableName}.cs");
 
                 using (var tw = new StreamWriter(pathFile, true))
                 {
                     tw.Write(EntityScript);
                 }
-
             }
         }
 
-        internal List<TableParsingInfo> GetDatabaseInformation()
+        internal bool CheckCompatibility(List<TableAspectsInfo> parsingData)
+        {
+            bool procceed = true;
+
+            foreach (TableAspectsInfo tableAspectInf in parsingData)
+            {
+                List<TableParsingInfo> primaryKey = tableAspectInf.TableColumns.Where(x=>x.PrimaryKey).ToList();
+
+                if(primaryKey.Count == 1)
+                {
+                    if (primaryKey[0].ColumnName == "Id")
+                    {
+                        
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else
+                {
+                    tableAspectInf.GeneralError = true;
+                }
+            }
+
+            return procceed;
+        }
+
+        internal List<TableAspectsInfo> GetDatabaseInformation()
         {
             string parseCommand = string.Empty;
             string schemaCheck = GetSchemaCheckCommand();
-
+            List<TableAspectsInfo> tableAspects = new List<TableAspectsInfo>();
             List<TableParsingInfo> parsingData = new List<TableParsingInfo>();
 
             switch (DatabaseStatics.DatabaseType)
@@ -135,7 +159,22 @@ namespace BlackHole.Internal
                     break;
             }
 
-            return parsingData;
+            List<string> TableNames = parsingData.Select(parsingData => parsingData.TableName).Distinct().ToList();
+
+            foreach (string tableName in TableNames)
+            {
+                List<TableParsingInfo> tableInfo = parsingData.Where(x => x.TableName == tableName).ToList();
+
+                TableAspectsInfo tableAspectInf = new TableAspectsInfo
+                {
+                    TableName = tableName,
+                    TableColumns = tableInfo
+                };
+
+                tableAspects.Add(tableAspectInf);
+            }
+
+            return tableAspects;
         }
 
         internal List<TableParsingInfo> SqLiteParsing()
