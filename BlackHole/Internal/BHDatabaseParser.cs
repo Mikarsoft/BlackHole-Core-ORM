@@ -19,7 +19,11 @@ namespace BlackHole.Internal
         internal void ParseDatabase()
         {
             List<TableAspectsInfo> tableInfo = GetDatabaseInformation();
-            EntityCodeGenerator(tableInfo);
+
+            if (CheckCompatibility(tableInfo) || CliCommand.ForceAction )
+            {
+                EntityCodeGenerator(tableInfo);
+            }
         }
 
         internal void EntityCodeGenerator(List<TableAspectsInfo> parsingData)
@@ -32,6 +36,8 @@ namespace BlackHole.Internal
                 Directory.CreateDirectory(scriptsPath);
             }
 
+            BHParsingColumnScanner columnScanner = new BHParsingColumnScanner(connection);
+
             foreach(TableAspectsInfo tableAspectInf in parsingData)
             {
                 string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
@@ -41,9 +47,16 @@ namespace BlackHole.Internal
 
                 foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns)
                 {
+
                     if (!columnInfo.PrimaryKey)
                     {
+                        ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
+
                         EntityScript += $"\t\t public string {columnInfo.ColumnName}" + " {get; set;} = string.Empty; \n";
+                    }
+                    else
+                    {
+                        ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(columnInfo);
                     }
                 }
 
