@@ -32,9 +32,19 @@ namespace BlackHole.Internal
 
         internal ColumnScanResult ParsePrimaryKeyToProperty(TableParsingInfo tableColumnInfo)
         {
-            ColumnScanResult scanResult = new ColumnScanResult();
-            
-            return scanResult;
+            switch (DatabaseStatics.DatabaseType)
+            {
+                case BlackHoleSqlTypes.SqlServer:
+                    return GetSqlServerColumn(tableColumnInfo, true);
+                case BlackHoleSqlTypes.MySql:
+                    return GetMySqlColumn(tableColumnInfo, true);
+                case BlackHoleSqlTypes.Postgres:
+                    return GetNpgSqlColumn(tableColumnInfo, true);
+                case BlackHoleSqlTypes.Oracle:
+                    return GetOracleColumn(tableColumnInfo, true);
+                default:
+                    return GetSqLiteColumn(tableColumnInfo, true);
+            }
         }
 
         internal ColumnScanResult GetSqlServerColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
@@ -61,13 +71,15 @@ namespace BlackHole.Internal
             }
             else
             {
+                bool isDateTime = false;
+
                 switch (tableColumnInfo.DataType.ToLower())
                 {
                     case "bigint":
                         scanResult.PropertyNameForColumn = "long";
                         break;
                     case "varbinary":
-                        scanResult.PropertyNameForColumn = "byte[]";
+                        scanResult.PropertyNameForColumn = "byte[]?";
                         break;
                     case "bit":
                         scanResult.PropertyNameForColumn = "bool";
@@ -77,13 +89,13 @@ namespace BlackHole.Internal
                         scanResult.DefaultValue = " = string.Empty;";
                         break;
                     case "date":
-                        scanResult.PropertyNameForColumn = "DateTime";
+                        isDateTime = true;
                         break;
                     case "datetime":
-                        scanResult.PropertyNameForColumn = "DateTime";
+                        isDateTime = true;
                         break;
                     case "datetime2":
-                        scanResult.PropertyNameForColumn = "DateTime";
+                        isDateTime = true;
                         break;
                     case "decimal":
                         scanResult.PropertyNameForColumn = "decimal";
@@ -92,7 +104,7 @@ namespace BlackHole.Internal
                         scanResult.PropertyNameForColumn = "double";
                         break;
                     case "binary":
-                        scanResult.PropertyNameForColumn = "byte[]";
+                        scanResult.PropertyNameForColumn = "byte[]?";
                         break;
                     case "int":
                         scanResult.PropertyNameForColumn = "int";
@@ -116,7 +128,7 @@ namespace BlackHole.Internal
                         scanResult.PropertyNameForColumn = "short";
                         break;
                     case "timestamp":
-                        scanResult.PropertyNameForColumn = "byte[]";
+                        scanResult.PropertyNameForColumn = "byte[]?";
                         break;
                     case "smallint":
                         scanResult.PropertyNameForColumn = "short";
@@ -125,7 +137,7 @@ namespace BlackHole.Internal
                         scanResult.PropertyNameForColumn = "decimal";
                         break;
                     case "variant":
-                        scanResult.PropertyNameForColumn = "object";
+                        scanResult.PropertyNameForColumn = "object?";
                         break;
                     case "text":
                         scanResult.PropertyNameForColumn = "string";
@@ -139,17 +151,30 @@ namespace BlackHole.Internal
                         break;
                     case "uniqueidentifier":
                         scanResult.PropertyNameForColumn = "Guid";
+                        scanResult.DefaultValue = " = Guid.Empty;";
                         break;
                     case "varchar":
                         scanResult.PropertyNameForColumn = "string";
                         scanResult.DefaultValue = " = string.Empty;";
                         break;
                     case "xml":
-                        scanResult.PropertyNameForColumn = "XmlNode";
+                        scanResult.PropertyNameForColumn = "XmlNode?";
                         break;
                     default:
                         scanResult.UnidentifiedColumn = true;
                         break;
+                }
+
+                if (isDateTime)
+                {
+                    if (tableColumnInfo.Nullable)
+                    {
+                        scanResult.PropertyNameForColumn = "DateTime?";
+                    }
+                    else
+                    {
+                        scanResult.PropertyNameForColumn = "DateTime";
+                    }
                 }
             }
             return scanResult;

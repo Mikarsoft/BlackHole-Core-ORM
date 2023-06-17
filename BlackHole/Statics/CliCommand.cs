@@ -7,5 +7,6 @@ namespace BlackHole.Statics
         internal static bool ExportSql { get; set; }
         internal static bool ForceAction { get; set; }
         internal static bool CliExecution { get; set; }
+        internal static string ProjectPath { get; set; } = string.Empty;
     }
 }

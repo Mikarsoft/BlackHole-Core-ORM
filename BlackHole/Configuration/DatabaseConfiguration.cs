@@ -32,24 +32,24 @@ namespace BlackHole.Configuration
             }
         }
 
-        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema)
+        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema, int timeoutSeconds)
         {
             switch (sqlType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    ScanMsSqlString(connectionString);
+                    ScanMsSqlString(connectionString,timeoutSeconds);
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    ScanMySqlString(connectionString);
+                    ScanMySqlString(connectionString,timeoutSeconds);
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    ScanPostgresString(connectionString);
+                    ScanPostgresString(connectionString,timeoutSeconds);
                     break;
                 case BlackHoleSqlTypes.SqlLite:
                     ScanLiteString(connectionString);
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    ScanOracleString(connectionString);
+                    ScanOracleString(connectionString,timeoutSeconds);
                     break;
             }
 
@@ -59,10 +59,11 @@ namespace BlackHole.Configuration
             }
         }
 
-        private static void ScanOracleString(string connectionString)
+        private static void ScanOracleString(string connectionString, int timeoutSeconds)
         {
             string[] parts = connectionString.Split(";");
             string userName = string.Empty;
+            bool hasCommandTimeout = false;
 
             foreach (string part in parts)
             {
@@ -71,16 +72,28 @@ namespace BlackHole.Configuration
                 {
                     DatabaseStatics.DatabaseName = part;
                 }
+
+                if (tempPart.Contains("connectiontimeout="))
+                {
+                    hasCommandTimeout = true;
+                }
             }
+
+            if (!hasCommandTimeout)
+            {
+                connectionString = $"Connection Timeout = {timeoutSeconds};{connectionString}";
+            }
+
             DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Oracle;
             DatabaseStatics.ConnectionString = connectionString;
             DatabaseStatics.ServerConnection = connectionString;
         }
 
-        private static void ScanMsSqlString(string connectionString)
+        private static void ScanMsSqlString(string connectionString, int timeoutSeconds)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
+            bool hasCommandTimeout = false;
 
             foreach (string part in parts)
             {
@@ -89,6 +102,11 @@ namespace BlackHole.Configuration
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
                     DatabaseStatics.OwnerName = part;
+                }
+
+                if (tempPart.Contains("commandtimeout="))
+                {
+                    hasCommandTimeout = true;
                 }
 
                 if (tempPart.Contains("database=") || tempPart.Contains("initialcatalog="))
@@ -104,15 +122,21 @@ namespace BlackHole.Configuration
                 }
             }
 
+            if (!hasCommandTimeout)
+            {
+                connectionString = $"Command Timeout = {timeoutSeconds};{connectionString}";
+            }
+
             DatabaseStatics.DatabaseType = BlackHoleSqlTypes.SqlServer;
             DatabaseStatics.ConnectionString = connectionString;
             DatabaseStatics.ServerConnection = serverConnection;
         }
 
-        private static void ScanMySqlString(string connectionString)
+        private static void ScanMySqlString(string connectionString, int timeoutSeconds)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
+            bool hasCommandTimeout = false;
 
             foreach (string part in parts)
             {
@@ -121,6 +145,11 @@ namespace BlackHole.Configuration
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
                     DatabaseStatics.OwnerName = part;
+                }
+
+                if (tempPart.Contains("commandtimeout="))
+                {
+                    hasCommandTimeout = true;
                 }
 
                 if (tempPart.Contains("database="))
@@ -136,15 +165,21 @@ namespace BlackHole.Configuration
                 }
             }
 
+            if (!hasCommandTimeout)
+            {
+                connectionString = $"default command timeout = {timeoutSeconds};{connectionString}";
+            }
+
             DatabaseStatics.DatabaseType = BlackHoleSqlTypes.MySql;
             DatabaseStatics.ConnectionString = connectionString; // +"OldGuids=true;";
             DatabaseStatics.ServerConnection = serverConnection;
         }
 
-        private static void ScanPostgresString(string connectionString)
+        private static void ScanPostgresString(string connectionString, int timeoutSeconds)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
+            bool hasCommandTimeout = false;
 
             foreach (string part in parts)
             {
@@ -153,6 +188,11 @@ namespace BlackHole.Configuration
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
                     DatabaseStatics.OwnerName = part;
+                }
+
+                if (tempPart.Contains("commandtimeout="))
+                {
+                    hasCommandTimeout = true;
                 }
 
                 if (tempPart.Contains("database=") || tempPart.Contains("location="))
@@ -166,6 +206,11 @@ namespace BlackHole.Configuration
                         serverConnection += $"{part};";
                     }
                 }
+            }
+
+            if (!hasCommandTimeout)
+            {
+                connectionString = $"Command Timeout = {timeoutSeconds};{connectionString}";
             }
 
             DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Postgres;

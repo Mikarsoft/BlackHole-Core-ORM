@@ -18,17 +18,19 @@ namespace BlackHole.Internal
         internal void ParseDatabase()
         {
             List<TableAspectsInfo> tableInfo = GetDatabaseInformation();
+            EntityCodeGenerator(tableInfo);
 
-            if (CheckCompatibility(tableInfo) || CliCommand.ForceAction )
-            {
-                EntityCodeGenerator(tableInfo);
-            }
+            //if (CheckCompatibility(tableInfo) || CliCommand.ForceAction )
+            //{
+            //}
         }
 
         internal void EntityCodeGenerator(List<TableAspectsInfo> parsingData)
         {
             string scriptsPath = Path.Combine(DatabaseStatics.DataPath, "BHEntities");
-            string applicationName = "MyApp";
+            string applicationName = "Terra";// Path.GetFileName(CliCommand.ProjectPath).Replace(".csproj","");
+
+            CliLog($"Application Name: {applicationName}");
 
             if (!Directory.Exists(scriptsPath))
             {
@@ -43,8 +45,7 @@ namespace BlackHole.Internal
                 string PrimaryKeyScript = "";
                 string PropertiesScript = "";
                 EntityScript += " { \n";
-                //EntityScript += $"\t public class {tableAspectInf.TableName} : BlackHoleEntity<{primaryKeyResult.PropertyNameForColumn}> \n";
-                EntityScript += "\t { \n";
+                EntityScript += $"\t public class {tableAspectInf.TableName} :";
 
                 foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns)
                 {
@@ -53,14 +54,17 @@ namespace BlackHole.Internal
                     {
                         ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
 
-                        PropertiesScript += $"\t\t public string {columnInfo.ColumnName}" + " {get; set;} = string.Empty; \n";
+                        PropertiesScript += $"\t\t public {scanResult.PropertyNameForColumn} {columnInfo.ColumnName}" + " {get; set;}" + $" {scanResult.DefaultValue} \n";
                     }
                     else
                     {
                         ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(columnInfo);
+                        EntityScript += $" BlackHoleEntity<{scanPkResult.PropertyNameForColumn}> \n";
+                        EntityScript += "\t { \n";
                     }
                 }
 
+                EntityScript += PropertiesScript;
                 EntityScript += "\t } \n";
                 EntityScript += " } \n";
 
@@ -111,7 +115,7 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    parseCommand = @"SELECT tb.name as TableName, c.name as ColumnName, t.Name as DataType, c.max_length as MaxLength,
+                    parseCommand = @"SELECT tb.name as TableName, c.name as ColumnName, t.name as DataType, c.max_length as MaxLength,
                         c.precision as NumPrecision , c.scale  as NumScale, c.is_nullable as Nullable, ISNULL(i.is_primary_key, 0) as PrimaryKey,
 	                    RC.DELETE_RULE as DeleteRule, TC.TABLE_NAME as ReferencedTable, K.CONSTRAINT_NAME as ConstraintName FROM sys.columns c
                         inner join sys.types t ON c.user_type_id = t.user_type_id
@@ -121,7 +125,7 @@ namespace BlackHole.Internal
                         left outer join INFORMATION_SCHEMA.KEY_COLUMN_USAGE K on K.COLUMN_NAME = c.name and K.TABLE_NAME = tb.name
                         left join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC on RC.CONSTRAINT_NAME = K.CONSTRAINT_NAME
                         left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON TC.CONSTRAINT_NAME= RC.UNIQUE_CONSTRAINT_NAME " +
-                        $" {schemaCheck} order by TableName";
+                        $" {schemaCheck}";
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.Postgres:
@@ -137,7 +141,7 @@ namespace BlackHole.Internal
                         left join INFORMATION_SCHEMA.KEY_COLUMN_USAGE C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME)
                         left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS T on T.CONSTRAINT_NAME = C.CONSTRAINT_NAME 
                         left join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CU on CU.CONSTRAINT_NAME = T.CONSTRAINT_NAME " +
-                        $" {schemaCheck} order by TableName";
+                        $" {schemaCheck}";
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.MySql:
@@ -151,7 +155,7 @@ namespace BlackHole.Internal
                         C.REFERENCED_TABLE_NAME as ReferencedTable, C.CONSTRAINT_NAME as ConstraintName
                         from INFORMATION_SCHEMA.COLUMNS K 
 		                left outer join information_schema.key_column_usage C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME) " +
-                        $"where K.TABLE_SCHEMA ='{schemaCheck}' order by TableName";
+                        $" where K.TABLE_SCHEMA ='{schemaCheck}'";
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.Oracle:
@@ -165,7 +169,7 @@ namespace BlackHole.Internal
                         left join sys.all_cons_columns a on (a.column_name = col.column_name and a.table_name = col.table_name and a.owner = col.owner and a.position is not null)
                         left join all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name
                         left JOIN all_constraints c_pk ON c.r_owner = c_pk.owner AND c.r_constraint_name = c_pk.constraint_name "+
-                        $"where col.owner ='{schemaCheck}' order by TableName";
+                        $" where col.owner ='{schemaCheck}'";
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.SqlLite:
@@ -274,6 +278,14 @@ namespace BlackHole.Internal
             }
 
             return schemaCheck;
+        }
+
+        internal void CliLog(string logText)
+        {
+            if (CliCommand.CliExecution)
+            {
+                Console.WriteLine($"_bhLog_{logText}");
+            }
         }
     }
 }

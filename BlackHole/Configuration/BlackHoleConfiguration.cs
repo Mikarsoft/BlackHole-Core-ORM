@@ -47,7 +47,8 @@ namespace BlackHole.Configuration
             SetMode(blackHoleSettings.isInDevMode);
 
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString, 
-                blackHoleSettings.directorySettings.DataPath,blackHoleSettings.connectionConfig.TableSchema);
+                blackHoleSettings.directorySettings.DataPath,blackHoleSettings.connectionConfig.TableSchema,
+                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut);
 
             bool cliMode = BHCliCommandReader.ReadCliJson(assembly);
 
@@ -63,7 +64,7 @@ namespace BlackHole.Configuration
 
             int exitCode = 0;
 
-            //ParseExistingDatabase();
+            ParseDatabaseCliProcess();
 
             switch (cliSettings.commandType)
             {
@@ -87,13 +88,6 @@ namespace BlackHole.Configuration
             }
 
             return services;
-        }
-
-        private static int ParseExistingDatabase()
-        {
-            BHDatabaseParser parser = new BHDatabaseParser();
-            parser.ParseDatabase();
-            return 0;
         }
 
         private static int BuildOrUpdateDatabaseCliProcess(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
@@ -121,6 +115,8 @@ namespace BlackHole.Configuration
 
         private static int ParseDatabaseCliProcess()
         {
+            BHDatabaseParser parser = new BHDatabaseParser();
+            parser.ParseDatabase();
             return 0;
         }
 
@@ -386,14 +382,14 @@ namespace BlackHole.Configuration
             DatabaseConfiguration.SetMode(isDevMode);
         }
 
-        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema)
+        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema, int timoutSeconds)
         {
             if(SqlType == BlackHoleSqlTypes.SqlLite)
             {
                 ConnectionString = Path.Combine(DataPath, $"{ConnectionString}.db3");
             }
 
-            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, databaseSchema);
+            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, databaseSchema, timoutSeconds);
         }
 
         internal static void DataPathAndLogs(string DataPath, bool useLogsCleaner, int daysToClean, bool useLogger)

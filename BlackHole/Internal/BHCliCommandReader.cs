@@ -33,6 +33,7 @@ namespace BlackHole.Internal
                         Console.WriteLine($"_bhLog_ \t {commandFile.CliCommand.ToUpper()} Database: '{DatabaseStatics.ConnectionString}'");
                         Console.WriteLine($"_bhLog_ \t Project Directory: '{commandFile.ProjectPath}'");
                         CliCommand.BHRun = commandFile.CliCommand;
+                        CliCommand.ProjectPath = commandFile.ProjectPath;
                         CheckCommandParameters(commandFile);
                         File.Delete(commandFilePath);
                         isInCliMode = true;

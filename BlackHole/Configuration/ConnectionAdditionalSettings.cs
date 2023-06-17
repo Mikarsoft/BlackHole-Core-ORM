@@ -14,6 +14,19 @@ namespace BlackHole.Configuration
         internal ServicesWithNamespace? ServicesNamespaces { get; set; }
         internal List<Assembly> AssembliesToUse { get; set; } = new List<Assembly>();
         internal bool useCallingAssembly { get; set; } = true;
+        internal int ConnectionTimeOut { get; set; } = 180;
+
+        /// <summary>
+        /// Change the Timeout of each command.The Default timeout of BlackHole is 180s.
+        /// <para>This Feature does not apply to SqLite database</para>
+        /// </summary>
+        /// <param name="timoutInSeconds">The timtout in seconds that will be applied to each command</param>
+        /// <returns>Connection Additional Settings</returns>
+        public ConnectionAdditionalSettings SetConnectionTimeoutSeconds(int timoutInSeconds)
+        {
+            ConnectionTimeOut = timoutInSeconds;
+            return this;
+        }
 
         /// <summary>
         /// Using only the Entities that are in the specified 
