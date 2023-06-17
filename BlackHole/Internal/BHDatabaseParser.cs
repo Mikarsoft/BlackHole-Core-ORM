@@ -18,14 +18,26 @@ namespace BlackHole.Internal
         internal void ParseDatabase()
         {
             List<TableAspectsInfo> tableInfo = GetDatabaseInformation();
-            EntityCodeGenerator(tableInfo);
+            BHParsingColumnScanner columnScanner = new BHParsingColumnScanner(connection);
 
-            //if (CheckCompatibility(tableInfo) || CliCommand.ForceAction )
-            //{
-            //}
+            DbParsingStates dbState = CheckCompatibility(tableInfo, columnScanner);
+
+            switch (dbState)
+            {
+                case DbParsingStates.Proceed:
+                    EntityCodeGenerator(tableInfo, columnScanner);
+                    break;
+                case DbParsingStates.ChangesRequired:
+                    break;
+                case DbParsingStates.ForceChanges:
+                    EntityCodeGenerator(tableInfo, columnScanner);
+                    break;
+                case DbParsingStates.Incompatible:
+                    break;
+            }            
         }
 
-        internal void EntityCodeGenerator(List<TableAspectsInfo> parsingData)
+        internal void EntityCodeGenerator(List<TableAspectsInfo> parsingData, BHParsingColumnScanner columnScanner)
         {
             string scriptsPath = Path.Combine(DatabaseStatics.DataPath, "BHEntities");
             string applicationName = "Terra";// Path.GetFileName(CliCommand.ProjectPath).Replace(".csproj","");
@@ -37,12 +49,9 @@ namespace BlackHole.Internal
                 Directory.CreateDirectory(scriptsPath);
             }
 
-            BHParsingColumnScanner columnScanner = new BHParsingColumnScanner(connection);
-
             foreach (TableAspectsInfo tableAspectInf in parsingData)
             {
                 string EntityScript = $" using System;\n using BlackHole.Entities;\n using System.Xml;\n\n namespace {applicationName}.BHEntities \n";
-                string PrimaryKeyScript = "";
                 string PropertiesScript = "";
                 EntityScript += " { \n";
                 EntityScript += $"\t public class {tableAspectInf.TableName} :";
@@ -77,32 +86,66 @@ namespace BlackHole.Internal
             }
         }
 
-        internal bool CheckCompatibility(List<TableAspectsInfo> parsingData)
+        internal DbParsingStates CheckCompatibility(List<TableAspectsInfo> parsingData, BHParsingColumnScanner columnScanner)
         {
-            bool procceed = true;
+            DbParsingStates dbState = DbParsingStates.Proceed;
 
             foreach (TableAspectsInfo tableAspectInf in parsingData)
             {
                 List<TableParsingInfo> primaryKey = tableAspectInf.TableColumns.Where(x=>x.PrimaryKey).ToList();
 
-                if(primaryKey.Count == 1)
+                TableParsingInfo? inactiveColumn = tableAspectInf.TableColumns.FirstOrDefault(x => x.ColumnName == "Inactive");
+
+                if(inactiveColumn == null)
                 {
-                    if (primaryKey[0].ColumnName == "Id")
+                    CliLog($"Column Inactive must be added on Table {tableAspectInf.TableName} as it's required by BlackHole.");
+                    dbState = DbParsingStates.ChangesRequired;
+                }
+
+                if (primaryKey.Count == 1)
+                {
+                    if (primaryKey[0].ColumnName != "Id")
                     {
-                        
+                        CliLog($"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, must be renamed to Id.");
+                        dbState = DbParsingStates.ChangesRequired;
+
+                        ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(primaryKey[0]);
+
+                        if (scanPkResult.UnidentifiedColumn)
+                        {
+                            CliLog($"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.");
+                            tableAspectInf.GeneralError = true;
+                            dbState = DbParsingStates.Incompatible;
+                            break;
+                        }
                     }
                     else
                     {
+                        ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(primaryKey[0]);
 
+                        if (scanPkResult.UnidentifiedColumn)
+                        {
+                            CliLog($"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.");
+                            tableAspectInf.GeneralError = true;
+                            dbState = DbParsingStates.Incompatible;
+                            break;
+                        }
                     }
                 }
                 else
                 {
                     tableAspectInf.GeneralError = true;
+                    dbState = DbParsingStates.Incompatible;
+                    break;
                 }
             }
 
-            return procceed;
+            if(dbState == DbParsingStates.ChangesRequired && CliCommand.ForceAction)
+            {
+                dbState = DbParsingStates.ForceChanges;
+            }
+
+            return dbState;
         }
 
         internal List<TableAspectsInfo> GetDatabaseInformation()
