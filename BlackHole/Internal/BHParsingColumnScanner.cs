@@ -151,7 +151,6 @@ namespace BlackHole.Internal
                         break;
                     case "uniqueidentifier":
                         scanResult.PropertyNameForColumn = "Guid";
-                        scanResult.DefaultValue = " = Guid.Empty;";
                         break;
                     case "varchar":
                         scanResult.PropertyNameForColumn = "string";

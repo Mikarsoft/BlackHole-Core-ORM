@@ -17,6 +17,7 @@ namespace BlackHole.Internal
 
         internal void ParseDatabase()
         {
+            CliLog("\t Please wait while reading the Database. This may take up to 2 minutes in large databases..");
             List<TableAspectsInfo> tableInfo = GetDatabaseInformation();
             BHParsingColumnScanner columnScanner = new BHParsingColumnScanner(connection);
 
@@ -28,6 +29,7 @@ namespace BlackHole.Internal
                     EntityCodeGenerator(tableInfo, columnScanner);
                     break;
                 case DbParsingStates.ChangesRequired:
+                    EntityCodeGenerator(tableInfo, columnScanner);
                     break;
                 case DbParsingStates.ForceChanges:
                     EntityCodeGenerator(tableInfo, columnScanner);
@@ -39,8 +41,8 @@ namespace BlackHole.Internal
 
         internal void EntityCodeGenerator(List<TableAspectsInfo> parsingData, BHParsingColumnScanner columnScanner)
         {
-            string scriptsPath = Path.Combine(DatabaseStatics.DataPath, "BHEntities");
-            string applicationName = "Terra";// Path.GetFileName(CliCommand.ProjectPath).Replace(".csproj","");
+            string scriptsPath = Path.Combine(CliCommand.ProjectPath, "BHEntities");
+            string applicationName = Path.GetFileName(CliCommand.ProjectPath).Replace(".csproj","");
 
             CliLog($"Application Name: {applicationName}");
 
@@ -49,10 +51,12 @@ namespace BlackHole.Internal
                 Directory.CreateDirectory(scriptsPath);
             }
 
-            foreach (TableAspectsInfo tableAspectInf in parsingData)
+            foreach (TableAspectsInfo tableAspectInf in parsingData.Where(x => x.GeneralError == false))
             {
+                CliLog($"Creating Entity {tableAspectInf.TableName} in BHEntities Folder...");
+
                 string EntityScript = $" using System;\n using BlackHole.Entities;\n using System.Xml;\n\n namespace {applicationName}.BHEntities \n";
-                string PropertiesScript = "";
+                string PropertiesScript = string.Empty;
                 EntityScript += " { \n";
                 EntityScript += $"\t public class {tableAspectInf.TableName} :";
 
@@ -79,9 +83,18 @@ namespace BlackHole.Internal
 
                 string pathFile = Path.Combine(scriptsPath, $"{tableAspectInf.TableName}.cs");
 
-                using (var tw = new StreamWriter(pathFile, true))
+                try
                 {
-                    tw.Write(EntityScript);
+                    using (var tw = new StreamWriter(pathFile, true))
+                    {
+                        tw.Write(EntityScript);
+                    }
+
+                    CliLog($"Created Entity {tableAspectInf.TableName} in BHEntities Folder");
+                }
+                catch
+                {
+                    CliLog($"Failed to create Entity {tableAspectInf.TableName} in BHEntities Folder");
                 }
             }
         }
@@ -115,8 +128,16 @@ namespace BlackHole.Internal
                         {
                             CliLog($"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.");
                             tableAspectInf.GeneralError = true;
-                            dbState = DbParsingStates.Incompatible;
-                            break;
+
+                            if (CliCommand.ForceAction)
+                            {
+                                dbState = DbParsingStates.ChangesRequired;
+                            }
+                            else
+                            {
+                                dbState = DbParsingStates.Incompatible;
+                                break;
+                            }
                         }
                     }
                     else
@@ -127,16 +148,24 @@ namespace BlackHole.Internal
                         {
                             CliLog($"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.");
                             tableAspectInf.GeneralError = true;
-                            dbState = DbParsingStates.Incompatible;
-                            break;
+
+                            if (CliCommand.ForceAction)
+                            {
+                                CliLog($"Table {tableAspectInf.TableName} will not be generated as Entity.");
+                                dbState = DbParsingStates.ChangesRequired;
+                            }
+                            else
+                            {
+                                dbState = DbParsingStates.Incompatible;
+                                break;
+                            }
                         }
                     }
                 }
                 else
                 {
                     tableAspectInf.GeneralError = true;
-                    dbState = DbParsingStates.Incompatible;
-                    break;
+                    CliLog($"Zero or more than one primary keys detected on the table {tableAspectInf.TableName}. This Entity will be ignored.");
                 }
             }
 
@@ -158,7 +187,7 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    parseCommand = @"SELECT tb.name as TableName, c.name as ColumnName, t.name as DataType, c.max_length as MaxLength,
+                    parseCommand = @"SELECT distinct tb.name as TableName, c.name as ColumnName, t.name as DataType, c.max_length as MaxLength,
                         c.precision as NumPrecision , c.scale  as NumScale, c.is_nullable as Nullable, ISNULL(i.is_primary_key, 0) as PrimaryKey,
 	                    RC.DELETE_RULE as DeleteRule, TC.TABLE_NAME as ReferencedTable, K.CONSTRAINT_NAME as ConstraintName FROM sys.columns c
                         inner join sys.types t ON c.user_type_id = t.user_type_id

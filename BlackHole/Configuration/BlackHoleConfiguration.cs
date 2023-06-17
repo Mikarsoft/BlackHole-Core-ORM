@@ -64,7 +64,7 @@ namespace BlackHole.Configuration
 
             int exitCode = 0;
 
-            ParseDatabaseCliProcess();
+            //ParseDatabaseCliProcess();
 
             switch (cliSettings.commandType)
             {
