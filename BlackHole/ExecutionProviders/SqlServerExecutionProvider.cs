@@ -534,7 +534,14 @@ namespace BlackHole.ExecutionProviders
             {
                 foreach (BlackHoleParameter param in bhParameters)
                 {
-                    parameters.Add(new SqlParameter(@param.Name, param.Value));
+                    if(param.Value != null)
+                    {
+                        parameters.Add(new SqlParameter(@param.Name, param.Value));
+                    }
+                    else
+                    {
+                        parameters.Add(new SqlParameter(@param.Name, DBNull.Value));
+                    }
                 }
             }
         }

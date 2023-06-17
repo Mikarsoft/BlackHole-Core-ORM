@@ -543,7 +543,15 @@ namespace BlackHole.ExecutionProviders
                 foreach (BlackHoleParameter param in bhParameters)
                 {
                     object? value = param.Value;
-                    parameters.Add(new NpgsqlParameter(@param.Name, value));
+
+                    if(value != null)
+                    {
+                        parameters.Add(new NpgsqlParameter(@param.Name, value));
+                    }
+                    else
+                    {
+                        parameters.Add(new NpgsqlParameter(@param.Name, DBNull.Value));
+                    }
                 }
             }
         }

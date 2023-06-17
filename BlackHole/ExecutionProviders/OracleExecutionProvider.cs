@@ -662,17 +662,24 @@ namespace BlackHole.ExecutionProviders
                 {
                     object? value = param.Value;
 
-                    if (value?.GetType() == typeof(Guid))
+                    if(value != null)
                     {
-                        parameters.Add(new OracleParameter(param.Name, value.ToString()));
-                    }
-                    else if (value?.GetType() == typeof(bool))
-                    {
-                        parameters.Add(new OracleParameter(param.Name, (bool)value ? 1 : 0));
+                        if (value?.GetType() == typeof(Guid))
+                        {
+                            parameters.Add(new OracleParameter(param.Name, value.ToString()));
+                        }
+                        else if (value?.GetType() == typeof(bool))
+                        {
+                            parameters.Add(new OracleParameter(param.Name, (bool)value ? 1 : 0));
+                        }
+                        else
+                        {
+                            parameters.Add(new OracleParameter(param.Name, value));
+                        }
                     }
                     else
                     {
-                        parameters.Add(new OracleParameter(param.Name, value));
+                        parameters.Add(new OracleParameter(param.Name, DBNull.Value));
                     }
                 }
             }

@@ -803,7 +803,14 @@ namespace BlackHole.DataProviders
             {
                 foreach (BlackHoleParameter param in bhParameters)
                 {
-                    parameters.Add(new SqlParameter(param.Name, param.Value));
+                    if(param.Value != null)
+                    {
+                        parameters.Add(new SqlParameter(param.Name, param.Value));
+                    }
+                    else
+                    {
+                        parameters.Add(new SqlParameter(param.Name, DBNull.Value));
+                    }
                 }
             }
         }
@@ -815,7 +822,15 @@ namespace BlackHole.DataProviders
             foreach (PropertyInfo property in propertyInfos)
             {
                 object? value = property.GetValue(item);
-                parameters.Add(new SqlParameter(@property.Name, value));
+
+                if(value != null)
+                {
+                    parameters.Add(new SqlParameter(@property.Name, value));
+                }
+                else
+                {
+                    parameters.Add(new SqlParameter(@property.Name, DBNull.Value));
+                }
             }
         }
 

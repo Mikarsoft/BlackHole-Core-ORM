@@ -122,19 +122,18 @@ namespace BlackHole.Internal
                 PropertyInfo[] Properties = TableType.GetProperties();
                 string creationCommand = $"CREATE TABLE {tableSchema}{MyShit(Tablename)} (";
 
-                creationCommand += GetDatatypeCommand("Int32", new object[0], "Inactive");
-                creationCommand += GetSqlColumn(new object[0], true);
+                creationCommand += GetDatatypeCommand(typeof(int), new object[0], "Inactive");
+                creationCommand += GetSqlColumn(new object[0], true, typeof(int));
 
                 foreach (PropertyInfo Property in Properties)
                 {
-                    string propertyType = Property.PropertyType.Name;
                     object[] attributes = Property.GetCustomAttributes(true);
 
                     if (Property.Name != "Id")
                     {
-                        creationCommand += GetDatatypeCommand(propertyType, attributes, Property.Name);
+                        creationCommand += GetDatatypeCommand(Property.PropertyType, attributes, Property.Name);
 
-                        creationCommand += GetSqlColumn(attributes, true);
+                        creationCommand += GetSqlColumn(attributes, true, Property.PropertyType);
                     }
                     else
                     {
@@ -252,21 +251,20 @@ namespace BlackHole.Internal
                 ColumnNames.Add(column.name);
             }
 
-            alterTable += GetDatatypeCommand("Int32", new object[0], "Inactive");
-            alterTable += GetSqlColumn(new object[0], true);
+            alterTable += GetDatatypeCommand(typeof(int), new object[0], "Inactive");
+            alterTable += GetSqlColumn(new object[0], true, typeof(int));
             NewColumnNames.Add("Inactive");
 
             foreach (PropertyInfo Property in Properties)
             {
-                string propertyType = Property.PropertyType.Name;
                 object[] attributes = Property.GetCustomAttributes(true);
                 NewColumnNames.Add(Property.Name);
 
                 if (Property.Name != "Id")
                 {
-                    alterTable += GetDatatypeCommand(propertyType, attributes, Property.Name);
+                    alterTable += GetDatatypeCommand(Property.PropertyType, attributes, Property.Name);
 
-                    alterTable += GetSqlColumn(attributes, firstTime);
+                    alterTable += GetSqlColumn(attributes, firstTime, Property.PropertyType);
                 }
                 else
                 {
@@ -401,7 +399,7 @@ namespace BlackHole.Internal
                     string propertyType = Property.PropertyType.Name;
 
                     object[] attributes = Property.GetCustomAttributes(true);
-                    addCommand += GetDatatypeCommand(propertyType, attributes, ColumnName);
+                    addCommand += GetDatatypeCommand(Property.PropertyType, attributes, ColumnName);
                     addCommand += AddColumnConstaints(attributes, TableType.Name, PropName, propertyType);
                     string[] AllCommands = addCommand.Split("##");
 
@@ -417,7 +415,7 @@ namespace BlackHole.Internal
 
                 if (ColumnName == "Inactive")
                 {
-                    addCommand += GetDatatypeCommand("Int32", new object[0], ColumnName);
+                    addCommand += GetDatatypeCommand(typeof(int), new object[0], ColumnName);
                     connection.JustExecute(addCommand, null);
                     CliConsoleLogs($"{addCommand};");
                 }
@@ -678,8 +676,24 @@ namespace BlackHole.Internal
             return constraintsCommand;
         }
 
-        string GetSqlColumn(object[] attributes, bool firstTime)
+        string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType)
         {
+
+            bool mandatoryNull = false;
+
+            if (PropertyType.Name.Contains("Nullable"))
+            {
+                if (PropertyType.GenericTypeArguments != null && PropertyType.GenericTypeArguments.Length > 0)
+                {
+                    mandatoryNull = true;
+                }
+            }
+
+            if (mandatoryNull)
+            {
+                return "NULL, ";
+            }
+
             string constraintsCommand = ", ";
 
             if (attributes.Length > 0)
@@ -838,11 +852,20 @@ namespace BlackHole.Internal
             }
         }
 
-        string GetDatatypeCommand(string PropertyType, object[] attributes, string Propertyname)
+        string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname)
         {
+            string propTypeName = PropertyType.Name;
             string dataCommand = "";
 
-            switch (PropertyType)
+            if (propTypeName.Contains("Nullable"))
+            {
+                if(PropertyType.GenericTypeArguments != null && PropertyType.GenericTypeArguments.Length > 0)
+                {
+                    propTypeName = PropertyType.GenericTypeArguments[0].Name;
+                }
+            }
+
+            switch (propTypeName)
             {
                 case "String":
                     object? CharLength = attributes.Where(x => x.GetType().Name == "VarCharSize").FirstOrDefault();
@@ -897,6 +920,8 @@ namespace BlackHole.Internal
                 case "Byte[]":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[11]} ";
                     break;
+                default:
+                    throw (new Exception($"Unsupported property type {PropertyType.FullName}"));
             }
 
             return dataCommand;

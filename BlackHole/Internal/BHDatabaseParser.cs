@@ -1,7 +1,6 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Enums;
 using BlackHole.Statics;
-using System.Net;
 
 namespace BlackHole.Internal
 {
@@ -38,11 +37,13 @@ namespace BlackHole.Internal
 
             BHParsingColumnScanner columnScanner = new BHParsingColumnScanner(connection);
 
-            foreach(TableAspectsInfo tableAspectInf in parsingData)
+            foreach (TableAspectsInfo tableAspectInf in parsingData)
             {
-                string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
+                string EntityScript = $" using System;\n using BlackHole.Entities;\n using System.Xml;\n\n namespace {applicationName}.BHEntities \n";
+                string PrimaryKeyScript = "";
+                string PropertiesScript = "";
                 EntityScript += " { \n";
-                EntityScript += $"\t public class {tableAspectInf.TableName} : BlackHoleEntity<int> \n";
+                //EntityScript += $"\t public class {tableAspectInf.TableName} : BlackHoleEntity<{primaryKeyResult.PropertyNameForColumn}> \n";
                 EntityScript += "\t { \n";
 
                 foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns)
@@ -52,7 +53,7 @@ namespace BlackHole.Internal
                     {
                         ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
 
-                        EntityScript += $"\t\t public string {columnInfo.ColumnName}" + " {get; set;} = string.Empty; \n";
+                        PropertiesScript += $"\t\t public string {columnInfo.ColumnName}" + " {get; set;} = string.Empty; \n";
                     }
                     else
                     {

@@ -63,7 +63,7 @@ namespace BlackHole.Configuration
 
             int exitCode = 0;
 
-            ParseExistingDatabase();
+            //ParseExistingDatabase();
 
             switch (cliSettings.commandType)
             {

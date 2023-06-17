@@ -550,13 +550,20 @@ namespace BlackHole.ExecutionProviders
                 {
                     object? value = param.Value;
 
-                    if (value?.GetType() == typeof(Guid))
+                    if(value != null)
                     {
-                        parameters.Add(new SqliteParameter(@param.Name, value.ToString()));
+                        if (value?.GetType() == typeof(Guid))
+                        {
+                            parameters.Add(new SqliteParameter(@param.Name, value.ToString()));
+                        }
+                        else
+                        {
+                            parameters.Add(new SqliteParameter(@param.Name, value));
+                        }
                     }
                     else
                     {
-                        parameters.Add(new SqliteParameter(@param.Name, value));
+                        parameters.Add(new SqliteParameter(@param.Name, DBNull.Value));
                     }
                 }
             }

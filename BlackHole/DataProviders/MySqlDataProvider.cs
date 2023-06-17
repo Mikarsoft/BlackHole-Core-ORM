@@ -886,13 +886,20 @@ namespace BlackHole.DataProviders
                 {
                     object? value = param.Value;
 
-                    if (value?.GetType() == typeof(Guid))
+                    if(value != null)
                     {
-                        parameters.Add(new MySqlParameter(@param.Name, value.ToString()));
+                        if (value?.GetType() == typeof(Guid))
+                        {
+                            parameters.Add(new MySqlParameter(@param.Name, value.ToString()));
+                        }
+                        else
+                        {
+                            parameters.Add(new MySqlParameter(@param.Name, value));
+                        }
                     }
                     else
                     {
-                        parameters.Add(new MySqlParameter(@param.Name, value));
+                        parameters.Add(new MySqlParameter(@param.Name, DBNull.Value));
                     }
                 }
             }
@@ -906,13 +913,20 @@ namespace BlackHole.DataProviders
             {
                 object? value = property.GetValue(item);
 
-                if (value?.GetType() == typeof(Guid))
+                if(value != null)
                 {
-                    parameters.Add(new MySqlParameter(@property.Name, value.ToString()));
+                    if (value?.GetType() == typeof(Guid))
+                    {
+                        parameters.Add(new MySqlParameter(@property.Name, value.ToString()));
+                    }
+                    else
+                    {
+                        parameters.Add(new MySqlParameter(@property.Name, value));
+                    }
                 }
                 else
                 {
-                    parameters.Add(new MySqlParameter(@property.Name, value));
+                    parameters.Add(new MySqlParameter(@property.Name, DBNull.Value));
                 }
             }
         }

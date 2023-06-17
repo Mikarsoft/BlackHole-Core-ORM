@@ -802,7 +802,15 @@ namespace BlackHole.DataProviders
                 foreach (BlackHoleParameter param in bhParameters)
                 {
                     object? value = param.Value;
-                    parameters.Add(new NpgsqlParameter(param.Name, value));
+
+                    if(value != null)
+                    {
+                        parameters.Add(new NpgsqlParameter(param.Name, value));
+                    }
+                    else
+                    {
+                        parameters.Add(new NpgsqlParameter(param.Name, DBNull.Value));
+                    }
                 }
             }
         }
@@ -814,7 +822,15 @@ namespace BlackHole.DataProviders
             foreach (PropertyInfo property in propertyInfos)
             {
                 object? value = property.GetValue(item);
-                parameters.Add(new NpgsqlParameter(@property.Name, value));
+
+                if (value != null)
+                {
+                    parameters.Add(new NpgsqlParameter(@property.Name, value));
+                }
+                else
+                {
+                    parameters.Add(new NpgsqlParameter(@property.Name, DBNull.Value));
+                }
             }
         }
 
