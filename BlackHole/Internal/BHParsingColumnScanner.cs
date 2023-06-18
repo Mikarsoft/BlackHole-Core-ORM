@@ -6,13 +6,6 @@ namespace BlackHole.Internal
 {
     internal class BHParsingColumnScanner
     {
-        private readonly IExecutionProvider _connection;
-
-        internal BHParsingColumnScanner(IExecutionProvider connection)
-        {
-            _connection = connection;
-        }
-
         internal ColumnScanResult ParseColumnToProperty(TableParsingInfo tableColumnInfo)
         {
             switch (DatabaseStatics.DatabaseType)

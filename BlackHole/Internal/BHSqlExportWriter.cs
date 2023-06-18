@@ -94,6 +94,11 @@ namespace BlackHole.Internal
             {
                 try
                 {
+                    if (!Directory.Exists(SqlFilesPath))
+                    {
+                        Directory.CreateDirectory(SqlFilesPath);
+                    }
+
                     string pathFile = Path.Combine(SqlFilesPath, $"{SqlFileName}.{TypeOfFile}");
 
                     Console.WriteLine("_bhLog_");

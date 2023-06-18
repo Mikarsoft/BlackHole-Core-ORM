@@ -65,8 +65,6 @@ namespace BlackHole.Configuration
 
             int exitCode = 0;
 
-            //ParseDatabaseCliProcess();
-
             switch (cliSettings.commandType)
             {
                 case CliCommandTypes.Update:
@@ -116,9 +114,8 @@ namespace BlackHole.Configuration
 
         private static int ParseDatabaseCliProcess()
         {
-            BHDatabaseParser parser = new BHDatabaseParser();
-            parser.ParseDatabase();
-            return 0;
+            BHDatabaseParser parser = new BHDatabaseParser(); 
+            return parser.ParseDatabase();
         }
 
         private static int DropDatabaseCliProcess()
