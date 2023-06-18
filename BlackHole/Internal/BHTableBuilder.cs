@@ -33,7 +33,7 @@ namespace BlackHole.Internal
             isMyShit = _multiDatabaseSelector.GetMyShit();
             isLite = _multiDatabaseSelector.IsLite();
             AllConstraints = GetConstraints();
-            sqlWriter = new BHSqlExportWriter("2_TablesSql");
+            sqlWriter = new BHSqlExportWriter("2_TablesSql","SqlFiles","sql");
         }
 
         /// <summary>

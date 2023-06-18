@@ -7,18 +7,20 @@ namespace BlackHole.Internal
         private string SqlFilesPath { get; set; }
         private bool canWriteFiles { get; set; }
         private string SqlFileName { get; set; }
+        private string TypeOfFile { get; set; }
         private List<string> SqlCommandsList { get; set; }
 
-        internal BHSqlExportWriter(string fileName)
+        internal BHSqlExportWriter(string fileName,string folderName,string fileType)
         {
             SqlFileName = fileName;
             SqlCommandsList = new List<string>();
+            TypeOfFile = fileType;
 
             try
             {
                 if (DatabaseStatics.UseLogging)
                 {
-                    SqlFilesPath = Path.Combine(DatabaseStatics.DataPath, "SqlFiles");
+                    SqlFilesPath = Path.Combine(DatabaseStatics.DataPath, folderName);
 
                     if (!Directory.Exists(SqlFilesPath))
                     {
@@ -59,6 +61,11 @@ namespace BlackHole.Internal
             SqlCommandsList.Add(commandText);
         }
 
+        internal void AddMultiple(List<string> commandLines)
+        {
+            SqlCommandsList.AddRange(commandLines);
+        }
+
         internal void DeleteSqlFolder()
         {
             try
@@ -87,7 +94,7 @@ namespace BlackHole.Internal
             {
                 try
                 {
-                    string pathFile = Path.Combine(SqlFilesPath, $"{SqlFileName}.sql");
+                    string pathFile = Path.Combine(SqlFilesPath, $"{SqlFileName}.{TypeOfFile}");
 
                     Console.WriteLine("_bhLog_");
                     Console.WriteLine($"_bhLog_ Creating Sql File... : {pathFile}");

@@ -46,17 +46,18 @@ namespace BlackHole.Configuration
 
             SetMode(blackHoleSettings.isInDevMode);
 
-            ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString, 
-                blackHoleSettings.directorySettings.DataPath,blackHoleSettings.connectionConfig.TableSchema,
-                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut);
-
             bool cliMode = BHCliCommandReader.ReadCliJson(assembly);
 
             if (cliMode)
             {
                 useLogsCleaner = false;
                 blackHoleSettings.directorySettings.UseLogger = true;
+                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut = 300;
             }
+
+            ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString,
+                blackHoleSettings.directorySettings.DataPath, blackHoleSettings.connectionConfig.TableSchema,
+                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut);
 
             DataPathAndLogs(blackHoleSettings.directorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.directorySettings.UseLogger);
 

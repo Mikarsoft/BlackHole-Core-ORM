@@ -8,11 +8,18 @@ namespace BlackHole.Internal
     {
         private readonly IExecutionProvider connection;
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
+        internal BHSqlExportWriter sqlWriter { get; set; }
+        internal List<string> IgnoredTables { get; set; } = new List<string>();
+        internal List<string> RequiredChanges { get; set; } = new List<string>();
+        internal List<string> MinorChanges { get; set; } = new List<string>();
 
         internal BHDatabaseParser()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
+            sqlWriter = new BHSqlExportWriter("ParsingResult", "ParsingReport", "txt");
+            IgnoredTables.Add($"-- Ignored Tables In parsing. Date: {DateTime.Now} --");
+            RequiredChanges.Add($"-- Required Changes In parsing. Date: {DateTime.Now} --");
         }
 
         internal void ParseDatabase()
@@ -22,21 +29,64 @@ namespace BlackHole.Internal
             BHParsingColumnScanner columnScanner = new BHParsingColumnScanner(connection);
 
             DbParsingStates dbState = CheckCompatibility(tableInfo, columnScanner);
+            SaveParsingReport();
+            string folderPath = Path.Combine(DatabaseStatics.DataPath, "ParsingReport");
 
             switch (dbState)
             {
                 case DbParsingStates.Proceed:
                     EntityCodeGenerator(tableInfo, columnScanner);
+                    CliLog("");
+                    CliLog("The database is compatible with the BlackHole Orm.");
+                    CliLog("Parsing has been successfully completed.");
+                    break;
+                case DbParsingStates.MinorChanges:
+                    EntityCodeGenerator(tableInfo, columnScanner);
+                    CliLog("");
+                    CliLog("Parsing has been successfully completed.");
+                    CliLog("");
+                    CliLog("Some minor changer are required to the Database in order to be compatible with BlackHole Orm");
+                    CliLog("These changes will be done when your run your application.");
+                    CliLog("");
+                    CliLog("The detected required changes are stored in the parsing report at:");
+                    CliLog($"\t {folderPath}");
                     break;
                 case DbParsingStates.ChangesRequired:
-                    EntityCodeGenerator(tableInfo, columnScanner);
+                    CliLog("");
+                    CliLog("The parsing didn't proceed, because some changes are required to the Database, in order to be compatible with BlackHole Orm.");
+                    CliLog("");
+                    CliLog("The required changes are stored in the parsing report at:");
+                    CliLog($"\t {folderPath}");
+                    CliLog("");
+                    CliLog("If you want to force the parsing process before making the required changes, use the '-f' or '--force' argument with the 'parse' command.");
                     break;
                 case DbParsingStates.ForceChanges:
                     EntityCodeGenerator(tableInfo, columnScanner);
+                    CliLog("");
+                    CliLog("The parsing has been forced. Please make the required changes before running your application.");
+                    CliLog("");
+                    CliLog("The required changes are stored in the parsing report at:");
+                    CliLog($"\t {folderPath}");
+                    CliLog("");
+                    CliLog("Running the application before making the required changes to the Database, might cause 'Damage' or 'data loss' to the Database.");
                     break;
                 case DbParsingStates.Incompatible:
+                    CliLog("");
+                    CliLog("This database is Incompatible with the BlackHole Orm.");
+                    CliLog("");
+                    CliLog("Find more details in the generated report at:");
+                    CliLog($"\t {folderPath}");
+                    CliLog("");
+                    CliLog("If you want to force the parsing and get as many tables as possible, use the '-f' or '--force' argument with the 'parse' command.");
+                    CliLog("The incompatible tables will be ignored.");
                     break;
-            }            
+            }
+
+            CliLog("");
+            CliLog("\t !!Important!!");
+            CliLog("\t Make sure to keep a backup of your database before Running your application.");
+            CliLog("\t BlackHole Orm and Mikarsoft are not responsible for damage or data loss in your Database.");
+            CliLog("");
         }
 
         internal void EntityCodeGenerator(List<TableAspectsInfo> parsingData, BHParsingColumnScanner columnScanner)
@@ -60,20 +110,23 @@ namespace BlackHole.Internal
                 EntityScript += " { \n";
                 EntityScript += $"\t public class {tableAspectInf.TableName} :";
 
-                foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns)
+                foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns.Where(x=>x.ColumnName != "Inactive"))
                 {
 
                     if (!columnInfo.PrimaryKey)
                     {
                         ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
-
+                        PropertiesScript += GetBHAttribute(columnInfo, scanResult.PropertyNameForColumn);
                         PropertiesScript += $"\t\t public {scanResult.PropertyNameForColumn} {columnInfo.ColumnName}" + " {get; set;}" + $" {scanResult.DefaultValue} \n";
                     }
                     else
                     {
-                        ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(columnInfo);
-                        EntityScript += $" BlackHoleEntity<{scanPkResult.PropertyNameForColumn}> \n";
-                        EntityScript += "\t { \n";
+                        if (string.IsNullOrEmpty(columnInfo.ReferencedTable))
+                        {
+                            ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(columnInfo);
+                            EntityScript += $" BlackHoleEntity<{scanPkResult.PropertyNameForColumn}> \n";
+                            EntityScript += "\t { \n";
+                        }
                     }
                 }
 
@@ -101,40 +154,52 @@ namespace BlackHole.Internal
 
         internal DbParsingStates CheckCompatibility(List<TableAspectsInfo> parsingData, BHParsingColumnScanner columnScanner)
         {
+            bool minorChangesRequired = false;
             DbParsingStates dbState = DbParsingStates.Proceed;
+            string errorMessage = string.Empty;
 
             foreach (TableAspectsInfo tableAspectInf in parsingData)
             {
-                List<TableParsingInfo> primaryKey = tableAspectInf.TableColumns.Where(x=>x.PrimaryKey).ToList();
+                List<TableParsingInfo> primaryKey = tableAspectInf.TableColumns.Where(x=>x.PrimaryKey && string.IsNullOrEmpty(x.ReferencedTable)).ToList();
 
                 TableParsingInfo? inactiveColumn = tableAspectInf.TableColumns.FirstOrDefault(x => x.ColumnName == "Inactive");
 
                 if(inactiveColumn == null)
                 {
-                    CliLog($"Column Inactive must be added on Table {tableAspectInf.TableName} as it's required by BlackHole.");
-                    dbState = DbParsingStates.ChangesRequired;
+                    errorMessage = $"Column Inactive must be added on Table {tableAspectInf.TableName} as it's required by BlackHole.";
+                    CliLog(errorMessage);
+                    WriteRequiredChange(tableAspectInf.TableName,errorMessage);
+                    minorChangesRequired = true;
                 }
 
                 if (primaryKey.Count == 1)
                 {
                     if (primaryKey[0].ColumnName != "Id")
                     {
-                        CliLog($"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, must be renamed to Id.");
+                        errorMessage = $"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, must be renamed to Id.";
+                        CliLog(errorMessage);
+                        WriteRequiredChange(tableAspectInf.TableName, errorMessage);
                         dbState = DbParsingStates.ChangesRequired;
 
                         ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(primaryKey[0]);
 
                         if (scanPkResult.UnidentifiedColumn)
                         {
-                            CliLog($"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.");
+                            errorMessage = $"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.";
+                            CliLog(errorMessage);
+                            WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
                             tableAspectInf.GeneralError = true;
 
                             if (CliCommand.ForceAction)
                             {
+                                errorMessage = $"Table {tableAspectInf.TableName} will not be generated as Entity.";
+                                CliLog(errorMessage);
                                 dbState = DbParsingStates.ChangesRequired;
                             }
                             else
                             {
+                                errorMessage = $"Incompatible Table {tableAspectInf.TableName}";
+                                CliLog(errorMessage);
                                 dbState = DbParsingStates.Incompatible;
                                 break;
                             }
@@ -146,16 +211,21 @@ namespace BlackHole.Internal
 
                         if (scanPkResult.UnidentifiedColumn)
                         {
-                            CliLog($"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.");
+                            errorMessage = $"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.";
+                            CliLog(errorMessage);
+                            WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
                             tableAspectInf.GeneralError = true;
 
                             if (CliCommand.ForceAction)
                             {
-                                CliLog($"Table {tableAspectInf.TableName} will not be generated as Entity.");
+                                errorMessage = $"Table {tableAspectInf.TableName} will not be generated as Entity.";
+                                CliLog(errorMessage);
                                 dbState = DbParsingStates.ChangesRequired;
                             }
                             else
                             {
+                                errorMessage = $"Incompatible Table {tableAspectInf.TableName}";
+                                CliLog(errorMessage);
                                 dbState = DbParsingStates.Incompatible;
                                 break;
                             }
@@ -165,7 +235,19 @@ namespace BlackHole.Internal
                 else
                 {
                     tableAspectInf.GeneralError = true;
-                    CliLog($"Zero or more than one primary keys detected on the table {tableAspectInf.TableName}. This Entity will be ignored.");
+                    errorMessage = $"Zero or more than one primary keys detected on the table {tableAspectInf.TableName}. This Entity will be ignored.";
+                    CliLog(errorMessage);
+                    WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
+
+                    if (CliCommand.ForceAction)
+                    {
+                        dbState = DbParsingStates.ChangesRequired;
+                    }
+                    else
+                    {
+                        dbState = DbParsingStates.Incompatible;
+                        break;
+                    }
                 }
             }
 
@@ -174,7 +256,76 @@ namespace BlackHole.Internal
                 dbState = DbParsingStates.ForceChanges;
             }
 
+            if(dbState == DbParsingStates.Proceed && minorChangesRequired)
+            {
+                dbState = DbParsingStates.MinorChanges;
+            }
+
             return dbState;
+        }
+
+        internal void WriteRequiredChange(string TableName, string message)
+        {
+            RequiredChanges.Add("");
+            RequiredChanges.Add($"Change Required at: {TableName}");
+            RequiredChanges.Add($"Reason: {message}");
+        }
+
+        internal void WriteIgnoredTable(string TableName, string message)
+        {
+            IgnoredTables.Add("");
+            IgnoredTables.Add($"Incompatible Table: {TableName}");
+            IgnoredTables.Add($"Ignore Reason: {message}");
+        }
+
+        internal void WriteMinorChanges(string TableName, string message)
+        {
+            IgnoredTables.Add("");
+            IgnoredTables.Add($"Minor Change Required at: {TableName}");
+            IgnoredTables.Add($"Reason: {message}");
+        }
+
+        internal void SaveParsingReport()
+        {
+            sqlWriter.AddMultiple(IgnoredTables);
+            sqlWriter.AddMultiple(RequiredChanges);
+            sqlWriter.CreateSqlFile();
+        }
+
+        internal string GetBHAttribute(TableParsingInfo columnInfo, string dotNetType)
+        {
+            string VarcharSize = string.Empty;
+
+            if(dotNetType == "string")
+            {
+                int characterSize = columnInfo.MaxLength;
+
+                if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer)
+                {
+                    characterSize = columnInfo.MaxLength / 2;
+                }
+
+                VarcharSize = $"[VarCharSize({characterSize})]\n";
+            }
+
+            if (!string.IsNullOrEmpty(columnInfo.ReferencedTable))
+            {
+                if (columnInfo.Nullable)
+                {
+                    return $"\n\t\t {VarcharSize}[ForeignKey(typeof({columnInfo.ReferencedTable}))]\n";
+                }
+                else
+                {
+                    return $"\n\t\t {VarcharSize}[ForeignKey(typeof({columnInfo.ReferencedTable},false))]\n";
+                }
+            }
+
+            if (!columnInfo.Nullable)
+            {
+                return $"\n\t\t {VarcharSize}[NotNullable]\n";
+            }
+
+            return string.Empty;
         }
 
         internal List<TableAspectsInfo> GetDatabaseInformation()

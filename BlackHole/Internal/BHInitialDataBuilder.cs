@@ -13,7 +13,7 @@ namespace BlackHole.Internal
         internal BHInitialDataBuilder()
         {
             connection = new BHConnection();
-            sqlWriter = new BHSqlExportWriter("3_InitialDataSql");
+            sqlWriter = new BHSqlExportWriter("3_InitialDataSql", "SqlFiles", "sql");
         }
 
         internal void InsertDefaultData(List<Type> initialDataClasses)
