@@ -43,13 +43,21 @@ namespace BlackHole.CoreSupport
             switch (NumericMethodData.MethodName)
             {
                 case "SqlEqualTo":
-                    if (NumericMethodData.CompareProperty != null)
+                    if (NumericMethodData.MethodArguments.Count == 2)
                     {
-                        string? aTable = NumericMethodData.CompareProperty.Member?.ReflectedType?.Name;
-                        string? PropertyName = NumericMethodData.CompareProperty.Member?.Name;
-                        if (aTable != null && PropertyName != null)
+                        if (NumericMethodData.CompareProperty != null && NumericMethodData.CastedOn != null)
                         {
+                            string? aTable = NumericMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            string? PropertyName = NumericMethodData.CompareProperty.Member?.Name;
+                            string[] compareProperty = NumericMethodData.CastedOn.ToString().Split(".");
 
+                            if (aTable != null && PropertyName != null && compareProperty.Length > 1)
+                            {
+                                ParamName = $"OtherId{Index}";
+                                Value = NumericMethodData.MethodArguments[1];
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
+                            }
                         }
                     }
                     break;
@@ -67,20 +75,22 @@ namespace BlackHole.CoreSupport
                     }
                     break;
                 case "SqlAbsolut":
+                    //ABS(Id) = number
                     break;
-                case "SqlFloor":
-                    break;
-                case "SqlCeiling":
-                    break;
-                case "Remainder":
-                    break;
-                case "SqlPower":
+                case "SqlRound":
+                    //Round(Id) = number
                     break;
                 case "SqlMax":
+                    //Id = (Select Max(Id) from Customers)
                     break;
                 case "SqlMin":
+                    //Id = (Select Min(Id) from Customers)
                     break;
-                case "SqlSum":
+                case "SqlPlus":
+                    //Id + 5 = 10
+                    break;
+                case "SqlMinus":
+                    //Id - 5 = 10
                     break;
             }
         }
@@ -90,13 +100,21 @@ namespace BlackHole.CoreSupport
             switch (StringMethodData.MethodName)
             {
                 case "SqlEqualTo":
-                    if (StringMethodData.CompareProperty != null)
+                    if(StringMethodData.MethodArguments.Count == 2)
                     {
-                        string? aTable = StringMethodData.CompareProperty.Member?.ReflectedType?.Name;
-                        string? PropertyName = StringMethodData.CompareProperty.Member?.Name;
-                        if (aTable != null && PropertyName != null)
+                        if (StringMethodData.CompareProperty != null && StringMethodData.CastedOn != null)
                         {
+                            string? aTable = StringMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            string? PropertyName = StringMethodData.CompareProperty.Member?.Name;
+                            string[] compareProperty = StringMethodData.CastedOn.ToString().Split(".");
 
+                            if (aTable != null && PropertyName != null && compareProperty.Length > 1)
+                            {
+                                ParamName = $"OtherId{Index}";
+                                Value = StringMethodData.MethodArguments[1];
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
+                            }
                         }
                     }
                     break;
@@ -108,7 +126,7 @@ namespace BlackHole.CoreSupport
                         {
                             ParamName = $"{tableProperty[1]}{Index}";
                             Value = $"%{StringMethodData.MethodArguments[0]}%";
-                            SqlCommand = $"{Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} Like @{ParamName}";
+                            SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} Like @{ParamName}";
                         }
                     }
                     break;
@@ -120,29 +138,68 @@ namespace BlackHole.CoreSupport
                         {
                             ParamName = $"{tableProperty[1]}{Index}";
                             Value = StringMethodData.MethodArguments[1];
-                            SqlCommand = $"{Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} Like @{ParamName}";
+                            SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} Like @{ParamName}";
                         }
                     }
                     break;
-                case "SqlConcat":
-                    break;
                 case "ToUpper":
+                    if (StringMethodData.ComparedValue != null && StringMethodData.CastedOn != null)
+                    {
+                        string[] compareProperty = StringMethodData.CastedOn.ToString().Split(".");
+
+                        if (compareProperty.Length > 1)
+                        {
+                            string operationType = ExpressionTypeToSql(StringMethodData.OperatorType, StringMethodData.ReverseOperator, false);
+                            ParamName = $"{compareProperty[1]}{Index}";
+                            Value = StringMethodData.ComparedValue;
+                            SqlCommand = $" UPPER({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                        }
+                    }
                     break;
                 case "ToLower":
-                    break;
-                case "SqlUpper":
-                    break;
-                case "SqlLower":
-                    break;
-                case "SqlRight":
-                    break;
-                case "SqlLeft":
+                    if(StringMethodData.ComparedValue != null && StringMethodData.CastedOn != null)
+                    {
+                        string[] compareProperty = StringMethodData.CastedOn.ToString().Split(".");
+
+                        if(compareProperty.Length > 1)
+                        {
+                            string operationType = ExpressionTypeToSql(StringMethodData.OperatorType, StringMethodData.ReverseOperator, false);
+                            ParamName = $"{compareProperty[1]}{Index}";
+                            Value = StringMethodData.ComparedValue;
+                            SqlCommand = $" LOWER({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                        }
+                    }
                     break;
                 case "Replace":
+                    if(StringMethodData.CastedOn != null && StringMethodData.MethodArguments.Count == 2 && StringMethodData.ComparedValue != null)
+                    {
+                        string[] compareProperty = StringMethodData.CastedOn.ToString().Split(".");
+
+                        object? first = StringMethodData.MethodArguments[0];
+                        object? second = StringMethodData.MethodArguments[1];
+
+                        if (compareProperty.Length > 1)
+                        {
+                            string operationType = ExpressionTypeToSql(StringMethodData.OperatorType, StringMethodData.ReverseOperator, false);
+                            ParamName = $"{compareProperty[1]}{Index}";
+                            Value = StringMethodData.ComparedValue;
+                            SqlCommand = $" REPLACE({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)},'{first}','{second}') {operationType} @{ParamName} ";
+                        }
+                    }
                     break;
-                case "Length":
-                    break;
-                case "SqlReverse":
+                case "SqlLength":
+                    if (StringMethodData.ComparedValue != null && StringMethodData.CastedOn != null)
+                    {
+                        string[] compareProperty = StringMethodData.CastedOn.ToString().Split(".");
+
+                        if (compareProperty.Length > 1)
+                        {
+                            string operationType = ExpressionTypeToSql(StringMethodData.OperatorType, StringMethodData.ReverseOperator, false);
+                            ParamName = $"{compareProperty[1]}{Index}";
+                            Value = StringMethodData.ComparedValue;
+                            SqlCommand = $" LENGTH({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                        }
+                    }
                     break;
             }
         }
@@ -153,13 +210,21 @@ namespace BlackHole.CoreSupport
             switch (DateMethodData.MethodName)
             {
                 case "SqlEqualTo":
-                    if(DateMethodData.CompareProperty != null)
+                    if (DateMethodData.MethodArguments.Count == 2)
                     {
-                        string? aTable = DateMethodData.CompareProperty.Member?.ReflectedType?.Name;
-                        string? PropertyName = DateMethodData.CompareProperty.Member?.Name;
-                        if(aTable != null && PropertyName != null)
+                        if (DateMethodData.CompareProperty != null && DateMethodData.CastedOn != null)
                         {
+                            string? aTable = DateMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            string? PropertyName = DateMethodData.CompareProperty.Member?.Name;
+                            string[] compareProperty = DateMethodData.CastedOn.ToString().Split(".");
 
+                            if (aTable != null && PropertyName != null && compareProperty.Length > 1)
+                            {
+                                ParamName = $"OtherId{Index}";
+                                Value = DateMethodData.MethodArguments[1];
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
+                            }
                         }
                     }
                     break;

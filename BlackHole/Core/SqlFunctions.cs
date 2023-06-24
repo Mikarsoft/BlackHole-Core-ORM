@@ -5,16 +5,39 @@ namespace BlackHole.Core
 {
     public static class SqlFunctions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOther"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="otherTypesProperty"></param>
+        /// <param name="Id"></param>
+        /// <returns></returns>
         public static bool SqlEqualTo<TOther>(this string property ,Func<TOther,string> otherTypesProperty, int Id ) where TOther: BlackHoleEntity<int>
         {
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOther"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="otherTypesProperty"></param>
+        /// <param name="Id"></param>
+        /// <returns></returns>
         public static bool SqlEqualTo<TOther>(this int property, Func<TOther, int> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
         {
             return true;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOther"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="otherTypesProperty"></param>
+        /// <param name="Id"></param>
+        /// <returns></returns>
         public static bool SqlEqualTo<TOther>(this decimal property, Func<TOther, decimal> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
         {
             return true;
@@ -140,51 +163,104 @@ namespace BlackHole.Core
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="afterDate"></param>
+        /// <returns></returns>
         public static bool SqlDateAfter(this DateTime value, DateTime afterDate)
         {
             return value > afterDate;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="beforeDate"></param>
+        /// <returns></returns>
         public static bool SqlDateBefore(this DateTime value , DateTime beforeDate)
         {
             return value < beforeDate;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SqlMin(this DateTime value)
         {
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SqlMin(this int value)
         {
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SqlMin(this short value)
         {
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SqlMin(this decimal value)
         {
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SqlMin(this double value)
         {
             return true;
         }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SqlMin(this long value)
         {
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SqlMax(this DateTime value)
         {
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SqlMax(this int value)
         {
             return true;
@@ -210,36 +286,74 @@ namespace BlackHole.Core
             return true;
         }
 
-        public static string SqlConcat(this string value, string secondValue)
-        {
-            return value + secondValue;
-        }
 
-        public static int SqlSum(this int value, int otherValue)
-        {
-            return value + otherValue;
-        }
-
-        public static int SqlSum(this short value, short otherValue)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="otherValue"></param>
+        /// <returns></returns>
+        public static int SqlPlus(this int value, int otherValue)
         {
             return value + otherValue;
         }
 
-        public static decimal SqlSum(this decimal value, decimal otherValue)
+        public static int SqlPlus(this short value, short otherValue)
         {
             return value + otherValue;
         }
 
-        public static double SqlSum(this double value, double otherValue)
+        public static decimal SqlPlus(this decimal value, decimal otherValue)
         {
             return value + otherValue;
         }
 
-        public static long SqlSum(this long value, long otherValue)
+        public static double SqlPlus(this double value, double otherValue)
         {
             return value + otherValue;
         }
 
+        public static long SqlPlus(this long value, long otherValue)
+        {
+            return value + otherValue;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="otherValue"></param>
+        /// <returns></returns>
+        public static int SqlMinus(this int value, int otherValue)
+        {
+            return value - otherValue;
+        }
+
+        public static int SqlMinus(this short value, short otherValue)
+        {
+            return value - otherValue;
+        }
+
+        public static decimal SqlMinus(this decimal value, decimal otherValue)
+        {
+            return value - otherValue;
+        }
+
+        public static double SqlMinus(this double value, double otherValue)
+        {
+            return value - otherValue;
+        }
+
+        public static long SqlMinus(this long value, long otherValue)
+        {
+            return value - otherValue;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static int SqlAverage(this int value)
         {
             return value;
@@ -263,26 +377,6 @@ namespace BlackHole.Core
         public static long SqlAverage(this long value)
         {
             return value;
-        }
-
-        public static double SqlPower(this int value, int power)
-        {
-            return Math.Pow(value,power);
-        }
-
-        public static double SqlPower(this short value, int power)
-        {
-            return Math.Pow(value, power);
-        }
-
-        public static double SqlPower(this long value, int power)
-        {
-            return Math.Pow(value, power);
-        }
-
-        public static double SqlPower(this double value, int power)
-        {
-            return Math.Pow(value, power);
         }
 
         public static int SqlAbsolut(this int value)
@@ -330,39 +424,9 @@ namespace BlackHole.Core
             return Math.Round(value,digits);
         }
 
-        public static decimal SqlFloor(this decimal value)
-        {
-            return Math.Floor(value);
-        }
-
-        public static double SqlFloor(this double value)
-        {
-            return Math.Floor(value);
-        }
-
-        public static decimal SqlCeiling(this decimal value)
-        {
-            return Math.Ceiling(value);
-        }
-
-        public static double SqlCeiling(this double value)
-        {
-            return Math.Ceiling(value);
-        }
-
         public static bool SqlLike(this string value, string similarValue)
         {
             return value.Contains(similarValue);
-        }
-
-        public static string SqlUpper(this string value)
-        {
-            return value.ToUpper();
-        }
-
-        public static string SqlLower(this string value)
-        {
-            return value.ToLower();
         }
 
         public static int SqlLength(this string value)
@@ -373,38 +437,6 @@ namespace BlackHole.Core
         public static string SqlReplace(this string value, string replaceValue, string withValue)
         {
             return value.Replace(replaceValue, withValue);
-        }
-
-        public static string SqlRight(this string value, int lettersFromRight)
-        {
-            if(value.Length > lettersFromRight)
-            {
-                return value.Substring(value.Length - lettersFromRight, value.Length - 1);
-            }
-
-            return value;
-        }
-
-        public static string SqlLeft(this string value, int lettersFromLeft)
-        {
-            if (value.Length > lettersFromLeft)
-            {
-                return value.Substring(0, lettersFromLeft - 1);
-            }
-
-            return value;
-        }
-
-        public static string SqlReverse(this string value)
-        {
-            string result = "";
-
-            for(int i = 0; i < value.Length; i++)
-            {
-                result += value[value.Length - i -1];
-            }
-
-            return result;
         }
     }
 }

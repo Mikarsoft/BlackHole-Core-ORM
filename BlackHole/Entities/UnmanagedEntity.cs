@@ -1,11 +1,11 @@
 ﻿
 namespace BlackHole.Entities
 {
-    public abstract class UnmanagedEntity
+    internal abstract class UnmanagedEntity
     {
-        public object? configuration;
+        internal object? configuration;
 
-        public void EntityConfig(Action<string> obj)
+        internal void EntityConfig(Action<string> obj)
         {
 
         }

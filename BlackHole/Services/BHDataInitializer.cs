@@ -6,11 +6,19 @@ namespace BlackHole.Services
     {
         internal List<InitialCommandsAndParameters> commandsAndParameters { get; set; } = new List<InitialCommandsAndParameters>();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commandText"></param>
         public void ExecuteCommand(string commandText)
         {
             commandsAndParameters.Add(new InitialCommandsAndParameters { commandText = commandText});
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filePath"></param>
         public void CommandsFromFile(string filePath)
         {
             if (File.Exists(filePath))

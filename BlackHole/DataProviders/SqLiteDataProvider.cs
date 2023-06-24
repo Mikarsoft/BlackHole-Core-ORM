@@ -11,7 +11,7 @@ namespace BlackHole.DataProviders
         #region Constructor
         private readonly string _connectionString;
         internal readonly string insertedOutput = "returning Id";
-        internal readonly bool skipQuotes = false;
+        internal readonly bool skipQuotes = true;
         private readonly BlackHoleIdTypes _idType;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
