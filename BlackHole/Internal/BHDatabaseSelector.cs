@@ -133,7 +133,7 @@ namespace BlackHole.Internal
                     PrimaryKeyCommand = @"""Id"" uuid DEFAULT gen_random_uuid() PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    PrimaryKeyCommand = "Id TEXT PRIMARY KEY ,";
+                    PrimaryKeyCommand = "Id varchar(36) PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.Oracle:
                     PrimaryKeyCommand = @"""Id"" varchar2(36) NOT NULL PRIMARY KEY ,";
@@ -215,7 +215,7 @@ namespace BlackHole.Internal
                     SqlDatatypes = new[] { "varchar", "char", "int2", "int4", "int8", "numeric", "float4", "float8", "uuid", "bool", "timestamp", "bytea" };
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    SqlDatatypes = new[] { "varchar", "char", "int2", "integer", "bigint", "decimal", "float", "numeric", "text", "boolean", "datetime", "blob" };
+                    SqlDatatypes = new[] { "varchar", "char", "int2", "integer", "bigint", "decimal", "float", "numeric", "varchar(36)", "boolean", "datetime", "blob" };
                     break;
                 case BlackHoleSqlTypes.Oracle:
                     SqlDatatypes = new[] { "varchar2", "Char", "Number(4,0)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number(18,0)", "Number", "varchar2(36)", "Number(1,0)", "Timestamp", "Blob" };

@@ -124,7 +124,7 @@ namespace BlackHole.Internal
             {
                 CliLog($"Creating Entity {tableAspectInf.TableName} in BHEntities Folder...");
 
-                string EntityScript = $" using System;\n using BlackHole.Entities;\n using System.Xml;\n\n namespace {applicationName}.BHEntities \n";
+                string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
                 string PropertiesScript = string.Empty;
                 EntityScript += " { \n";
                 EntityScript += $"\t public class {tableAspectInf.TableName} :";
@@ -135,8 +135,12 @@ namespace BlackHole.Internal
                     if (!columnInfo.PrimaryKey)
                     {
                         ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
-                        PropertiesScript += GetBHAttribute(columnInfo, scanResult.PropertyNameForColumn);
-                        PropertiesScript += $"\t\t public {scanResult.PropertyNameForColumn} {columnInfo.ColumnName}" + " {get; set;}" + $" {scanResult.DefaultValue} \n";
+
+                        if (!scanResult.UnidentifiedColumn)
+                        {
+                            PropertiesScript += GetBHAttribute(columnInfo, scanResult.PropertyNameForColumn);
+                            PropertiesScript += $"\t\t public {scanResult.PropertyNameForColumn} {columnInfo.ColumnName}" + " {get; set;}" + $" {scanResult.DefaultValue} \n";
+                        }
                     }
                     else
                     {
@@ -385,7 +389,7 @@ namespace BlackHole.Internal
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    parseCommand = @"select K.table_name as TableName, K.column_name as ColumnName, K.udt_name as DataType,
+                    parseCommand = @"select distinct K.table_name as TableName, K.column_name as ColumnName, K.udt_name as DataType,
                         K.character_maximum_length as MaxLength, K.numeric_precision as NumPrecision, K.numeric_scale as NumScale,
                         case when K.is_nullable='YES' then true else false end as Nullable, 
                         case when T.constraint_type ='PRIMARY KEY' then true else false end as PrimaryKey,
@@ -401,7 +405,7 @@ namespace BlackHole.Internal
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    parseCommand = @"select K.TABLE_NAME as TableName, K.COLUMN_NAME as ColumnName, K.DATA_TYPE as DataType, 
+                    parseCommand = @"select distinct K.TABLE_NAME as TableName, K.COLUMN_NAME as ColumnName, K.DATA_TYPE as DataType, 
                         K.CHARACTER_MAXIMUM_LENGTH as MaxLength, K.NUMERIC_PRECISION as NumPrecision, K.NUMERIC_SCALE as NumScale , 
                         case when K.IS_NULLABLE = 'YES' THEN true else false end as Nullable,
                         case when K.COLUMN_KEY ='PRI' then true else false end as PrimaryKey,
@@ -415,7 +419,7 @@ namespace BlackHole.Internal
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    parseCommand = @"select col.table_name as TableName, col.column_name as ColumnName, col.data_type as DataType, col.data_length as MaxLength,
+                    parseCommand = @"select distinct col.table_name as TableName, col.column_name as ColumnName, col.data_type as DataType, col.data_length as MaxLength,
                         col.data_precision as NumPrecision, col.data_scale as NumScale,
                         case when col.nullable = 'Y' then 1 else 0 end as Nullable,
                         case when c.constraint_type = 'P' then 1 else 0 end as PrimaryKey,
