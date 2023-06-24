@@ -596,7 +596,203 @@ namespace BlackHole.Internal
         internal ColumnScanResult GetSqLiteColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
         {
             ColumnScanResult scanResult = new ColumnScanResult();
+            scanResult.UnidentifiedColumn = false;
+
+            if (isPrimaryKey)
+            {
+                scanResult.UnidentifiedColumn = true;
+
+                if (scanResult.UnidentifiedColumn && tableColumnInfo.DataType.ToLower().Contains("text"))
+                {
+                    int textLength = GetSqLiteLength(tableColumnInfo.DataType);
+
+                    if (textLength == 36)
+                    {
+                        scanResult.PropertyNameForColumn = "Guid";
+                    }
+                    else
+                    {
+                        scanResult.PropertyNameForColumn = "string";
+                    }
+
+                    scanResult.UnidentifiedColumn = false;
+                }
+
+                if (scanResult.UnidentifiedColumn && tableColumnInfo.DataType.ToLower().Contains("varchar"))
+                {
+                    int textLength = GetSqLiteLength(tableColumnInfo.DataType);
+
+                    if (textLength == 36)
+                    {
+                        scanResult.PropertyNameForColumn = "Guid";
+                    }
+                    else
+                    {
+                        scanResult.PropertyNameForColumn = "string";
+                    }
+
+                    scanResult.UnidentifiedColumn = false;
+                }
+
+                if (scanResult.UnidentifiedColumn && tableColumnInfo.DataType.ToLower().Contains("char"))
+                {
+                    int textLength = GetSqLiteLength(tableColumnInfo.DataType);
+
+                    if (textLength == 36)
+                    {
+                        scanResult.PropertyNameForColumn = "Guid";
+                    }
+                    else
+                    {
+                        scanResult.PropertyNameForColumn = "string";
+                    }
+
+                    scanResult.UnidentifiedColumn = false;
+                }
+
+                if(scanResult.UnidentifiedColumn && tableColumnInfo.DataType.ToLower().Contains("integer"))
+                {
+                    scanResult.PropertyNameForColumn = "int";
+                    scanResult.UnidentifiedColumn = false;
+                }
+            }
+            else
+            {
+                bool isDateTime = false;
+
+                switch (tableColumnInfo.DataType.ToLower())
+                {
+                    case "boolean":
+                        scanResult.PropertyNameForColumn = "bool";
+                        break;
+                    case "integer":
+                        scanResult.PropertyNameForColumn = "int";
+                        break;
+                    case "blob":
+                        scanResult.PropertyNameForColumn = "byte[]?";
+                        break;
+                    case "datetime":
+                        isDateTime = true;
+                        break;
+                    case "varchar":
+                        scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = " = string.Empty;";
+                        break;
+                    case "text":
+                        scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = " = string.Empty;";
+                        break;
+                    case "char":
+                        scanResult.PropertyNameForColumn = "char";
+                        break;
+                    case "int2":
+                        scanResult.PropertyNameForColumn = "short";
+                        break;
+                    case "bigint":
+                        scanResult.PropertyNameForColumn = "long";
+                        break;
+                    case "decimal":
+                        scanResult.PropertyNameForColumn = "decimal";
+                        break;
+                    case "real":
+                        scanResult.PropertyNameForColumn = "double";
+                        break;
+                    case "float":
+                        scanResult.PropertyNameForColumn = "float";
+                        break;
+                    case "numeric":
+                        scanResult.PropertyNameForColumn = "double";
+                        break;
+                    default:
+                        scanResult.UnidentifiedColumn = true;
+                        break;
+                }
+
+                if (scanResult.UnidentifiedColumn && tableColumnInfo.DataType.ToLower().Contains("text"))
+                {
+                    int textLength = GetSqLiteLength(tableColumnInfo.DataType);
+
+                    if(textLength == 36)
+                    {
+                        scanResult.PropertyNameForColumn = "Guid";
+                    }
+                    else
+                    {
+                        scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = " = string.Empty;";
+                    }
+
+                    scanResult.UnidentifiedColumn = false;
+                }
+
+                if (scanResult.UnidentifiedColumn && tableColumnInfo.DataType.ToLower().Contains("varchar"))
+                {
+                    int textLength = GetSqLiteLength(tableColumnInfo.DataType);
+
+                    if (textLength == 36)
+                    {
+                        scanResult.PropertyNameForColumn = "Guid";
+                    }
+                    else
+                    {
+                        scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = " = string.Empty;";
+                    }
+
+                    scanResult.UnidentifiedColumn = false;
+                }
+
+                if (scanResult.UnidentifiedColumn && tableColumnInfo.DataType.ToLower().Contains("char"))
+                {
+                    int textLength = GetSqLiteLength(tableColumnInfo.DataType);
+
+                    if (textLength == 36)
+                    {
+                        scanResult.PropertyNameForColumn = "Guid";
+                    }
+                    else
+                    {
+                        scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = " = string.Empty;";
+                    }
+
+                    scanResult.UnidentifiedColumn = false;
+                }
+
+                if (isDateTime)
+                {
+                    if (tableColumnInfo.Nullable)
+                    {
+                        scanResult.PropertyNameForColumn = "DateTime?";
+                    }
+                    else
+                    {
+                        scanResult.PropertyNameForColumn = "DateTime";
+                    }
+                }
+            }
             return scanResult;
+        }
+
+        private int GetSqLiteLength(string dataType)
+        {
+            string[] sizeCheck = dataType.Split("(");
+
+            if(sizeCheck.Length > 1)
+            {
+                string lengthNumber = sizeCheck[1].Replace(" ","").Replace(")","");
+
+                try
+                {
+                    return Int32.Parse(lengthNumber);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+
+            return 0;
         }
     }
 }

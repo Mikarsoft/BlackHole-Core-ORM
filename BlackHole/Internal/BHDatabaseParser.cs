@@ -316,6 +316,27 @@ namespace BlackHole.Internal
             sqlWriter.CreateSqlFile();
         }
 
+        private int GetSqLiteLength(string dataType)
+        {
+            string[] sizeCheck = dataType.Split("(");
+
+            if (sizeCheck.Length > 1)
+            {
+                string lengthNumber = sizeCheck[1].Replace(" ", "").Replace(")", "");
+
+                try
+                {
+                    return Int32.Parse(lengthNumber);
+                }
+                catch
+                {
+                    return 0;
+                }
+            }
+
+            return 0;
+        }
+
         internal string GetBHAttribute(TableParsingInfo columnInfo, string dotNetType)
         {
             string VarcharSize = string.Empty;
@@ -327,6 +348,11 @@ namespace BlackHole.Internal
                 if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer)
                 {
                     characterSize = columnInfo.MaxLength / 2;
+                }
+
+                if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlLite)
+                {
+                    characterSize = GetSqLiteLength(columnInfo.DataType);
                 }
 
                 if(characterSize == 0)

@@ -103,7 +103,7 @@ namespace BlackHole.Internal
                     PrimaryKeyCommand = @"""Id"" varchar(50) NOT NULL PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    PrimaryKeyCommand = "Id TEXT PRIMARY KEY ,";
+                    PrimaryKeyCommand = "Id varchar(50) PRIMARY KEY ,";
                     break;
                 case BlackHoleSqlTypes.Oracle:
                     PrimaryKeyCommand = @"""Id"" varchar2(50) NOT NULL PRIMARY KEY ,";

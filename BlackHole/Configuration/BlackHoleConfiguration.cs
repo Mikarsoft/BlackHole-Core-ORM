@@ -64,6 +64,7 @@ namespace BlackHole.Configuration
             CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
 
             int exitCode = 0;
+            exitCode = ParseDatabaseCliProcess();
 
             switch (cliSettings.commandType)
             {
