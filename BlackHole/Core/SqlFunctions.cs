@@ -414,14 +414,14 @@ namespace BlackHole.Core
             return Math.Round(value);
         }
 
-        public static decimal SqlRound(this decimal value, int digits)
+        public static decimal SqlRound(this decimal value, int decimalDigits)
         {
-            return Math.Round(value,digits);
+            return Math.Round(value, decimalDigits);
         }
 
-        public static double SqlRound(this double value, int digits)
+        public static double SqlRound(this double value, int decimalDigits)
         {
-            return Math.Round(value,digits);
+            return Math.Round(value, decimalDigits);
         }
 
         public static bool SqlLike(this string value, string similarValue)

@@ -75,16 +75,60 @@ namespace BlackHole.CoreSupport
                     }
                     break;
                 case "SqlAbsolut":
-                    //ABS(Id) = number
+                    if (NumericMethodData.ComparedValue != null && NumericMethodData.CastedOn != null)
+                    {
+                        string[] compareProperty = NumericMethodData.CastedOn.ToString().Split(".");
+
+                        if (compareProperty.Length > 1)
+                        {
+                            string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
+                            ParamName = $"{compareProperty[1]}{Index}";
+                            Value = NumericMethodData.ComparedValue;
+                            SqlCommand = $" ABS({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                        }
+                    }
                     break;
                 case "SqlRound":
-                    //Round(Id) = number
+                    if (NumericMethodData.ComparedValue != null && NumericMethodData.CastedOn != null)
+                    {
+                        string[] compareProperty = NumericMethodData.CastedOn.ToString().Split(".");
+                        string precision = string.Empty;
+
+                        if (NumericMethodData.MethodArguments.Count > 1)
+                        {
+                            precision = $",{NumericMethodData.MethodArguments[1]}";
+                        }
+
+                        if (compareProperty.Length > 1)
+                        {
+                            string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
+                            ParamName = $"{compareProperty[1]}{Index}";
+                            Value = NumericMethodData.ComparedValue;
+                            SqlCommand = $" ROUND({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}{precision}) {operationType} @{ParamName} ";
+                        }
+                    }
                     break;
                 case "SqlMax":
-                    //Id = (Select Max(Id) from Customers)
+                    if (NumericMethodData.CastedOn != null)
+                    {
+                        string[] tableProperty = NumericMethodData.CastedOn.ToString().Split(".");
+                        if (tableProperty.Length > 1)
+                        {
+                            string SelectAverage = $"( Select MAX({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
+                            SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectAverage} ";
+                        }
+                    }
                     break;
                 case "SqlMin":
-                    //Id = (Select Min(Id) from Customers)
+                    if (NumericMethodData.CastedOn != null)
+                    {
+                        string[] tableProperty = NumericMethodData.CastedOn.ToString().Split(".");
+                        if (tableProperty.Length > 1)
+                        {
+                            string SelectAverage = $"( Select MIN({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
+                            SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectAverage} ";
+                        }
+                    }
                     break;
                 case "SqlPlus":
                     //Id + 5 = 10
