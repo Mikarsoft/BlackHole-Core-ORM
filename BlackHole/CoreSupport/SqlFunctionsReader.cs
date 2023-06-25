@@ -5,7 +5,7 @@ namespace BlackHole.CoreSupport
 {
     internal class SqlFunctionsReader
     {
-        public string SqlCommand { get; set; } = " 1=1 ";
+        public string SqlCommand { get; set; } = " 1 != 1 ";
         internal object? Value { get; set; }
         internal string ParamName { get; set; } = string.Empty;
         internal string Letter { get; set; } = string.Empty;

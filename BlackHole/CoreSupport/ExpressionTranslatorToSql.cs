@@ -415,6 +415,11 @@ namespace BlackHole.CoreSupport
 
                 if (child.methodData.Count > 0)
                 {
+                    if(child.memberValue != null && child.methodData[0].ComparedValue == null  && child.methodData[0].CompareProperty == null)
+                    {
+                        child.methodData[0].ComparedValue = child.memberValue;
+                    }
+
                     SqlFunctionsReader sqlFunctionResult = new SqlFunctionsReader(child.methodData[0], index, letter, isMyShit);
 
                     if (sqlFunctionResult.ParamName != string.Empty)
