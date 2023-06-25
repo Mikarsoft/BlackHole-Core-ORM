@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using BlackHole.Statics;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace BlackHole.CoreSupport
@@ -11,6 +12,7 @@ namespace BlackHole.CoreSupport
         internal string Letter { get; set; } = string.Empty;
         internal int Index { get; set; }
         internal bool SkipQuotes { get; set; }
+        private bool wasTranslated { get; set; }
 
         internal SqlFunctionsReader(MethodExpressionData MethodData, int index, string? letter, bool isMyShit)
         {
@@ -19,6 +21,7 @@ namespace BlackHole.CoreSupport
                 Letter = $"{letter}.";
             }
 
+            wasTranslated = false;
             SkipQuotes = isMyShit;
             Index = index;
 
@@ -36,6 +39,11 @@ namespace BlackHole.CoreSupport
                 {
                     UseNumericMethods(MethodData);
                 }
+            }
+
+            if (!wasTranslated)
+            {
+                MiniLogger(MethodData.MethodName);
             }
         }
 
@@ -58,6 +66,7 @@ namespace BlackHole.CoreSupport
                                 Value = NumericMethodData.MethodArguments[1];
                                 string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
                                 SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
+                                wasTranslated = true;
                             }
                         }
                     }
@@ -72,6 +81,7 @@ namespace BlackHole.CoreSupport
                             string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
                             string SelectAverage = $"( Select AVG({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
                             SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} {operationType} {SelectAverage} ";
+                            wasTranslated = true;
                         }
                     }
                     break;
@@ -91,6 +101,7 @@ namespace BlackHole.CoreSupport
                                 Value = NumericMethodData.ComparedValue;
                                 SqlCommand = $" ABS({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
                                 compareProp = true;
+                                wasTranslated = true;
                             }
                         }
 
@@ -101,7 +112,8 @@ namespace BlackHole.CoreSupport
                             if (compareProperty.Length > 1 && comparePropName.Length > 1)
                             {
                                 string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, !NumericMethodData.ReverseOperator, false);
-                                SqlCommand = $" ABS({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{comparePropName[1]} ";
+                                SqlCommand = $" ABS({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{comparePropName[1].SkipNameQuotes(SkipQuotes)} ";
+                                wasTranslated = true;
                             }
                         }
                     }
@@ -128,6 +140,7 @@ namespace BlackHole.CoreSupport
                                 Value = NumericMethodData.ComparedValue;
                                 SqlCommand = $" ROUND({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}{decimalPoints}) {operationType} @{ParamName} ";
                                 compareProp = true;
+                                wasTranslated = true;
                             }
                         }
 
@@ -138,7 +151,8 @@ namespace BlackHole.CoreSupport
                             if (compareProperty.Length > 1 && comparePropName.Length > 1)
                             {
                                 string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, !NumericMethodData.ReverseOperator, false);
-                                SqlCommand = $" ROUND({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}{decimalPoints}) {operationType} {Letter}{comparePropName[1]} ";
+                                SqlCommand = $" ROUND({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}{decimalPoints}) {operationType} {Letter}{comparePropName[1].SkipNameQuotes(SkipQuotes)} ";
+                                wasTranslated = true;
                             }
                         }
                     }
@@ -151,6 +165,7 @@ namespace BlackHole.CoreSupport
                         {
                             string SelectAverage = $"( Select MAX({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
                             SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectAverage} ";
+                            wasTranslated = true;
                         }
                     }
                     break;
@@ -162,6 +177,7 @@ namespace BlackHole.CoreSupport
                         {
                             string SelectAverage = $"( Select MIN({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
                             SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectAverage} ";
+                            wasTranslated = true;
                         }
                     }
                     break;
@@ -184,12 +200,14 @@ namespace BlackHole.CoreSupport
                                     ParamName = $"{compareProperty[1]}{Index}";
                                     Value = NumericMethodData.ComparedValue;
                                     SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                                    wasTranslated = true;
                                 }
                                 else
                                 {
                                     ParamName = $"{compareProperty[1]}{Index}";
                                     Value = NumericMethodData.ComparedValue;
                                     SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {NumericMethodData.MethodArguments[1]}) {operationType} @{ParamName} ";
+                                    wasTranslated = true;
                                 }
                             }
 
@@ -201,12 +219,14 @@ namespace BlackHole.CoreSupport
                                 {
                                     if (thePlusValue != null)
                                     {
-                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{otherPropName[1]} ";
+                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{otherPropName[1].SkipNameQuotes(SkipQuotes)} ";
                                     }
                                     else
                                     {
-                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {NumericMethodData.MethodArguments[1]}) {operationType} {Letter}{otherPropName[1]} ";
+                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {NumericMethodData.MethodArguments[1]}) {operationType} {Letter}{otherPropName[1].SkipNameQuotes(SkipQuotes)} ";
                                     }
+
+                                    wasTranslated = true;
                                 }
                             }
                         }
@@ -238,6 +258,8 @@ namespace BlackHole.CoreSupport
                                     Value = NumericMethodData.ComparedValue;
                                     SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {NumericMethodData.MethodArguments[1]}) {operationType} @{ParamName} ";
                                 }
+
+                                wasTranslated = true;
                             }
 
                             if (!hasCompareValue && NumericMethodData.CompareProperty != null)
@@ -248,12 +270,14 @@ namespace BlackHole.CoreSupport
                                 {
                                     if (thePlusValue != null)
                                     {
-                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} - {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{otherPropName[1]} ";
+                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} - {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{otherPropName[1].SkipNameQuotes(SkipQuotes)} ";
                                     }
                                     else
                                     {
-                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} - {NumericMethodData.MethodArguments[1]}) {operationType} {Letter}{otherPropName[1]} ";
+                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} - {NumericMethodData.MethodArguments[1]}) {operationType} {Letter}{otherPropName[1].SkipNameQuotes(SkipQuotes)} ";
                                     }
+
+                                    wasTranslated = true;
                                 }
                             }
                         }
@@ -281,31 +305,34 @@ namespace BlackHole.CoreSupport
                                 Value = StringMethodData.MethodArguments[1];
                                 string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
                                 SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
+                                wasTranslated = true;
                             }
                         }
                     }
                     break;
                 case "Contains":
-                    if (StringMethodData.MethodArguments.Count == 1)
+                    if (StringMethodData.MethodArguments.Count == 1 && StringMethodData.CastedOn != null)
                     {
-                        string[] tableProperty = StringMethodData.CastedOn != null ? StringMethodData.CastedOn.ToString().Split(".") : new string[0];
+                        string[] tableProperty = StringMethodData.CastedOn.ToString().Split(".");
                         if (tableProperty.Length > 1)
                         {
                             ParamName = $"{tableProperty[1]}{Index}";
                             Value = $"%{StringMethodData.MethodArguments[0]}%";
                             SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} Like @{ParamName}";
+                            wasTranslated = true;
                         }
                     }
                     break;
                 case "SqlLike":
-                    if(StringMethodData.MethodArguments.Count == 2)
+                    if(StringMethodData.MethodArguments.Count == 2 && StringMethodData.CastedOn != null)
                     {
-                        string[] tableProperty = StringMethodData.CastedOn != null ? StringMethodData.CastedOn.ToString().Split(".") : new string[0];
+                        string[] tableProperty = StringMethodData.CastedOn.ToString().Split(".");
                         if(tableProperty.Length > 1)
                         {
                             ParamName = $"{tableProperty[1]}{Index}";
                             Value = StringMethodData.MethodArguments[1];
                             SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} Like @{ParamName}";
+                            wasTranslated = true;
                         }
                     }
                     break;
@@ -320,6 +347,7 @@ namespace BlackHole.CoreSupport
                             ParamName = $"{compareProperty[1]}{Index}";
                             Value = StringMethodData.ComparedValue;
                             SqlCommand = $" UPPER({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                            wasTranslated = true;
                         }
                     }
                     break;
@@ -334,6 +362,7 @@ namespace BlackHole.CoreSupport
                             ParamName = $"{compareProperty[1]}{Index}";
                             Value = StringMethodData.ComparedValue;
                             SqlCommand = $" LOWER({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                            wasTranslated = true;
                         }
                     }
                     break;
@@ -351,6 +380,7 @@ namespace BlackHole.CoreSupport
                             ParamName = $"{compareProperty[1]}{Index}";
                             Value = StringMethodData.ComparedValue;
                             SqlCommand = $" REPLACE({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)},'{first}','{second}') {operationType} @{ParamName} ";
+                            wasTranslated = true;
                         }
                     }
                     break;
@@ -365,6 +395,7 @@ namespace BlackHole.CoreSupport
                             ParamName = $"{compareProperty[1]}{Index}";
                             Value = StringMethodData.ComparedValue;
                             SqlCommand = $" LENGTH({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                            wasTranslated = true;
                         }
                     }
                     break;
@@ -391,14 +422,61 @@ namespace BlackHole.CoreSupport
                                 Value = DateMethodData.MethodArguments[1];
                                 string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
                                 SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
+                                wasTranslated = true;
                             }
                         }
                     }
                     break;
                 case "SqlDateAfter":
+                    if (DateMethodData.MethodArguments.Count == 2 && DateMethodData.CastedOn != null)
+                    {
+                        string[] compareProperty = DateMethodData.CastedOn.ToString().Split(".");
+
+                        if(compareProperty.Length > 1)
+                        {
+                            ParamName = $"DateProp{Index}";
+                            Value = DateMethodData.MethodArguments[1];
+                            SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} >= @{ParamName} ";
+                            wasTranslated = true;
+                        }
+                    }
                     break;
                 case "SqlDateBefore":
+                    if (DateMethodData.MethodArguments.Count == 2 && DateMethodData.CastedOn != null)
+                    {
+                        string[] compareProperty = DateMethodData.CastedOn.ToString().Split(".");
+
+                        if (compareProperty.Length > 1)
+                        {
+                            ParamName = $"DateProp{Index}";
+                            Value = DateMethodData.MethodArguments[1];
+                            SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} < @{ParamName} ";
+                            wasTranslated = true;
+                        }
+                    }
                     break;
+            }
+        }
+
+        private void MiniLogger(string commandName)
+        {
+            try
+            {
+                string LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
+                string LogId = Guid.NewGuid().ToString();
+                string pathFile = Path.Combine(LogsPath, $"{commandName}_Error_{LogId}.txt");
+
+                using (var tw = new StreamWriter(pathFile, true))
+                {
+                    tw.WriteLine($"Date and Time: {DateTime.Now.ToString("s").Replace(":", ".")}");
+                    tw.WriteLine($"Sql Method {commandName} has some errors in syntax.");
+                    tw.WriteLine($"The method will get translated to '1 != 1' to avoid damaging database.");
+                    tw.WriteLine($"Please read the documentation and learn how to use Sql Functions correctly.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 

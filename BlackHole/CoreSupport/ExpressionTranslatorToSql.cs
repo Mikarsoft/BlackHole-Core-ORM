@@ -246,8 +246,6 @@ namespace BlackHole.CoreSupport
                                 if(argLambda != null)
                                 {
                                     expressionTree[currentIndx].rightMember = argLambda.Body as MemberExpression;
-                                    //aTable = insideMember?.Member.ReflectedType?.Name;
-                                    //string? PropertyName = insideMember?.Member.Name;
                                 }
                             }
 
@@ -352,8 +350,6 @@ namespace BlackHole.CoreSupport
                                 if (argLambda != null)
                                 {
                                     expressionTree[currentIndx].leftMember = argLambda.Body as MemberExpression;
-                                    //aTable = insideMember?.Member.ReflectedType?.Name;
-                                    //string? PropertyName = insideMember?.Member.Name;
                                 }
                             }
 
