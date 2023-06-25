@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 
 namespace BlackHole.CoreSupport
 {
@@ -85,7 +86,7 @@ namespace BlackHole.CoreSupport
                         {
                             if (compareProperty.Length > 1)
                             {
-                                string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
+                                string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, !NumericMethodData.ReverseOperator, false);
                                 ParamName = $"{compareProperty[1]}{Index}";
                                 Value = NumericMethodData.ComparedValue;
                                 SqlCommand = $" ABS({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
@@ -99,7 +100,7 @@ namespace BlackHole.CoreSupport
 
                             if (compareProperty.Length > 1 && comparePropName.Length > 1)
                             {
-                                string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
+                                string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, !NumericMethodData.ReverseOperator, false);
                                 SqlCommand = $" ABS({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{comparePropName[1]} ";
                             }
                         }
@@ -122,7 +123,7 @@ namespace BlackHole.CoreSupport
                         {
                             if (compareProperty.Length > 1)
                             {
-                                string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
+                                string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, !NumericMethodData.ReverseOperator, false);
                                 ParamName = $"{compareProperty[1]}{Index}";
                                 Value = NumericMethodData.ComparedValue;
                                 SqlCommand = $" ROUND({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}{decimalPoints}) {operationType} @{ParamName} ";
@@ -136,7 +137,7 @@ namespace BlackHole.CoreSupport
 
                             if (compareProperty.Length > 1 && comparePropName.Length > 1)
                             {
-                                string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
+                                string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, !NumericMethodData.ReverseOperator, false);
                                 SqlCommand = $" ROUND({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}{decimalPoints}) {operationType} {Letter}{comparePropName[1]} ";
                             }
                         }
@@ -165,10 +166,98 @@ namespace BlackHole.CoreSupport
                     }
                     break;
                 case "SqlPlus":
-                    //Id + 5 = 10
+                    if(NumericMethodData.CastedOn != null && NumericMethodData.MethodArguments.Count > 1)
+                    {
+                        PropertyInfo? thePlusValue = NumericMethodData.MethodArguments[1] as PropertyInfo;
+                        string[] compareProperty = NumericMethodData.CastedOn.ToString().Split(".");
+                        string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, !NumericMethodData.ReverseOperator, false);
+                        bool hasCompareValue = false;
+
+                        if (compareProperty.Length > 1)
+                        {
+                            if (NumericMethodData.ComparedValue != null)
+                            {
+                                hasCompareValue = true;
+
+                                if (thePlusValue != null)
+                                {
+                                    ParamName = $"{compareProperty[1]}{Index}";
+                                    Value = NumericMethodData.ComparedValue;
+                                    SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                                }
+                                else
+                                {
+                                    ParamName = $"{compareProperty[1]}{Index}";
+                                    Value = NumericMethodData.ComparedValue;
+                                    SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {NumericMethodData.MethodArguments[1]}) {operationType} @{ParamName} ";
+                                }
+                            }
+
+                            if (!hasCompareValue && NumericMethodData.CompareProperty != null)
+                            {
+                                string[] otherPropName = NumericMethodData.CompareProperty.ToString().Split(".");
+
+                                if(otherPropName.Length > 1)
+                                {
+                                    if (thePlusValue != null)
+                                    {
+                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{otherPropName[1]} ";
+                                    }
+                                    else
+                                    {
+                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {NumericMethodData.MethodArguments[1]}) {operationType} {Letter}{otherPropName[1]} ";
+                                    }
+                                }
+                            }
+                        }
+                    }
                     break;
                 case "SqlMinus":
-                    //Id - 5 = 10
+                    if (NumericMethodData.CastedOn != null && NumericMethodData.MethodArguments.Count > 1)
+                    {
+                        PropertyInfo? thePlusValue = NumericMethodData.MethodArguments[1] as PropertyInfo;
+                        string[] compareProperty = NumericMethodData.CastedOn.ToString().Split(".");
+                        string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, !NumericMethodData.ReverseOperator, false);
+                        bool hasCompareValue = false;
+
+                        if (compareProperty.Length > 1)
+                        {
+                            if (NumericMethodData.ComparedValue != null)
+                            {
+                                hasCompareValue = true;
+
+                                if (thePlusValue != null)
+                                {
+                                    ParamName = $"{compareProperty[1]}{Index}";
+                                    Value = NumericMethodData.ComparedValue;
+                                    SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";
+                                }
+                                else
+                                {
+                                    ParamName = $"{compareProperty[1]}{Index}";
+                                    Value = NumericMethodData.ComparedValue;
+                                    SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} + {NumericMethodData.MethodArguments[1]}) {operationType} @{ParamName} ";
+                                }
+                            }
+
+                            if (!hasCompareValue && NumericMethodData.CompareProperty != null)
+                            {
+                                string[] otherPropName = NumericMethodData.CompareProperty.ToString().Split(".");
+
+                                if (otherPropName.Length > 1)
+                                {
+                                    if (thePlusValue != null)
+                                    {
+                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} - {Letter}{thePlusValue.Name.SkipNameQuotes(SkipQuotes)}) {operationType} {Letter}{otherPropName[1]} ";
+                                    }
+                                    else
+                                    {
+                                        SqlCommand = $" ({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} - {NumericMethodData.MethodArguments[1]}) {operationType} {Letter}{otherPropName[1]} ";
+                                    }
+                                }
+                            }
+                        }
+                    }
                     break;
             }
         }
@@ -272,7 +361,7 @@ namespace BlackHole.CoreSupport
 
                         if (compareProperty.Length > 1)
                         {
-                            string operationType = ExpressionTypeToSql(StringMethodData.OperatorType, StringMethodData.ReverseOperator, false);
+                            string operationType = ExpressionTypeToSql(StringMethodData.OperatorType, !StringMethodData.ReverseOperator, false);
                             ParamName = $"{compareProperty[1]}{Index}";
                             Value = StringMethodData.ComparedValue;
                             SqlCommand = $" LENGTH({Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)}) {operationType} @{ParamName} ";

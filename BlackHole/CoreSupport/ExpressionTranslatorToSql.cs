@@ -420,9 +420,18 @@ namespace BlackHole.CoreSupport
                     if (sqlFunctionResult.ParamName != string.Empty)
                     {
                         parameters.Add(new BlackHoleParameter { Name = sqlFunctionResult.ParamName, Value = sqlFunctionResult.Value });
+                        index++;
                     }
 
-                    parent.sqlCommand = $"{sqlFunctionResult.SqlCommand}";
+                    if(parent.sqlCommand == string.Empty)
+                    {
+                        parent.sqlCommand = $"{sqlFunctionResult.SqlCommand}";
+                    }
+                    else
+                    {
+                        parent.sqlCommand += $" and {sqlFunctionResult.SqlCommand}";
+                    }
+
                     parent.leftChecked = false;
                 }
                 else
