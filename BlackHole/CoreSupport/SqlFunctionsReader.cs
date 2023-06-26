@@ -463,6 +463,12 @@ namespace BlackHole.CoreSupport
             try
             {
                 string LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
+
+                if (!Directory.Exists(LogsPath))
+                {
+                    Directory.CreateDirectory(LogsPath);
+                }
+
                 string LogId = Guid.NewGuid().ToString();
                 string pathFile = Path.Combine(LogsPath, $"{commandName}_Error_{LogId}.txt");
 
