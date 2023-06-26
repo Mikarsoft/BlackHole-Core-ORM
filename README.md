@@ -5,7 +5,6 @@ It Supports SQL SERVER, MYSQL, POSTGRESQL, ORACLE and SQLITE.
 6.0.1  is released.
 
   Changes:
-  
     - Added Schema support for SqlServer and Postgres
     - Added support for the new [BlackHole-Core-Cli](https://github.com/Mikarsoft/BlackHole-Core-Cli) , that adds the 'Database First' capability and more.
     - Added support for some famous sql funtions in the 'Where' statement.
