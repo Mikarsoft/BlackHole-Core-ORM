@@ -4,25 +4,16 @@ It Supports SQL SERVER, MYSQL, POSTGRESQL, ORACLE and SQLITE.
 
 6.0.1  is released.
 
-  Changes:
-    - Added Schema support for SqlServer and Postgres
-
-    - Added support for the new [BlackHole-Core-Cli](https://github.com/Mikarsoft/BlackHole-Core-Cli) , that adds the 'Database First' capability and more.
-
-    - Added support for some famous sql funtions in the 'Where' statement.
-
-    - Added support for other custom methods and popular dotnet methods in the 'Where' statement. Like => string.Contains(), string.Replace() etc.
-    
-    - Added Initial Data support using the interface 'IBHInitialData' you can run insert commands on the creation of your database and store some default data.
-      It can also load sql commands from files.
-      
-    - Addes support for Nullable properties in the 'BlackHoleEntity'.
-    
-    - Added Timeout Setting for the sql commands in the configuration's options.
-    
-    - Improved speed and reliability of the ExpressionToSql translator.
-    
-    - Fixed outer joins bug.
+Changes:
+- Added Schema support for SqlServer and Postgres
+- Added support for the new [BlackHole-Core-Cli](https://github.com/Mikarsoft/BlackHole-Core-Cli) , that adds the 'Database First' capability and more.
+- Added support for some famous sql funtions in the 'Where' statement.
+- Added support for other custom methods and popular dotnet methods in the 'Where' statement. Like => string.Contains(), string.Replace() etc.
+- Added Initial Data support using the interface 'IBHInitialData' you can run insert commands on the creation of your database and store some default data. It can also load sql commands from files.
+- Addes support for Nullable properties in the 'BlackHoleEntity'.
+- Added Timeout Setting for the sql commands in the configuration's options.
+- Improved speed and reliability of the ExpressionToSql translator.
+- Fixed outer joins bug.
 
 
 Example:
