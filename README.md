@@ -2,41 +2,20 @@
 A fully automated, very easy to use and setup, with many new features, Object Relational Mapping Library, for .Net Core 6 and 7. Using Custom Data Providers that are 3x times faster than EF Core and Dapper. Many interfaces for easy Reading and Writing Data. Extention Methods for Joining any tables.
 It Supports SQL SERVER, MYSQL, POSTGRESQL, ORACLE and SQLITE.
 
-6.0.0  is released.
+6.0.1  is released.
 
   Changes:
   
-   - Replaced Dapper with Custom Mappers that are 3 times faster
-   
-   - Added more Methods to the BHDataProvider
-   
-   - Added IBHConnection Interface for custom commands.
-   
-   - Improved Configuration made it simpler with more options
-   
-   - Added Logs Cleaner to automatically clean up the logs that are aged more than x days.
-   
-   - Added Support for Oracle Database
-   
-   - Added developer mode that allows dropping columns and constraints on entity changes. But when it's set to false,
-     protects the production database from data loss, by disabling columns dropping. And instead it makes them
-     nullable, if the property of the entity has been deleted.
-     
-   - Added BHParameters for custom queries and commands.
-   
-   - Improved transaction adding RoleBack option and performing automatic Rollback if the transaction fails.
-   
-   - Added configuration option to load Entities and Services from selected Namespaces or Other Assemblies.
-     This way you can make your Apps transform into different App, depending on the configuration.
-     
-   - Code clean up and redesign. Organized namespaces better for more efficiency. 
-     The user now has all the configuration Items into 'BlackHole.Configuration' namespace.
-     All the Functionalities into 'BlackHole.Core' namespace.
-     And all the Attributes for the entities into the 'BlackHole.Entities' namespace.
-    
-   *note BlackHole can Not install oracle database to your system. You need to have an instance installed and BlackHole can 
-    only create or drop tables in this type of database.
-
+    - Added Schema support for SqlServer and Postgres
+    - Added support for the new [BlackHole-Core-Cli](https://github.com/Mikarsoft/BlackHole-Core-Cli) , that adds the 'Database First' capability and more.
+    - Added support for some famous sql funtions in the 'Where' statement.
+    - Added support for other custom methods and popular dotnet methods in the 'Where' statement. Like => string.Contains(), string.Replace() etc.
+    - Added Initial Data support using the interface 'IBHInitialData' you can run insert commands on the creation of your database and store some default data.
+      It can also load sql commands from files.
+    - Addes support for Nullable properties in the 'BlackHoleEntity'.
+    - Added Timeout Setting for the sql commands in the configuration's options.
+    - Improved speed and reliability of the ExpressionToSql translator.
+    - Fixed outer joins bug.
 
 
 Example:
