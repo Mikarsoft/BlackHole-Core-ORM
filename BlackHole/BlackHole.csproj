@@ -19,16 +19,15 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
     <PackageProjectUrl>https://mikarsoft.com</PackageProjectUrl>
     <PackageIcon>mikarsoft.png</PackageIcon>
     <RepositoryUrl>https://github.com/Mikarsoft/BlackHole-Core-ORM</RepositoryUrl>
-    <PackageTags>ORM;MySql;Postgres;SqlServer;Oracle;Data;Provider;Autoincrement;Object;Relational;Mapping;Easy;Black;Hole;Mikarsoft</PackageTags>
+    <PackageTags>dotnet6;dotnet7;ORM;MySql;Postgres;SqlServer;Oracle;Data;Provider;Autoincrement;Object;Relational;Mapping;Easy;Black;Hole;Mikarsoft</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
-    <PackageLicenseFile>..\LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <AssemblyVersion>6.0.1</AssemblyVersion>
     <FileVersion>6.0.1</FileVersion>
   </PropertyGroup>
 	<PropertyGroup>
-		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<Version>6.0.1</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>-Replaced Dapper with Custom Mappers that are 3 times faster
@@ -45,24 +44,23 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
 	</PropertyGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Include="LICENSE.txt" Pack="true" PackagePath="">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</EmbeddedResource>
+		<None Include="..\LICENSE.md">
+			<Pack>true</Pack>
+			<PackagePath>\</PackagePath>
+			<Visible>True</Visible>
+		</None>
 	</ItemGroup>
-  <ItemGroup>
-    <None Remove="Entities\czkb3gud.1xo~" />
-  </ItemGroup>
-
   <ItemGroup>
     <None Include="..\mikarsoft.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Include="..\README.md">
+    <EmbeddedResource Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-    </None>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
