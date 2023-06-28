@@ -24,6 +24,10 @@ Documentation:
 
  -Find Online Documentation here => [BlackHole Documentation](https://mikarsoft.com/BHDocumentation/index.html)
 
+Command Line Interface dotnet tool:
+
+ -Find BlackHole.Core.Cli here => [Nuget](https://www.nuget.org/packages/BlackHole.Core.Cli)
+
 Quick Start:
 
 - In Your project install Black.Hole.ORM from nuget
