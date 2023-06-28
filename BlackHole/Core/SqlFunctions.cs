@@ -110,6 +110,14 @@ namespace BlackHole.Core
             return true;
         }
 
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
         public static bool SqlEqualTo<TOther>(this byte[] property, Func<TOther, byte[]> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
         {
             return true;
@@ -750,9 +758,10 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// 
+        /// Gets the length of a text value of a column for
+        /// each line of the table , to compare it with a number.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">Value of the Column</param>
         public static int SqlLength(this string value)
         {
             return value.Length;

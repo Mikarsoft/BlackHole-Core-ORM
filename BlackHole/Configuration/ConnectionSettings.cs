@@ -96,6 +96,7 @@ namespace BlackHole.Configuration
         /// connection string.</para>
         /// </summary>
         /// <param name="connectionString">connection string to the database</param>
+        /// <param name="schema">The name of the schema</param>
         /// <returns>Additional Settings</returns>
         public ConnectionAdditionalSettings UseSqlServer(string connectionString, string schema)
         {
@@ -112,6 +113,7 @@ namespace BlackHole.Configuration
         /// connection string.</para>
         /// </summary>
         /// <param name="connectionString">connection string to the database</param>
+        /// <param name="schema">The name of the schema</param>
         /// <returns>Additional Settings</returns>
         public ConnectionAdditionalSettings UseNpgSql(string connectionString, string schema)
         {
