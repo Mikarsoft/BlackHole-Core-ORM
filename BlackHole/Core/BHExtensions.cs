@@ -755,7 +755,7 @@ namespace BlackHole.Core
                     SqlDatatypes = new[] { "nvarchar(500)", "int", "bigint", "decimal", "float" };
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    SqlDatatypes = new[] { "varchar", "int", "bigint", "dec", "double" };
+                    SqlDatatypes = new[] { "char(500)", "int", "bigint", "dec", "double" };
                     break;
                 case BlackHoleSqlTypes.Postgres:
                     SqlDatatypes = new[] { "varchar(500)", "integer", "bigint", "numeric(10,5)", "numeric" };
