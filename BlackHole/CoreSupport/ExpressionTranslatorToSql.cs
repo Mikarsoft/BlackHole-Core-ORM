@@ -610,7 +610,7 @@ namespace BlackHole.CoreSupport
                     parameter = $"{variable?[1]}{index}";
                     break;
                 case ExpressionType.Default:
-                    column = "1=1";
+                    column = "1 != 1";
                     break;
             }
 

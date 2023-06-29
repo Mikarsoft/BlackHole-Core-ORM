@@ -39,6 +39,7 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
 -Added Timeout Setting for the sql commands in the configuration's options.
 -Improved speed and reliability of the ExpressionToSql translator.
 -Fixed outer joins bug.</PackageReleaseNotes>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
