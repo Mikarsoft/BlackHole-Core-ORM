@@ -23,12 +23,12 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
     <NeutralLanguage>en</NeutralLanguage>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>6.0.1</AssemblyVersion>
-    <FileVersion>6.0.1</FileVersion>
+    <AssemblyVersion>6.0.2</AssemblyVersion>
+    <FileVersion>6.0.2</FileVersion>
   </PropertyGroup>
 	<PropertyGroup>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-		<Version>6.0.1</Version>
+		<Version>6.0.2</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>-Added Schema support for SqlServer and Postgres
 -Added support for the new BlackHole-Core-Cli , that adds the 'Database First' capability and more.
@@ -38,7 +38,8 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
 -Addes support for Nullable properties in the 'BlackHoleEntity'.
 -Added Timeout Setting for the sql commands in the configuration's options.
 -Improved speed and reliability of the ExpressionToSql translator.
--Fixed outer joins bug.</PackageReleaseNotes>
+-Fixed outer joins bug.
+-Fixed postgres parsing bug.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
 
