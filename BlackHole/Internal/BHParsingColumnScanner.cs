@@ -182,6 +182,12 @@ namespace BlackHole.Internal
             {
                 switch (tableColumnInfo.DataType.ToLower())
                 {
+                    case "int4":
+                        scanResult.PropertyNameForColumn = "int";
+                        break;
+                    case "serial":
+                        scanResult.PropertyNameForColumn = "int";
+                        break;
                     case "integer":
                         scanResult.PropertyNameForColumn = "int";
                         break;
@@ -205,8 +211,24 @@ namespace BlackHole.Internal
                     case "boolean":
                         scanResult.PropertyNameForColumn = "bool";
                         break;
+                    case "varchar":
+                        scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = " = string.Empty;";
+                        break;
+                    case "bit":
+                        scanResult.PropertyNameForColumn = "bool";
+                        break;
+                    case "bool":
+                        scanResult.PropertyNameForColumn = "bool";
+                        break;
                     case "smallint":
                         scanResult.PropertyNameForColumn = "short";
+                        break;
+                    case "int2":
+                        scanResult.PropertyNameForColumn = "short";
+                        break;
+                    case "int4":
+                        scanResult.PropertyNameForColumn = "int";
                         break;
                     case "integer":
                         scanResult.PropertyNameForColumn = "int";
@@ -214,10 +236,19 @@ namespace BlackHole.Internal
                     case "bigint":
                         scanResult.PropertyNameForColumn= "long";
                         break;
+                    case "int8":
+                        scanResult.PropertyNameForColumn = "long";
+                        break;
                     case "real":
                         scanResult.PropertyNameForColumn = "float";
                         break;
+                    case "float4":
+                        scanResult.PropertyNameForColumn = "float";
+                        break;
                     case "double":
+                        scanResult.PropertyNameForColumn = "double";
+                        break;
+                    case "float8":
                         scanResult.PropertyNameForColumn = "double";
                         break;
                     case "numeric":
@@ -267,9 +298,6 @@ namespace BlackHole.Internal
                         break;
                     case "interval":
                         scanResult.PropertyNameForColumn = "TimeSpan";
-                        break;
-                    case "bit":
-                        scanResult.PropertyNameForColumn = "bool";
                         break;
                     case "name":
                         scanResult.PropertyNameForColumn = "string";

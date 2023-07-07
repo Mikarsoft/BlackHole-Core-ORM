@@ -129,9 +129,8 @@ namespace BlackHole.Internal
                 EntityScript += " { \n";
                 EntityScript += $"\t public class {tableAspectInf.TableName} :";
 
-                foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns.Where(x=>x.ColumnName != "Inactive"))
+                foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns.Where(x=>x.ColumnName.ToLower() != "inactive"))
                 {
-
                     if (!columnInfo.PrimaryKey)
                     {
                         ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
