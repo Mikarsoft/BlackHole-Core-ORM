@@ -7,8 +7,19 @@ namespace BlackHole.Configuration
     /// </summary>
     public class BlackHoleSettings
     {
+        /// <summary>
+        /// set the default directory of BlackHole to store logs and data
+        /// </summary>
         public DataPathSettings directorySettings { get; set; } = new DataPathSettings();
+
+        /// <summary>
+        /// connection settings for the database
+        /// </summary>
         public ConnectionSettings connectionConfig { get; set; } = new ConnectionSettings();
+
+        /// <summary>
+        /// put BlackHole into developer mode
+        /// </summary>
         public bool isInDevMode { get; set; } = false;
 
         /// <summary>

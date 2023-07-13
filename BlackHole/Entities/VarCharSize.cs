@@ -7,6 +7,9 @@
     [AttributeUsage(AttributeTargets.Property)]
     public class VarCharSize : Attribute
     {
+        /// <summary>
+        /// Character Length of the char column
+        /// </summary>
         public int Charlength { get; set; }
 
         /// <summary>

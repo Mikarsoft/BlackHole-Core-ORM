@@ -6,6 +6,9 @@
     [AttributeUsage(AttributeTargets.Property)]
     public class NotNullable : Attribute
     {
+        /// <summary>
+        /// Nullability
+        /// </summary>
         public string IsNotNull = "NOT NULL";
 
         /// <summary>

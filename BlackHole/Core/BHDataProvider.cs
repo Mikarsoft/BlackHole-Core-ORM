@@ -9,6 +9,7 @@ namespace BlackHole.Core
     /// Makes all the communication between the Datbase Table and The Specified Entity
     /// </summary>
     /// <typeparam name="T">Black Hole Entity with Integer Id</typeparam>
+    /// <typeparam name="G">The type of Entity's Id</typeparam>
     public class BHDataProvider<T, G> : IBHDataProvider<T, G> where T : BlackHoleEntity<G>
     {
         private bool withActivator { get; }

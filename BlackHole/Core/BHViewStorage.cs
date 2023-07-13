@@ -2,6 +2,9 @@
 
 namespace BlackHole.Core
 {
+    /// <summary>
+    /// A class that contains methods to get the Stored  Views of BlackHole
+    /// </summary>
     public class BHViewStorage : IBHViewStorage
     {
         /// <summary>

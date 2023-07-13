@@ -6,7 +6,13 @@
     /// </summary>
     public abstract partial class BlackHoleScoped
     {
+        /// <summary>
+        /// The class of the service
+        /// </summary>
         public object ServiceType { get; set; }
+        /// <summary>
+        /// The Interface of the service
+        /// </summary>
         public object? InterfaceType { get; set; }
 
         /// <summary>

@@ -8,6 +8,7 @@
         /// <param name="Area">Method</param>
         /// <param name="Message">Error Title</param>
         /// <param name="Details">Error Details</param>
+        /// <param name="commandText">Command in text to execute</param>
         void CreateErrorLogs(string Area,string commandText, string Message, string Details);
     }
 }

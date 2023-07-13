@@ -6,7 +6,13 @@
     /// </summary>
     public abstract partial class BlackHoleTransient
     {
+        /// <summary>
+        /// The class of the Service
+        /// </summary>
         public Type ServiceType { get; set; }
+        /// <summary>
+        /// The interface of the Service
+        /// </summary>
         public Type? InterfaceType { get; set; }
 
         /// <summary>

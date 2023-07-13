@@ -239,6 +239,7 @@ namespace BlackHole.Core
         /// <typeparam name="Tsource">First Entity</typeparam>
         /// <typeparam name="TOther">Second Entity</typeparam>
         /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="TotherKey">Type of the Dto property</typeparam>
         /// <param name="data">Previous Joins Data</param>
         /// <param name="predicate">First Table Joint Column</param>
         /// <param name="castOnDto">Second Table Joint Column</param>
@@ -288,7 +289,8 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Class of the Output</typeparam>
         /// <typeparam name="Tsource">First Entity</typeparam>
         /// <typeparam name="TOther">Second Entity</typeparam>
-        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
+        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>        
+        /// <typeparam name="TotherKey">Type of the Dto property</typeparam>
         /// <param name="data">Previous Joins Data</param>
         /// <param name="predicate">First Table Joint Column</param>
         /// <param name="castOnDto">Second Table Joint Column</param>
@@ -331,7 +333,6 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Class of the Output</typeparam>
         /// <typeparam name="Tsource">First Entity</typeparam>
         /// <typeparam name="TOther">Second Entity</typeparam>
-        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
         /// <param name="data">Previous Joins Data</param>
         /// <param name="predicate">First Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
@@ -368,7 +369,6 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Class of the Output</typeparam>
         /// <typeparam name="Tsource">First Entity</typeparam>
         /// <typeparam name="TOther">Second Entity</typeparam>
-        /// <typeparam name="Tkey">Type of their Joint Column</typeparam>
         /// <param name="data">Previous Joins Data</param>
         /// <param name="predicate">First Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
@@ -505,6 +505,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
+        /// <param name="bHTransaction">Transaction object</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : BlackHoleDto
         {
@@ -565,6 +566,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
+        /// <param name="bHTransaction">Transaction object</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : BlackHoleDto
         {
@@ -621,6 +623,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
+        /// <param name="bHTransaction">Transaction object</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data, BHTransaction bHTransaction) where Dto : BlackHoleDto
         {
@@ -673,6 +676,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
+        /// <param name="bHTransaction">Transaction object</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data, BHTransaction bHTransaction) where Dto : BlackHoleDto
         {

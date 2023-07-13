@@ -11,6 +11,9 @@
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class UseActivator : Attribute
     {
+        /// <summary>
+        /// use inactive column as flag
+        /// </summary>
         public bool useActivator = true;
     }
 }

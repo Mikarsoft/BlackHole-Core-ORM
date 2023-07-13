@@ -4,9 +4,18 @@ using System.Data;
 
 namespace BlackHole.CoreSupport
 {
+    /// <summary>
+    /// Transaction Object
+    /// </summary>
     public class BlackHoleTransaction : IDisposable
     {
+        /// <summary>
+        /// Generic connection
+        /// </summary>
         public IDbConnection connection;
+        /// <summary>
+        /// Generic transaction
+        /// </summary>
         public IDbTransaction _transaction;
         private ILoggerService _loggerService;
         private bool commited = false;
@@ -60,6 +69,9 @@ namespace BlackHole.CoreSupport
             return result;
         }
 
+        /// <summary>
+        /// Commit uncommited transaction. Dispose the connection and the transaction
+        /// </summary>
         public void Dispose()
         {
             try

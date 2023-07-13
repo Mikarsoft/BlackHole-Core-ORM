@@ -25,6 +25,7 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
     <RepositoryType>git</RepositoryType>
     <AssemblyVersion>6.0.2</AssemblyVersion>
     <FileVersion>6.0.2</FileVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 	<PropertyGroup>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>

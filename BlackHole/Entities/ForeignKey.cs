@@ -6,9 +6,21 @@
     [AttributeUsage(AttributeTargets.Property)]
     public class ForeignKey : Attribute
     {
+        /// <summary>
+        /// Name of the Foreign Table
+        /// </summary>
         public string TableName { get; set; }
+        /// <summary>
+        /// Name of the column
+        /// </summary>
         public string Column { get; set; }
+        /// <summary>
+        /// Nullability
+        /// </summary>
         public string IsNullable { get; set; }
+        /// <summary>
+        /// On Delete
+        /// </summary>
         public string CascadeInfo { get; set; }
 
         /// <summary>

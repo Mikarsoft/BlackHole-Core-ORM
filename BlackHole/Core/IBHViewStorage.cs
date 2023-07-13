@@ -3,6 +3,10 @@ using BlackHole.Entities;
 
 namespace BlackHole.Core
 {
+    /// <summary>
+    /// An Interface that contains methods to let you get the
+    /// stored Views of BlackHole
+    /// </summary>
     public interface IBHViewStorage
     {
         /// <summary>
