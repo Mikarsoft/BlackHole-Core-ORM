@@ -13,12 +13,18 @@ namespace BlackHole.CoreSupport
         internal int Index { get; set; }
         internal bool SkipQuotes { get; set; }
         private bool wasTranslated { get; set; }
+        internal string schemaName { get; set; } = string.Empty;
 
         internal SqlFunctionsReader(MethodExpressionData MethodData, int index, string? letter, bool isMyShit)
         {
             if (!string.IsNullOrWhiteSpace(letter))
             {
                 Letter = $"{letter}.";
+            }
+
+            if (!string.IsNullOrEmpty(DatabaseStatics.DatabaseSchema))
+            {
+                schemaName = $"{DatabaseStatics.DatabaseSchema}.";
             }
 
             wasTranslated = false;
@@ -64,7 +70,7 @@ namespace BlackHole.CoreSupport
                             {
                                 ParamName = $"OtherId{Index}";
                                 Value = NumericMethodData.MethodArguments[1];
-                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {schemaName}{aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
                                 SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
                                 wasTranslated = true;
                             }
@@ -79,7 +85,7 @@ namespace BlackHole.CoreSupport
                         if(tableProperty.Length >1 && compareProperty.Length > 1)
                         {
                             string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
-                            string SelectAverage = $"( Select AVG({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
+                            string SelectAverage = $"( Select AVG({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {schemaName}{NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
                             SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} {operationType} {SelectAverage} ";
                             wasTranslated = true;
                         }
@@ -163,7 +169,7 @@ namespace BlackHole.CoreSupport
                         string[] tableProperty = NumericMethodData.CastedOn.ToString().Split(".");
                         if (tableProperty.Length > 1)
                         {
-                            string SelectAverage = $"( Select MAX({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
+                            string SelectAverage = $"( Select MAX({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {schemaName}{NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
                             SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectAverage} ";
                             wasTranslated = true;
                         }
@@ -175,7 +181,7 @@ namespace BlackHole.CoreSupport
                         string[] tableProperty = NumericMethodData.CastedOn.ToString().Split(".");
                         if (tableProperty.Length > 1)
                         {
-                            string SelectAverage = $"( Select MIN({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
+                            string SelectAverage = $"( Select MIN({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {schemaName}{NumericMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
                             SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectAverage} ";
                             wasTranslated = true;
                         }
@@ -303,7 +309,7 @@ namespace BlackHole.CoreSupport
                             {
                                 ParamName = $"OtherId{Index}";
                                 Value = StringMethodData.MethodArguments[1];
-                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {schemaName}{aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
                                 SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
                                 wasTranslated = true;
                             }
@@ -420,7 +426,7 @@ namespace BlackHole.CoreSupport
                             {
                                 ParamName = $"OtherId{Index}";
                                 Value = DateMethodData.MethodArguments[1];
-                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {schemaName}{aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
                                 SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
                                 wasTranslated = true;
                             }
