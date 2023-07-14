@@ -13,6 +13,6 @@ namespace BlackHole.Services
         /// create stored procedures in a newly created database
         /// </summary>
         /// <param name="initializer">A data provider that accepts custom sql commands or sql files</param>
-        void DefaultData(BHDataInitializer initializer);
+        public void DefaultData(BHDataInitializer initializer);
     }
 }
