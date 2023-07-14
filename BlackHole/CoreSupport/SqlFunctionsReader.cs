@@ -461,6 +461,30 @@ namespace BlackHole.CoreSupport
                         }
                     }
                     break;
+                case "SqlMax":
+                    if (DateMethodData.CastedOn != null)
+                    {
+                        string[] tableProperty = DateMethodData.CastedOn.ToString().Split(".");
+                        if (tableProperty.Length > 1)
+                        {
+                            string SelectAverage = $"( Select MAX({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {schemaName}{DateMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
+                            SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectAverage} ";
+                            wasTranslated = true;
+                        }
+                    }
+                    break;
+                case "SqlMin":
+                    if (DateMethodData.CastedOn != null)
+                    {
+                        string[] tableProperty = DateMethodData.CastedOn.ToString().Split(".");
+                        if (tableProperty.Length > 1)
+                        {
+                            string SelectAverage = $"( Select MIN({tableProperty[1].SkipNameQuotes(SkipQuotes)}) from {schemaName}{DateMethodData.TableName.SkipNameQuotes(SkipQuotes)} )";
+                            SqlCommand = $" {Letter}{tableProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectAverage} ";
+                            wasTranslated = true;
+                        }
+                    }
+                    break;
             }
         }
 

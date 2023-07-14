@@ -23,13 +23,13 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
     <NeutralLanguage>en</NeutralLanguage>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>6.0.2</AssemblyVersion>
-    <FileVersion>6.0.2</FileVersion>
+    <AssemblyVersion>6.0.3</AssemblyVersion>
+    <FileVersion>6.0.3</FileVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 	<PropertyGroup>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-		<Version>6.0.2</Version>
+		<Version>6.0.3</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>-Added Schema support for SqlServer and Postgres
 -Added support for the new BlackHole-Core-Cli , that adds the 'Database First' capability and more.
