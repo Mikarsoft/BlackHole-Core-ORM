@@ -2,16 +2,11 @@
 A fully automated, very easy to use and setup, with many new features, Object Relational Mapping Library, for .Net Core 6 and 7. Using Custom Data Providers that are 3x times faster than EF Core and Dapper. Many interfaces for easy Reading and Writing Data. Extention Methods for Joining any tables.
 It Supports SQL SERVER, MYSQL, POSTGRESQL, ORACLE and SQLITE.
 
+Version 6.0.3
+
 Changes:
-- Added Schema support for SqlServer and Postgres
-- Added support for the new [BlackHole-Core-Cli](https://github.com/Mikarsoft/BlackHole-Core-Cli) , that adds the 'Database First' capability and more.
-- Added support for some famous sql funtions in the 'Where' statement.
-- Added support for other custom methods and popular dotnet methods in the 'Where' statement. Like => string.Contains(), string.Replace() etc.
-- Added Initial Data support using the interface 'IBHInitialData' you can run insert commands on the creation of your database and store some default data. It can also load sql commands from files.
-- Addes support for Nullable properties in the 'BlackHoleEntity'.
-- Added Timeout Setting for the sql commands in the configuration's options.
-- Improved speed and reliability of the ExpressionToSql translator.
-- Fixed outer joins bug.
+- Added Schema Support for Sql Helper functions
+- Added Max and Min Date Sql Helper functions
 
 
 Example:
