@@ -7,6 +7,7 @@ Version 6.0.3
 Changes:
 - Added Schema Support for Sql Helper functions
 - Added Max and Min Date Sql Helper functions
+- Fixed the descriptions of the methods
 
 
 Example:
@@ -24,6 +25,7 @@ Documentation:
 Command Line Interface dotnet tool:
 
  -Find BlackHole.Core.Cli here => [Nuget](https://www.nuget.org/packages/BlackHole.Core.Cli)
+
 
 Quick Start:
 
@@ -58,6 +60,3 @@ Quick Start:
    
    * The Ids are created automatically on Insert and they get returned.
    * The cascade on Foreign keys is automatic and it depends on the Nullability of the column
-   
- I will soon upload here a more detailed guide of all the functionalities of this ORM, such as Stored Views and Joins
- and automatic mapping on DTOs or Updating Specific Columns.
