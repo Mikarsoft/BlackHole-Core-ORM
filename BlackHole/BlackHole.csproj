@@ -32,7 +32,8 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
 		<Version>6.0.3</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>- Added Schema Support for Sql Helper functions
-- Added Max and Min Date Sql Helper functions</PackageReleaseNotes>
+- Added Max and Min Date Sql Helper functions
+- Fixed the descriptions of the methods</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
 

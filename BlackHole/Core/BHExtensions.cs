@@ -756,41 +756,53 @@ namespace BlackHole.Core
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    SqlDatatypes = new[] { "nvarchar(500)", "int", "bigint", "decimal", "float" };
+                    SqlDatatypes = new[] { "nvarchar(4000)", "int", "bigint", "decimal", "float" };
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    SqlDatatypes = new[] { "char(500)", "int", "bigint", "dec", "double" };
+                    SqlDatatypes = new[] { "char(2000)", "int", "bigint", "dec", "double" };
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    SqlDatatypes = new[] { "varchar(500)", "integer", "bigint", "numeric(10,5)", "numeric" };
+                    SqlDatatypes = new[] { "varchar(4000)", "integer", "bigint", "numeric(10,5)", "numeric" };
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    SqlDatatypes = new[] { "varchar(500)", "integer", "bigint", "decimal(10,5)", "numeric" };
+                    SqlDatatypes = new[] { "varchar(4000)", "integer", "bigint", "decimal(10,5)", "numeric" };
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    SqlDatatypes = new[] { "varchar2(500)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number" };
+                    SqlDatatypes = new[] { "varchar2(4000)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number" };
                     break;
             }
 
-            string result = string.Empty;
+            string result = SqlDatatypes[0];
+            string? TypeName = type?.Name;
 
-            switch (type?.Name)
+            if(type != null && !string.IsNullOrEmpty(TypeName))
             {
-                case "Int32":
-                    result = SqlDatatypes[1];
-                    break;
-                case "Int64":
-                    result = SqlDatatypes[2];
-                    break;
-                case "Decimal":
-                    result = SqlDatatypes[3];
-                    break;
-                case "Double":
-                    result = SqlDatatypes[4];
-                    break;
-                default:
-                    result = SqlDatatypes[0];
-                    break;
+                if (TypeName.Contains("Nullable"))
+                {
+                    if (type?.GenericTypeArguments != null && type?.GenericTypeArguments.Length > 0)
+                    {
+                        TypeName = type.GenericTypeArguments[0].Name;
+                    }
+                }
+
+                switch (TypeName)
+                {
+                    case "Int32":
+                        result = SqlDatatypes[1];
+                        break;
+                    case "Int64":
+                        result = SqlDatatypes[2];
+                        break;
+                    case "Decimal":
+                        result = SqlDatatypes[3];
+                        break;
+                    case "Double":
+                        result = SqlDatatypes[4];
+                        break;
+                    default:
+                        result = SqlDatatypes[0];
+                        break;
+                }
             }
 
             return result;
