@@ -15,7 +15,7 @@ namespace BlackHole.DataProviders
         private readonly BlackHoleIdTypes _idType;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
-        private string TableName = string.Empty;
+        private readonly string TableName = string.Empty;
 
         internal SqLiteDataProvider(string connectionString, BlackHoleIdTypes idType, string tableName)
         {
@@ -40,11 +40,11 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                G? Id = default(G);
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                G? Id = default;
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     object? Result = Command.ExecuteScalar();
@@ -60,7 +60,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"Insert_{TableName}", commandText, ex.Message, ex.ToString())).Start();
-                return default(G);
+                return default;
             }
         }
 
@@ -68,11 +68,11 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                G? Id = default(G);
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                G? Id = default;
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     object? Result = await Command.ExecuteScalarAsync();
@@ -88,7 +88,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"InsertAsync_{TableName}", commandText, ex.Message, ex.ToString())).Start();
-                return default(G);
+                return default;
             }
         }
 
@@ -98,7 +98,7 @@ namespace BlackHole.DataProviders
             {
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
 
                 ObjectToParameters(entry, Command.Parameters);
 
@@ -113,7 +113,7 @@ namespace BlackHole.DataProviders
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"Insert_{TableName}", commandText, ex.Message, ex.ToString())).Start();
             }
-            return default(G);
+            return default;
         }
 
         private async Task<G?> ExecuteEntryScalarAsync<T, G>(string commandText, T entry, BlackHoleTransaction bhTransaction)
@@ -122,7 +122,7 @@ namespace BlackHole.DataProviders
             {
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
 
                 ObjectToParameters(entry, Command.Parameters);
 
@@ -137,7 +137,7 @@ namespace BlackHole.DataProviders
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"InsertAsync_{TableName}", commandText, ex.Message, ex.ToString())).Start();
             }
-            return default(G);
+            return default;
         }
         #endregion
 
@@ -162,7 +162,7 @@ namespace BlackHole.DataProviders
                 }
                 else
                 {
-                    return default(G);
+                    return default;
                 }
             }
             else
@@ -184,7 +184,7 @@ namespace BlackHole.DataProviders
                 }
                 else
                 {
-                    return default(G);
+                    return default;
                 }
             }
             else
@@ -206,7 +206,7 @@ namespace BlackHole.DataProviders
                 }
                 else
                 {
-                    return default(G);
+                    return default;
                 }
             }
             else
@@ -228,7 +228,7 @@ namespace BlackHole.DataProviders
                 }
                 else
                 {
-                    return default(G);
+                    return default;
                 }
             }
             else
@@ -239,7 +239,7 @@ namespace BlackHole.DataProviders
 
         public async Task<List<G?>> MultiInsertScalarAsync<T, G>(string commandStart, string commandEnd, List<T> entries, BlackHoleTransaction bhTransaction)
         {
-            List<G?> Ids = new List<G?>();
+            List<G?> Ids = new();
 
             if (useGenerator)
             {
@@ -255,7 +255,7 @@ namespace BlackHole.DataProviders
                     }
                     else
                     {
-                        Ids.Add(default(G));
+                        Ids.Add(default);
                     }
                 }
             }
@@ -274,7 +274,7 @@ namespace BlackHole.DataProviders
 
         public List<G?> MultiInsertScalar<T, G>(string commandStart, string commandEnd, List<T> entries, BlackHoleTransaction bhTransaction)
         {
-            List<G?> Ids = new List<G?>();
+            List<G?> Ids = new();
 
             if (useGenerator)
             {
@@ -290,7 +290,7 @@ namespace BlackHole.DataProviders
                     }
                     else
                     {
-                        Ids.Add(default(G));
+                        Ids.Add(default);
                     }
                 }
             }
@@ -311,10 +311,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -333,10 +333,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ObjectToParameters(entry, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -357,7 +357,7 @@ namespace BlackHole.DataProviders
             {
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
                 ObjectToParameters(entry, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -376,7 +376,7 @@ namespace BlackHole.DataProviders
             {
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
                 ObjectToParameters(entry, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -395,7 +395,7 @@ namespace BlackHole.DataProviders
             {
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -412,10 +412,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -437,7 +437,7 @@ namespace BlackHole.DataProviders
             {
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -454,10 +454,10 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -477,12 +477,12 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (SqliteDataReader DataReader = Command.ExecuteReader())
@@ -505,7 +505,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"SelectFirst_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -513,12 +513,12 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (SqliteDataReader DataReader = Command.ExecuteReader())
@@ -548,12 +548,12 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (SqliteDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -576,7 +576,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"SelectFirstAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -584,12 +584,12 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
-                using (SqliteConnection connection = new SqliteConnection(_connectionString))
+                using (SqliteConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    SqliteCommand Command = new SqliteCommand(commandText, connection);
+                    SqliteCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (SqliteDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -619,11 +619,11 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
                 SqliteConnection? connection = bHTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bHTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (SqliteDataReader DataReader = Command.ExecuteReader())
@@ -644,7 +644,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"SelectFirst_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -652,11 +652,11 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
                 SqliteConnection? connection = bHTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bHTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (SqliteDataReader DataReader = Command.ExecuteReader())
@@ -684,11 +684,11 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
                 SqliteConnection? connection = bHTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bHTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (SqliteDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -709,7 +709,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"SelectFirstAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -717,11 +717,11 @@ namespace BlackHole.DataProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
                 SqliteConnection? connection = bHTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bHTransaction._transaction as SqliteTransaction;
-                SqliteCommand Command = new SqliteCommand(commandText, connection, transaction);
+                SqliteCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (SqliteDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -812,7 +812,7 @@ namespace BlackHole.DataProviders
             }
         }
 
-        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, SqliteParameterCollection parameters)
+        private static void ArrayToParameters(List<BlackHoleParameter>? bhParameters, SqliteParameterCollection parameters)
         {
             if (bhParameters != null)
             {
@@ -839,7 +839,7 @@ namespace BlackHole.DataProviders
             }
         }
 
-        private void ObjectToParameters<T>(T item, SqliteParameterCollection parameters)
+        private static void ObjectToParameters<T>(T item, SqliteParameterCollection parameters)
         {
             PropertyInfo[] propertyInfos = typeof(T).GetProperties();
 

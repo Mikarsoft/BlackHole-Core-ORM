@@ -34,7 +34,7 @@ namespace BlackHole.Core
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
         {
-            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
+            JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
                 BaseTable = data.BaseTable,
                 OccupiedDtoProps = data.OccupiedDtoProps,
@@ -70,7 +70,7 @@ namespace BlackHole.Core
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
         {
-            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
+            JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
                 BaseTable = data.BaseTable,
                 OccupiedDtoProps = data.OccupiedDtoProps,
@@ -106,7 +106,7 @@ namespace BlackHole.Core
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable
         {
-            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
+            JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
                 BaseTable = data.BaseTable,
                 OccupiedDtoProps = data.OccupiedDtoProps,
@@ -142,7 +142,7 @@ namespace BlackHole.Core
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
             where TOther : BlackHoleEntity where Tsource : BlackHoleEntity where Tkey : IComparable where Dto : BlackHoleDto
         {
-            JoinsData<Dto, Tsource, TOther> newJoin = new JoinsData<Dto, Tsource, TOther>
+            JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
                 BaseTable = data.BaseTable,
                 OccupiedDtoProps = data.OccupiedDtoProps,
@@ -480,23 +480,13 @@ namespace BlackHole.Core
         {
             if (data.DtoType == typeof(Dto))
             {
-                string commandText = "";
-                try
-                {
-                    IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
-                    data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
-                    TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                    string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                    commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                    return connection.Query<Dto>(commandText, data.DynamicParams);
-                }
-                catch (Exception ex)
-                {
-                    LoggerService logs = new LoggerService();
-                    logs.CreateErrorLogs($"ViewExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
-                }
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                return connection.Query<Dto>(commandText, data.DynamicParams);
             }
-
             return new List<Dto>();
         }
 
@@ -511,22 +501,12 @@ namespace BlackHole.Core
         {
             if (data.DtoType == typeof(Dto))
             {
-                string commandText = "";
-                try
-                {
-                    IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
-                    data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
-                    TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                    string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                    commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                    return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
-
-                }
-                catch (Exception ex)
-                {
-                    LoggerService logs = new LoggerService();
-                    logs.CreateErrorLogs($"ViewExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
-                }
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
             }
             return new List<Dto>();
         }
@@ -541,21 +521,12 @@ namespace BlackHole.Core
         {
             if (data.DtoType == typeof(Dto))
             {
-                string commandText = "";
-                try
-                {
-                    IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
-                    data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
-                    TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                    string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                    commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                    return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
-                }
-                catch (Exception ex)
-                {
-                    LoggerService logs = new LoggerService();
-                    logs.CreateErrorLogs($"ViewExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
-                }
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
             }
 
             return new List<Dto>();
@@ -572,22 +543,12 @@ namespace BlackHole.Core
         {
             if (data.DtoType == typeof(Dto))
             {
-                string commandText = "";
-                try
-                {
-                    IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
-                    data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
-                    TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                    string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                    commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                    return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
-
-                }
-                catch (Exception ex)
-                {
-                    LoggerService logs = new LoggerService();
-                    logs.CreateErrorLogs($"ViewExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
-                }
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
             }
             return new List<Dto>();
         }
@@ -600,22 +561,12 @@ namespace BlackHole.Core
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleDto
         {
-            string commandText = "";
-            try
-            {
-                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
-                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
-                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                return connection.Query<Dto>(commandText, data.DynamicParams);
-            }
-            catch (Exception ex)
-            {
-                LoggerService logs = new LoggerService();
-                logs.CreateErrorLogs($"JoinExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
-                return new List<Dto>();
-            }
+            IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+            data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+            TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+            string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            return connection.Query<Dto>(commandText, data.DynamicParams);
         }
 
         /// <summary>
@@ -627,22 +578,12 @@ namespace BlackHole.Core
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data, BHTransaction bHTransaction) where Dto : BlackHoleDto
         {
-            string commandText = "";
-            try
-            {
-                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
-                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
-                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
-            }
-            catch (Exception ex)
-            {
-                LoggerService logs = new LoggerService();
-                logs.CreateErrorLogs($"JoinExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
-                return new List<Dto>();
-            }
+            IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+            data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+            TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+            string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
         }
 
         /// <summary>
@@ -653,22 +594,12 @@ namespace BlackHole.Core
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleDto
         {
-            string commandText = "";
-            try
-            {
-                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
-                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
-                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
-            }
-            catch (Exception ex)
-            {
-                LoggerService logs = new LoggerService();
-                logs.CreateErrorLogs($"JoinExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
-                return new List<Dto>();
-            }
+            IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+            data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+            TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+            string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
         }
 
         /// <summary>
@@ -680,22 +611,12 @@ namespace BlackHole.Core
         /// <returns>The Entries of the Joins mapped into DTO</returns>
         public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data, BHTransaction bHTransaction) where Dto : BlackHoleDto
         {
-            string commandText = "";
-            try
-            {
-                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
-                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
-                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
-                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
-                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
-            }
-            catch (Exception ex)
-            {
-                LoggerService logs = new LoggerService();
-                logs.CreateErrorLogs($"JoinExecution_{typeof(Dto).Name}", commandText, ex.Message, ex.ToString());
-                return new List<Dto>();
-            }
+            IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+            data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+            TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+            string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
         }
 
         #endregion
@@ -732,45 +653,27 @@ namespace BlackHole.Core
 
             foreach (PropertyOccupation prop in usedProperties.Where(x => x.Occupied))
             {
-                switch (prop.WithCast)
+                sqlCommand += prop.WithCast switch
                 {
-                    case 1:
-                        sqlCommand += $" {prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropName.SqlPropertyName(isMyShit)},";
-                        break;
-                    case 2:
-                        sqlCommand += $" cast({prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SqlPropertyName(isMyShit)},";
-                        break;
-                    default:
-                        sqlCommand += $" {prop.TableLetter}.{prop.PropName.SqlPropertyName(isMyShit)},";
-                        break;
-                }
+                    1 => $" {prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropName.SqlPropertyName(isMyShit)},",
+                    2 => $" cast({prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SqlPropertyName(isMyShit)},",
+                    _ => $" {prop.TableLetter}.{prop.PropName.SqlPropertyName(isMyShit)},",
+                };
             }
 
-            return sqlCommand.Substring(0, sqlCommand.Length - 1);
+            return sqlCommand[..^1];
         }
 
         private static string SqlTypeFromType(this Type? type)
         {
-            string[] SqlDatatypes = new string[5];
-
-            switch (DatabaseStatics.DatabaseType)
+            string[] SqlDatatypes = DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    SqlDatatypes = new[] { "nvarchar(4000)", "int", "bigint", "decimal", "float" };
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    SqlDatatypes = new[] { "char(2000)", "int", "bigint", "dec", "double" };
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    SqlDatatypes = new[] { "varchar(4000)", "integer", "bigint", "numeric(10,5)", "numeric" };
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    SqlDatatypes = new[] { "varchar(4000)", "integer", "bigint", "decimal(10,5)", "numeric" };
-                    break;
-                case BlackHoleSqlTypes.Oracle:
-                    SqlDatatypes = new[] { "varchar2(4000)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number" };
-                    break;
-            }
+                BlackHoleSqlTypes.SqlServer => new[] { "nvarchar(4000)", "int", "bigint", "decimal", "float" },
+                BlackHoleSqlTypes.MySql => new[] { "char(2000)", "int", "bigint", "dec", "double" },
+                BlackHoleSqlTypes.Postgres => new[] { "varchar(4000)", "integer", "bigint", "numeric(10,5)", "numeric" },
+                BlackHoleSqlTypes.SqlLite => new[] { "varchar(4000)", "integer", "bigint", "decimal(10,5)", "numeric" },
+                _ => new[] { "varchar2(4000)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number" },
+            };
 
             string result = SqlDatatypes[0];
             string? TypeName = type?.Name;
@@ -785,24 +688,14 @@ namespace BlackHole.Core
                     }
                 }
 
-                switch (TypeName)
+                result = TypeName switch
                 {
-                    case "Int32":
-                        result = SqlDatatypes[1];
-                        break;
-                    case "Int64":
-                        result = SqlDatatypes[2];
-                        break;
-                    case "Decimal":
-                        result = SqlDatatypes[3];
-                        break;
-                    case "Double":
-                        result = SqlDatatypes[4];
-                        break;
-                    default:
-                        result = SqlDatatypes[0];
-                        break;
-                }
+                    "Int32" => SqlDatatypes[1],
+                    "Int64" => SqlDatatypes[2],
+                    "Decimal" => SqlDatatypes[3],
+                    "Double" => SqlDatatypes[4],
+                    _ => SqlDatatypes[0],
+                };
             }
 
             return result;
@@ -810,26 +703,14 @@ namespace BlackHole.Core
 
         private static IExecutionProvider GetConnectionExtension(this BlackHoleSqlTypes connectionType)
         {
-            IExecutionProvider provider;
-            switch (connectionType)
+            return connectionType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    provider = new SqlServerExecutionProvider(DatabaseStatics.ConnectionString);
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    provider = new MySqlExecutionProvider(DatabaseStatics.ConnectionString);
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    provider = new PostgresExecutionProvider(DatabaseStatics.ConnectionString);
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    provider = new SqLiteExecutionProvider(DatabaseStatics.ConnectionString);
-                    break;
-                default:
-                    provider = new OracleExecutionProvider(DatabaseStatics.ConnectionString);
-                    break;
-            }
-            return provider;
+                BlackHoleSqlTypes.SqlServer => new SqlServerExecutionProvider(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.MySql => new MySqlExecutionProvider(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.Postgres => new PostgresExecutionProvider(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.SqlLite => new SqLiteExecutionProvider(DatabaseStatics.ConnectionString),
+                _ => new OracleExecutionProvider(DatabaseStatics.ConnectionString),
+            };
         }
 
         private static JoinsData<Dto, Tsource, TOther> CreateJoin<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data, LambdaExpression key, LambdaExpression otherKey, string joinType)
@@ -899,8 +780,8 @@ namespace BlackHole.Core
 
         private static List<PropertyOccupation> BindPropertiesToDtoExtension(this List<PropertyOccupation> props, Type firstTable, Type secondTable, string? paramA, string? paramB)
         {
-            List<string> PropNames = new List<string>();
-            List<string> OtherPropNames = new List<string>();
+            List<string> PropNames = new();
+            List<string> OtherPropNames = new();
 
             foreach (PropertyInfo prop in firstTable.GetProperties())
             {

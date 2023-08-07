@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Linq.Expressions;
 using BlackHole.CoreSupport;
+using System.Text;
 
 namespace BlackHole.Core
 {
@@ -12,344 +13,276 @@ namespace BlackHole.Core
     /// <typeparam name="G">The type of Entity's Id</typeparam>
     public class BHDataProvider<T, G> : IBHDataProvider<T, G> where T : BlackHoleEntity<G>
     {
-        private bool withActivator { get; }
-        private string ThisTable { get; } = string.Empty;
-        private List<string> Columns { get; } = new List<string>();
-        private string PropertyNames { get; } = string.Empty;
-        private string PropertyParams { get; } = string.Empty;
-        private string UpdateParams { get; } = string.Empty;
-        private string ThisId { get; } = string.Empty;
-        private string ThisInactive { get; } = string.Empty;
-        private bool isMyShit { get; }
+        private bool WithActivator { get; }
+        private string ThisTable { get; }
+        private List<string> Columns { get; } = new();
+        private string PropertyNames { get; }
+        private string PropertyParams { get; }
+        private string UpdateParams { get; }
+        private string ThisId { get; }
+        private string ThisInactive { get; }
+        private bool IsMyShit { get; }
 
-        private IBHDataProviderSelector _dataProviderSelector;
-        private IDataProvider _dataProvider;
+        private readonly StringBuilder PNsb = new();
+        private readonly BHParameters Params = new();
+
+        private readonly IBHDataProviderSelector _dataProviderSelector;
+        private readonly IDataProvider _dataProvider;
 
         /// <summary>
         /// Create a Data Provider that Automatically Communicates with the Database Using the Black Hole Entity you pass in.
         /// </summary>
         public BHDataProvider()
         {
-            Type _type = typeof(T);
-            string name = _type.Name;
-
-            var attributes = _type.GetCustomAttributes(true);
-            var attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(UseActivator));
-
-            if (attribute != null)
+            if (typeof(T).GetCustomAttributes(true).SingleOrDefault(x => x.GetType() == typeof(UseActivator)) != null)
             {
-                withActivator = true;
+                WithActivator = true;
             }
 
             _dataProviderSelector = new BHDataProviderSelector();
-            _dataProvider = _dataProviderSelector.GetDataProvider(typeof(G),name);
-            isMyShit = _dataProvider.SkipQuotes();
+            _dataProvider = _dataProviderSelector.GetDataProvider(typeof(G), typeof(T).Name);
+            IsMyShit = _dataProvider.SkipQuotes();
 
-            ThisTable = $"{_dataProviderSelector.GetDatabaseSchema()}{MyShit(name)}";
+            ThisTable = $"{_dataProviderSelector.GetDatabaseSchema()}{MyShit(typeof(T).Name)}";
             ThisId = MyShit("Id");
             ThisInactive = MyShit("Inactive");
 
-            IList<PropertyInfo> props = new List<PropertyInfo>(_type.GetProperties());
+            PNsb.Clear();
+            StringBuilder PPsb = PNsb;
+            StringBuilder UPsb = PNsb;
 
-            foreach (PropertyInfo prop in props)
+            foreach (PropertyInfo prop in typeof(T).GetProperties())
             {
-
                 if (prop.Name != "Inactive")
                 {
                     if (prop.Name != "Id")
                     {
                         string property = MyShit(prop.Name);
-                        PropertyNames += $", {property}";
-                        PropertyParams += $", @{prop.Name}";
-                        UpdateParams += $",{property} = @{prop.Name}";
+                        PNsb.Append($", {property}");
+                        PPsb.Append($", @{prop.Name}");
+                        UPsb.Append($",{property} = @{prop.Name}");
                     }
-
                     Columns.Add(prop.Name);
                 }
             }
 
-            PropertyNames += " ";
-            PropertyParams += " ";
-            UpdateParams += " ";
-            PropertyNames = PropertyNames.Remove(0, 1);
-            PropertyParams = PropertyParams.Remove(0, 1);
-            UpdateParams = UpdateParams.Remove(0, 1);
+            PNsb.Append(' ');
+            PPsb.Append(' ');
+            UPsb.Append(' ');
+
+            PropertyNames = PNsb.ToString().Remove(0, 1);
+            PropertyParams = PPsb.ToString().Remove(0, 1);
+            UpdateParams = UPsb.ToString().Remove(0, 1);
+            PNsb.Clear();
         }
 
         List<T> IBHDataProvider<T, G>.GetAllEntries()
         {
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable}";
-
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0";
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null);
             }
-
-            return _dataProvider.Query<T>(SubCommand, null);
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllEntries(BHTransaction bhTransaction)
         {
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable}";
-
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0";
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
             }
-
-            return _dataProvider.Query<T>(SubCommand, null, bhTransaction.transaction);
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null, bhTransaction.transaction);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>() where Dto : class
         {
-            string colsAndParams = CompareDtoToEntity(typeof(Dto));
-
-            string SubCommand = $"select {colsAndParams} from {ThisTable}";
-
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0";
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0", null);
             }
-
-            return _dataProvider.Query<Dto>(SubCommand, null);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable}", null);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(BHTransaction bhTransaction) where Dto : class
         {
-            string colsAndParams = CompareDtoToEntity(typeof(Dto));
-
-            string SubCommand = $"select {colsAndParams} from {ThisTable}";
-
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0";
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
             }
-
-            return _dataProvider.Query<Dto>(SubCommand, null, bhTransaction.transaction);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable}", null, bhTransaction.transaction);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllInactiveEntries()
         {
-            List<T> entries = new List<T>();
-
-            if (withActivator)
+            if (WithActivator)
             {
-                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1";
-                entries = _dataProvider.Query<T>(SubCommand, null);
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1", null);
             }
-
-            return entries;
+            return new List<T>();
         }
 
         List<T> IBHDataProvider<T, G>.GetAllInactiveEntries(BHTransaction bhTransaction)
         {
-            List<T> entries = new List<T>();
-
-            if (withActivator)
+            if (WithActivator)
             {
-                string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1";
-                entries = _dataProvider.Query<T>(SubCommand, null, bhTransaction.transaction);
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1", null, bhTransaction.transaction);
             }
-
-            return entries;
+            return new List<T>();
         }
 
         T? IBHDataProvider<T, G>.GetEntryById(G Id)
         {
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id";
-
-            BHParameters parameters = new BHParameters();
-            parameters.Add("Id", Id);
-
-            if (withActivator)
+            Params.Clear();
+            Params.Add("Id", Id);
+            
+            if (WithActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
+                return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters);
             }
-
-            return _dataProvider.QueryFirst<T>(SubCommand, parameters.Parameters);
+            return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id", Params.Parameters);
         }
 
         T? IBHDataProvider<T, G>.GetEntryById(G Id, BHTransaction bhTransaction)
         {
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id";
+            Params.Clear();
+            Params.Add("Id", Id);
 
-            BHParameters parameters = new BHParameters();
-            parameters.Add("Id", Id);
-
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
+                return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters, bhTransaction.transaction);
             }
-
-            return _dataProvider.QueryFirst<T>(SubCommand, parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryById<Dto>(G Id) where Dto : class
         {
-            string colsAndParams = CompareDtoToEntity(typeof(Dto));
+            Params.Clear();
+            Params.Add("Id", Id);
 
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id";
-
-            BHParameters parameters = new BHParameters();
-            parameters.Add("Id", Id);
-
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
+                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters);
             }
-
-            return _dataProvider.QueryFirst<Dto>(SubCommand, parameters.Parameters);
+            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id", Params.Parameters);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryById<Dto>(G Id, BHTransaction bhTransaction) where Dto : class
         {
-            string colsAndParams = CompareDtoToEntity(typeof(Dto));
+            Params.Clear();
+            Params.Add("Id", Id);
 
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id";
-
-            BHParameters parameters = new BHParameters();
-            parameters.Add("Id", Id);
-
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
+                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters, bhTransaction.transaction);
             }
-
-            return _dataProvider.QueryFirst<Dto>(SubCommand, parameters.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
         }
 
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null , 0);
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null , 0);
 
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-
-            return _dataProvider.QueryFirst<T>(SubCommand, sql.Parameters);
+            return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
             }
-
-            return _dataProvider.QueryFirst<T>(SubCommand, sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
-
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-
-            return _dataProvider.QueryFirst<Dto>(SubCommand, sql.Parameters);
+            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
-            string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
             }
-
-            return _dataProvider.QueryFirst<Dto>(SubCommand, sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-
-            return _dataProvider.Query<T>(SubCommand, sql.Parameters);
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
-            string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
             }
-
-            return _dataProvider.Query<T>(SubCommand, sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-
-            return _dataProvider.Query<Dto>(SubCommand, sql.Parameters);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
-            string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
-            string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
-            if (withActivator)
+            if (WithActivator)
             {
-                SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
             }
-
-            return _dataProvider.Query<Dto>(SubCommand, sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         G? IBHDataProvider<T, G>.InsertEntry(T entry)
         {
-            string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams}, 0";
-            return _dataProvider.InsertScalar<T, G>(commandStart,commandEnd, entry);
+            return _dataProvider.InsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry);
         }
 
         G? IBHDataProvider<T, G>.InsertEntry(T entry, BHTransaction bhTransaction)
         {
-            string commandStart = $"insert into {ThisTable} ({PropertyNames}, {ThisInactive}";
-            string commandEnd = $"values ({PropertyParams}, 0";
-            return _dataProvider.InsertScalar<T, G>(commandStart, commandEnd, entry, bhTransaction.transaction);
+            return _dataProvider.InsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames}, {ThisInactive}", $"values ({PropertyParams}, 0", entry, bhTransaction.transaction);
         }
 
         List<G?> IBHDataProvider<T, G>.InsertEntries(List<T> entries)
         {
-            string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams}, 0";
-            List<G?> Ids = new List<G?>();
+            List<G?> Ids = new();
 
-            using(BlackHoleTransaction bhTransaction = new BlackHoleTransaction())
+            using(BlackHoleTransaction bhTransaction = new())
             {
-                Ids = _dataProvider.MultiInsertScalar<T, G>(commandStart, commandEnd, entries, bhTransaction);
+                Ids = _dataProvider.MultiInsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction);
             }
 
             return Ids;
@@ -357,96 +290,81 @@ namespace BlackHole.Core
 
         List<G?> IBHDataProvider<T, G>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
         {
-            string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
-            string commandEnd = $"values ({PropertyParams}, 0";
-            return _dataProvider.MultiInsertScalar<T, G>(commandStart, commandEnd, entries, bhTransaction.transaction);
+            return _dataProvider.MultiInsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById(T entry)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
-            return _dataProvider.ExecuteEntry(updateCommand, entry);
+            return _dataProvider.ExecuteEntry($"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", entry);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById(T entry, BHTransaction bhTransaction)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
-            return _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction.transaction);
+            return _dataProvider.ExecuteEntry($"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", entry, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id";
-            return _dataProvider.ExecuteEntry(updateCommand, entry);
+            return _dataProvider.ExecuteEntry($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id", entry);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id";
-            return _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction.transaction);
+            return _dataProvider.ExecuteEntry($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id", entry, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
-            return UpdateMany(entries, updateCommand);
+            return UpdateMany(entries, $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id");
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries, BHTransaction bhTransaction)
         {
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id";
-            return UpdateMany(entries, updateCommand, bhTransaction.transaction);
+            return UpdateMany(entries, $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
-            return UpdateMany(entries, updateCommand);
+            return UpdateMany(entries, $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id");
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries, BHTransaction bhTransaction) where Columns : class
         {
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id";
-            return UpdateMany(entries, updateCommand, bhTransaction.transaction);
+            return UpdateMany(entries, $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id", bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
 
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
-
-            if (withActivator)
+            if (WithActivator)
             {
-                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-
-            return _dataProvider.JustExecute(updateCommand, sql.Parameters);
+            return _dataProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
-                updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
             }
-
-            return _dataProvider.JustExecute(updateCommand, sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
 
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -456,24 +374,21 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
 
-            string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
-
-            if (withActivator)
+            if (WithActivator)
             {
-                updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
+                return _dataProvider.JustExecute($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
             }
-
-            return _dataProvider.JustExecute(updateCommand, sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.DeleteAllEntries()
         {
             string SubCommand = $"Delete from {ThisTable}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0";
             }
@@ -485,7 +400,7 @@ namespace BlackHole.Core
         {
             string SubCommand = $"Delete from {ThisTable}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0";
             }
@@ -497,12 +412,12 @@ namespace BlackHole.Core
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id";
             }
 
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
 
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters);
@@ -512,12 +427,12 @@ namespace BlackHole.Core
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id";
             }
 
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
 
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -526,7 +441,7 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id)
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId}= @Id and {ThisInactive} = 1";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters);
         }
@@ -534,7 +449,7 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id, BHTransaction bhTransaction)
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters, bhTransaction.transaction);
         }
@@ -542,7 +457,7 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.ReactivateEntryById(G Id, BHTransaction bhTransaction)
         {
             string SubCommand = $"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters, bhTransaction.transaction);
         }
@@ -550,17 +465,17 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.ReactivateEntryById(G Id)
         {
             string SubCommand = $"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
             return _dataProvider.JustExecute(SubCommand, parameters.Parameters);
         }
 
         bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
@@ -570,10 +485,10 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive}=1 where {sql.Columns}";
             }
@@ -585,7 +500,7 @@ namespace BlackHole.Core
         {
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0";
             }
@@ -597,7 +512,7 @@ namespace BlackHole.Core
         {
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0";
             }
@@ -611,7 +526,7 @@ namespace BlackHole.Core
 
             string SubCommand = $"select {colsAndParams} from {ThisTable}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0";
             }
@@ -621,13 +536,11 @@ namespace BlackHole.Core
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(BHTransaction bhTransaction) where Dto : class
         {
-            List<Dto> entries = new List<Dto>();
-
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
 
             string SubCommand = $"select {colsAndParams} from {ThisTable}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0";
             }
@@ -637,7 +550,7 @@ namespace BlackHole.Core
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync()
         {
-            if (withActivator)
+            if (WithActivator)
             {
                 string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1";
                 return await _dataProvider.QueryAsync<T>(SubCommand, null);
@@ -648,7 +561,7 @@ namespace BlackHole.Core
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync(BHTransaction bhTransaction)
         {
-            if (withActivator)
+            if (WithActivator)
             {
                 string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1";
                 return await _dataProvider.QueryAsync<T>(SubCommand, null, bhTransaction.transaction);
@@ -660,10 +573,10 @@ namespace BlackHole.Core
         async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id)
         {
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
@@ -674,10 +587,10 @@ namespace BlackHole.Core
         async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
@@ -691,10 +604,10 @@ namespace BlackHole.Core
 
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id";
 
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
@@ -708,10 +621,10 @@ namespace BlackHole.Core
 
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id";
 
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0";
             }
@@ -721,10 +634,10 @@ namespace BlackHole.Core
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -734,10 +647,10 @@ namespace BlackHole.Core
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -748,11 +661,11 @@ namespace BlackHole.Core
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -763,11 +676,11 @@ namespace BlackHole.Core
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -777,10 +690,10 @@ namespace BlackHole.Core
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -790,10 +703,10 @@ namespace BlackHole.Core
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -804,11 +717,11 @@ namespace BlackHole.Core
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -819,11 +732,11 @@ namespace BlackHole.Core
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
             string colsAndParams = CompareDtoToEntity(typeof(Dto));
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
 
             string SubCommand = $"select {colsAndParams} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"select {colsAndParams} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -849,9 +762,9 @@ namespace BlackHole.Core
         {
             string commandStart = $"insert into {ThisTable} ({PropertyNames},{ThisInactive}";
             string commandEnd = $"values ({PropertyParams}, 0";
-            List<G?> Ids = new List<G?>();
+            List<G?> Ids = new();
 
-            using(BlackHoleTransaction bhTransaction = new BlackHoleTransaction())
+            using(BlackHoleTransaction bhTransaction = new())
             {
                 Ids = await _dataProvider.MultiInsertScalarAsync<T, G>(commandStart, commandEnd, entries, bhTransaction);
             }
@@ -916,12 +829,12 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
 
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -931,12 +844,12 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
 
             string updateCommand = $"update {ThisTable} set {UpdateParams} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 updateCommand = $"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -946,12 +859,12 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
 
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -961,12 +874,12 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
 
             string updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 updateCommand = $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}";
             }
@@ -978,7 +891,7 @@ namespace BlackHole.Core
         {
             string SubCommand = $"Delete from {ThisTable}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0";
             }
@@ -990,7 +903,7 @@ namespace BlackHole.Core
         {
             string SubCommand = $"Delete from {ThisTable}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0";
             }
@@ -1002,12 +915,12 @@ namespace BlackHole.Core
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id";
             }
 
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
 
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters);
@@ -1017,12 +930,12 @@ namespace BlackHole.Core
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id";
             }
 
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
 
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters, bhTransaction.transaction);
@@ -1031,7 +944,7 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id)
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters);
         }
@@ -1039,7 +952,7 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
             string SubCommand = $"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters, bhTransaction.transaction);
         }
@@ -1047,7 +960,7 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
             string SubCommand = $"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters, bhTransaction.transaction);
         }
@@ -1055,17 +968,17 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id)
         {
             string SubCommand = $"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1";
-            BHParameters parameters = new BHParameters();
+            BHParameters parameters = new();
             parameters.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync(SubCommand, parameters.Parameters);
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
@@ -1075,10 +988,10 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string SubCommand = $"delete from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 SubCommand = $"Update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}";
             }
@@ -1155,12 +1068,15 @@ namespace BlackHole.Core
             MemberExpression? memberOther = otherKey.Body as MemberExpression;
             string? propNameOther = memberOther?.Member.Name;
 
-            JoinsData<Dto, T, TOther> firstJoin = new JoinsData<Dto, T, TOther>();
-            firstJoin.isMyShit = isMyShit;
-            firstJoin.BaseTable = typeof(T);
+            JoinsData<Dto, T, TOther> firstJoin = new()
+            {
+                isMyShit = IsMyShit,
+                BaseTable = typeof(T),
+                Ignore = false
+            };
+
             firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(T), Letter = parameter });
             firstJoin.Letters.Add(parameter);
-            firstJoin.Ignore = false;
 
             if (parameterOther == parameter)
             {
@@ -1178,8 +1094,8 @@ namespace BlackHole.Core
 
         private List<PropertyOccupation> BindPropertiesToDto(Type otherTable, Type dto, string? paramA, string? paramB)
         {
-            List<PropertyOccupation> result = new List<PropertyOccupation>();
-            List<string> OtherPropNames = new List<string>();
+            List<PropertyOccupation> result = new();
+            List<string> OtherPropNames = new();
 
             foreach (PropertyInfo otherProp in otherTable.GetProperties())
             {
@@ -1188,7 +1104,7 @@ namespace BlackHole.Core
 
             foreach (PropertyInfo property in dto.GetProperties())
             {
-                PropertyOccupation occupation = new PropertyOccupation();
+                PropertyOccupation occupation = new();
 
                 if (Columns.Contains(property.Name))
                 {
@@ -1247,7 +1163,7 @@ namespace BlackHole.Core
 
         private bool UpdateMany(List<T> entries, string updateCommand)
         {
-            BlackHoleTransaction bhTransaction = new BlackHoleTransaction();
+            BlackHoleTransaction bhTransaction = new();
             
             foreach (T entry in entries)
             {
@@ -1277,7 +1193,7 @@ namespace BlackHole.Core
 
         private async Task<bool> UpdateManyAsync(List<T> entries, string updateCommand)
         {
-            BlackHoleTransaction bhTransaction = new BlackHoleTransaction();
+            BlackHoleTransaction bhTransaction = new();
 
             foreach (T entry in entries)
             {
@@ -1307,10 +1223,10 @@ namespace BlackHole.Core
 
         private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
@@ -1320,10 +1236,10 @@ namespace BlackHole.Core
 
         private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
@@ -1333,10 +1249,10 @@ namespace BlackHole.Core
 
         private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
@@ -1346,10 +1262,10 @@ namespace BlackHole.Core
 
         private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
@@ -1359,10 +1275,10 @@ namespace BlackHole.Core
 
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
@@ -1372,10 +1288,10 @@ namespace BlackHole.Core
 
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
@@ -1385,10 +1301,10 @@ namespace BlackHole.Core
 
         private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
@@ -1398,10 +1314,10 @@ namespace BlackHole.Core
 
         private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(isMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             string selectCommand = $"select {ThisId} from {ThisTable} where {sql.Columns}";
 
-            if (withActivator)
+            if (WithActivator)
             {
                 selectCommand = $"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}";
             }
@@ -1411,52 +1327,42 @@ namespace BlackHole.Core
 
         private string MyShit(string? propName)
         {
-            string result = propName ?? string.Empty;
-
-            if (!isMyShit)
+            if (!IsMyShit)
             {
-                result = $@"""{propName}""";
+                return $@"""{propName}""";
             }
 
-            return result;
+            return propName ?? string.Empty;
         }
 
         private string CompareDtoToEntity(Type dto)
         {
-            string columns = string.Empty;
-
+            PNsb.Clear();
             foreach (PropertyInfo property in dto.GetProperties())
             {
                 if (Columns.Contains(property.Name)
                     && typeof(T).GetProperty(property.Name)?.PropertyType == property.PropertyType)
                 {
-                    columns += $",{MyShit(property.Name)}";
+                    PNsb.Append($",{MyShit(property.Name)}");
                 }
             }
-
-            columns += " ";
-            columns = columns.Remove(0, 1);
-
-            return columns;
+            PNsb.Append(' ');
+            return PNsb.ToString().Remove(0, 1);
         }
 
         private string CompareColumnsToEntity(Type dto)
         {
-            string columns = string.Empty;
-
+            PNsb.Clear();
             foreach (PropertyInfo property in dto.GetProperties())
             {
                 if (property.Name != "Id" && Columns.Contains(property.Name)
                     && typeof(T).GetProperty(property.Name)?.PropertyType == property.PropertyType)
                 {
-                    columns += $",{MyShit(property.Name)}=@{property.Name}";
+                    PNsb.Append($",{MyShit(property.Name)}=@{property.Name}");
                 }
             }
-
-            columns += " ";
-            columns = columns.Remove(0, 1);
-
-            return columns;
+            PNsb.Append(' ');
+            return PNsb.ToString().Remove(0,1);
         }
     }
 }

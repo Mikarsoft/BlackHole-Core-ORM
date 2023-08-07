@@ -220,7 +220,7 @@ namespace BlackHole.Core
         /// <returns>Success Boolean</returns>
         public bool JustExecute(string commandText, object parametersObject)
         {
-            return _executionProvider.JustExecute(commandText,MapObjectToParameters(parametersObject));
+            return _executionProvider.JustExecute(commandText, MapObjectToParameters(parametersObject));
         }
 
         /// <summary>
@@ -258,7 +258,7 @@ namespace BlackHole.Core
         /// <returns>Success Boolean</returns>
         public bool JustExecute(string commandText, object parametersObject, BHTransaction bHTransaction)
         {
-            return _executionProvider.JustExecute(commandText ,MapObjectToParameters(parametersObject), bHTransaction.transaction);
+            return _executionProvider.JustExecute(commandText , MapObjectToParameters(parametersObject), bHTransaction.transaction);
         }
 
         /// <summary>
@@ -650,7 +650,7 @@ namespace BlackHole.Core
             return await _executionProvider.QueryFirstAsync<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction);
         }
 
-        private List<BlackHoleParameter> MapObjectToParameters(object parametersObject)
+        private static List<BlackHoleParameter> MapObjectToParameters(object parametersObject)
         {
             PropertyInfo[] propertyInfos = parametersObject.GetType().GetProperties();
             BHParameters parameters = new ();

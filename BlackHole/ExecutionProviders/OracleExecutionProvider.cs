@@ -24,12 +24,14 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                G? Id = default(G);
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                G? Id = default;
+                using (OracleConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                    Command.BindByName = true;
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
                     ArrayToParameters(parameters, Command.Parameters);
 
                     object? Result = Command.ExecuteScalar();
@@ -45,7 +47,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString())).Start();
-                return default(G);
+                return default;
             }
         }
 
@@ -55,9 +57,11 @@ namespace BlackHole.ExecutionProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                Command.BindByName = true;
-                Command.Transaction = transaction;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    BindByName = true,
+                    Transaction = transaction
+                };
 
                 ArrayToParameters(parameters, Command.Parameters);
 
@@ -72,19 +76,21 @@ namespace BlackHole.ExecutionProviders
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"Scalar", commandText, ex.Message, ex.ToString())).Start();
             }
-            return default(G);
+            return default;
         }
 
         public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
-                G? Id = default(G);
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                G? Id = default;
+                using (OracleConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                    Command.BindByName = true;
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
                     ArrayToParameters(parameters, Command.Parameters);
 
                     object? Result = await Command.ExecuteScalarAsync();
@@ -100,7 +106,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"ScalarAsync", commandText, ex.Message, ex.ToString())).Start();
-                return default(G);
+                return default;
             }
         }
 
@@ -110,9 +116,11 @@ namespace BlackHole.ExecutionProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                Command.Transaction = transaction;
-                Command.BindByName = true;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
                 ArrayToParameters(parameters, Command.Parameters);
 
                 object? Result = await Command.ExecuteScalarAsync();
@@ -126,18 +134,20 @@ namespace BlackHole.ExecutionProviders
             {
                 new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString())).Start();
             }
-            return default(G);
+            return default;
         }
 
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                using (OracleConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                    Command.BindByName = true;
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -159,9 +169,11 @@ namespace BlackHole.ExecutionProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                Command.Transaction = transaction;
-                Command.BindByName = true;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -178,11 +190,13 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                using (OracleConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                    Command.BindByName = true;
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -203,9 +217,11 @@ namespace BlackHole.ExecutionProviders
             {
                 OracleConnection? connection = bhTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                Command.Transaction = transaction;
-                Command.BindByName = true;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -222,13 +238,15 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                using (OracleConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText.Replace("@",":"), connection);
-                    Command.BindByName = true;
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -251,7 +269,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -259,13 +277,15 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                Command.Transaction = transaction;
-                Command.BindByName = true;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -286,7 +306,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -294,13 +314,15 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                using (OracleConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                    Command.BindByName = true;
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -330,13 +352,15 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                Command.Transaction = transaction;
-                Command.BindByName = true;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (OracleDataReader DataReader = Command.ExecuteReader())
@@ -364,13 +388,15 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                using (OracleConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                    Command.BindByName = true;
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -393,7 +419,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -401,13 +427,15 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                Command.Transaction = transaction;
-                Command.BindByName = true;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -428,7 +456,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -436,13 +464,15 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
-                using (OracleConnection connection = new OracleConnection(_connectionString))
+                using (OracleConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                    Command.BindByName = true;
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -472,13 +502,15 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
-                OracleCommand Command = new OracleCommand(commandText.Replace("@", ":"), connection);
-                Command.Transaction = transaction;
-                Command.BindByName = true;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -642,7 +674,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        private Guid GuidParser(string guid)
+        private static Guid GuidParser(string guid)
         {
             try
             {
@@ -654,7 +686,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, OracleParameterCollection parameters)
+        private static void ArrayToParameters(List<BlackHoleParameter>? bhParameters, OracleParameterCollection parameters)
         {
             if (bhParameters != null)
             {

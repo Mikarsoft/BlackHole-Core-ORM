@@ -38,7 +38,7 @@ namespace BlackHole.Logger
             }
         }
 
-        private string LogHashId(string text)
+        private static string LogHashId(string text)
         {
             var sh = SHA1.Create();
             var hash = new StringBuilder();
@@ -63,7 +63,7 @@ namespace BlackHole.Logger
                     string LogId = LogHashId(Guid.NewGuid().ToString() + DateTime.Now.ToString());
                     string pathFile = Path.Combine(LogsPath,$"{Area}_{LogId}.txt");
 
-                    using (var tw = new StreamWriter(pathFile, true))
+                    using (StreamWriter tw = new(pathFile, true))
                     {
                         tw.WriteLine($"Date and Time: {DateTime.Now.ToString("s").Replace(":", ".")}");
                         tw.WriteLine($"Command : {commandText}");

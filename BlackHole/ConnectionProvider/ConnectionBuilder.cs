@@ -17,29 +17,14 @@ namespace BlackHole.ConnectionProvider
         /// <returns></returns>
         internal IDbConnection GetConnection()
         {
-            string _connectionString = DatabaseStatics.ConnectionString;
-            IDbConnection _Sconnection = new SqlConnection();
-
-            switch (DatabaseStatics.DatabaseType)
+            return DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    _Sconnection = new SqlConnection(_connectionString);
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    _Sconnection = new MySqlConnection(_connectionString);
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    _Sconnection = new NpgsqlConnection(_connectionString);
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    _Sconnection = new SqliteConnection(_connectionString);
-                    break;
-                case BlackHoleSqlTypes.Oracle:
-                    _Sconnection = new OracleConnection(_connectionString);
-                    break;
-            }
-
-            return _Sconnection;
+                BlackHoleSqlTypes.SqlServer => new SqlConnection(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.MySql => new MySqlConnection(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.Postgres => new NpgsqlConnection(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.SqlLite => new SqliteConnection(DatabaseStatics.ConnectionString),
+                _ => new OracleConnection(DatabaseStatics.ConnectionString),
+            };
         }
     }
 }

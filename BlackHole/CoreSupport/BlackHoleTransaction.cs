@@ -17,12 +17,12 @@ namespace BlackHole.CoreSupport
         /// Generic transaction
         /// </summary>
         public IDbTransaction _transaction;
-        private ILoggerService _loggerService;
+        private readonly ILoggerService _loggerService;
         private bool commited = false;
 
         internal BlackHoleTransaction()
         {
-            ConnectionBuilder connectionBuilder = new ConnectionBuilder();
+            ConnectionBuilder connectionBuilder = new();
             connection = connectionBuilder.GetConnection();
             connection.Open();
             _transaction = connection.BeginTransaction();

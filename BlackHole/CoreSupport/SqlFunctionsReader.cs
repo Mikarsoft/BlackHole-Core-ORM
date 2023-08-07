@@ -80,8 +80,8 @@ namespace BlackHole.CoreSupport
                 case "SqlAverage":
                     if(NumericMethodData.CompareProperty != null && NumericMethodData.CastedOn != null)
                     {
-                        string[] tableProperty = NumericMethodData.CastedOn != null ? NumericMethodData.CastedOn.ToString().Split(".") : new string[0];
-                        string[] compareProperty = NumericMethodData.CompareProperty != null ? NumericMethodData.CompareProperty.ToString().Split(".") : new string[0];
+                        string[] tableProperty = NumericMethodData.CastedOn != null ? NumericMethodData.CastedOn.ToString().Split(".") : Array.Empty<string>();
+                        string[] compareProperty = NumericMethodData.CompareProperty != null ? NumericMethodData.CompareProperty.ToString().Split(".") : Array.Empty<string>();
                         if(tableProperty.Length >1 && compareProperty.Length > 1)
                         {
                             string operationType = ExpressionTypeToSql(NumericMethodData.OperatorType, NumericMethodData.ReverseOperator, false);
@@ -488,7 +488,7 @@ namespace BlackHole.CoreSupport
             }
         }
 
-        private void MiniLogger(string commandName)
+        private static void MiniLogger(string commandName)
         {
             try
             {
@@ -502,7 +502,7 @@ namespace BlackHole.CoreSupport
                 string LogId = Guid.NewGuid().ToString();
                 string pathFile = Path.Combine(LogsPath, $"{commandName}_Error_{LogId}.txt");
 
-                using (var tw = new StreamWriter(pathFile, true))
+                using (StreamWriter tw = new(pathFile, true))
                 {
                     tw.WriteLine($"Date and Time: {DateTime.Now.ToString("s").Replace(":", ".")}");
                     tw.WriteLine($"Sql Method {commandName} has some errors in syntax.");
@@ -516,36 +516,18 @@ namespace BlackHole.CoreSupport
             }
         }
 
-        private string ExpressionTypeToSql(ExpressionType ExpType , bool IsReversed, bool IsNullValue)
+        private static string ExpressionTypeToSql(ExpressionType ExpType , bool IsReversed, bool IsNullValue)
         {
-            string expOperator = string.Empty;
-
-            switch (ExpType)
+            return ExpType switch
             {
-                case ExpressionType.Equal:
-                    expOperator = IsNullValue ? "is" : "=";
-                    break;
-                case ExpressionType.NotEqual:
-                    expOperator = IsNullValue ? "is not" : "!=";
-                    break;
-                case ExpressionType.GreaterThan:
-                    expOperator = IsReversed ? "<" : ">";
-                    break;
-                case ExpressionType.LessThan:
-                    expOperator = IsReversed ? ">" : "<";
-                    break;
-                case ExpressionType.GreaterThanOrEqual:
-                    expOperator = IsReversed ? "<=" : ">=";
-                    break;
-                case ExpressionType.LessThanOrEqual:
-                    expOperator = IsReversed ? ">=" : "<=";
-                    break;
-                default:
-                    expOperator = string.Empty;
-                    break;
-            }
-
-            return expOperator;
+                ExpressionType.Equal => IsNullValue ? "is" : "=",
+                ExpressionType.NotEqual => IsNullValue ? "is not" : "!=",
+                ExpressionType.GreaterThan => IsReversed ? "<" : ">",
+                ExpressionType.LessThan => IsReversed ? ">" : "<",
+                ExpressionType.GreaterThanOrEqual => IsReversed ? "<=" : ">=",
+                ExpressionType.LessThanOrEqual => IsReversed ? ">=" : "<=",
+                _ => string.Empty,
+            };
         }
     }
 }

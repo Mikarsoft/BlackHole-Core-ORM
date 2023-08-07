@@ -23,11 +23,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                G? Id = default(G);
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                G? Id = default;
+                using (SqlConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqlCommand Command = new SqlCommand(commandText, connection);
+                    SqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     object? Result = Command.ExecuteScalar();
@@ -43,7 +43,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString())).Start();
-                return default(G);
+                return default;
             }
         }
 
@@ -53,7 +53,7 @@ namespace BlackHole.ExecutionProviders
             {
                 SqlConnection? connection = bhTransaction.connection as SqlConnection;
                 SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
-                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                SqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 object? Result = Command.ExecuteScalar();
@@ -67,18 +67,18 @@ namespace BlackHole.ExecutionProviders
             {
                 new Thread(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString())).Start();
             }
-            return default(G);
+            return default;
         }
 
         public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
-                G? Id = default(G);
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                G? Id = default;
+                using (SqlConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    SqlCommand Command = new SqlCommand(commandText, connection);
+                    SqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     object? Result = await Command.ExecuteScalarAsync();
@@ -94,7 +94,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString())).Start();
-                return default(G);
+                return default;
             }
         }
 
@@ -104,7 +104,7 @@ namespace BlackHole.ExecutionProviders
             {
                 SqlConnection? connection = bhTransaction.connection as SqlConnection;
                 SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
-                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                SqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 object? Result = await Command.ExecuteScalarAsync();
@@ -118,17 +118,17 @@ namespace BlackHole.ExecutionProviders
             {
                 new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString())).Start();
             }
-            return default(G);
+            return default;
         }
 
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (SqlConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqlCommand Command = new SqlCommand(commandText, connection);
+                    SqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -149,7 +149,7 @@ namespace BlackHole.ExecutionProviders
             {
                 SqlConnection? connection = bhTransaction.connection as SqlConnection;
                 SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
-                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                SqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 Command.ExecuteNonQuery();
@@ -166,10 +166,10 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (SqlConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    SqlCommand Command = new SqlCommand(commandText, connection);
+                    SqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -190,7 +190,7 @@ namespace BlackHole.ExecutionProviders
             {
                 SqlConnection? connection = bhTransaction.connection as SqlConnection;
                 SqlTransaction? transaction = bhTransaction._transaction as SqlTransaction;
-                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                SqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -207,12 +207,12 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (SqlConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqlCommand Command = new SqlCommand(commandText, connection);
+                    SqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (SqlDataReader DataReader = Command.ExecuteReader())
@@ -235,7 +235,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFirst_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -243,11 +243,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
                 SqlConnection? connection = bHTransaction.connection as SqlConnection;
                 SqlTransaction? transaction = bHTransaction._transaction as SqlTransaction;
-                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                SqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (SqlDataReader DataReader = Command.ExecuteReader())
@@ -268,7 +268,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFirst_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -276,12 +276,12 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (SqlConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    SqlCommand Command = new SqlCommand(commandText, connection);
+                    SqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (SqlDataReader DataReader = Command.ExecuteReader())
@@ -311,11 +311,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
                 SqlConnection? connection = bHTransaction.connection as SqlConnection;
                 SqlTransaction? transaction = bHTransaction._transaction as SqlTransaction;
-                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                SqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (SqlDataReader DataReader = Command.ExecuteReader())
@@ -343,12 +343,12 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (SqlConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    SqlCommand Command = new SqlCommand(commandText, connection);
+                    SqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -371,7 +371,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFirstAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -379,11 +379,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
                 SqlConnection? connection = bHTransaction.connection as SqlConnection;
                 SqlTransaction? transaction = bHTransaction._transaction as SqlTransaction;
-                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                SqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -404,7 +404,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFirstAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -412,12 +412,12 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
-                using (SqlConnection connection = new SqlConnection(_connectionString))
+                using (SqlConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    SqlCommand Command = new SqlCommand(commandText, connection);
+                    SqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -447,11 +447,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
                 SqlConnection? connection = bHTransaction.connection as SqlConnection;
                 SqlTransaction? transaction = bHTransaction._transaction as SqlTransaction;
-                SqlCommand Command = new SqlCommand(commandText, connection, transaction);
+                SqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (SqlDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -528,7 +528,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, SqlParameterCollection parameters)
+        private static void ArrayToParameters(List<BlackHoleParameter>? bhParameters, SqlParameterCollection parameters)
         {
             if (bhParameters != null)
             {

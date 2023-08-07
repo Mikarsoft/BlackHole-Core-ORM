@@ -14,28 +14,14 @@ namespace BlackHole.Internal
         /// <returns></returns>
         IExecutionProvider IBHDatabaseSelector.GetExecutionProvider(string connectionString)
         {
-            IExecutionProvider _Sconnection = new OracleExecutionProvider(connectionString);
-
-            switch (DatabaseStatics.DatabaseType)
+            return DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    _Sconnection = new SqlServerExecutionProvider(connectionString);
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    _Sconnection = new MySqlExecutionProvider(connectionString);
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    _Sconnection = new PostgresExecutionProvider(connectionString);
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    _Sconnection = new SqLiteExecutionProvider(connectionString);
-                    break;
-                case BlackHoleSqlTypes.Oracle:
-                    _Sconnection = new OracleExecutionProvider(connectionString);
-                    break;
-            }
-
-            return _Sconnection;
+                BlackHoleSqlTypes.SqlServer => new SqlServerExecutionProvider(connectionString),
+                BlackHoleSqlTypes.MySql => new MySqlExecutionProvider(connectionString),
+                BlackHoleSqlTypes.Postgres => new PostgresExecutionProvider(connectionString),
+                BlackHoleSqlTypes.SqlLite => new SqLiteExecutionProvider(connectionString),
+                _ => new OracleExecutionProvider(connectionString),
+            };
         }
 
         /// <summary>
@@ -62,26 +48,14 @@ namespace BlackHole.Internal
         /// 
         string IBHDatabaseSelector.GetPrimaryKeyCommand()
         {
-            string PrimaryKeyCommand = "";
-            switch (DatabaseStatics.DatabaseType)
+            return DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = "Id INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,";
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    PrimaryKeyCommand = "Id int AUTO_INCREMENT primary key NOT NULL ,";
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    PrimaryKeyCommand = @"""Id"" SERIAL PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    PrimaryKeyCommand = "Id INTEGER PRIMARY KEY AUTOINCREMENT ,";
-                    break;
-                case BlackHoleSqlTypes.Oracle:
-                    PrimaryKeyCommand = @"""Id"" NUMBER(8,0) GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,";
-                    break;
-            }
-            return PrimaryKeyCommand;
+                BlackHoleSqlTypes.SqlServer => "Id INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,",
+                BlackHoleSqlTypes.MySql => "Id int AUTO_INCREMENT primary key NOT NULL ,",
+                BlackHoleSqlTypes.Postgres => @"""Id"" SERIAL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlLite => "Id INTEGER PRIMARY KEY AUTOINCREMENT ,",
+                _ => @"""Id"" NUMBER(8,0) GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,",
+            };
         }
 
         /// <summary>
@@ -90,26 +64,14 @@ namespace BlackHole.Internal
         /// <returns></returns>
         string IBHDatabaseSelector.GetStringPrimaryKeyCommand()
         {
-            string PrimaryKeyCommand = "";
-            switch (DatabaseStatics.DatabaseType)
+            return DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = "Id NVARCHAR(50) PRIMARY KEY NOT NULL ,";
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    PrimaryKeyCommand = "Id varchar(50) NOT NULL PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    PrimaryKeyCommand = @"""Id"" varchar(50) NOT NULL PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    PrimaryKeyCommand = "Id varchar(50) PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.Oracle:
-                    PrimaryKeyCommand = @"""Id"" varchar2(50) NOT NULL PRIMARY KEY ,";
-                    break;
-            }
-            return PrimaryKeyCommand;
+                BlackHoleSqlTypes.SqlServer => "Id NVARCHAR(50) PRIMARY KEY NOT NULL ,",
+                BlackHoleSqlTypes.MySql => "Id varchar(50) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.Postgres => @"""Id"" varchar(50) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlLite => "Id varchar(50) PRIMARY KEY ,",
+                _ => @"""Id"" varchar2(50) NOT NULL PRIMARY KEY ,",
+            };
         }
 
 
@@ -258,29 +220,23 @@ namespace BlackHole.Internal
         /// <returns></returns>
         string IBHDatabaseSelector.GetDatabaseName()
         {
-            string databaseName = string.Empty;
-
             if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite)
             {
                 try
                 {
                     string[] dbLinkSplit = DatabaseStatics.DatabaseName.Split("=");
-                    databaseName = dbLinkSplit[1];
+                    return dbLinkSplit[1];
                 }
-                catch { databaseName = string.Empty; }
+                catch { return string.Empty; }
             }
             else
             {
-                databaseName = DatabaseStatics.DatabaseName;
+                return DatabaseStatics.DatabaseName;
             }
-
-            return databaseName;
         }
 
         string IBHDatabaseSelector.GetOwnerName()
         {
-            string databaseName = string.Empty;
-
             if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite && DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Oracle)
             {
                 try
@@ -291,9 +247,8 @@ namespace BlackHole.Internal
                         return dbLinkSplit[1];
                     }
                 }
-                catch { databaseName = string.Empty; }
+                catch { return string.Empty; }
             }
-
             return string.Empty;
         }
     }

@@ -24,11 +24,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                G? Id = default(G);
-                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                G? Id = default;
+                using (MySqlConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    MySqlCommand Command = new MySqlCommand(commandText, connection);
+                    MySqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     object? Result = Command.ExecuteScalar();
@@ -45,7 +45,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString())).Start();
-                return default(G);
+                return default;
             }
         }
 
@@ -55,7 +55,7 @@ namespace BlackHole.ExecutionProviders
             {
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
-                MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
+                MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 object? Result = Command.ExecuteScalar();
@@ -70,18 +70,18 @@ namespace BlackHole.ExecutionProviders
                 new Thread(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString())).Start();
             }
 
-            return default(G);
+            return default;
         }
 
         public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
-                G? Id = default(G);
-                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                G? Id = default;
+                using (MySqlConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    MySqlCommand Command = new MySqlCommand(commandText, connection);
+                    MySqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     object? Result = await Command.ExecuteScalarAsync();
@@ -97,7 +97,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString())).Start();
-                return default(G);
+                return default;
             }
         }
 
@@ -107,7 +107,7 @@ namespace BlackHole.ExecutionProviders
             {
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
-                MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
+                MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 object? Result = await Command.ExecuteScalarAsync();
@@ -122,17 +122,17 @@ namespace BlackHole.ExecutionProviders
                 new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString())).Start();
             }
 
-            return default(G);
+            return default;
         }
 
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters)
         {
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                using (MySqlConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    MySqlCommand Command = new MySqlCommand(commandText, connection);
+                    MySqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     Command.ExecuteNonQuery();
@@ -154,7 +154,7 @@ namespace BlackHole.ExecutionProviders
             {
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
-                MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
+                MySqlCommand Command = new(commandText, connection, transaction);
 
                 ArrayToParameters(parameters, Command.Parameters);
 
@@ -173,10 +173,10 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                using (MySqlConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    MySqlCommand Command = new MySqlCommand(commandText, connection);
+                    MySqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     await Command.ExecuteNonQueryAsync();
@@ -197,7 +197,7 @@ namespace BlackHole.ExecutionProviders
             {
                 MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
-                MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
+                MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 await Command.ExecuteNonQueryAsync();
@@ -215,12 +215,12 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
-                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                using (MySqlConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    MySqlCommand Command = new MySqlCommand(commandText, connection);
+                    MySqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (MySqlDataReader DataReader = Command.ExecuteReader())
@@ -243,7 +243,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -251,11 +251,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
                 MySqlConnection? connection = bHTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bHTransaction._transaction as MySqlTransaction;
-                MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
+                MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (MySqlDataReader DataReader = Command.ExecuteReader())
@@ -276,7 +276,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -284,12 +284,12 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
-                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                using (MySqlConnection connection = new(_connectionString))
                 {
                     connection.Open();
-                    MySqlCommand Command = new MySqlCommand(commandText, connection);
+                    MySqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (MySqlDataReader DataReader = Command.ExecuteReader())
@@ -319,11 +319,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
                 MySqlConnection? connection = bHTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bHTransaction._transaction as MySqlTransaction;
-                MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
+                MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (MySqlDataReader DataReader = Command.ExecuteReader())
@@ -351,12 +351,12 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
-                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                using (MySqlConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    MySqlCommand Command = new MySqlCommand(commandText, connection);
+                    MySqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -379,7 +379,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -387,11 +387,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                T? result = default(T);
+                T? result = default;
 
                 MySqlConnection? connection = bHTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bHTransaction._transaction as MySqlTransaction;
-                MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
+                MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -412,7 +412,7 @@ namespace BlackHole.ExecutionProviders
             catch (Exception ex)
             {
                 new Thread(() => _loggerService.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
-                return default(T);
+                return default;
             }
         }
 
@@ -420,12 +420,12 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
-                using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                using (MySqlConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
-                    MySqlCommand Command = new MySqlCommand(commandText, connection);
+                    MySqlCommand Command = new(commandText, connection);
                     ArrayToParameters(parameters, Command.Parameters);
 
                     using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -455,11 +455,11 @@ namespace BlackHole.ExecutionProviders
         {
             try
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
 
                 MySqlConnection? connection = bHTransaction.connection as MySqlConnection;
                 MySqlTransaction? transaction = bHTransaction._transaction as MySqlTransaction;
-                MySqlCommand Command = new MySqlCommand(commandText, connection, transaction);
+                MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
 
                 using (DbDataReader DataReader = await Command.ExecuteReaderAsync())
@@ -616,7 +616,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, MySqlParameterCollection parameters)
+        private static void ArrayToParameters(List<BlackHoleParameter>? bhParameters, MySqlParameterCollection parameters)
         {
             if (bhParameters != null)
             {

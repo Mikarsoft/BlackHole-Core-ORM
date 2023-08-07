@@ -17,7 +17,7 @@ namespace BlackHole.Core
         List<Dto> IBHViewStorage.ExecuteView<Dto>() where Dto : class
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
-            List<Dto> result = new List<Dto>();
+            List<Dto> result = new();
 
             if (existingJoin != null)
             {
@@ -37,7 +37,7 @@ namespace BlackHole.Core
         List<Dto> IBHViewStorage.ExecuteView<Dto>(BHTransaction transaction) where Dto : class
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
-            List<Dto> result = new List<Dto>();
+            List<Dto> result = new();
 
             if (existingJoin != null)
             {
@@ -57,7 +57,7 @@ namespace BlackHole.Core
         async Task<List<Dto>> IBHViewStorage.ExecuteViewAsync<Dto>() where Dto : class
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
-            List<Dto> result = new List<Dto>();
+            List<Dto> result = new();
 
             if (existingJoin != null)
             {
@@ -77,7 +77,7 @@ namespace BlackHole.Core
         async Task<List<Dto>> IBHViewStorage.ExecuteViewAsync<Dto>(BHTransaction transaction) where Dto : class
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
-            List<Dto> result = new List<Dto>();
+            List<Dto> result = new();
 
             if (existingJoin != null)
             {

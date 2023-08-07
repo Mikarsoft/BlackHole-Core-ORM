@@ -40,7 +40,7 @@ namespace BlackHole.CoreSupport
             return string.Empty;
         }
 
-        private BlackHoleIdTypes GetIdType(Type type)
+        private static BlackHoleIdTypes GetIdType(Type type)
         {
             if (type == typeof(int))
             {

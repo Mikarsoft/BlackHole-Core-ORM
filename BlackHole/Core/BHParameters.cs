@@ -8,7 +8,7 @@ namespace BlackHole.Core
     /// </summary>
     public class BHParameters
     {
-        internal List<BlackHoleParameter> Parameters = new List<BlackHoleParameter>();
+        internal List<BlackHoleParameter> Parameters = new();
 
         /// <summary>
         /// Adds a parameter with name and value
@@ -18,6 +18,14 @@ namespace BlackHole.Core
         public void Add(string? Name , object? Value)
         {
             Parameters.Add(new BlackHoleParameter { Name = @Name , Value = Value });
+        }
+
+        /// <summary>
+        /// Removes all the parameters from this Object
+        /// </summary>
+        public void Clear()
+        {
+            Parameters.Clear();
         }
     }
 }
