@@ -373,8 +373,6 @@ namespace BlackHole.CoreSupport
 
         internal static ColumnsAndParameters ExpressionTreeToSql(this List<ExpressionsData> data, bool isMyShit, string? letter, List<BlackHoleParameter>? parameters, int index)
         {
-            string result = "";
-
             if(parameters == null)
             {
                 parameters = new List<BlackHoleParameter>();
@@ -485,9 +483,7 @@ namespace BlackHole.CoreSupport
                 }
             }
 
-            result = data[0].sqlCommand;
-
-            return new ColumnsAndParameters { Columns = result, Parameters = parameters, Count = index};
+            return new ColumnsAndParameters { Columns = data[0].sqlCommand, Parameters = parameters, Count = index};
         }
 
         private static ColumnAndParameter TranslateExpression(this ExpressionsData expression, int index, bool isMyShit, string? letter)
