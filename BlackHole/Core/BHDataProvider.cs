@@ -16,15 +16,12 @@ namespace BlackHole.Core
         private bool WithActivator { get; }
         private string ThisTable { get; }
         private List<string> Columns { get; } = new();
-        private string PropertyNames { get; }
-        private string PropertyParams { get; }
-        private string UpdateParams { get; }
+        private string PropertyNames { get; } = string.Empty;
+        private string PropertyParams { get; } = string.Empty;
+        private string UpdateParams { get; } = string.Empty;
         private string ThisId { get; }
         private string ThisInactive { get; }
         private bool IsMyShit { get; }
-
-        private readonly StringBuilder PNsb = new();
-        private readonly BHParameters Params = new();
 
         private readonly IBHDataProviderSelector _dataProviderSelector;
         private readonly IDataProvider _dataProvider;
@@ -45,9 +42,6 @@ namespace BlackHole.Core
             ThisTable = $"{_dataProviderSelector.GetDatabaseSchema()}{MyShit(typeof(T).Name)}";
             ThisId = MyShit("Id");
             ThisInactive = MyShit("Inactive");
-            PNsb.Clear();
-            StringBuilder PPsb = PNsb;
-            StringBuilder UPsb = PNsb;
 
             foreach (PropertyInfo prop in typeof(T).GetProperties())
             {
@@ -56,23 +50,16 @@ namespace BlackHole.Core
                     if (prop.Name != "Id")
                     {
                         string property = MyShit(prop.Name);
-                        PNsb.Append($", {property}");
-                        PPsb.Append($", @{prop.Name}");
-                        UPsb.Append($",{property} = @{prop.Name}");
+                        PropertyNames += $", {property}";
+                        PropertyParams += $", @{prop.Name}";
+                        UpdateParams += $",{property} = @{prop.Name}";
                     }
                     Columns.Add(prop.Name);
                 }
             }
-
-            PNsb.Append(' ');
-            PPsb.Append(' ');
-            UPsb.Append(' ');
-            PropertyNames = PNsb.ToString().Remove(0, 1);
-            PropertyParams = PPsb.ToString().Remove(0, 1);
-            UpdateParams = UPsb.ToString().Remove(0, 1);
-            PNsb.Clear();
-            PPsb.Clear();
-            UPsb.Clear();
+            PropertyNames = $"{PropertyNames.Remove(0, 1)} ";
+            PropertyParams = $"{PropertyParams.Remove(0, 1)} ";
+            UpdateParams = $"{UpdateParams.Remove(0, 1)} ";
         }
 
         List<T> IBHDataProvider<T, G>.GetAllEntries()
@@ -131,7 +118,7 @@ namespace BlackHole.Core
 
         T? IBHDataProvider<T, G>.GetEntryById(G Id)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -142,7 +129,7 @@ namespace BlackHole.Core
 
         T? IBHDataProvider<T, G>.GetEntryById(G Id, BHTransaction bhTransaction)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -153,7 +140,7 @@ namespace BlackHole.Core
 
         Dto? IBHDataProvider<T, G>.GetEntryById<Dto>(G Id) where Dto : class
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -164,7 +151,7 @@ namespace BlackHole.Core
 
         Dto? IBHDataProvider<T, G>.GetEntryById<Dto>(G Id, BHTransaction bhTransaction) where Dto : class
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -382,7 +369,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteEntryById(G Id)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -393,7 +380,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteEntryById(G Id, BHTransaction bhTransaction)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -404,28 +391,28 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             return _dataProvider.JustExecute($"delete from {ThisTable} where {ThisId}= @Id and {ThisInactive} = 1", Params.Parameters);
         }
 
         bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id, BHTransaction bhTransaction)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             return _dataProvider.JustExecute($"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.ReactivateEntryById(G Id, BHTransaction bhTransaction)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters, bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.ReactivateEntryById(G Id)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters);
         }
@@ -506,7 +493,7 @@ namespace BlackHole.Core
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -517,7 +504,7 @@ namespace BlackHole.Core
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -528,7 +515,7 @@ namespace BlackHole.Core
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryByIdAsync<Dto>(G Id) where Dto : class
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -539,7 +526,7 @@ namespace BlackHole.Core
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryByIdAsync<Dto>(G Id, BHTransaction bhTransaction) where Dto : class
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -757,7 +744,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntryByIdAsync(G Id)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -768,7 +755,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             if (WithActivator)
             {
@@ -779,28 +766,28 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters);
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters, bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters, bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id)
         {
-            Params.Clear();
+            BHParameters Params = new();
             Params.Add("Id", Id);
             return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters);
         }
@@ -1137,7 +1124,7 @@ namespace BlackHole.Core
 
         private string CompareDtoToEntity(Type dto)
         {
-            PNsb.Clear();
+            StringBuilder PNsb = new();
             foreach (PropertyInfo property in dto.GetProperties())
             {
                 if (Columns.Contains(property.Name)
@@ -1152,7 +1139,7 @@ namespace BlackHole.Core
 
         private string CompareColumnsToEntity(Type dto)
         {
-            PNsb.Clear();
+            StringBuilder PNsb = new();
             foreach (PropertyInfo property in dto.GetProperties())
             {
                 if (property.Name != "Id" && Columns.Contains(property.Name)
