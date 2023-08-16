@@ -14,7 +14,6 @@ namespace BlackHole.Core
     public class BHConnection : IBHConnection
     {
         private readonly IExecutionProvider _executionProvider;
-        private readonly IBHDataProviderSelector _dataProviderSelector;
 
         /// <summary>
         /// An Interface that gives all
@@ -26,8 +25,7 @@ namespace BlackHole.Core
         /// </summary>
         public BHConnection()
         {
-            _dataProviderSelector = new BHDataProviderSelector();
-            _executionProvider = _dataProviderSelector.GetExecutionProvider();
+            _executionProvider = BHDataProviderSelector.GetExecutionProvider();
         }
 
         /// <summary>

@@ -62,7 +62,6 @@ namespace BlackHole.Configuration
         private static void ScanOracleString(string connectionString, int timeoutSeconds)
         {
             string[] parts = connectionString.Split(";");
-            string userName = string.Empty;
             bool hasCommandTimeout = false;
 
             foreach (string part in parts)
@@ -223,7 +222,7 @@ namespace BlackHole.Configuration
             try
             {
                 string[] pathSplit = connectionString.Split("\\");
-                string[] nameOnly = pathSplit[pathSplit.Length - 1].Split(".");
+                string[] nameOnly = pathSplit[^1].Split(".");
                 DatabaseStatics.DatabaseName = nameOnly[0];
             }
             catch

@@ -23,7 +23,7 @@ namespace BlackHole.Configuration
 
                 if (DatabaseStatics.UseLogsCleaner)
                 {
-                    Thread CleanerThread = new Thread(() =>
+                    Thread CleanerThread = new(() =>
                     {
                         Thread.CurrentThread.IsBackground = true;
                         LogsCleanProcedure.StartJob(DatabaseStatics.CleanUpDays, LogsPath);
@@ -87,7 +87,7 @@ namespace BlackHole.Configuration
 
                 foreach (string file in files)
                 {
-                    FileInfo fi = new FileInfo(file);
+                    FileInfo fi = new(file);
 
                     if (fi.CreationTime < cleanBefore)
                     {

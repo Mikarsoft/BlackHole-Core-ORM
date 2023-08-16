@@ -7,42 +7,34 @@ namespace BlackHole.Internal
     {
         internal ColumnScanResult ParseColumnToProperty(TableParsingInfo tableColumnInfo)
         {
-            switch (DatabaseStatics.DatabaseType)
+            return DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    return GetSqlServerColumn(tableColumnInfo, false);
-                case BlackHoleSqlTypes.MySql:
-                    return GetMySqlColumn(tableColumnInfo, false);
-                case BlackHoleSqlTypes.Postgres:
-                    return GetNpgSqlColumn(tableColumnInfo, false);
-                case BlackHoleSqlTypes.Oracle:
-                    return GetOracleColumn(tableColumnInfo, false);
-                default:
-                    return GetSqLiteColumn(tableColumnInfo, false);
-            }
+                BlackHoleSqlTypes.SqlServer => GetSqlServerColumn(tableColumnInfo, false),
+                BlackHoleSqlTypes.MySql => GetMySqlColumn(tableColumnInfo, false),
+                BlackHoleSqlTypes.Postgres => GetNpgSqlColumn(tableColumnInfo, false),
+                BlackHoleSqlTypes.Oracle => GetOracleColumn(tableColumnInfo, false),
+                _ => GetSqLiteColumn(tableColumnInfo, false),
+            };
         }
 
         internal ColumnScanResult ParsePrimaryKeyToProperty(TableParsingInfo tableColumnInfo)
         {
-            switch (DatabaseStatics.DatabaseType)
+            return DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    return GetSqlServerColumn(tableColumnInfo, true);
-                case BlackHoleSqlTypes.MySql:
-                    return GetMySqlColumn(tableColumnInfo, true);
-                case BlackHoleSqlTypes.Postgres:
-                    return GetNpgSqlColumn(tableColumnInfo, true);
-                case BlackHoleSqlTypes.Oracle:
-                    return GetOracleColumn(tableColumnInfo, true);
-                default:
-                    return GetSqLiteColumn(tableColumnInfo, true);
-            }
+                BlackHoleSqlTypes.SqlServer => GetSqlServerColumn(tableColumnInfo, true),
+                BlackHoleSqlTypes.MySql => GetMySqlColumn(tableColumnInfo, true),
+                BlackHoleSqlTypes.Postgres => GetNpgSqlColumn(tableColumnInfo, true),
+                BlackHoleSqlTypes.Oracle => GetOracleColumn(tableColumnInfo, true),
+                _ => GetSqLiteColumn(tableColumnInfo, true),
+            };
         }
 
         internal ColumnScanResult GetSqlServerColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
         {
-            ColumnScanResult scanResult = new ColumnScanResult();
-            scanResult.UnidentifiedColumn = false;
+            ColumnScanResult scanResult = new()
+            {
+                UnidentifiedColumn = false
+            };
 
             if (isPrimaryKey)
             {
@@ -175,8 +167,10 @@ namespace BlackHole.Internal
 
         internal ColumnScanResult GetNpgSqlColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
         {
-            ColumnScanResult scanResult = new ColumnScanResult();
-            scanResult.UnidentifiedColumn = false;
+            ColumnScanResult scanResult = new()
+            {
+                UnidentifiedColumn = false
+            };
 
             if (isPrimaryKey)
             {
@@ -330,8 +324,10 @@ namespace BlackHole.Internal
 
         internal ColumnScanResult GetOracleColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
         {
-            ColumnScanResult scanResult = new ColumnScanResult();
-            scanResult.UnidentifiedColumn = false;
+            ColumnScanResult scanResult = new()
+            {
+                UnidentifiedColumn = false
+            };
 
             if (isPrimaryKey)
             {
@@ -500,8 +496,10 @@ namespace BlackHole.Internal
 
         internal ColumnScanResult GetMySqlColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
         {
-            ColumnScanResult scanResult = new ColumnScanResult();
-            scanResult.UnidentifiedColumn = false;
+            ColumnScanResult scanResult = new()
+            {
+                UnidentifiedColumn = false
+            };
 
             if (isPrimaryKey)
             {
@@ -623,8 +621,10 @@ namespace BlackHole.Internal
 
         internal ColumnScanResult GetSqLiteColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
         {
-            ColumnScanResult scanResult = new ColumnScanResult();
-            scanResult.UnidentifiedColumn = false;
+            ColumnScanResult scanResult = new()
+            {
+                UnidentifiedColumn = false
+            };
 
             if (isPrimaryKey)
             {

@@ -6,30 +6,30 @@ using Microsoft.Data.Sqlite;
 
 namespace BlackHole.Internal
 {
-    internal class BHDatabaseBuilder : IBHDatabaseBuilder
+    internal class BHDatabaseBuilder
     {
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
         private readonly ILoggerService _loggerService;
         private readonly IExecutionProvider connection;
         private bool ExistingDb { get; set; } = false;
         private string SchemaCreationCommand { get; set; } = string.Empty;
-        private string dbSchema { get; set; }
-        private BHSqlExportWriter sqlWriter { get; set; }
+        private string DbSchema { get; set; }
+        private BHSqlExportWriter SqlWriter { get; set; }
 
         internal BHDatabaseBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             _loggerService = new LoggerService();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ServerConnection);
-            sqlWriter = new BHSqlExportWriter("1_DatabaseSql", "SqlFiles", "sql");
-            dbSchema = DatabaseStatics.DatabaseSchema;
+            SqlWriter = new BHSqlExportWriter("1_DatabaseSql", "SqlFiles", "sql");
+            DbSchema = DatabaseStatics.DatabaseSchema;
         }
 
         /// <summary>
         /// Closes all open connections and drops the database
         /// </summary>
         /// <returns></returns>
-        bool IBHDatabaseBuilder.DropDatabase()
+        internal bool DropDatabase()
         {
             string CheckDb = "";
 
@@ -107,7 +107,7 @@ namespace BlackHole.Internal
 
                     if (CliCommand.ExportSql)
                     {
-                        sqlWriter.DeleteSqlFolder();
+                        SqlWriter.DeleteSqlFolder();
                     }
 
                     if (dbExists)
@@ -136,7 +136,7 @@ namespace BlackHole.Internal
         /// Creates a new Database if it doesn't exist, in the specified Server or location
         /// </summary>
         /// <returns></returns>
-        bool IBHDatabaseBuilder.CreateDatabase()
+        internal bool CreateDatabase()
         {
             string CheckDb = "";
 
@@ -200,14 +200,14 @@ namespace BlackHole.Internal
                     {
                         if (CliCommand.ExportSql)
                         {
-                            sqlWriter.AddSqlCommand($"{CreateDb};");
+                            SqlWriter.AddSqlCommand($"{CreateDb};");
                         }
 
                         return connection.JustExecute(CreateDb, null);
                     }
 
                     ExistingDb = true;
-                    dbSchema = string.Empty;
+                    DbSchema = string.Empty;
                     return true;
                 }
             }
@@ -229,7 +229,7 @@ namespace BlackHole.Internal
         /// Checks if the database exists and returns a boolean
         /// </summary>
         /// <returns></returns>
-        bool IBHDatabaseBuilder.DoesDbExists()
+        internal bool DoesDbExists()
         {
             string CheckDb = "";
 
@@ -290,9 +290,9 @@ namespace BlackHole.Internal
             }
         }
 
-        bool IBHDatabaseBuilder.CreateDatabaseSchema()
+        internal bool CreateDatabaseSchema()
         {
-            if(dbSchema != string.Empty)
+            if(DbSchema != string.Empty)
             {
                 IBHConnection connection = new BHConnection();
                 if (connection.JustExecute(SchemaCreationCommand))
@@ -300,12 +300,12 @@ namespace BlackHole.Internal
                     if (CliCommand.CliExecution)
                     {
                         Console.WriteLine("_bhLog_");
-                        Console.WriteLine($"_bhLog_ Created Schema : {dbSchema}.");
+                        Console.WriteLine($"_bhLog_ Created Schema : {DbSchema}.");
                     }
 
                     if (CliCommand.ExportSql)
                     {
-                        sqlWriter.AddSqlCommand(SchemaCreationCommand);
+                        SqlWriter.AddSqlCommand(SchemaCreationCommand);
                     }
                 }
                 else
@@ -313,20 +313,20 @@ namespace BlackHole.Internal
                     if (CliCommand.CliExecution)
                     {
                         Console.WriteLine("_bhLog_");
-                        Console.WriteLine($"_bhLog_ Error : Failed to Created Schema {dbSchema}.");
+                        Console.WriteLine($"_bhLog_ Error : Failed to Created Schema {DbSchema}.");
                     }
                 }
             }
 
             if (CliCommand.ExportSql && !ExistingDb)
             {
-                sqlWriter.CreateSqlFile();
+                SqlWriter.CreateSqlFile();
             }
 
             return false;
         }
 
-        bool IBHDatabaseBuilder.IsCreatedFirstTime()
+        internal bool IsCreatedFirstTime()
         {
             return DatabaseStatics.InitializeData;
         }

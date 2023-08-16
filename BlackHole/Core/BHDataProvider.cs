@@ -16,14 +16,14 @@ namespace BlackHole.Core
         private bool WithActivator { get; }
         private string ThisTable { get; }
         private List<string> Columns { get; } = new();
-        private string PropertyNames { get; } = string.Empty;
-        private string PropertyParams { get; } = string.Empty;
-        private string UpdateParams { get; } = string.Empty;
+        private string PropertyNames { get; }
+        private string PropertyParams { get; }
+        private string UpdateParams { get; }
         private string ThisId { get; }
         private string ThisInactive { get; }
+        private string ThisSchema { get; }
         private bool IsMyShit { get; }
 
-        private readonly IBHDataProviderSelector _dataProviderSelector;
         private readonly IDataProvider _dataProvider;
 
         /// <summary>
@@ -31,35 +31,40 @@ namespace BlackHole.Core
         /// </summary>
         public BHDataProvider()
         {
-            if (typeof(T).GetCustomAttributes(true).SingleOrDefault(x => x.GetType() == typeof(UseActivator)) != null)
+            Type EntityType = typeof(T);
+
+            if (EntityType.GetCustomAttributes(true).SingleOrDefault(x => x.GetType() == typeof(UseActivator)) != null)
             {
                 WithActivator = true;
             }
 
-            _dataProviderSelector = new BHDataProviderSelector();
-            _dataProvider = _dataProviderSelector.GetDataProvider(typeof(G), typeof(T).Name);
+            _dataProvider = typeof(G).GetDataProvider(EntityType.Name);
             IsMyShit = _dataProvider.SkipQuotes();
-            ThisTable = $"{_dataProviderSelector.GetDatabaseSchema()}{MyShit(typeof(T).Name)}";
+            ThisSchema = BHDataProviderSelector.GetDatabaseSchema();
+            ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";
             ThisId = MyShit("Id");
             ThisInactive = MyShit("Inactive");
 
-            foreach (PropertyInfo prop in typeof(T).GetProperties())
+            using(TripleStringBuilder sb = new())
             {
-                if (prop.Name != "Inactive")
+                foreach (PropertyInfo prop in EntityType.GetProperties())
                 {
-                    if (prop.Name != "Id")
+                    if (prop.Name != "Inactive")
                     {
-                        string property = MyShit(prop.Name);
-                        PropertyNames += $", {property}";
-                        PropertyParams += $", @{prop.Name}";
-                        UpdateParams += $",{property} = @{prop.Name}";
+                        if (prop.Name != "Id")
+                        {
+                            string property = MyShit(prop.Name);
+                            sb.PNSb.Append($", {property}");
+                            sb.PPSb.Append($", @{prop.Name}");
+                            sb.UPSb.Append($",{property} = @{prop.Name}");
+                        }
+                        Columns.Add(prop.Name);
                     }
-                    Columns.Add(prop.Name);
                 }
+                PropertyNames = $"{sb.PNSb.ToString().Remove(0, 1)} ";
+                PropertyParams = $"{sb.PPSb.ToString().Remove(0, 1)} ";
+                UpdateParams = $"{sb.UPSb.ToString().Remove(0, 1)} ";
             }
-            PropertyNames = $"{PropertyNames.Remove(0, 1)} ";
-            PropertyParams = $"{PropertyParams.Remove(0, 1)} ";
-            UpdateParams = $"{UpdateParams.Remove(0, 1)} ";
         }
 
         List<T> IBHDataProvider<T, G>.GetAllEntries()
@@ -900,7 +905,7 @@ namespace BlackHole.Core
             firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther });
             firstJoin.Letters.Add(parameterOther);
 
-            firstJoin.Joins = $" {joinType} join {_dataProviderSelector.GetDatabaseSchema()}{MyShit(typeof(TOther).Name)} {parameterOther} on {parameterOther}.{MyShit(propNameOther)} = {parameter}.{MyShit(propName)}";
+            firstJoin.Joins = $" {joinType} join {ThisSchema}{MyShit(typeof(TOther).Name)} {parameterOther} on {parameterOther}.{MyShit(propNameOther)} = {parameter}.{MyShit(propName)}";
             firstJoin.OccupiedDtoProps = BindPropertiesToDto(typeof(TOther), typeof(Dto), parameter, parameterOther);
             return firstJoin;
         }

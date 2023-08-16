@@ -1,6 +1,4 @@
 ﻿using BlackHole.CoreSupport;
-using BlackHole.Enums;
-using System.Data;
 
 namespace BlackHole.Internal
 {

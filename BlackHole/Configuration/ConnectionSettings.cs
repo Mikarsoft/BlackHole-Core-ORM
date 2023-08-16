@@ -12,7 +12,7 @@ namespace BlackHole.Configuration
         internal string ConnectionString { get; set; } = string.Empty;
         internal string TableSchema { get; set; } = string.Empty;
         internal BlackHoleSqlTypes ConnectionType { get; set; }
-        internal ConnectionAdditionalSettings additionalSettings = new ConnectionAdditionalSettings();
+        internal ConnectionAdditionalSettings additionalSettings = new();
 
         /// <summary>
         /// <para>Use the data provider for Microsoft Sql Server.</para>

@@ -27,7 +27,7 @@ namespace BlackHole.Configuration
         {
             Assembly assembly = Assembly.GetCallingAssembly();
 
-            BlackHoleSettings blackHoleSettings = new BlackHoleSettings();
+            BlackHoleSettings blackHoleSettings = new();
             settings.Invoke(blackHoleSettings);
 
             if (blackHoleSettings.directorySettings.DataPath == string.Empty)
@@ -91,7 +91,7 @@ namespace BlackHole.Configuration
 
         private static int BuildOrUpdateDatabaseCliProcess(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
         {
-            IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
+            BHDatabaseBuilder databaseBuilder = new();
 
             bool dbExists = databaseBuilder.CreateDatabase();
             databaseBuilder.CreateDatabaseSchema();
@@ -114,7 +114,7 @@ namespace BlackHole.Configuration
 
         private static int ParseDatabaseCliProcess()
         {
-            BHDatabaseParser parser = new BHDatabaseParser(); 
+            BHDatabaseParser parser = new(); 
             return parser.ParseDatabase();
         }
 
@@ -136,7 +136,7 @@ namespace BlackHole.Configuration
 
         private static void BuildDatabaseAndServices(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
         {
-            IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
+            BHDatabaseBuilder databaseBuilder = new();
 
             bool dbExists = databaseBuilder.CreateDatabase();
             databaseBuilder.CreateDatabaseSchema();
@@ -154,11 +154,11 @@ namespace BlackHole.Configuration
             }
         }
 
-        private static void AddServicesAndTables(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, IBHDatabaseBuilder databaseBuilder)
+        private static void AddServicesAndTables(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, BHDatabaseBuilder databaseBuilder)
         {
-            IBHTableBuilder tableBuilder = new BHTableBuilder();
-            IBHNamespaceSelector namespaceSelector = new BHNamespaceSelector();
-            BHInitialDataBuilder dataBuilder = new BHInitialDataBuilder();
+            BHTableBuilder tableBuilder = new();
+            BHNamespaceSelector namespaceSelector = new();
+            BHInitialDataBuilder dataBuilder = new();
 
             if (additionalSettings.AssembliesToUse.Count > 0)
             {
@@ -186,10 +186,10 @@ namespace BlackHole.Configuration
             }
             else
             {
-                List<string> serviceNamespaces = new List<string>();
-                List<string> entityNamespaces = new List<string>();
+                List<string> serviceNamespaces = new();
+                List<string> entityNamespaces = new();
 
-                AssembliesUsed assembliesToUse = new AssembliesUsed();
+                AssembliesUsed assembliesToUse = new();
 
                 if(additionalSettings.ServicesNamespaces != null)
                 {
@@ -266,11 +266,11 @@ namespace BlackHole.Configuration
             }
         }
 
-        private static void CreateOrUpdateTables(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, IBHDatabaseBuilder databaseBuilder)
+        private static void CreateOrUpdateTables(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, BHDatabaseBuilder databaseBuilder)
         {
-            IBHTableBuilder tableBuilder = new BHTableBuilder();
-            IBHNamespaceSelector namespaceSelector = new BHNamespaceSelector();
-            BHInitialDataBuilder dataBuilder = new BHInitialDataBuilder();
+            BHTableBuilder tableBuilder = new();
+            BHNamespaceSelector namespaceSelector = new();
+            BHInitialDataBuilder dataBuilder = new();
 
             if (additionalSettings.AssembliesToUse.Count > 0)
             {
@@ -296,8 +296,8 @@ namespace BlackHole.Configuration
             }
             else
             {
-                List<string> entityNamespaces = new List<string>();
-                AssembliesUsed assembliesToUse = new AssembliesUsed();
+                List<string> entityNamespaces = new();
+                AssembliesUsed assembliesToUse = new();
 
                 if (additionalSettings.ServicesNamespaces != null)
                 {
@@ -356,12 +356,21 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static bool UpdateDatabase()
+        {
+            return true;
+        }
+
+        /// <summary>
         /// Checks the database's condition
         /// </summary>
         /// <returns>Database is Up</returns>
         public static bool TestDatabase()
         {
-            IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
+            BHDatabaseBuilder databaseBuilder = new();
             return databaseBuilder.DoesDbExists();
         }
 
@@ -371,7 +380,7 @@ namespace BlackHole.Configuration
         /// <returns>Success Boolean</returns>
         public static bool DropDatabase()
         {
-            IBHDatabaseBuilder databaseBuilder = new BHDatabaseBuilder();
+            BHDatabaseBuilder databaseBuilder = new();
             return databaseBuilder.DropDatabase();
         }
 

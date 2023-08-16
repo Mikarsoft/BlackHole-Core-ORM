@@ -4,38 +4,24 @@ using System.Reflection;
 
 namespace BlackHole.Internal
 {
-    internal class BHNamespaceSelector : IBHNamespaceSelector
+    internal class BHNamespaceSelector
     {
-        List<Type> IBHNamespaceSelector.GetInitialData(Assembly ass)
+        internal List<Type> GetInitialData(Assembly ass)
         {
-            List<Type> types = new List<Type>();
             Type type = typeof(IBHInitialData);
-            types = ass.GetTypes().Where(p => type.IsAssignableFrom(p)).ToList();
-            return types;
+            return ass.GetTypes().Where(p => type.IsAssignableFrom(p)).ToList();
         }
 
-        List<Type> IBHNamespaceSelector.GetAllBHEntities(Assembly ass)
+        internal List<Type> GetAllBHEntities(Assembly ass)
         {
-            List<Type> types = new List<Type>();
-            types = ass.GetTypes().Where(t => t.BaseType == typeof(BlackHoleEntity<int>)
+            return ass.GetTypes().Where(t => t.BaseType == typeof(BlackHoleEntity<int>)
             || t.BaseType == typeof(BlackHoleEntity<Guid>)
             || t.BaseType == typeof(BlackHoleEntity<string>)).ToList();
-            return types;
         }
 
-        List<Type> IBHNamespaceSelector.GetBHEntitiesInNamespace(string nameSpace, Assembly ass)
+        internal List<Type> GetBHEntitiesInNamespaces(List<string> nameSpaces, Assembly ass)
         {
-            List<Type> types = new List<Type>();
-            types = ass.GetTypes().Where(t => string.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
-            && (t.BaseType == typeof(BlackHoleEntity<int>)
-            || t.BaseType == typeof(BlackHoleEntity<Guid>)
-            || t.BaseType == typeof(BlackHoleEntity<string>))).ToList();
-            return types;
-        }
-
-        List<Type> IBHNamespaceSelector.GetBHEntitiesInNamespaces(List<string> nameSpaces, Assembly ass)
-        {
-            List<Type> types = new List<Type>();
+            List<Type> types = new();
             foreach (string nameSpace in nameSpaces)
             {
                 types.AddRange(ass.GetTypes().Where(t => string.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
@@ -46,25 +32,9 @@ namespace BlackHole.Internal
             return types;
         }
 
-        List<Type> IBHNamespaceSelector.GetAllBHServices(Assembly ass)
+        internal List<Type> GetBHServicesInNamespaces(List<string> nameSpaces, Assembly ass)
         {
-            List<Type> types = new List<Type>();
-            types = ass.GetTypes().Where(t => t.BaseType == typeof(BlackHoleScoped) || t.BaseType == typeof(BlackHoleSingleton) || t.BaseType == typeof(BlackHoleTransient)).ToList();
-            return types;
-        }
-
-        List<Type> IBHNamespaceSelector.GetBHServicesInNamespace(string nameSpace, Assembly ass)
-        {
-            List<Type> types = new List<Type>();
-            types = ass.GetTypes().Where(t => string.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
-            && (t.BaseType == typeof(BlackHoleScoped) || t.BaseType == typeof(BlackHoleSingleton) || t.BaseType == typeof(BlackHoleTransient))).ToList();
-            return types;
-        }
-
-        List<Type> IBHNamespaceSelector.GetBHServicesInNamespaces(List<string> nameSpaces, Assembly ass)
-        {
-            List<Type> types = new List<Type>();
-
+            List<Type> types = new();
             foreach (string nameSpace in nameSpaces)
             {
                 types.AddRange(ass.GetTypes().Where(t => string.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)

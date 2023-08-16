@@ -5,9 +5,9 @@ using BlackHole.Statics;
 
 namespace BlackHole.CoreSupport
 {
-    internal class BHDataProviderSelector : IBHDataProviderSelector
+    internal static class BHDataProviderSelector
     {
-        IDataProvider IBHDataProviderSelector.GetDataProvider(Type IdType, string tableName)
+        internal static IDataProvider GetDataProvider(this Type IdType, string tableName)
         {
             return DatabaseStatics.DatabaseType switch
             {
@@ -19,7 +19,7 @@ namespace BlackHole.CoreSupport
             };
         }
 
-        IExecutionProvider IBHDataProviderSelector.GetExecutionProvider()
+        internal static IExecutionProvider GetExecutionProvider()
         {
             return DatabaseStatics.DatabaseType switch
             {
@@ -31,7 +31,7 @@ namespace BlackHole.CoreSupport
             };
         }
 
-        string IBHDataProviderSelector.GetDatabaseSchema()
+        internal static string GetDatabaseSchema()
         {
             if(DatabaseStatics.DatabaseSchema != string.Empty)
             {

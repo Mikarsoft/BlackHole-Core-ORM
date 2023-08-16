@@ -1,6 +1,5 @@
 ﻿using BlackHole.Enums;
 using BlackHole.Statics;
-using System.IO.Pipes;
 using System.Reflection;
 using System.Text.Json;
 
@@ -52,7 +51,7 @@ namespace BlackHole.Internal
 
         internal static CliCommandSettings GetCliCommandSettings()
         {
-            CliCommandSettings cliSettings = new CliCommandSettings
+            CliCommandSettings cliSettings = new()
             {
                 forceExecution = CliCommand.ForceAction,
                 saveExecutionSql = CliCommand.ExportSql
@@ -60,21 +59,13 @@ namespace BlackHole.Internal
 
             if (CliCommand.CliExecution)
             {
-                switch (CliCommand.BHRun)
+                cliSettings.commandType = CliCommand.BHRun switch
                 {
-                    case "update":
-                        cliSettings.commandType = CliCommandTypes.Update;
-                        break;
-                    case "drop":
-                        cliSettings.commandType = CliCommandTypes.Drop;
-                        break;
-                    case "parse":
-                        cliSettings.commandType = CliCommandTypes.Parse;
-                        break;
-                    default:
-                        cliSettings.commandType = CliCommandTypes.Default;
-                        break;
-                }
+                    "update" => CliCommandTypes.Update,
+                    "drop" => CliCommandTypes.Drop,
+                    "parse" => CliCommandTypes.Parse,
+                    _ => CliCommandTypes.Default,
+                };
             }
             else
             {
@@ -111,24 +102,6 @@ namespace BlackHole.Internal
                     CliCommand.ExportSql = true;
                 }
             }
-        }
-
-        public static bool InputPipe()
-        {
-            Console.WriteLine("bhInput");
-
-            using (var pipeClient = new NamedPipeClientStream(".", "BlackHolePipe", PipeDirection.In))
-            {
-                // Attempt to connect to the pipe server
-                pipeClient.Connect();
-
-                using (var reader = new StreamReader(pipeClient))
-                {
-                    string? input = reader.ReadToEnd();
-                    Console.WriteLine(input + "eftase");
-                }
-            }
-            return false;
         }
     }
 }

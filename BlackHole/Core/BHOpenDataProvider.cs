@@ -1,4 +1,4 @@
-﻿using BlackHole.OpenEntities;
+﻿using BlackHole.Entities;
 
 namespace BlackHole.Core
 {
