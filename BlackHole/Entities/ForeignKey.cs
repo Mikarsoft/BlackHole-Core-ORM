@@ -3,7 +3,7 @@
     /// <summary>
     /// Sets Foreign Key for this Column
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class ForeignKey : Attribute
     {
         /// <summary>

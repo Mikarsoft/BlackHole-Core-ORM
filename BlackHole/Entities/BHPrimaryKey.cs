@@ -5,15 +5,17 @@
     /// </summary>
     public class BHPrimaryKey<T> where T : IComparable<T>
     {
-        internal readonly IDefaultValueGenerator<T>? defaultValueGenerator;
+        internal readonly IBHValueGenerator<T>? defaultValueGenerator;
         internal readonly Type? PropType;
+        internal T? Value { get; set; }
+
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="defaultValue"></param>
-        public BHPrimaryKey(IDefaultValueGenerator<T> defaultValue)
+        /// <param name="generateValue"></param>
+        public BHPrimaryKey(IBHValueGenerator<T> generateValue)
         {
-            defaultValueGenerator = defaultValue;
+            defaultValueGenerator = generateValue;
             PropType = typeof(T);
         }
 
@@ -24,5 +26,25 @@
         {
             PropType = typeof(T);
         }
+
+        internal void Autogenerate()
+        {
+            if(defaultValueGenerator != null)
+            {
+                Value = defaultValueGenerator.GenerateValue();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="thisValue"></param>
+        public void Set(T? thisValue) => Value = thisValue;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public T? Get() => Value;
     }
 }
