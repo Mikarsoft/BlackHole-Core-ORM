@@ -7,9 +7,14 @@
     public class NotNullable : Attribute
     {
         /// <summary>
-        /// Nullability
+        /// 
         /// </summary>
         public string IsNotNull = "NOT NULL";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public object? ValueDefault { get; set; }
 
         /// <summary>
         /// It turns the property to a Non Nullable Column in the Table.
@@ -17,6 +22,15 @@
         public NotNullable()
         {
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="defaultValue"></param>
+        public NotNullable(object defaultValue)
+        {
+            ValueDefault = defaultValue;
         }
     }
 }

@@ -353,7 +353,7 @@ namespace BlackHole.Internal
                 {
                     object[]? attributes = Property.GetCustomAttributes(true);
                     columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
-                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType.Name));
+                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType));
 
                     foreach(string commandText in columnCreator.ToString().Split("##"))
                     {
@@ -575,46 +575,58 @@ namespace BlackHole.Internal
             return DataType;
         }
 
-        string AddColumnConstaints(object[] attributes, string Tablename, string PropName, string PropType)
+        string AddColumnConstaints(object[] attributes, string Tablename, string PropName, Type PropType)
         {
             string constraintsCommand = "NULL ##";
             string alterTable = $"ALTER TABLE {TableSchema}{MyShit(Tablename)}";
 
-            if (attributes.Length > 0)
+            object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
+
+            if(fkAttribute != null)
             {
-                foreach (object Attribute in attributes)
+                Type fkAttributeType = typeof(ForeignKey);
+
+                var tName = fkAttributeType.GetProperty("TableName")?.GetValue(fkAttribute, null);
+                var tColumn = fkAttributeType.GetProperty("Column")?.GetValue(fkAttribute, null);
+                var tNullable = fkAttributeType.GetProperty("IsNullable")?.GetValue(fkAttribute, null);
+
+                var cascadeInfo = "on delete cascade";
+
+                if (tNullable != null && tNullable.ToString() == "NULL")
                 {
-                    Type AttributeType = Attribute.GetType();
-
-                    switch (AttributeType.Name)
-                    {
-                        case "ForeignKey":
-                            var tName = Attribute.GetType().GetProperty("TableName")?.GetValue(Attribute, null);
-                            var tColumn = Attribute.GetType().GetProperty("Column")?.GetValue(Attribute, null);
-                            var tNullable = Attribute.GetType().GetProperty("IsNullable")?.GetValue(Attribute, null);
-
-                            var cascadeInfo = "on delete cascade";
-
-                            if (tNullable != null && tNullable.ToString() == "NULL")
-                            {
-                                cascadeInfo = "on delete set null";
-                            }
-
-                            constraintsCommand = $"{constraintsCommand} {MyShitConstraint(alterTable, Tablename, PropName, tName, tColumn, cascadeInfo)}";
-                            break;
-                        case "NotNullable":
-                            constraintsCommand = $"DEFAULT '{GetDefaultValue(PropType)}' NOT NULL ";
-                            break;
-                    }
+                    cascadeInfo = "on delete set null";
                 }
+
+                return $"{constraintsCommand} {MyShitConstraint(alterTable, Tablename, PropName, tName, tColumn, cascadeInfo)}";
             }
+
+            object? nnAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(NotNullable));
+
+            if(nnAttribute != null)
+            {
+                Type nnAttributeType = typeof(NotNullable);
+
+                var defaultValNotnull = nnAttributeType.GetProperty("ValueDefault")?.GetValue(nnAttribute, null);
+                return $"{DefaultValueCheck(PropType, defaultValNotnull)} NOT NULL ";
+            }
+
+            object? dvAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(DefaultValue));
+
+            if(dvAttribute != null)
+            {
+                Type dvAttributeType = typeof(NotNullable);
+
+                var defaultVal = dvAttributeType.GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
+                return $"{DefaultValueCheck(PropType, defaultVal)} NULL ";
+            }
+
             return constraintsCommand;
         }
 
         string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType)
         {
-
             bool mandatoryNull = false;
+            string nullPhase = string.Empty;
 
             if (PropertyType.Name.Contains("Nullable"))
             {
@@ -624,32 +636,56 @@ namespace BlackHole.Internal
                 }
             }
 
+            object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
+
+            if (fkAttribute != null)
+            {
+                Type fkAttributeType = typeof(ForeignKey);
+
+                var tNull = fkAttributeType.GetProperty("IsNullable")?.GetValue(fkAttribute, null);
+                nullPhase = firstTime ? $"{tNull}, " : "NULL, ";
+
+                if (mandatoryNull)
+                {
+                    nullPhase = "NULL, ";
+                }
+
+                return nullPhase;
+            }
+
+            object? nnAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(NotNullable));
+
+            if (nnAttribute != null)
+            {
+                Type nnAttributeType = typeof(NotNullable);
+
+                var defaultValNotnull = nnAttributeType.GetProperty("ValueDefault")?.GetValue(nnAttribute, null);
+                nullPhase = firstTime ? "NOT NULL, " : "NULL, ";
+
+                if (mandatoryNull)
+                {
+                    nullPhase = "NULL, ";
+                }
+
+                return $"{DefaultValueCheck(PropertyType, defaultValNotnull)} {nullPhase}";
+            }
+
+            object? dvAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(DefaultValue));
+
+            if (dvAttribute != null)
+            {
+                Type dvAttributeType = typeof(NotNullable);
+
+                var defaultVal = dvAttribute.GetType().GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
+                return $"{DefaultValueCheck(PropertyType, defaultVal)} NULL, ";
+            }
+
             if (mandatoryNull)
             {
                 return "NULL, ";
             }
 
-            string constraintsCommand = ", ";
-
-            if (attributes.Length > 0)
-            {
-                foreach (object Attribute in attributes)
-                {
-                    Type AttributeType = Attribute.GetType();
-
-                    switch (AttributeType.Name)
-                    {
-                        case "ForeignKey":
-                            var tNull = Attribute.GetType().GetProperty("IsNullable")?.GetValue(Attribute, null);
-                            constraintsCommand = firstTime ? $"{tNull}, " : "NULL, ";
-                            break;
-                        case "NotNullable":
-                            constraintsCommand = firstTime ? "NOT NULL, " : "NULL, ";
-                            break;
-                    }
-                }
-            }
-            return constraintsCommand;
+            return ", ";
         }
 
         string MyShit(string propName)
@@ -705,49 +741,96 @@ namespace BlackHole.Internal
             return result;
         }
 
-        string GetDefaultValue(string PropertyType)
+        string DefaultValueCheck(Type PropertyType, object? defaultValue)
         {
-            string defaultValue = "";
-            switch (PropertyType)
+            if(defaultValue != null)
             {
-                case "String":
-                    defaultValue = "-";
-                    break;
-                case "Char":
-                    defaultValue = "-";
-                    break;
-                case "Int16":
-                    defaultValue = "0";
-                    break;
-                case "Int32":
-                    defaultValue = "0";
-                    break;
-                case "Int64":
-                    defaultValue = "0";
-                    break;
-                case "Decimal":
-                    defaultValue = "0.0";
-                    break;
-                case "Single":
-                    defaultValue = "0";
-                    break;
-                case "Double":
-                    defaultValue = "0.0";
-                    break;
-                case "Guid":
-                    defaultValue = Guid.Empty.ToString();
-                    break;
-                case "Boolean":
-                    defaultValue = "false";
-                    break;
-                case "DateTime":
-                    defaultValue = DateTime.Now.ToString();
-                    break;
-                case "Byte[]":
-                    defaultValue = "0";
-                    break;
+                if (IsNumericType(defaultValue))
+                {
+                    if (IsNumericType(PropertyType))
+                    {
+                        return $" default {defaultValue} ";
+                    }
+                }
+                else
+                {
+                    if (IsDateTimeType(PropertyType))
+                    {
+                        if (IsDateTimeType(defaultValue))
+                        {
+                            DateTime thisDate = (DateTime)defaultValue;
+                            return $" default '{thisDate.ToString("MM-dd-yyyy")}' ";
+                        }
+                    }
+                    else
+                    {
+                        if (!IsNumericType(PropertyType) && !IsDateTimeType(defaultValue))
+                        {
+                            return $" default '{defaultValue}' ";
+                        }
+                    }
+                }
             }
-            return defaultValue;
+
+            return string.Empty;
+        }
+
+        public bool IsDateTimeType(Type propertyType)
+        {
+            Type propType = propertyType;
+
+            if (propertyType.Name.Contains("Nullable"))
+            {
+                if (propertyType.GenericTypeArguments != null && propertyType.GenericTypeArguments.Length > 0)
+                {
+                    propType = propertyType.GenericTypeArguments[0];
+                }
+            }
+
+            if(Type.GetTypeCode(propType) == TypeCode.DateTime)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool IsDateTimeType(object obj)
+        {
+            if (Type.GetTypeCode(obj.GetType()) == TypeCode.DateTime)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool IsNumericType(object obj)
+        {
+            return Type.GetTypeCode(obj.GetType()) switch
+            {
+                TypeCode.Byte or TypeCode.SByte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or TypeCode.Decimal or TypeCode.Double or TypeCode.Single => true,
+                _ => false,
+            };
+        }
+
+        public bool IsNumericType(Type obj)
+        {
+            Type propType = obj;
+
+            if (obj.Name.Contains("Nullable"))
+            {
+                if (obj.GenericTypeArguments != null && obj.GenericTypeArguments.Length > 0)
+                {
+                    propType = obj.GenericTypeArguments[0];
+                }
+            }
+
+            return Type.GetTypeCode(propType) switch
+            {
+                TypeCode.Byte or TypeCode.SByte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or TypeCode.Decimal or TypeCode.Double or TypeCode.Single => true,
+                _ => false,
+            };
         }
 
         void CliConsoleLogs(string logCommand)
