@@ -607,7 +607,13 @@ namespace BlackHole.Internal
                 Type nnAttributeType = typeof(NotNullable);
 
                 var defaultValNotnull = nnAttributeType.GetProperty("ValueDefault")?.GetValue(nnAttribute, null);
-                return $"{DefaultValueCheck(PropType, defaultValNotnull)} NOT NULL ";
+                var isDatetimeVal = nnAttributeType.GetProperty("IsDatetimeValue")?.GetValue(nnAttribute, null);
+                bool usingDateTime = false;
+                if(isDatetimeVal is bool)
+                {
+                    usingDateTime = (bool)isDatetimeVal;
+                }
+                return $"{DefaultValueCheck(PropType, defaultValNotnull, usingDateTime)} NOT NULL ";
             }
 
             object? dvAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(DefaultValue));
@@ -617,7 +623,13 @@ namespace BlackHole.Internal
                 Type dvAttributeType = typeof(NotNullable);
 
                 var defaultVal = dvAttributeType.GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
-                return $"{DefaultValueCheck(PropType, defaultVal)} NULL ";
+                var isDatetimeValue = dvAttributeType.GetProperty("IsDatetimeValue")?.GetValue(dvAttributeType, null);
+                bool useDateTimeVal = false;
+                if (isDatetimeValue is bool)
+                {
+                    useDateTimeVal = (bool)isDatetimeValue;
+                }
+                return $"{DefaultValueCheck(PropType, defaultVal, useDateTimeVal)} NULL ";
             }
 
             return constraintsCommand;
@@ -667,7 +679,14 @@ namespace BlackHole.Internal
                     nullPhase = "NULL, ";
                 }
 
-                return $"{DefaultValueCheck(PropertyType, defaultValNotnull)} {nullPhase}";
+                var isDatetimeVal = nnAttributeType.GetProperty("IsDatetimeValue")?.GetValue(nnAttribute, null);
+                bool useDateTime = false;
+                if (isDatetimeVal is bool)
+                {
+                    useDateTime = (bool)isDatetimeVal;
+                }
+
+                return $"{DefaultValueCheck(PropertyType, defaultValNotnull,useDateTime)} {nullPhase}";
             }
 
             object? dvAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(DefaultValue));
@@ -677,7 +696,13 @@ namespace BlackHole.Internal
                 Type dvAttributeType = typeof(NotNullable);
 
                 var defaultVal = dvAttribute.GetType().GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
-                return $"{DefaultValueCheck(PropertyType, defaultVal)} NULL, ";
+                var isDatetimeValue = dvAttributeType.GetProperty("IsDatetimeValue")?.GetValue(dvAttributeType, null);
+                bool useDateTimeVal = false;
+                if (isDatetimeValue is bool)
+                {
+                    useDateTimeVal = (bool)isDatetimeValue;
+                }
+                return $"{DefaultValueCheck(PropertyType, defaultVal,useDateTimeVal)} NULL, ";
             }
 
             if (mandatoryNull)
@@ -741,7 +766,7 @@ namespace BlackHole.Internal
             return result;
         }
 
-        string DefaultValueCheck(Type PropertyType, object? defaultValue)
+        string DefaultValueCheck(Type PropertyType, object? defaultValue, bool useDateTime)
         {
             if(defaultValue != null)
             {
@@ -754,17 +779,18 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    if (IsDateTimeType(PropertyType))
+                    bool isDateTimeProp = IsDateTimeType(PropertyType);
+
+                    if (useDateTime)
                     {
-                        if (IsDateTimeType(defaultValue))
+                        if (isDateTimeProp)
                         {
-                            DateTime thisDate = (DateTime)defaultValue;
-                            return $" default '{thisDate.ToString("MM-dd-yyyy")}' ";
+                            return $" default '{defaultValue}' ";
                         }
                     }
                     else
                     {
-                        if (!IsNumericType(PropertyType) && !IsDateTimeType(defaultValue))
+                        if (!IsNumericType(PropertyType) && !isDateTimeProp)
                         {
                             return $" default '{defaultValue}' ";
                         }
@@ -775,7 +801,7 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
-        public bool IsDateTimeType(Type propertyType)
+        private bool IsDateTimeType(Type propertyType)
         {
             Type propType = propertyType;
 
@@ -788,16 +814,6 @@ namespace BlackHole.Internal
             }
 
             if(Type.GetTypeCode(propType) == TypeCode.DateTime)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        public bool IsDateTimeType(object obj)
-        {
-            if (Type.GetTypeCode(obj.GetType()) == TypeCode.DateTime)
             {
                 return true;
             }

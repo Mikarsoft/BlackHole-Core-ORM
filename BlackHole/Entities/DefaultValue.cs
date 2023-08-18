@@ -10,7 +10,12 @@ namespace BlackHole.Entities
         /// <summary>
         /// 
         /// </summary>
-        public object ValueDefault { get; set; }
+        public object? ValueDefault { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool IsDatetimeValue { get; set; }
 
         /// <summary>
         /// 
@@ -31,11 +36,32 @@ namespace BlackHole.Entities
         {
             try
             {
-                ValueDefault = new DateTime(year, month, day);
+                ValueDefault = new DateTime(year, month, day).ToString("MM-dd-yyyy");
+                IsDatetimeValue = true;
             }
             catch
             {
-                ValueDefault = DateTime.MinValue;
+                ValueDefault = null;            
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="day"></param>
+        /// <param name="dateFormat"></param>
+        public DefaultValue(int year, int month, int day, string dateFormat)
+        {
+            try
+            {
+                ValueDefault = new DateTime(year, month, day).ToString(dateFormat);
+                IsDatetimeValue = true;
+            }
+            catch
+            {
+                ValueDefault = null;
             }
         }
     }
