@@ -165,7 +165,7 @@ namespace BlackHole.Configuration
                 if (additionalSettings.useCallingAssembly)
                 {
                     services.RegisterBHServices(callingAssembly);
-                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
+                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly),namespaceSelector.GetOpenAllBHEntities(callingAssembly));
 
                     if (databaseBuilder.IsCreatedFirstTime())
                     {
@@ -176,7 +176,7 @@ namespace BlackHole.Configuration
                 foreach(Assembly assembly in additionalSettings.AssembliesToUse)
                 {
                     services.RegisterBHServices(assembly);
-                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly));
+                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly), namespaceSelector.GetOpenAllBHEntities(assembly));
 
                     if (databaseBuilder.IsCreatedFirstTime())
                     {
@@ -225,11 +225,13 @@ namespace BlackHole.Configuration
 
                     if (entityNamespaces.Count > 0)
                     {
-                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, assembliesToUse.ScanAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, assembliesToUse.ScanAssembly),
+                            namespaceSelector.GetOpenBHEntitiesInNamespaces(entityNamespaces, assembliesToUse.ScanAssembly));
                     }
                     else
                     {
-                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembliesToUse.ScanAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembliesToUse.ScanAssembly),
+                            namespaceSelector.GetOpenAllBHEntities(assembliesToUse.ScanAssembly));
                     }
 
                     if (databaseBuilder.IsCreatedFirstTime())
@@ -251,11 +253,13 @@ namespace BlackHole.Configuration
 
                     if (entityNamespaces.Count > 0)
                     {
-                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, callingAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, callingAssembly),
+                            namespaceSelector.GetOpenBHEntitiesInNamespaces(entityNamespaces, callingAssembly));
                     }
                     else
                     {
-                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly),
+                            namespaceSelector.GetOpenAllBHEntities(callingAssembly));
                     }
 
                     if (databaseBuilder.IsCreatedFirstTime())
@@ -276,7 +280,7 @@ namespace BlackHole.Configuration
             {
                 if (additionalSettings.useCallingAssembly)
                 {
-                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
+                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly), namespaceSelector.GetOpenAllBHEntities(callingAssembly));
 
                     if (databaseBuilder.IsCreatedFirstTime())
                     {
@@ -286,7 +290,7 @@ namespace BlackHole.Configuration
 
                 foreach (Assembly assembly in additionalSettings.AssembliesToUse)
                 {
-                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly));
+                    tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly), namespaceSelector.GetOpenAllBHEntities(assembly));
 
                     if (databaseBuilder.IsCreatedFirstTime())
                     {
@@ -321,11 +325,13 @@ namespace BlackHole.Configuration
                 {
                     if (entityNamespaces.Count > 0)
                     {
-                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, assembliesToUse.ScanAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, assembliesToUse.ScanAssembly),
+                            namespaceSelector.GetOpenBHEntitiesInNamespaces(entityNamespaces,assembliesToUse.ScanAssembly));
                     }
                     else
                     {
-                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembliesToUse.ScanAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembliesToUse.ScanAssembly),
+                            namespaceSelector.GetOpenAllBHEntities(assembliesToUse.ScanAssembly));
                     }
 
                     if (databaseBuilder.IsCreatedFirstTime())
@@ -337,11 +343,13 @@ namespace BlackHole.Configuration
                 {
                     if (entityNamespaces.Count > 0)
                     {
-                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, callingAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetBHEntitiesInNamespaces(entityNamespaces, callingAssembly),
+                            namespaceSelector.GetOpenBHEntitiesInNamespaces(entityNamespaces,callingAssembly));
                     }
                     else
                     {
-                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly));
+                        tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly),
+                            namespaceSelector.GetOpenAllBHEntities(callingAssembly));
                     }
 
                     if (databaseBuilder.IsCreatedFirstTime())

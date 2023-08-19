@@ -17,5 +17,16 @@ namespace BlackHole.Entities
         {
 
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="tKey"></typeparam>
+        /// <param name="primaryKey"></param>
+        /// <param name="valueGenerator"></param>
+        public void AutoGenerate<tKey>(Func<T, tKey> primaryKey, IBHValueGenerator<tKey> valueGenerator) where tKey: IComparable<tKey> 
+        {
+
+        }
     }
 }

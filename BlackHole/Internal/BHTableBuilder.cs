@@ -42,7 +42,8 @@ namespace BlackHole.Internal
         /// Constraints Are Handled Automatically. If the Table Already Exists it gets Ignored or Updated.
         /// </summary>
         /// <param name="TableTypes"></param>
-        internal void BuildMultipleTables(List<Type> TableTypes)
+        /// <param name="OpenTableTypes"></param>
+        internal void BuildMultipleTables(List<Type> TableTypes, List<Type> OpenTableTypes)
         {
             DatabaseStatics.InitializeData = true;
 

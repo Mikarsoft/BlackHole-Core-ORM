@@ -2,7 +2,7 @@
 
 namespace BlackHole.Core
 {
-    internal class BHOpenDataProvider<T> where T : IBHOpenEntity
+    internal class BHOpenDataProvider<T> where T : IBHOpenEntity<T>
     {
 
     }

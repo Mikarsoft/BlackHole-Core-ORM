@@ -28,7 +28,7 @@ namespace BlackHole.Internal
                 if(instance !=null && method != null)
                 {
                     object[] Argumnet = new object[1];
-                    BHDataInitializer initializer = new BHDataInitializer();
+                    BHDataInitializer initializer = new();
                     Argumnet[0] = initializer;
                     method.Invoke(instance, Argumnet);
 
