@@ -9,6 +9,6 @@
         /// 
         /// </summary>
         /// <param name="builder"></param>
-        public void ColumnProperties(ColumnOptionsBuilder<Self> builder);
+        public ColumnOptionsBuilder<Self> ColumnProperties(ColumnOptionsBuilder<Self> builder);
     }
 }
