@@ -9,6 +9,6 @@
         /// 
         /// </summary>
         /// <param name="builder"></param>
-        public ColumnOptionsBuilder<Self> ColumnProperties(ColumnOptionsBuilder<Self> builder);
+        public PKSettings<Self> PrimaryKeyOptions(PKOptionsBuilder<Self> builder);
     }
 }
