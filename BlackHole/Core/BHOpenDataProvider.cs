@@ -43,150 +43,189 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        public List<T> GetAllEntries(BHTransaction transaction)
+        List<T> IBHOpenDataProvider<T>.GetAllEntries(BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public List<Dto> GetAllEntries<Dto>() where Dto : class
+        List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>() where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        public List<Dto> GetAllEntries<Dto>(BHTransaction transaction) where Dto : class
+        List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>(BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        public List<T> GetAllInactiveEntries()
+        List<T> IBHOpenDataProvider<T>.GetAllInactiveEntries()
         {
             throw new NotImplementedException();
         }
 
-        public List<T> GetAllInactiveEntries(BHTransaction transaction)
+        List<T> IBHOpenDataProvider<T>.GetAllInactiveEntries(BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate)
+        List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
+        List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        public List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
+        List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        public T? GetEntryWhere(Expression<Func<T, bool>> predicate)
+        T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public T? GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
+        Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        public Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
+        Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        public List<T> InsertEntries(List<T> entries)
+        List<T> IBHOpenDataProvider<T>.InsertAndReturnEntries(List<T> entries)
         {
             throw new NotImplementedException();
         }
 
-        public List<T> InsertEntries(List<T> entries, BHTransaction transaction)
+        List<T> IBHOpenDataProvider<T>.InsertAndReturnEntries(List<T> entries, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public T? InsertEntry(T entry)
+        T? IBHOpenDataProvider<T>.InsertAndReturnEntry(T entry)
         {
             throw new NotImplementedException();
         }
 
-        public T? InsertEntry(T entry, BHTransaction transaction)
+        T? IBHOpenDataProvider<T>.InsertAndReturnEntry(T entry, BHTransaction transaction)
         {
             
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntriesById(List<T> entries)
+        bool IBHOpenDataProvider<T>.JustInsertEntries(List<T> entries)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntriesById(List<T> entries, BHTransaction transaction)
+        bool IBHOpenDataProvider<T>.JustInsertEntries(List<T> entries, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntriesById<Columns>(List<T> entries) where Columns : class
+        bool IBHOpenDataProvider<T>.JustInsertEntry(T entry)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntriesById<Columns>(List<T> entries, BHTransaction transaction) where Columns : class
+        bool IBHOpenDataProvider<T>.JustInsertEntry(T entry, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
+        bool IBHOpenDataProvider<T>.UpdateEntriesById(List<T> entries)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction)
+        bool IBHOpenDataProvider<T>.UpdateEntriesById(List<T> entries, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
+        bool IBHOpenDataProvider<T>.UpdateEntriesById<Columns>(List<T> entries) where Columns : class
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class
+        bool IBHOpenDataProvider<T>.UpdateEntriesById<Columns>(List<T> entries, BHTransaction transaction) where Columns : class
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntryById(T entry)
+        bool IBHOpenDataProvider<T>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntryById(T entry, BHTransaction transaction)
+        bool IBHOpenDataProvider<T>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntryById<Columns>(T entry) where Columns : class
+        bool IBHOpenDataProvider<T>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateEntryById<Columns>(T entry, BHTransaction transaction) where Columns : class
+        bool IBHOpenDataProvider<T>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class
         {
             throw new NotImplementedException();
+        }
+
+        bool IBHOpenDataProvider<T>.UpdateEntryById(T entry)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IBHOpenDataProvider<T>.UpdateEntryById(T entry, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IBHOpenDataProvider<T>.UpdateEntryById<Columns>(T entry) where Columns : class
+        {
+            throw new NotImplementedException();
+        }
+
+        bool IBHOpenDataProvider<T>.UpdateEntryById<Columns>(T entry, BHTransaction transaction) where Columns : class
+        {
+            throw new NotImplementedException();
+        }
+
+        private T CheckGenerateValue(T entry)
+        {
+            foreach(PrimaryKeySettings settings in _settings.PKSettingsList)
+            {
+                if (settings.Autogenerated && settings.Generator != null)
+                {
+                    entry.GetType().GetProperty(settings.PropertyName)?.SetValue(entry, GetGeneratorsValue(settings.Generator));
+                }
+            }
+            return entry;
+        }
+
+        private object? GetGeneratorsValue(object Generator)
+        {
+            object? result = null;
+            Generator.GetType().GetMethod("GenerateValue")?.Invoke(result, null);
+            return result;
         }
     }
 }

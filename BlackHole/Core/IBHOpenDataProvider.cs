@@ -137,7 +137,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <returns>Id of the Entity</returns>
-        T? InsertEntry(T entry);
+        T? InsertAndReturnEntry(T entry);
 
         /// <summary>
         /// Transaction.Inserts the Entity into the table, generates a new Id 
@@ -146,7 +146,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Id of the Entity</returns>
-        T? InsertEntry(T entry, BHTransaction transaction);
+        T? InsertAndReturnEntry(T entry, BHTransaction transaction);
 
         /// <summary>
         /// Inserts a list of Entities into the table, generates a new Id of each one
@@ -154,7 +154,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="entries">Entities</param>
         /// <returns>Ids of the Entities</returns>
-        List<T> InsertEntries(List<T> entries);
+        List<T> InsertAndReturnEntries(List<T> entries);
 
         /// <summary>
         /// Transaction.Inserts a list of Entities into the table, generates a new Id of each one
@@ -163,7 +163,41 @@ namespace BlackHole.Core
         /// <param name="entries">Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Ids of the Entities</returns>
-        List<T> InsertEntries(List<T> entries, BHTransaction transaction);
+        List<T> InsertAndReturnEntries(List<T> entries, BHTransaction transaction);
+
+        /// <summary>
+        /// Inserts the Entity into the table, generates a new Id 
+        /// and returns the Id
+        /// </summary>
+        /// <param name="entry">Entity</param>
+        /// <returns>Id of the Entity</returns>
+        bool JustInsertEntry(T entry);
+
+        /// <summary>
+        /// Transaction.Inserts the Entity into the table, generates a new Id 
+        /// and returns the Id
+        /// </summary>
+        /// <param name="entry">Entity</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Id of the Entity</returns>
+        bool JustInsertEntry(T entry, BHTransaction transaction);
+
+        /// <summary>
+        /// Inserts a list of Entities into the table, generates a new Id of each one
+        /// and returns the list of Ids
+        /// </summary>
+        /// <param name="entries">Entities</param>
+        /// <returns>Ids of the Entities</returns>
+        bool JustInsertEntries(List<T> entries);
+
+        /// <summary>
+        /// Transaction.Inserts a list of Entities into the table, generates a new Id of each one
+        /// and returns the list of Ids
+        /// </summary>
+        /// <param name="entries">Entities</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Ids of the Entities</returns>
+        bool JustInsertEntries(List<T> entries, BHTransaction transaction);
 
         /// <summary>
         /// Finds the entry in the table that has
