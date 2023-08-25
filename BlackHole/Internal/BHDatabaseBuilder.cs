@@ -88,8 +88,12 @@ namespace BlackHole.Internal
                         case 2:
                             CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
-                            DropDb = $@"UPDATE pg_database SET datallowconn = 'false' WHERE datname = '{databaseName}'; SELECT pg_terminate_backend(pg_stat_activity.pid)
-                            FROM pg_stat_activity WHERE pg_stat_activity.datname = '{databaseName}'; DROP DATABASE ""{databaseName}""";
+                            if (dbExists)
+                            {
+                                connection.JustExecute($@"UPDATE pg_database SET datallowconn = 'false' WHERE datname = '{databaseName}'; SELECT pg_terminate_backend(pg_stat_activity.pid)
+                                    FROM pg_stat_activity WHERE pg_stat_activity.datname = '{databaseName}'; ",null);
+                            }
+                            DropDb = $@" DROP DATABASE ""{databaseName}""";
                             break;
                         case 4:
                             if(!string.IsNullOrWhiteSpace(databaseName))

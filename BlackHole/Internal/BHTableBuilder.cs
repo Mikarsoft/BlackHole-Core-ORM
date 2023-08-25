@@ -621,10 +621,10 @@ namespace BlackHole.Internal
 
             if(dvAttribute != null)
             {
-                Type dvAttributeType = typeof(NotNullable);
+                Type dvAttributeType = typeof(DefaultValue);
 
                 var defaultVal = dvAttributeType.GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
-                var isDatetimeValue = dvAttributeType.GetProperty("IsDatetimeValue")?.GetValue(dvAttributeType, null);
+                var isDatetimeValue = dvAttributeType.GetProperty("IsDatetimeValue")?.GetValue(dvAttribute, null);
                 bool useDateTimeVal = false;
                 if (isDatetimeValue is bool)
                 {
@@ -694,10 +694,10 @@ namespace BlackHole.Internal
 
             if (dvAttribute != null)
             {
-                Type dvAttributeType = typeof(NotNullable);
+                Type dvAttributeType = typeof(DefaultValue);
 
-                var defaultVal = dvAttribute.GetType().GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
-                var isDatetimeValue = dvAttributeType.GetProperty("IsDatetimeValue")?.GetValue(dvAttributeType, null);
+                var defaultVal = dvAttributeType.GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
+                var isDatetimeValue = dvAttributeType.GetProperty("IsDatetimeValue")?.GetValue(dvAttribute, null);
                 bool useDateTimeVal = false;
                 if (isDatetimeValue is bool)
                 {
