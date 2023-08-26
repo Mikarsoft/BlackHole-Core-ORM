@@ -229,11 +229,35 @@ namespace BlackHole.Internal
             }
             else
             {
-                ForeignKeyAsignment(TableType);
+                ForeignKeyAsignment(TableType, typeof(ForeignKey));
+            }
+        }
+
+        void AsignOpenForeignKeys(Type TableType)
+        {
+            if (IsLite)
+            {
+                ForeignKeyLiteAsignment(TableType, true);
+            }
+            else
+            {
+                ForeignKeyAsignment(TableType, typeof(OpenForeignKey));
             }
         }
 
         void UpdateSchema(Type TableType)
+        {
+            if (IsLite)
+            {
+                UpdateLiteTableSchema(TableType);
+            }
+            else
+            {
+                UpdateTableSchema(TableType);
+            }
+        }
+
+        void UpdateOpenSchema(Type TableType)
         {
             if (IsLite)
             {
@@ -375,7 +399,7 @@ namespace BlackHole.Internal
             closingCommand.Clear();
         }
 
-        void ForeignKeyAsignment(Type TableType)
+        void ForeignKeyAsignment(Type TableType, Type Fk_type)
         {
             string Tablename = TableType.Name;
             PropertyInfo[] Properties = TableType.GetProperties();
@@ -387,7 +411,7 @@ namespace BlackHole.Internal
 
                 if (attributes.Length > 0)
                 {
-                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
+                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == Fk_type);
 
                     if (FK_attribute != null)
                     {
