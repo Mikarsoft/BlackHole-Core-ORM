@@ -46,12 +46,18 @@ namespace BlackHole.Internal
         internal void BuildMultipleTables(List<Type> TableTypes, List<Type> OpenTableTypes)
         {
             DatabaseStatics.InitializeData = true;
-            CreateOpenTable(OpenTableTypes[0]);
+
             bool[] Builded = new bool[TableTypes.Count];
+            bool[] OpenBuilded = new bool[OpenTableTypes.Count];
 
             for (int i = 0; i < Builded.Length; i++)
             {
                 Builded[i] = CreateTable(TableTypes[i]);
+            }
+
+            for (int i = 0; i < OpenBuilded.Length; i++)
+            {
+                OpenBuilded[i] = CreateOpenTable(OpenTableTypes[i]);
             }
 
             CliConsoleLogs("");
@@ -68,6 +74,18 @@ namespace BlackHole.Internal
                 }
             }
 
+            for (int j = 0; j < OpenBuilded.Length; j++)
+            {
+                if (OpenBuilded[j])
+                {
+                    AsignForeignKeys(OpenTableTypes[j]);
+                }
+                else
+                {
+                    UpdateSchema(OpenTableTypes[j]);
+                }
+            }
+
             if (CliCommand.ExportSql)
             {
                 SqlWriter.CreateSqlFile();
@@ -76,7 +94,6 @@ namespace BlackHole.Internal
 
         bool CreateOpenTable(Type TableType)
         {
-
             if (!CheckTable(TableType.Name))
             {
                 List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
