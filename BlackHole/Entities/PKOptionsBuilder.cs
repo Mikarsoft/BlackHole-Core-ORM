@@ -8,11 +8,6 @@ namespace BlackHole.Entities
     /// </summary>
     public class PKOptionsBuilder<T>
     {
-        //internal PKOptionsBuilder()
-        //{
-
-        //}
-
         /// <summary>
         /// 
         /// </summary>
@@ -60,7 +55,10 @@ namespace BlackHole.Entities
     /// <typeparam name="T"></typeparam>
     public class PKSettings<T>
     {
-        internal  List<PrimaryKeySettings> PKSettingsList { get; set; } = new List<PrimaryKeySettings>();
+        /// <summary>
+        /// 
+        /// </summary>
+        public  List<PrimaryKeySettings> PKSettingsList { get; set; } = new List<PrimaryKeySettings>();
         internal bool LockedPK { get; set; }
         internal PKSettings(bool lockedPK)
         {

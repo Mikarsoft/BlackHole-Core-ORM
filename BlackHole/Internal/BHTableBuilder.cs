@@ -76,8 +76,7 @@ namespace BlackHole.Internal
 
         bool CreateOpenTable(Type TableType)
         {
-            List<PrimaryKeySettings> pkSettings = new List<PrimaryKeySettings>();
-            pkSettings = ReadOpenEntity(TableType);
+            List<PrimaryKeySettings>? pkSettings = ReadOpenEntity(TableType);
 
             if (typeof(IBHOpenEntity<>).IsAssignableFrom(TableType))
             {
@@ -175,10 +174,8 @@ namespace BlackHole.Internal
 
         List<PrimaryKeySettings>? ReadOpenEntity(Type openEntity)
         {
-            List<PrimaryKeySettings>? pkSettings = new List<PrimaryKeySettings>();
-
             var pkOptionsBuilderType = typeof(PKOptionsBuilder<>).MakeGenericType(openEntity);
-            object? pkOptionsBuilderObj = Activator.CreateInstance(pkOptionsBuilderType, new object[0]);
+            object? pkOptionsBuilderObj = Activator.CreateInstance(pkOptionsBuilderType, new object[] { });
 
             ConstructorInfo? openEntityConstructor = openEntity.GetConstructor(Type.EmptyTypes);
             object? openEntityObj = openEntityConstructor?.Invoke(new object[] { });
@@ -188,10 +185,10 @@ namespace BlackHole.Internal
 
             if(pkSettingsObj != null)
             {
-                pkSettings = (List<PrimaryKeySettings>)pkSettingsObj.GetType().GetProperty("PKSettingsList")?.GetValue(pkSettingsObj, null);
+                return (List<PrimaryKeySettings>?)pkSettingsObj.GetType().GetProperty("PKSettingsList")?.GetValue(pkSettingsObj, null);
             }
 
-            return pkSettings;
+            return null;
         }
 
         void AsignForeignKeys(Type TableType)
