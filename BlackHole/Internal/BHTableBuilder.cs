@@ -76,24 +76,16 @@ namespace BlackHole.Internal
 
         bool CreateOpenTable(Type TableType)
         {
-            List<PrimaryKeySettings>? pkSettings = ReadOpenEntity(TableType);
-
-            if (typeof(IBHOpenEntity<>).IsAssignableFrom(TableType))
-            {
-            }
-            else
-            {
-                return true;
-            }
 
             if (!CheckTable(TableType.Name))
             {
+                List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
+
                 PropertyInfo[] Properties = TableType.GetProperties();
                 StringBuilder tableCreator = new();
-                tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
+                string Pkoption = OpenPrimaryKey(pkSettings);
 
-                tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-                tableCreator.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int)));
+                tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
                 foreach (PropertyInfo Property in Properties)
                 {
@@ -104,7 +96,7 @@ namespace BlackHole.Internal
                 }
 
                 string creationCommand = tableCreator.ToString();
-                creationCommand = $"{creationCommand[..^2]})";
+                creationCommand = $"{creationCommand[..^2]}{Pkoption})";
                 CliConsoleLogs($"{creationCommand};");
                 return connection.JustExecute(creationCommand, null);
             }
@@ -172,8 +164,9 @@ namespace BlackHole.Internal
             };
         }
 
-        List<PrimaryKeySettings>? ReadOpenEntity(Type openEntity)
+        List<string> ReadOpenEntityPrimaryKeys(Type openEntity)
         {
+            List<string> pkNames = new();
             var pkOptionsBuilderType = typeof(PKOptionsBuilder<>).MakeGenericType(openEntity);
             object? pkOptionsBuilderObj = Activator.CreateInstance(pkOptionsBuilderType, new object[] { });
 
@@ -185,10 +178,30 @@ namespace BlackHole.Internal
 
             if(pkSettingsObj != null)
             {
-                return (List<PrimaryKeySettings>?)pkSettingsObj.GetType().GetProperty("PKSettingsList")?.GetValue(pkSettingsObj, null);
+                if(pkSettingsObj.GetType().GetProperty("PKSettingsList")?.GetValue(pkSettingsObj, null) is List<PrimaryKeySettings> pkSettings)
+                {
+                    foreach(PrimaryKeySettings pkSetting in pkSettings)
+                    {
+                        pkNames.Add(pkSetting.PropertyName);
+                    }
+                }
             }
+            return pkNames;
+        }
 
-            return null;
+        string OpenPrimaryKey(List<string> pkSettings)
+        {
+            if (pkSettings.Any())
+            {
+                StringBuilder primaryKeyCreator = new();
+                primaryKeyCreator.Append(", Primary Key(");
+                foreach (string key in pkSettings)
+                {
+                    primaryKeyCreator.Append($"{MyShit(key)},");
+                }
+                return $"{primaryKeyCreator.ToString()[..^1]})";
+            }
+            return string.Empty;
         }
 
         void AsignForeignKeys(Type TableType)
