@@ -46,7 +46,7 @@ namespace BlackHole.Internal
         internal void BuildMultipleTables(List<Type> TableTypes, List<Type> OpenTableTypes)
         {
             DatabaseStatics.InitializeData = true;
-
+            CreateOpenTable(OpenTableTypes[0]);
             bool[] Builded = new bool[TableTypes.Count];
 
             for (int i = 0; i < Builded.Length; i++)
@@ -72,6 +72,45 @@ namespace BlackHole.Internal
             {
                 SqlWriter.CreateSqlFile();
             }
+        }
+
+        bool CreateOpenTable(Type TableType)
+        {
+            List<PrimaryKeySettings> pkSettings = new List<PrimaryKeySettings>();
+            pkSettings = ReadOpenEntity(TableType);
+
+            if (typeof(IBHOpenEntity<>).IsAssignableFrom(TableType))
+            {
+            }
+            else
+            {
+                return true;
+            }
+
+            if (!CheckTable(TableType.Name))
+            {
+                PropertyInfo[] Properties = TableType.GetProperties();
+                StringBuilder tableCreator = new();
+                tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
+
+                tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
+                tableCreator.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int)));
+
+                foreach (PropertyInfo Property in Properties)
+                {
+                    object[] attributes = Property.GetCustomAttributes(true);
+
+                    tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType));
+                }
+
+                string creationCommand = tableCreator.ToString();
+                creationCommand = $"{creationCommand[..^2]})";
+                CliConsoleLogs($"{creationCommand};");
+                return connection.JustExecute(creationCommand, null);
+            }
+
+            return true;
         }
 
         bool CreateTable(Type TableType)
@@ -132,6 +171,27 @@ namespace BlackHole.Internal
                 BlackHoleSqlTypes.Oracle => connection.ExecuteScalar<string>($"SELECT table_name FROM all_tables WHERE owner ='{_multiDatabaseSelector.GetDatabaseName()}' and TABLE_NAME = '{Tablename}'", null) == Tablename,
                 _ => connection.ExecuteScalar<int>($"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + $"' {TableSchemaCheck})) then 1 else 0 end", null) == 1,
             };
+        }
+
+        List<PrimaryKeySettings>? ReadOpenEntity(Type openEntity)
+        {
+            List<PrimaryKeySettings>? pkSettings = new List<PrimaryKeySettings>();
+
+            var pkOptionsBuilderType = typeof(PKOptionsBuilder<>).MakeGenericType(openEntity);
+            object? pkOptionsBuilderObj = Activator.CreateInstance(pkOptionsBuilderType, new object[0]);
+
+            ConstructorInfo? openEntityConstructor = openEntity.GetConstructor(Type.EmptyTypes);
+            object? openEntityObj = openEntityConstructor?.Invoke(new object[] { });
+
+            MethodInfo? pkOptionsMethod = openEntity?.GetMethod("PrimaryKeyOptions");
+            object? pkSettingsObj = pkOptionsMethod?.Invoke(openEntityObj, new object?[] { pkOptionsBuilderObj });
+
+            if(pkSettingsObj != null)
+            {
+                pkSettings = (List<PrimaryKeySettings>)pkSettingsObj.GetType().GetProperty("PKSettingsList")?.GetValue(pkSettingsObj, null);
+            }
+
+            return pkSettings;
         }
 
         void AsignForeignKeys(Type TableType)

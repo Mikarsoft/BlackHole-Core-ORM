@@ -34,18 +34,16 @@ namespace BlackHole.Internal
 
         internal List<Type> GetOpenAllBHEntities(Assembly ass)
         {
-            Type openEntity = typeof(IBHOpenEntity<>);
-            return ass.GetTypes().Where(t => openEntity.IsAssignableFrom(t)).ToList();
+            return ass.GetTypes().Where(x => x.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IBHOpenEntity<>))).ToList();
         }
 
         internal List<Type> GetOpenBHEntitiesInNamespaces(List<string> nameSpaces, Assembly ass)
         {
             List<Type> types = new();
-            Type openEntity = typeof(IBHOpenEntity<>);
             foreach (string nameSpace in nameSpaces)
             {
                 types.AddRange(ass.GetTypes().Where(t => string.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
-                && openEntity.IsAssignableFrom(t)).ToList());
+                && t.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(IBHOpenEntity<>))).ToList());
             }
             return types;
         }

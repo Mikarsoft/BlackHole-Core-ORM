@@ -25,7 +25,6 @@ namespace BlackHole.Core
                 _settings = new(true);
             }
 
-
         }
 
         bool IBHOpenDataProvider<T>.DeleteAllEntries()
