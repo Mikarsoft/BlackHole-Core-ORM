@@ -78,11 +78,11 @@ namespace BlackHole.Internal
             {
                 if (OpenBuilded[j])
                 {
-                    AsignForeignKeys(OpenTableTypes[j]);
+                    AsignOpenForeignKeys(OpenTableTypes[j]);
                 }
                 else
                 {
-                    UpdateSchema(OpenTableTypes[j]);
+                    UpdateOpenSchema(OpenTableTypes[j]);
                 }
             }
 
@@ -109,7 +109,7 @@ namespace BlackHole.Internal
                     object[] attributes = Property.GetCustomAttributes(true);
 
                     tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType));
+                    tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, typeof(OpenForeignKey)));
                 }
 
                 string creationCommand = tableCreator.ToString();
@@ -130,7 +130,7 @@ namespace BlackHole.Internal
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
                 tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-                tableCreator.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int)));
+                tableCreator.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int), typeof(ForeignKey)));
 
                 foreach (PropertyInfo Property in Properties)
                 {
@@ -140,7 +140,7 @@ namespace BlackHole.Internal
                     {
                         tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType));
+                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, typeof(ForeignKey)));
                     }
                     else
                     {
@@ -237,7 +237,7 @@ namespace BlackHole.Internal
         {
             if (IsLite)
             {
-                ForeignKeyLiteAsignment(TableType, true);
+                ForeignKeyLiteOpenAsignment(TableType, true);
             }
             else
             {
@@ -261,11 +261,11 @@ namespace BlackHole.Internal
         {
             if (IsLite)
             {
-                UpdateLiteTableSchema(TableType);
+                UpdateLiteOpenTableSchema(TableType);
             }
             else
             {
-                UpdateTableSchema(TableType);
+                UpdateOpenTableSchema(TableType);
             }
         }
 
@@ -295,6 +295,29 @@ namespace BlackHole.Internal
             }
         }
 
+        void UpdateLiteOpenTableSchema(Type TableType)
+        {
+            List<string> ColumnNames = new();
+            List<string> NewColumnNames = new();
+
+            foreach (PropertyInfo Property in TableType.GetProperties())
+            {
+                NewColumnNames.Add(Property.Name);
+            }
+
+            foreach (SqLiteTableInfo column in connection.Query<SqLiteTableInfo>($"PRAGMA table_info({MyShit(TableType.Name)}); ", null))
+            {
+                ColumnNames.Add(column.name);
+            }
+
+            IEnumerable<string> CommonList = ColumnNames.Intersect(NewColumnNames);
+
+            if (CommonList.Count() != ColumnNames.Count)
+            {
+                ForeignKeyLiteOpenAsignment(TableType, false);
+            }
+        }
+
         void ForeignKeyLiteAsignment(Type TableType, bool firstTime)
         {
             string Tablename = MyShit(TableType.Name);
@@ -319,7 +342,7 @@ namespace BlackHole.Internal
 
             alterTable.Append($"PRAGMA foreign_keys=off; ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; CREATE TABLE {Tablename} (");
             alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-            alterTable.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int)));
+            alterTable.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int), typeof(ForeignKey)));
 
             foreach (PropertyInfo Property in TableType.GetProperties())
             {
@@ -330,7 +353,7 @@ namespace BlackHole.Internal
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType));
+                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType,typeof(ForeignKey)));
                 }
                 else
                 {
@@ -391,6 +414,87 @@ namespace BlackHole.Internal
             alterTable.Clear();foreignKeys.Clear();
             closingCommand.Append(closingCommand.ToString()[..(closingCommand.Length - 2)]);
             closingCommand.Append($"{closingCommand});{TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old")} DROP TABLE {Tablename}_Old;");
+            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};");
+            closingCommand.Append($"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;");
+
+            connection.JustExecute(closingCommand.ToString(), null);
+            CliConsoleLogs($"{closingCommand}");
+            closingCommand.Clear();
+        }
+
+
+        void ForeignKeyLiteOpenAsignment(Type TableType, bool firstTime)
+        {
+            string Tablename = MyShit(TableType.Name);
+            List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
+            string Pkoption = OpenPrimaryKey(pkSettings);
+
+            List<string> ColumnNames = new();
+            List<string> NewColumnNames = new();
+
+            List<SqLiteForeignKeySchema> SchemaInfo = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null);
+            List<SqLiteTableInfo> ColumnsInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null);
+
+            foreach (SqLiteTableInfo column in ColumnsInfo)
+            {
+                ColumnNames.Add(column.name);
+            }
+
+            StringBuilder alterTable = new();
+            StringBuilder foreignKeys = new();
+            StringBuilder closingCommand = new();
+
+            alterTable.Append($"PRAGMA foreign_keys=off; ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; CREATE TABLE {Tablename} (");
+
+            foreach (PropertyInfo Property in TableType.GetProperties())
+            {
+                object[] attributes = Property.GetCustomAttributes(true);
+                NewColumnNames.Add(Property.Name);
+
+                alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, typeof(OpenForeignKey)));
+
+                if (attributes.Length > 0)
+                {
+                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(OpenForeignKey));
+
+                    if (FK_attribute != null)
+                    {
+                        var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
+                        var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
+                        var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
+                        foreignKeys.Append(LiteConstraint(Tablename, Property.Name, tName, tColumn, cascadeInfo));
+                    }
+                }
+            }
+
+            if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
+            {
+                List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
+
+                foreach (string ColumnName in ColumnsToAdd)
+                {
+                    SqLiteTableInfo? columnInfo = ColumnsInfo.Where(x => x.name == ColumnName).FirstOrDefault();
+                    SqLiteForeignKeySchema? fkC = SchemaInfo.Where(x => x.from == ColumnName).FirstOrDefault();
+
+                    if (columnInfo != null)
+                    {
+                        NewColumnNames.Add(ColumnName);
+
+                        alterTable.Append($"{columnInfo.name} {columnInfo.type} NULL, ");
+
+                        if (fkC != null)
+                        {
+                            foreignKeys.Append($"CONSTRAINT fk_{Tablename}_{fkC.table} FOREIGN KEY ({fkC.from}) REFERENCES {fkC.table}({fkC.to}) on delete {fkC.on_delete}, ");
+                        }
+                    }
+                }
+            }
+
+            closingCommand.Append($"{alterTable.ToString()} {foreignKeys.ToString()}");
+            alterTable.Clear(); foreignKeys.Clear();
+            closingCommand.Append(closingCommand.ToString()[..(closingCommand.Length - 2)]);
+            closingCommand.Append($"{closingCommand}{Pkoption});{TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old")} DROP TABLE {Tablename}_Old;");
             closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};");
             closingCommand.Append($"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;");
 
@@ -465,7 +569,7 @@ namespace BlackHole.Internal
                 {
                     object[]? attributes = Property.GetCustomAttributes(true);
                     columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
-                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType));
+                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, typeof(ForeignKey)));
 
                     foreach(string commandText in columnCreator.ToString().Split("##"))
                     {
@@ -482,6 +586,58 @@ namespace BlackHole.Internal
                     columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
                     connection.JustExecute(columnCreator.ToString(), null);
                     CliConsoleLogs($"{columnCreator};");
+                }
+
+                columnCreator.Clear();
+            }
+        }
+
+        void UpdateOpenTableSchema(Type TableType)
+        {
+            string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}' {TableSchemaCheck}";
+
+            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+            {
+                string owner = _multiDatabaseSelector.GetDatabaseName();
+                getColumns = $"SELECT Column_name From all_tab_cols where owner = '{owner}' and TABLE_NAME = '{TableType.Name}'";
+            }
+
+            PropertyInfo[] Properties = TableType.GetProperties();
+            string Tablename = MyShit(TableType.Name);
+
+            List<string> NewColumnNames = new();
+
+            foreach (PropertyInfo Property in Properties)
+            {
+                NewColumnNames.Add(Property.Name);
+            }
+
+            List<string> ColumnNames = connection.Query<string>(getColumns, null);
+            List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
+            List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
+            DropColumns(ColumnsToDrop, TableType.Name);
+
+            StringBuilder columnCreator = new();
+
+            foreach (string ColumnName in ColumnsToAdd)
+            {
+                columnCreator.Append($"ALTER TABLE {TableSchema}{Tablename} ADD ");
+                PropertyInfo? Property = Properties.Where(x => x.Name == ColumnName).FirstOrDefault();
+
+                if (Property != null)
+                {
+                    object[]? attributes = Property.GetCustomAttributes(true);
+                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
+                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, typeof(OpenForeignKey)));
+
+                    foreach (string commandText in columnCreator.ToString().Split("##"))
+                    {
+                        if (!string.IsNullOrEmpty(commandText))
+                        {
+                            connection.JustExecute(commandText, null);
+                            CliConsoleLogs($"{commandText};");
+                        }
+                    }
                 }
 
                 columnCreator.Clear();
@@ -687,17 +843,15 @@ namespace BlackHole.Internal
             return DataType;
         }
 
-        string AddColumnConstaints(object[] attributes, string Tablename, string PropName, Type PropType)
+        string AddColumnConstaints(object[] attributes, string Tablename, string PropName, Type PropType, Type fkAttributeType)
         {
             string constraintsCommand = "NULL ##";
             string alterTable = $"ALTER TABLE {TableSchema}{MyShit(Tablename)}";
 
-            object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
+            object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == fkAttributeType);
 
             if(fkAttribute != null)
             {
-                Type fkAttributeType = typeof(ForeignKey);
-
                 var tName = fkAttributeType.GetProperty("TableName")?.GetValue(fkAttribute, null);
                 var tColumn = fkAttributeType.GetProperty("Column")?.GetValue(fkAttribute, null);
                 var tNullable = fkAttributeType.GetProperty("IsNullable")?.GetValue(fkAttribute, null);
@@ -747,7 +901,7 @@ namespace BlackHole.Internal
             return constraintsCommand;
         }
 
-        string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType)
+        string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType, Type Fk_Type)
         {
             bool mandatoryNull = false;
             string nullPhase = string.Empty;
@@ -760,7 +914,7 @@ namespace BlackHole.Internal
                 }
             }
 
-            object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
+            object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == Fk_Type);
 
             if (fkAttribute != null)
             {
