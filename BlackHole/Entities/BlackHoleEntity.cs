@@ -22,6 +22,7 @@ namespace BlackHole.Entities
     /// </summary>
     public abstract class BlackHoleEntity
     {
+        [DefaultValue(0)]
         internal int Inactive { get; set; }
     }
 }

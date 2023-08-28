@@ -109,8 +109,8 @@ namespace BlackHole.Internal
                 {
                     object[] attributes = Property.GetCustomAttributes(true);
 
-                    tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, typeof(OpenForeignKey)));
-                    tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, typeof(OpenForeignKey)));
+                    tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType));
                 }
 
                 string creationCommand = tableCreator.ToString();
@@ -119,7 +119,8 @@ namespace BlackHole.Internal
                 return connection.JustExecute(creationCommand, null);
             }
 
-            return true;
+            DatabaseStatics.InitializeData = false;
+            return false;
         }
 
         bool CreateTable(Type TableType)
@@ -130,8 +131,8 @@ namespace BlackHole.Internal
                 StringBuilder tableCreator = new();
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
-                tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive", typeof(ForeignKey)));
-                tableCreator.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int), typeof(ForeignKey)));
+                tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
+                tableCreator.Append(GetSqlColumn(new object[] {new DefaultValue(0)}, true, typeof(int)));
 
                 foreach (PropertyInfo Property in Properties)
                 {
@@ -139,9 +140,9 @@ namespace BlackHole.Internal
 
                     if (Property.Name != "Id")
                     {
-                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, typeof(ForeignKey)));
+                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, typeof(ForeignKey)));
+                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType));
                     }
                     else
                     {
@@ -235,7 +236,7 @@ namespace BlackHole.Internal
             }
             else
             {
-                ForeignKeyAsignment(TableType, typeof(ForeignKey));
+                ForeignKeyAsignment(TableType);
             }
         }
 
@@ -247,7 +248,7 @@ namespace BlackHole.Internal
             }
             else
             {
-                ForeignKeyAsignment(TableType, typeof(OpenForeignKey));
+                ForeignKeyAsignment(TableType);
             }
         }
 
@@ -347,8 +348,8 @@ namespace BlackHole.Internal
             StringBuilder closingCommand = new();
 
             alterTable.Append($"PRAGMA foreign_keys=off; ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; CREATE TABLE {Tablename} (");
-            alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive", typeof(ForeignKey)));
-            alterTable.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int), typeof(ForeignKey)));
+            alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
+            alterTable.Append(GetSqlColumn(new object[] { new DefaultValue(0) }, true, typeof(int)));
 
             foreach (PropertyInfo Property in TableType.GetProperties())
             {
@@ -357,9 +358,9 @@ namespace BlackHole.Internal
 
                 if (Property.Name != "Id")
                 {
-                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, typeof(ForeignKey)));
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType,typeof(ForeignKey)));
+                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType));
                 }
                 else
                 {
@@ -457,12 +458,12 @@ namespace BlackHole.Internal
                 object[] attributes = Property.GetCustomAttributes(true);
                 NewColumnNames.Add(Property.Name);
 
-                alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, typeof(OpenForeignKey)));
-                alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, typeof(OpenForeignKey)));
+                alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType));
 
                 if (attributes.Length > 0)
                 {
-                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(OpenForeignKey));
+                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
 
                     if (FK_attribute != null)
                     {
@@ -509,7 +510,7 @@ namespace BlackHole.Internal
             closingCommand.Clear();
         }
 
-        void ForeignKeyAsignment(Type TableType, Type Fk_type)
+        void ForeignKeyAsignment(Type TableType)
         {
             string Tablename = TableType.Name;
             PropertyInfo[] Properties = TableType.GetProperties();
@@ -521,7 +522,7 @@ namespace BlackHole.Internal
 
                 if (attributes.Length > 0)
                 {
-                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == Fk_type);
+                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
 
                     if (FK_attribute != null)
                     {
@@ -574,8 +575,8 @@ namespace BlackHole.Internal
                 if (Property != null)
                 {
                     object[]? attributes = Property.GetCustomAttributes(true);
-                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, typeof(ForeignKey)));
-                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, typeof(ForeignKey)));
+                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
+                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType));
 
                     foreach(string commandText in columnCreator.ToString().Split("##"))
                     {
@@ -589,7 +590,7 @@ namespace BlackHole.Internal
 
                 if (ColumnName == "Inactive")
                 {
-                    columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName, typeof(ForeignKey)));
+                    columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
                     connection.JustExecute(columnCreator.ToString(), null);
                     CliConsoleLogs($"{columnCreator};");
                 }
@@ -633,8 +634,8 @@ namespace BlackHole.Internal
                 if (Property != null)
                 {
                     object[]? attributes = Property.GetCustomAttributes(true);
-                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, typeof(OpenForeignKey)));
-                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, typeof(OpenForeignKey)));
+                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
+                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType));
 
                     foreach (string commandText in columnCreator.ToString().Split("##"))
                     {
@@ -849,11 +850,11 @@ namespace BlackHole.Internal
             return DataType;
         }
 
-        string AddColumnConstaints(object[] attributes, string Tablename, string PropName, Type PropType, Type fkAttributeType)
+        string AddColumnConstaints(object[] attributes, string Tablename, string PropName, Type PropType)
         {
             string constraintsCommand = "NULL ##";
             string alterTable = $"ALTER TABLE {TableSchema}{MyShit(Tablename)}";
-
+            Type fkAttributeType = typeof(ForeignKey);
             object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == fkAttributeType);
 
             if(fkAttribute != null)
@@ -907,7 +908,7 @@ namespace BlackHole.Internal
             return constraintsCommand;
         }
 
-        string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType, Type Fk_Type)
+        string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType)
         {
             bool mandatoryNull = false;
             string nullPhase = string.Empty;
@@ -920,6 +921,7 @@ namespace BlackHole.Internal
                 }
             }
 
+            Type Fk_Type = typeof(ForeignKey);
             object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == Fk_Type);
 
             if (fkAttribute != null)
@@ -1155,7 +1157,7 @@ namespace BlackHole.Internal
             }
         }
 
-        string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname, Type Fk_Type)
+        string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname)
         {
             string propTypeName = PropertyType.Name;
             string dataCommand = "";
@@ -1172,7 +1174,7 @@ namespace BlackHole.Internal
             {
                 case "String":
                     object? CharLength = attributes.Where(x => x.GetType() == typeof(VarCharSize)).FirstOrDefault();
-                    object? ForeignKeyAtt = attributes.Where(x => x.GetType() == Fk_Type).FirstOrDefault();
+                    object? ForeignKeyAtt = attributes.Where(x => x.GetType() == typeof(ForeignKey)).FirstOrDefault();
 
                     if (CharLength != null)
                     {

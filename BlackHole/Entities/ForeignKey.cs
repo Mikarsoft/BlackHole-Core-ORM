@@ -60,5 +60,41 @@
             IsNullable = "NULL";
             CascadeInfo = "on delete set null";
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="columnName"></param>
+        /// <param name="isNullable"></param>
+        public ForeignKey(Type table, string columnName, bool isNullable)
+        {
+            TableName = table.Name;
+            Column = columnName;
+
+            if (isNullable)
+            {
+                IsNullable = "NULL";
+                CascadeInfo = "on delete set null";
+            }
+            else
+            {
+                IsNullable = "NOT NULL";
+                CascadeInfo = "on delete cascade";
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="columnName"></param>
+        public ForeignKey(Type table, string columnName)
+        {
+            TableName = table.Name;
+            Column = columnName;
+            IsNullable = "NULL";
+            CascadeInfo = "on delete set null";
+        }
     }
 }

@@ -150,7 +150,7 @@ namespace BlackHole.Configuration
             }
             else
             {
-                throw new Exception("The Host of the database is inaccessible...");
+                throw new Exception("The Host of the database is inaccessible... If you are using Oracle database,make sure to grand permission to your User on the v$instance table. Connect as Sysdba and execute the command => 'grant select on v_$instance to {Username};'");
             }
         }
 
