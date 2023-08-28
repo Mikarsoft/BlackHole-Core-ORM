@@ -18,7 +18,7 @@ namespace BlackHole.Internal
         private readonly string[] SqlDatatypes;
         private readonly bool IsMyShit;
         private readonly bool IsLite;
-
+        private readonly bool IsOpenPKConstraint;
         private string TableSchemaCheck { get; set; }
         private string TableSchema { get; set; }
         private string TableSchemaFk { get; set; }
@@ -33,6 +33,7 @@ namespace BlackHole.Internal
             TableSchemaFk = _multiDatabaseSelector.GetDatabaseSchemaFk();
             IsMyShit = _multiDatabaseSelector.GetMyShit();
             IsLite = _multiDatabaseSelector.IsLite();
+            IsOpenPKConstraint = _multiDatabaseSelector.GetOpenPKConstraint();
             AllConstraints = GetConstraints();
             SqlWriter = new BHSqlExportWriter("2_TablesSql","SqlFiles","sql");
         }
@@ -100,7 +101,7 @@ namespace BlackHole.Internal
 
                 PropertyInfo[] Properties = TableType.GetProperties();
                 StringBuilder tableCreator = new();
-                string Pkoption = OpenPrimaryKey(pkSettings);
+                string Pkoption = OpenPrimaryKey(pkSettings, TableType.Name);
 
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
@@ -108,7 +109,7 @@ namespace BlackHole.Internal
                 {
                     object[] attributes = Property.GetCustomAttributes(true);
 
-                    tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, typeof(OpenForeignKey)));
                     tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, typeof(OpenForeignKey)));
                 }
 
@@ -129,7 +130,7 @@ namespace BlackHole.Internal
                 StringBuilder tableCreator = new();
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
-                tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
+                tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive", typeof(ForeignKey)));
                 tableCreator.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int), typeof(ForeignKey)));
 
                 foreach (PropertyInfo Property in Properties)
@@ -138,7 +139,7 @@ namespace BlackHole.Internal
 
                     if (Property.Name != "Id")
                     {
-                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, typeof(ForeignKey)));
 
                         tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, typeof(ForeignKey)));
                     }
@@ -206,12 +207,17 @@ namespace BlackHole.Internal
             return pkNames;
         }
 
-        string OpenPrimaryKey(List<string> pkSettings)
+        string OpenPrimaryKey(List<string> pkSettings, string TableName)
         {
             if (pkSettings.Any())
             {
+                string pkConstraint = string.Empty;
+                if (IsOpenPKConstraint)
+                {
+                    pkConstraint = $" CONSTRAINT PK_{TableName}";
+                }
                 StringBuilder primaryKeyCreator = new();
-                primaryKeyCreator.Append(", Primary Key(");
+                primaryKeyCreator.Append($",{pkConstraint} Primary Key(");
                 foreach (string key in pkSettings)
                 {
                     primaryKeyCreator.Append($"{MyShit(key)},");
@@ -341,7 +347,7 @@ namespace BlackHole.Internal
             StringBuilder closingCommand = new();
 
             alterTable.Append($"PRAGMA foreign_keys=off; ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; CREATE TABLE {Tablename} (");
-            alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
+            alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive", typeof(ForeignKey)));
             alterTable.Append(GetSqlColumn(Array.Empty<object>(), true, typeof(int), typeof(ForeignKey)));
 
             foreach (PropertyInfo Property in TableType.GetProperties())
@@ -351,7 +357,7 @@ namespace BlackHole.Internal
 
                 if (Property.Name != "Id")
                 {
-                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, typeof(ForeignKey)));
 
                     alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType,typeof(ForeignKey)));
                 }
@@ -427,7 +433,7 @@ namespace BlackHole.Internal
         {
             string Tablename = MyShit(TableType.Name);
             List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
-            string Pkoption = OpenPrimaryKey(pkSettings);
+            string Pkoption = OpenPrimaryKey(pkSettings, Tablename);
 
             List<string> ColumnNames = new();
             List<string> NewColumnNames = new();
@@ -451,7 +457,7 @@ namespace BlackHole.Internal
                 object[] attributes = Property.GetCustomAttributes(true);
                 NewColumnNames.Add(Property.Name);
 
-                alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, typeof(OpenForeignKey)));
                 alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, typeof(OpenForeignKey)));
 
                 if (attributes.Length > 0)
@@ -568,7 +574,7 @@ namespace BlackHole.Internal
                 if (Property != null)
                 {
                     object[]? attributes = Property.GetCustomAttributes(true);
-                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
+                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, typeof(ForeignKey)));
                     columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, typeof(ForeignKey)));
 
                     foreach(string commandText in columnCreator.ToString().Split("##"))
@@ -583,7 +589,7 @@ namespace BlackHole.Internal
 
                 if (ColumnName == "Inactive")
                 {
-                    columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
+                    columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName, typeof(ForeignKey)));
                     connection.JustExecute(columnCreator.ToString(), null);
                     CliConsoleLogs($"{columnCreator};");
                 }
@@ -627,7 +633,7 @@ namespace BlackHole.Internal
                 if (Property != null)
                 {
                     object[]? attributes = Property.GetCustomAttributes(true);
-                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
+                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, typeof(OpenForeignKey)));
                     columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, typeof(OpenForeignKey)));
 
                     foreach (string commandText in columnCreator.ToString().Split("##"))
@@ -918,9 +924,7 @@ namespace BlackHole.Internal
 
             if (fkAttribute != null)
             {
-                Type fkAttributeType = typeof(ForeignKey);
-
-                var tNull = fkAttributeType.GetProperty("IsNullable")?.GetValue(fkAttribute, null);
+                var tNull = Fk_Type.GetProperty("IsNullable")?.GetValue(fkAttribute, null);
                 nullPhase = firstTime ? $"{tNull}, " : "NULL, ";
 
                 if (mandatoryNull)
@@ -1151,7 +1155,7 @@ namespace BlackHole.Internal
             }
         }
 
-        string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname)
+        string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname, Type Fk_Type)
         {
             string propTypeName = PropertyType.Name;
             string dataCommand = "";
@@ -1167,8 +1171,8 @@ namespace BlackHole.Internal
             switch (propTypeName)
             {
                 case "String":
-                    object? CharLength = attributes.Where(x => x.GetType().Name == "VarCharSize").FirstOrDefault();
-                    object? ForeignKeyAtt = attributes.Where(x => x.GetType().Name == "ForeignKey").FirstOrDefault();
+                    object? CharLength = attributes.Where(x => x.GetType() == typeof(VarCharSize)).FirstOrDefault();
+                    object? ForeignKeyAtt = attributes.Where(x => x.GetType() == Fk_Type).FirstOrDefault();
 
                     if (CharLength != null)
                     {

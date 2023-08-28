@@ -156,6 +156,17 @@ namespace BlackHole.Internal
             return sqlTypeId;
         }
 
+        bool IBHDatabaseSelector.GetOpenPKConstraint()
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => true,
+                BlackHoleSqlTypes.MySql => false,
+                BlackHoleSqlTypes.Postgres => false,
+                BlackHoleSqlTypes.SqlLite => false,
+                _ => true,
+            };
+        }
 
         /// <summary>
         /// Based on the selected Sql Type , returns an array of datatypes that correspond to

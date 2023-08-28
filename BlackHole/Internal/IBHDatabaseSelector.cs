@@ -18,6 +18,7 @@ namespace BlackHole.Internal
 
         int GetSqlTypeId();
         bool GetMyShit();
+        bool GetOpenPKConstraint();
 
         string TableSchemaCheck();
         string GetDatabaseSchema();
