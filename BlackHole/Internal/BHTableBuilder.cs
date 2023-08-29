@@ -197,12 +197,9 @@ namespace BlackHole.Internal
 
             if(pkSettingsObj != null)
             {
-                if(pkSettingsObj.GetType().GetProperty("PKSettingsList")?.GetValue(pkSettingsObj, null) is List<PrimaryKeySettings> pkSettings)
+                if(pkSettingsObj.GetType().GetProperty("PKPropertyNames")?.GetValue(pkSettingsObj, null) is List<string> pkSettings)
                 {
-                    foreach(PrimaryKeySettings pkSetting in pkSettings)
-                    {
-                        pkNames.Add(pkSetting.PropertyName);
-                    }
+                    pkNames = pkSettings;
                 }
             }
             return pkNames;
