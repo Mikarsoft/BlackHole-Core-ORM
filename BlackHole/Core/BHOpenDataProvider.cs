@@ -7,7 +7,7 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BHOpenDataProvider<T> : IBHOpenDataProvider<T> where T : IBHOpenEntity<T>
+    public class BHOpenDataProvider<T> : IBHOpenDataProvider<T> where T : BHOpenEntity<T>
     {
         private readonly PKSettings<T> _settings;
 

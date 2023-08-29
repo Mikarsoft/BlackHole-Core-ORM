@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace BlackHole.Core
 {
-    internal interface IBHOpenDataProvider<T> where T :IBHOpenEntity<T>
+    internal interface IBHOpenDataProvider<T> where T :BHOpenEntity<T>
     {
         /// <summary>
         /// Gets all the entries of the specific Table

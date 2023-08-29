@@ -949,7 +949,7 @@ namespace BlackHole.Core
         /// <param name="otherKey">Column of the Other Table</param>
         /// <returns>The Calculated Data of this Joins Part</returns>
         JoinsData<Dto, T, TOther> InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-           where Dto : BlackHoleDto where TOther : IBHEntity where Tkey : IComparable;
+           where Dto : BlackHoleDto where TOther : IBHEntityIdentifier where Tkey : IComparable;
 
         /// <summary>
         /// Starts a Joins sequence, with the first one as 'Outer Join' that can be continued with 
@@ -962,7 +962,7 @@ namespace BlackHole.Core
         /// <param name="otherKey">Column of the Other Table</param>
         /// <returns>The Calculated Data of this Joins Part</returns>
         JoinsData<Dto, T, TOther> OuterJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-            where Dto : BlackHoleDto where TOther : IBHEntity where Tkey : IComparable;
+            where Dto : BlackHoleDto where TOther : IBHEntityIdentifier where Tkey : IComparable;
 
         /// <summary>
         /// Starts a Joins sequence, with the first one as 'Left Join' that can be continued with 
@@ -975,7 +975,7 @@ namespace BlackHole.Core
         /// <param name="otherKey">Column of the Other Table</param>
         /// <returns>The Calculated Data of this Joins Part</returns>
         JoinsData<Dto, T, TOther> LeftJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-            where Dto : BlackHoleDto where TOther : IBHEntity where Tkey : IComparable;
+            where Dto : BlackHoleDto where TOther : IBHEntityIdentifier where Tkey : IComparable;
 
         /// <summary>
         /// Starts a Joins sequence, with the first one as 'Right Join' that can be continued with 
@@ -988,6 +988,6 @@ namespace BlackHole.Core
         /// <param name="otherKey">Column of the Other Table</param>
         /// <returns>The Calculated Data of this Joins Part</returns>
         JoinsData<Dto, T, TOther> RightJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-           where Dto : BlackHoleDto where TOther : IBHEntity where Tkey : IComparable;
+           where Dto : BlackHoleDto where TOther : IBHEntityIdentifier where Tkey : IComparable;
     }
 }

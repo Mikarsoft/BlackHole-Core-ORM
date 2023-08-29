@@ -32,7 +32,7 @@ namespace BlackHole.Core
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> RightJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : IBHEntity where Tsource : IBHEntity where Tkey : IComparable
+            where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
@@ -68,7 +68,7 @@ namespace BlackHole.Core
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> LeftJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : IBHEntity where Tsource : IBHEntity where Tkey : IComparable
+            where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
@@ -104,7 +104,7 @@ namespace BlackHole.Core
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> OuterJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : IBHEntity where Tsource : IBHEntity where Tkey : IComparable
+            where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
@@ -140,7 +140,7 @@ namespace BlackHole.Core
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> InnerJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : IBHEntity where Tsource : IBHEntity where Tkey : IComparable where Dto : BlackHoleDto
+            where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable where Dto : BlackHoleDto
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
