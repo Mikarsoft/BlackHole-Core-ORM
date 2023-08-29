@@ -347,7 +347,7 @@ namespace BlackHole.Internal
             StringBuilder foreignKeys = new();
             StringBuilder closingCommand = new();
 
-            alterTable.Append($"PRAGMA foreign_keys=off; ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; CREATE TABLE {Tablename} (");
+            alterTable.Append($"PRAGMA foreign_keys = off; ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; CREATE TABLE {Tablename} (");
             alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
             alterTable.Append(GetSqlColumn(new object[] { new DefaultValue(0) }, true, typeof(int)));
 
@@ -417,13 +417,19 @@ namespace BlackHole.Internal
                 }
             }
 
-            closingCommand.Append($"{alterTable.ToString()} {foreignKeys.ToString()}");
-            alterTable.Clear();foreignKeys.Clear();
-            closingCommand.Append(closingCommand.ToString()[..(closingCommand.Length - 2)]);
-            closingCommand.Append($"{closingCommand});{TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old")} DROP TABLE {Tablename}_Old;");
-            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};");
-            closingCommand.Append($"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;");
+            string FkCommand = $"{alterTable}{foreignKeys}";
 
+            if (FkCommand.Length > 1)
+            {
+                FkCommand = $"{FkCommand[..(FkCommand.Length - 2)]}); ";
+            }
+
+            alterTable.Clear(); foreignKeys.Clear();
+
+            closingCommand.Append(FkCommand);
+            closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old")} DROP TABLE {Tablename}_Old;");
+            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};");
+            closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {Tablename}_Old");
             connection.JustExecute(closingCommand.ToString(), null);
             CliConsoleLogs($"{closingCommand}");
             closingCommand.Clear();
@@ -498,13 +504,25 @@ namespace BlackHole.Internal
                 }
             }
 
-            closingCommand.Append($"{alterTable.ToString()} {foreignKeys.ToString()}");
-            alterTable.Clear(); foreignKeys.Clear();
-            closingCommand.Append(closingCommand.ToString()[..(closingCommand.Length - 2)]);
-            closingCommand.Append($"{closingCommand}{Pkoption});{TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old")} DROP TABLE {Tablename}_Old;");
-            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};");
-            closingCommand.Append($"PRAGMA foreign_keys=on; DROP INDEX IF EXISTS {Tablename}_Old;");
+            if(Pkoption != string.Empty)
+            {
+                Pkoption = $"{Pkoption.Remove(0, 1)}, ";
+            }
 
+            string FkCommand = $"{alterTable}{Pkoption}{foreignKeys}";
+
+            if (FkCommand.Length > 1)
+            {
+                FkCommand = $"{FkCommand[..(FkCommand.Length - 2)]}); ";
+            }
+
+            alterTable.Clear(); foreignKeys.Clear();
+
+            closingCommand.Append(FkCommand);
+            closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old")} DROP TABLE {Tablename}_Old;");
+            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};");
+            closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {Tablename}_Old");
+            string test = closingCommand.ToString();
             connection.JustExecute(closingCommand.ToString(), null);
             CliConsoleLogs($"{closingCommand}");
             closingCommand.Clear();

@@ -3,7 +3,7 @@
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHOpenEntity<Self> where Self : IBHOpenEntity<Self>
+    public interface IBHOpenEntity<Self> : IBHEntity where Self : IBHOpenEntity<Self>
     {
         /// <summary>
         /// 
