@@ -11,11 +11,17 @@ namespace BlackHole.ExecutionProviders
         #region Constructor
         private readonly ILoggerService _loggerService;
         private readonly string _connectionString;
+        internal readonly bool skipQuotes = true;
 
         internal MySqlExecutionProvider(string connectionString)
         {
             _connectionString = connectionString;
             _loggerService = new LoggerService();
+        }
+
+        public bool SkipQuotes()
+        {
+            return skipQuotes;
         }
         #endregion
 

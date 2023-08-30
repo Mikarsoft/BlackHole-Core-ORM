@@ -3,6 +3,8 @@ namespace BlackHole.CoreSupport
 {
     internal interface IExecutionProvider
     {
+        bool SkipQuotes();
+
         G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters);
         G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 

@@ -1,5 +1,4 @@
-﻿
-namespace BlackHole.Entities
+﻿namespace BlackHole.Identifiers
 {
     /// <summary>
     /// 

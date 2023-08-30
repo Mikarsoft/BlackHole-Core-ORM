@@ -1,4 +1,6 @@
-﻿namespace BlackHole.Entities
+﻿using BlackHole.Identifiers;
+
+namespace BlackHole.Entities
 {
     /// <summary>
     /// 

@@ -7,6 +7,7 @@ using System.Reflection;
 using BlackHole.Logger;
 using BlackHole.CoreSupport;
 using BlackHole.ExecutionProviders;
+using BlackHole.Identifiers;
 
 namespace BlackHole.Core
 {
@@ -140,7 +141,7 @@ namespace BlackHole.Core
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> InnerJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
             Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable where Dto : BlackHoleDto
+            where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable where Dto : IBHDtoIdentifier
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
@@ -442,7 +443,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto"></typeparam>
         /// <param name="data"></param>
         /// <returns>The index of this Joins Data in the Stored Views List</returns>
-        public static int StoreAsView<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleDto
+        public static int StoreAsView<Dto>(this JoinsData<Dto> data) where Dto : IBHDtoIdentifier
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
 
@@ -476,7 +477,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data) where Dto : BlackHoleDto
+        internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
             {
@@ -497,7 +498,7 @@ namespace BlackHole.Core
         /// <param name="data">Joins Data</param>
         /// <param name="bHTransaction">Transaction object</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : BlackHoleDto
+        internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
             {
@@ -517,7 +518,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data) where Dto : BlackHoleDto
+        internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
             {
@@ -539,7 +540,7 @@ namespace BlackHole.Core
         /// <param name="data">Joins Data</param>
         /// <param name="bHTransaction">Transaction object</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : BlackHoleDto
+        internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
             {
@@ -559,7 +560,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleDto
+        public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data) where Dto : IBHDtoIdentifier
         {
             IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
             data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
@@ -576,7 +577,7 @@ namespace BlackHole.Core
         /// <param name="data">Joins Data</param>
         /// <param name="bHTransaction">Transaction object</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data, BHTransaction bHTransaction) where Dto : BlackHoleDto
+        public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
         {
             IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
             data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
@@ -592,7 +593,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data) where Dto : BlackHoleDto
+        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data) where Dto : IBHDtoIdentifier
         {
             IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
             data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
@@ -609,7 +610,7 @@ namespace BlackHole.Core
         /// <param name="data">Joins Data</param>
         /// <param name="bHTransaction">Transaction object</param>
         /// <returns>The Entries of the Joins mapped into DTO</returns>
-        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data, BHTransaction bHTransaction) where Dto : BlackHoleDto
+        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
         {
             IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
             data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
