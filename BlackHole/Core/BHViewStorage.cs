@@ -14,7 +14,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        List<Dto> IBHViewStorage.ExecuteView<Dto>() where Dto : class
+        List<Dto> IBHViewStorage.ExecuteView<Dto>()
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             List<Dto> result = new();
@@ -34,7 +34,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        List<Dto> IBHViewStorage.ExecuteView<Dto>(BHTransaction transaction) where Dto : class
+        List<Dto> IBHViewStorage.ExecuteView<Dto>(BHTransaction transaction)
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             List<Dto> result = new();
@@ -54,7 +54,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        async Task<List<Dto>> IBHViewStorage.ExecuteViewAsync<Dto>() where Dto : class
+        async Task<List<Dto>> IBHViewStorage.ExecuteViewAsync<Dto>()
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             List<Dto> result = new();
@@ -74,7 +74,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>IList of the DTO</returns>
-        async Task<List<Dto>> IBHViewStorage.ExecuteViewAsync<Dto>(BHTransaction transaction) where Dto : class
+        async Task<List<Dto>> IBHViewStorage.ExecuteViewAsync<Dto>(BHTransaction transaction)
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             List<Dto> result = new();

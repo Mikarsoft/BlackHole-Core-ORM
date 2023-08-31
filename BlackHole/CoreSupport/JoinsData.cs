@@ -67,6 +67,7 @@ namespace BlackHole.CoreSupport
     {
         internal Type? Table { get; set; }
         internal string? Letter { get; set; }
+        internal bool IsOpenEntity { get; set; }
     }
 
     internal class PropertyOccupation

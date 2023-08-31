@@ -71,22 +71,22 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync()
+        async Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync()
         {
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync(BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync(BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
+        async Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
@@ -111,7 +111,7 @@ namespace BlackHole.Core
             return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable}", null , bhTransaction.transaction);
         }
 
-        List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>() where Dto : class
+        List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>()
         {
             string commonColumns = CompareDtoToEntity(typeof(Dto));
             if (string.IsNullOrEmpty(commonColumns))
@@ -121,7 +121,7 @@ namespace BlackHole.Core
             return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable}", null);
         }
 
-        List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>(BHTransaction bhTransaction) where Dto : class
+        List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>(BHTransaction bhTransaction)
         {
             string commonColumns = CompareDtoToEntity(typeof(Dto));
             if (string.IsNullOrEmpty(commonColumns))
@@ -141,12 +141,17 @@ namespace BlackHole.Core
             return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable}", null, bhTransaction.transaction);
         }
 
-        Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>() where Dto : class
+        async Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>()
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return new List<Dto>();
+            }
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable}", null);
         }
 
-        async Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>(BHTransaction bhTransaction) where Dto : class
+        async Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>(BHTransaction bhTransaction)
         {
             string commonColumns = CompareDtoToEntity(typeof(Dto));
             if (string.IsNullOrEmpty(commonColumns))
@@ -162,57 +167,92 @@ namespace BlackHole.Core
             return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        Task<List<T>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        async Task<List<T>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
-        Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
+        async Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return new List<Dto>();
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
+        async Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return new List<Dto>();
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
-        List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
+        List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return new List<Dto>();
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
+        List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return new List<Dto>();
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
-        Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
+        async Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        async Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
-        Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
+        async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return default;
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
+        async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
@@ -229,7 +269,7 @@ namespace BlackHole.Core
 
         Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            throw new NotImplementedException();
+            return _executionProvider.QueryFirst<Dto>("", null);
         }
 
         Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
@@ -247,12 +287,12 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries)
+        async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries)
         {
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries, BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
@@ -267,12 +307,12 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry)
+        async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry)
         {
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry, BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
@@ -297,22 +337,22 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
+        async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
         {
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
+        async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
             throw new NotImplementedException();
         }
 
-        Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class
+        async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class
         {
             throw new NotImplementedException();
         }

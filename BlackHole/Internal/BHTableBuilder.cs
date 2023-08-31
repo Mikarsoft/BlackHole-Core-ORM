@@ -98,10 +98,10 @@ namespace BlackHole.Internal
             if (!CheckTable(TableType.Name))
             {
                 List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
+                string Pkoption = OpenPrimaryKey(pkSettings, TableType.Name);
 
                 PropertyInfo[] Properties = TableType.GetProperties();
                 StringBuilder tableCreator = new();
-                string Pkoption = OpenPrimaryKey(pkSettings, TableType.Name);
 
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
@@ -869,8 +869,9 @@ namespace BlackHole.Internal
         {
             string constraintsCommand = "NULL ##";
             string alterTable = $"ALTER TABLE {TableSchema}{MyShit(Tablename)}";
+
             Type fkAttributeType = typeof(ForeignKey);
-            object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == fkAttributeType);
+            object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == fkAttributeType);
 
             if(fkAttribute != null)
             {
@@ -888,7 +889,7 @@ namespace BlackHole.Internal
                 return $"{constraintsCommand} {MyShitConstraint(alterTable, Tablename, PropName, tName, tColumn, cascadeInfo)}";
             }
 
-            object? nnAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(NotNullable));
+            object? nnAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
 
             if(nnAttribute != null)
             {
@@ -904,7 +905,7 @@ namespace BlackHole.Internal
                 return $"{DefaultValueCheck(PropType, defaultValNotnull, usingDateTime)} NOT NULL ";
             }
 
-            object? dvAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(DefaultValue));
+            object? dvAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(DefaultValue));
 
             if(dvAttribute != null)
             {
@@ -937,7 +938,7 @@ namespace BlackHole.Internal
             }
 
             Type Fk_Type = typeof(ForeignKey);
-            object? fkAttribute = attributes.SingleOrDefault(x => x.GetType() == Fk_Type);
+            object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == Fk_Type);
 
             if (fkAttribute != null)
             {
@@ -952,7 +953,7 @@ namespace BlackHole.Internal
                 return nullPhase;
             }
 
-            object? nnAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(NotNullable));
+            object? nnAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
 
             if (nnAttribute != null)
             {
@@ -976,7 +977,7 @@ namespace BlackHole.Internal
                 return $"{DefaultValueCheck(PropertyType, defaultValNotnull,useDateTime)} {nullPhase}";
             }
 
-            object? dvAttribute = attributes.SingleOrDefault(x => x.GetType() == typeof(DefaultValue));
+            object? dvAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(DefaultValue));
 
             if (dvAttribute != null)
             {
@@ -1188,8 +1189,8 @@ namespace BlackHole.Internal
             switch (propTypeName)
             {
                 case "String":
-                    object? CharLength = attributes.Where(x => x.GetType() == typeof(VarCharSize)).FirstOrDefault();
-                    object? ForeignKeyAtt = attributes.Where(x => x.GetType() == typeof(ForeignKey)).FirstOrDefault();
+                    object? CharLength = attributes.FirstOrDefault(x => x.GetType() == typeof(VarCharSize));
+                    object? ForeignKeyAtt = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
 
                     if (CharLength != null)
                     {

@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using BlackHole.Entities;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace BlackHole.CoreSupport
@@ -589,6 +590,109 @@ namespace BlackHole.CoreSupport
             }
 
             return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value};
+        }
+
+        internal static JoinsData<Dto, T, TOther> CreateFirstJoin<T, TOther, Dto>(this List<string> Columns,LambdaExpression key, LambdaExpression otherKey, string joinType, string tableSchema, bool IsMyShit, bool OpenEntity)
+        {
+            string? parameter = key.Parameters[0].Name;
+            MemberExpression? member = key.Body as MemberExpression;
+            string? propName = member?.Member.Name;
+            string? parameterOther = otherKey.Parameters[0].Name;
+            MemberExpression? memberOther = otherKey.Body as MemberExpression;
+            string? propNameOther = memberOther?.Member.Name;
+
+            JoinsData<Dto, T, TOther> firstJoin = new()
+            {
+                isMyShit = IsMyShit,
+                BaseTable = typeof(T),
+                Ignore = false
+            };
+
+            firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(T), Letter = parameter, IsOpenEntity = OpenEntity });
+            firstJoin.Letters.Add(parameter);
+
+            if (parameterOther == parameter)
+            {
+                parameterOther += firstJoin.HelperIndex.ToString();
+                firstJoin.HelperIndex++;
+            }
+
+            bool isOpen = typeof(TOther).GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(BHOpenEntity<>));
+            firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther, IsOpenEntity = isOpen });
+            firstJoin.Letters.Add(parameterOther);
+
+            firstJoin.Joins = $" {joinType} join {tableSchema}{typeof(TOther).Name.SkipNameQuotes(IsMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SkipNameQuotes(IsMyShit)} = {parameter}.{propName.SkipNameQuotes(IsMyShit)}";
+            firstJoin.OccupiedDtoProps = Columns.BindPropertiesToDto<T>(typeof(TOther), typeof(Dto), parameter, parameterOther);
+            return firstJoin;
+        }
+
+        private static List<PropertyOccupation> BindPropertiesToDto<T>( this List<string> Columns, Type otherTable, Type dto, string? paramA, string? paramB)
+        {
+            List<PropertyOccupation> result = new();
+            List<string> OtherPropNames = new();
+
+            foreach (PropertyInfo otherProp in otherTable.GetProperties())
+            {
+                OtherPropNames.Add(otherProp.Name);
+            }
+
+            foreach (PropertyInfo property in dto.GetProperties())
+            {
+                PropertyOccupation occupation = new();
+
+                if (Columns.Contains(property.Name))
+                {
+                    Type? TpropType = typeof(T).GetProperty(property.Name)?.PropertyType;
+
+                    if (TpropType == property.PropertyType)
+                    {
+                        occupation = new PropertyOccupation
+                        {
+                            PropName = property.Name,
+                            PropType = property.PropertyType,
+                            Occupied = true,
+                            TableLetter = paramA,
+                            TableProperty = property.Name,
+                            TablePropertyType = TpropType,
+                            WithCast = 0
+                        };
+                    }
+                }
+
+                if (OtherPropNames.Contains(property.Name) && !occupation.Occupied)
+                {
+                    Type? TOtherPropType = otherTable.GetProperty(property.Name)?.PropertyType;
+
+                    if (TOtherPropType == property.PropertyType)
+                    {
+                        occupation = new PropertyOccupation
+                        {
+                            PropName = property.Name,
+                            PropType = property.PropertyType,
+                            Occupied = true,
+                            TableLetter = paramB,
+                            TableProperty = property.Name,
+                            TablePropertyType = TOtherPropType,
+                            WithCast = 0
+                        };
+                    }
+                }
+
+                if (!occupation.Occupied)
+                {
+                    occupation = new PropertyOccupation
+                    {
+                        PropName = property.Name,
+                        PropType = property.PropertyType,
+                        Occupied = false,
+                        WithCast = 0
+                    };
+                }
+
+                result.Add(occupation);
+            }
+
+            return result;
         }
 
         internal static string SkipNameQuotes(this string? propName, bool isMyShit)

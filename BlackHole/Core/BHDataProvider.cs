@@ -859,124 +859,22 @@ namespace BlackHole.Core
 
         JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            return CreateFirstJoin<TOther, Dto>(key, otherKey, "inner");
+            return Columns.CreateFirstJoin<T,TOther, Dto>(key, otherKey, "inner",ThisSchema,IsMyShit, false);
         }
 
         JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.OuterJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            return CreateFirstJoin<TOther, Dto>(key, otherKey, "full outer");
+            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "full outer", ThisSchema, IsMyShit, false);
         }
 
         JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.LeftJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            return CreateFirstJoin<TOther, Dto>(key, otherKey, "left");
+            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "left", ThisSchema, IsMyShit, false);
         }
 
         JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.RightJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            return CreateFirstJoin<TOther, Dto>(key, otherKey, "right");
-        }
-
-        private JoinsData<Dto, T, TOther> CreateFirstJoin<TOther, Dto>(LambdaExpression key, LambdaExpression otherKey, string joinType)
-        {
-            string? parameter = key.Parameters[0].Name;
-            MemberExpression? member = key.Body as MemberExpression;
-            string? propName = member?.Member.Name;
-            string? parameterOther = otherKey.Parameters[0].Name;
-            MemberExpression? memberOther = otherKey.Body as MemberExpression;
-            string? propNameOther = memberOther?.Member.Name;
-
-            JoinsData<Dto, T, TOther> firstJoin = new()
-            {
-                isMyShit = IsMyShit,
-                BaseTable = typeof(T),
-                Ignore = false
-            };
-
-            firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(T), Letter = parameter });
-            firstJoin.Letters.Add(parameter);
-
-            if (parameterOther == parameter)
-            {
-                parameterOther += firstJoin.HelperIndex.ToString();
-                firstJoin.HelperIndex++;
-            }
-
-            firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther });
-            firstJoin.Letters.Add(parameterOther);
-
-            firstJoin.Joins = $" {joinType} join {ThisSchema}{MyShit(typeof(TOther).Name)} {parameterOther} on {parameterOther}.{MyShit(propNameOther)} = {parameter}.{MyShit(propName)}";
-            firstJoin.OccupiedDtoProps = BindPropertiesToDto(typeof(TOther), typeof(Dto), parameter, parameterOther);
-            return firstJoin;
-        }
-
-        private List<PropertyOccupation> BindPropertiesToDto(Type otherTable, Type dto, string? paramA, string? paramB)
-        {
-            List<PropertyOccupation> result = new();
-            List<string> OtherPropNames = new();
-
-            foreach (PropertyInfo otherProp in otherTable.GetProperties())
-            {
-                OtherPropNames.Add(otherProp.Name);
-            }
-
-            foreach (PropertyInfo property in dto.GetProperties())
-            {
-                PropertyOccupation occupation = new();
-
-                if (Columns.Contains(property.Name))
-                {
-                    Type? TpropType = typeof(T).GetProperty(property.Name)?.PropertyType;
-
-                    if (TpropType == property.PropertyType)
-                    {
-                        occupation = new PropertyOccupation
-                        {
-                            PropName = property.Name,
-                            PropType = property.PropertyType,
-                            Occupied = true,
-                            TableLetter = paramA,
-                            TableProperty = property.Name,
-                            TablePropertyType = TpropType,
-                            WithCast = 0
-                        };
-                    }
-                }
-
-                if (OtherPropNames.Contains(property.Name) && !occupation.Occupied)
-                {
-                    Type? TOtherPropType = otherTable.GetProperty(property.Name)?.PropertyType;
-
-                    if (TOtherPropType == property.PropertyType)
-                    {
-                        occupation = new PropertyOccupation
-                        {
-                            PropName = property.Name,
-                            PropType = property.PropertyType,
-                            Occupied = true,
-                            TableLetter = paramB,
-                            TableProperty = property.Name,
-                            TablePropertyType = TOtherPropType,
-                            WithCast = 0
-                        };
-                    }
-                }
-
-                if (!occupation.Occupied)
-                {
-                    occupation = new PropertyOccupation
-                    {
-                        PropName = property.Name,
-                        PropType = property.PropertyType,
-                        Occupied = false,
-                        WithCast = 0
-                    };
-                }
-
-                result.Add(occupation);
-            }
-
-            return result;
+            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "right", ThisSchema, IsMyShit, false);
         }
 
         private bool UpdateMany(List<T> entries, string updateCommand)

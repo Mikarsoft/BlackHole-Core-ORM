@@ -637,12 +637,15 @@ namespace BlackHole.Core
 
             foreach (TableLetters table in involvedTables)
             {
-                if (command != string.Empty)
+                if (!table.IsOpenEntity)
                 {
-                    anD = "and";
-                }
+                    if (command != string.Empty)
+                    {
+                        anD = "and";
+                    }
 
-                command += $" {anD} {table.Letter}.{inactiveColumn.SqlPropertyName(isMyShit)} = 0 ";
+                    command += $" {anD} {table.Letter}.{inactiveColumn.SqlPropertyName(isMyShit)} = 0 ";
+                }
             }
 
             return whereCommand + command;
@@ -752,8 +755,8 @@ namespace BlackHole.Core
                     data.Letters.Add(parameterOther);
                     data.HelperIndex++;
                 }
-
-                data.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther });
+                bool isOpen = typeof(TOther).GetInterfaces().Any(x=> x.IsGenericType && x.GetGenericTypeDefinition() == typeof(BHOpenEntity<>));
+                data.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther, IsOpenEntity = isOpen });
             }
             else
             {

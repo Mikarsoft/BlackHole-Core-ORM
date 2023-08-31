@@ -29,7 +29,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        List<Dto> GetAllEntries<Dto>() where Dto : class;
+        List<Dto> GetAllEntries<Dto>() where Dto : BHOpenDto;
 
         /// <summary>
         /// Transaction.Selects only the columns of the specified Dto that exist on the Table
@@ -39,7 +39,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        List<Dto> GetAllEntries<Dto>(BHTransaction transaction) where Dto : class;
+        List<Dto> GetAllEntries<Dto>(BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
         /// Generates an Sql command using the Lambda Expression, that filters the
@@ -104,7 +104,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>IList of DTOs</returns>
-        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class;
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
 
         /// <summary>
         /// Transaction.Generates an Sql command using the Lambda Expression, that filters the
@@ -115,7 +115,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>IList of DTOs</returns>
-        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class;
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
         /// Inserts the Entity into the table, generates a new Id 
@@ -262,7 +262,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        Task<List<Dto>> GetAllEntriesAsync<Dto>() where Dto : class;
+        Task<List<Dto>> GetAllEntriesAsync<Dto>() where Dto : BHOpenDto;
 
         /// <summary>
         /// Transaction.Asyncronous. Selects only the columns of the specified Dto that exist on the Table
@@ -272,7 +272,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        Task<List<Dto>> GetAllEntriesAsync<Dto>(BHTransaction transaction) where Dto : class;
+        Task<List<Dto>> GetAllEntriesAsync<Dto>(BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
         /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
@@ -337,7 +337,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>IList of DTOs</returns>
-        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class;
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
 
         /// <summary>
         /// Transaction.Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
@@ -348,7 +348,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>IList of DTOs</returns>
-        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class;
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
         /// Asyncronous. Inserts the Entity into the table, generates a new Id 
