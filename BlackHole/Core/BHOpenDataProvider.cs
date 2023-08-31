@@ -63,42 +63,46 @@ namespace BlackHole.Core
 
         bool IBHOpenDataProvider<T>.DeleteAllEntries()
         {
-            throw new NotImplementedException();
+            return _executionProvider.JustExecute($"delete from {ThisTable}", null);
         }
 
-        bool IBHOpenDataProvider<T>.DeleteAllEntries(BHTransaction transaction)
+        bool IBHOpenDataProvider<T>.DeleteAllEntries(BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            return _executionProvider.JustExecute($"delete from {ThisTable}", null, bhTransaction.transaction);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync()
         {
-            throw new NotImplementedException();
+            return await _executionProvider.JustExecuteAsync($"delete from {ThisTable}", null);
         }
 
-        async Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync(BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync(BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            return await _executionProvider.JustExecuteAsync($"delete from {ThisTable}", null, bhTransaction.transaction);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.JustExecuteAsync($"delete from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        async Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.JustExecuteAsync($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         bool IBHOpenDataProvider<T>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.JustExecute($"delete from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        bool IBHOpenDataProvider<T>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        bool IBHOpenDataProvider<T>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.JustExecute($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         List<T> IBHOpenDataProvider<T>.GetAllEntries()
@@ -359,42 +363,78 @@ namespace BlackHole.Core
 
         async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+            return await _executionProvider.JustExecuteAsync($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters);
         }
 
-        async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+            return await _executionProvider.JustExecuteAsync($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareColumnsToEntity(typeof(Columns));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return false;
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+            return await _executionProvider.JustExecuteAsync($"update {ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters);
         }
 
-        async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class
+        async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareColumnsToEntity(typeof(Columns));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return false;
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+            return await _executionProvider.JustExecuteAsync($"update {ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         bool IBHOpenDataProvider<T>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+            return _executionProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters);
         }
 
-        bool IBHOpenDataProvider<T>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction)
+        bool IBHOpenDataProvider<T>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+            return _executionProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         bool IBHOpenDataProvider<T>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareColumnsToEntity(typeof(Columns));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return false;
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+            return _executionProvider.JustExecute($"update {ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters);
         }
 
-        bool IBHOpenDataProvider<T>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class
+        bool IBHOpenDataProvider<T>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareColumnsToEntity(typeof(Columns));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return false;
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            sql.AdditionalParameters(entry);
+            return _executionProvider.JustExecute($"update {ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         private string MyShit(string? propName)

@@ -32,8 +32,10 @@ namespace BlackHole.Configuration
             }
         }
 
-        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema, int timeoutSeconds)
+        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema, int timeoutSeconds, bool isQuoted)
         {
+            DatabaseStatics.IsQuotedDatabase = isQuoted;
+
             switch (sqlType)
             {
                 case BlackHoleSqlTypes.SqlServer:

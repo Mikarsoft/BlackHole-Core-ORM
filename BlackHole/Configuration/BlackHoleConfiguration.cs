@@ -57,7 +57,8 @@ namespace BlackHole.Configuration
 
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString,
                 blackHoleSettings.directorySettings.DataPath, blackHoleSettings.connectionConfig.TableSchema,
-                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut);
+                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut,
+                blackHoleSettings.connectionConfig.UseQuotedDb);
 
             DataPathAndLogs(blackHoleSettings.directorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.directorySettings.UseLogger);
 
@@ -144,6 +145,7 @@ namespace BlackHole.Configuration
             if (dbExists)
             {
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
+                services.AddScoped(typeof(IBHOpenDataProvider<>), typeof(BHOpenDataProvider<>));
                 services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
                 services.AddScoped(typeof(IBHConnection), typeof(BHConnection));
                 services.AddServicesAndTables(additionalSettings, callingAssembly, databaseBuilder);
@@ -397,14 +399,14 @@ namespace BlackHole.Configuration
             DatabaseConfiguration.SetMode(isDevMode);
         }
 
-        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema, int timoutSeconds)
+        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema, int timoutSeconds, bool isQuoted)
         {
             if(SqlType == BlackHoleSqlTypes.SqlLite)
             {
                 ConnectionString = Path.Combine(DataPath, $"{ConnectionString}.db3");
             }
 
-            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, databaseSchema, timoutSeconds);
+            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, databaseSchema, timoutSeconds,isQuoted);
         }
 
         internal static void DataPathAndLogs(string DataPath, bool useLogsCleaner, int daysToClean, bool useLogger)
