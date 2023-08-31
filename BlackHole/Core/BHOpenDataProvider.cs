@@ -252,89 +252,109 @@ namespace BlackHole.Core
             return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
+        async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return default;
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            return _executionProvider.QueryFirst<Dto>("", null);
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return default;
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class
+        Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
-            throw new NotImplementedException();
+            string commonColumns = CompareDtoToEntity(typeof(Dto));
+            if (string.IsNullOrEmpty(commonColumns))
+            {
+                return default;
+            }
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters,bhTransaction.transaction);
         }
 
         bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries)
         {
-            throw new NotImplementedException();
+            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
         }
 
-        bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries, BHTransaction transaction)
+        bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries)
         {
-            throw new NotImplementedException();
+            return await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
         }
 
-        async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries, BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            return await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
         }
 
         bool IBHOpenDataProvider<T>.InsertEntry(T entry)
         {
-            throw new NotImplementedException();
+            return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(CheckGenerateValue(entry)));
         }
 
-        bool IBHOpenDataProvider<T>.InsertEntry(T entry, BHTransaction transaction)
+        bool IBHOpenDataProvider<T>.InsertEntry(T entry, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction.transaction);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry)
         {
-            throw new NotImplementedException();
+            return await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(CheckGenerateValue(entry)));
         }
 
-        async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry, BHTransaction transaction)
+        async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            return await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction.transaction);
         }
 
         JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            throw new NotImplementedException();
+            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "inner", ThisSchema, IsMyShit, true);
         }
 
         JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.LeftJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            throw new NotImplementedException();
+            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "left", ThisSchema, IsMyShit, true);
         }
 
         JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.OuterJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            throw new NotImplementedException();
+            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "full outer", ThisSchema, IsMyShit, true);
         }
 
         JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.RightJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
         {
-            throw new NotImplementedException();
+            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "right", ThisSchema, IsMyShit, true);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
@@ -402,6 +422,65 @@ namespace BlackHole.Core
             return PNsb.ToString().Remove(0, 1);
         }
 
+        private bool InsertMany<Dto>(List<Dto> entries, string textCommand)
+        {
+            BlackHoleTransaction bhTransaction = new();
+
+            foreach (Dto entry in entries)
+            {
+                _executionProvider.JustExecute(textCommand, MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction);
+            }
+
+            bool result = bhTransaction.Commit();
+            bhTransaction.Dispose();
+
+            return result;
+        }
+
+        private bool InsertMany<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
+        {
+            bool result = true;
+
+            foreach (Dto entry in entries)
+            {
+                if (!_executionProvider.JustExecute(textCommand, MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction))
+                {
+                    result = false;
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<bool> InsertManyAsync<Dto>(List<Dto> entries, string textCommand)
+        {
+            BlackHoleTransaction bhTransaction = new();
+
+            foreach (Dto entry in entries)
+            {
+                await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction);
+            }
+
+            bool result = bhTransaction.Commit();
+            bhTransaction.Dispose();
+
+            return result;
+        }
+
+        private async Task<bool> InsertManyAsync<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
+        {
+            bool result = true;
+
+            foreach (Dto entry in entries)
+            {
+                if (!await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction))
+                {
+                    result = false;
+                }
+            }
+            return result;
+        }
+
         private string CompareColumnsToEntity(Type dto)
         {
             StringBuilder PNsb = new();
@@ -417,13 +496,33 @@ namespace BlackHole.Core
             return PNsb.ToString().Remove(0, 1);
         }
 
-        private T CheckGenerateValue(T entry)
+        private List<BlackHoleParameter> MapObjectToParameters<Dto>(Dto parametersObject)
+        {
+            if (parametersObject == null)
+            {
+                return new();
+            }
+
+            PropertyInfo[] propertyInfos = parametersObject.GetType().GetProperties();
+
+            BHParameters parameters = new();
+
+            foreach (PropertyInfo property in propertyInfos)
+            {
+                object? value = property.GetValue(parametersObject);
+                parameters.Add(property.Name, value);
+            }
+
+            return parameters.Parameters;
+        }
+
+        private Dto CheckGenerateValue<Dto>(Dto entry)
         {
             foreach(AutoGeneratedProperty settings in _settings.AutoGeneratedColumns)
             {
                 if (settings.Autogenerated && settings.Generator != null)
                 {
-                    entry.GetType().GetProperty(settings.PropertyName)?.SetValue(entry, GetGeneratorsValue(settings.Generator));
+                    entry?.GetType().GetProperty(settings.PropertyName)?.SetValue(entry, GetGeneratorsValue(settings.Generator));
                 }
             }
             return entry;
