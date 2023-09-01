@@ -16,10 +16,10 @@ namespace BlackHole.Internal
         {
             return DatabaseStatics.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => new SqlServerExecutionProvider(connectionString),
+                BlackHoleSqlTypes.SqlServer => new SqlServerExecutionProvider(connectionString, DatabaseStatics.IsQuotedDatabase),
                 BlackHoleSqlTypes.MySql => new MySqlExecutionProvider(connectionString),
                 BlackHoleSqlTypes.Postgres => new PostgresExecutionProvider(connectionString),
-                BlackHoleSqlTypes.SqlLite => new SqLiteExecutionProvider(connectionString),
+                BlackHoleSqlTypes.SqlLite => new SqLiteExecutionProvider(connectionString, DatabaseStatics.IsQuotedDatabase),
                 _ => new OracleExecutionProvider(connectionString),
             };
         }
@@ -50,11 +50,11 @@ namespace BlackHole.Internal
         {
             return DatabaseStatics.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => "Id INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,",
-                BlackHoleSqlTypes.MySql => "Id int AUTO_INCREMENT primary key NOT NULL ,",
-                BlackHoleSqlTypes.Postgres => @"""Id"" SERIAL PRIMARY KEY ,",
-                BlackHoleSqlTypes.SqlLite => "Id INTEGER PRIMARY KEY AUTOINCREMENT ,",
-                _ => @"""Id"" NUMBER(8,0) GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlServer => $"{GetMyShit("Id")} INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,",
+                BlackHoleSqlTypes.MySql => $"{GetMyShit("Id")} int AUTO_INCREMENT primary key NOT NULL ,",
+                BlackHoleSqlTypes.Postgres => $"{GetMyShit("Id")} SERIAL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetMyShit("Id")} INTEGER PRIMARY KEY AUTOINCREMENT ,",
+                _ => $"{GetMyShit("Id")} NUMBER(8,0) GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,",
             };
         }
 
@@ -66,11 +66,11 @@ namespace BlackHole.Internal
         {
             return DatabaseStatics.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => "Id NVARCHAR(50) PRIMARY KEY NOT NULL ,",
-                BlackHoleSqlTypes.MySql => "Id varchar(50) NOT NULL PRIMARY KEY ,",
-                BlackHoleSqlTypes.Postgres => @"""Id"" varchar(50) NOT NULL PRIMARY KEY ,",
-                BlackHoleSqlTypes.SqlLite => "Id varchar(50) PRIMARY KEY ,",
-                _ => @"""Id"" varchar2(50) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlServer => $"{GetMyShit("Id")} NVARCHAR(50) PRIMARY KEY NOT NULL ,",
+                BlackHoleSqlTypes.MySql => $"{GetMyShit("Id")} varchar(50) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.Postgres => $"{GetMyShit("Id")} varchar(50) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetMyShit("Id")} varchar(50) PRIMARY KEY ,",
+                _ => $"{GetMyShit("Id")} varchar2(50) NOT NULL PRIMARY KEY ,",
             };
         }
 
@@ -82,26 +82,14 @@ namespace BlackHole.Internal
         /// <returns></returns>
         string IBHDatabaseSelector.GetGuidPrimaryKeyCommand()
         {
-            string PrimaryKeyCommand = "";
-            switch (DatabaseStatics.DatabaseType)
+            return DatabaseStatics.DatabaseType switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    PrimaryKeyCommand = "Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,";
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    PrimaryKeyCommand = "Id varchar(36) NOT NULL PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    PrimaryKeyCommand = @"""Id"" uuid DEFAULT gen_random_uuid() PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    PrimaryKeyCommand = "Id varchar(36) PRIMARY KEY ,";
-                    break;
-                case BlackHoleSqlTypes.Oracle:
-                    PrimaryKeyCommand = @"""Id"" varchar2(36) NOT NULL PRIMARY KEY ,";
-                    break;
-            }
-            return PrimaryKeyCommand;
+                BlackHoleSqlTypes.SqlServer => $"{GetMyShit("Id")} UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,",
+                BlackHoleSqlTypes.MySql => $"{GetMyShit("Id")} varchar(36) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.Postgres => $"{GetMyShit("Id")} uuid DEFAULT gen_random_uuid() PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetMyShit("Id")} varchar(36) PRIMARY KEY ,",
+                _ => $"{GetMyShit("Id")} varchar2(36) NOT NULL PRIMARY KEY ,",
+            };
         }
 
         /// <summary>
@@ -110,12 +98,7 @@ namespace BlackHole.Internal
         /// <returns></returns>
         bool IBHDatabaseSelector.GetMyShit()
         {
-            bool myShit = false;
-            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres && DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Oracle)
-            {
-                myShit = true;
-            }
-            return myShit;
+            return SkipQuotes();
         }
 
         /// <summary>
@@ -244,6 +227,27 @@ namespace BlackHole.Internal
             {
                 return DatabaseStatics.DatabaseName;
             }
+        }
+
+        private bool SkipQuotes()
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => DatabaseStatics.IsQuotedDatabase ? false : true,
+                BlackHoleSqlTypes.MySql => true,
+                BlackHoleSqlTypes.Postgres => false,
+                BlackHoleSqlTypes.SqlLite => DatabaseStatics.IsQuotedDatabase ? false : true,
+                _ => false,
+            };
+        }
+
+        private string GetMyShit(string propName)
+        {
+            if (!SkipQuotes())
+            {
+                return $@"""{propName}""";
+            }
+            return propName;
         }
 
         string IBHDatabaseSelector.GetOwnerName()

@@ -1003,14 +1003,12 @@ namespace BlackHole.Internal
 
         string MyShit(string propName)
         {
-            string result = propName;
-
             if (!IsMyShit)
             {
-                result = $@"""{propName}""";
+                return $@"""{propName}""";
             }
 
-            return result;
+            return propName;
         }
 
         string MyShitConstraint(string alterTable, string Tablename, string propName, object? tName, object? tColumn, object? cascadeInfo)

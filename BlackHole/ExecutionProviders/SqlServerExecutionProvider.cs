@@ -11,16 +11,18 @@ namespace BlackHole.ExecutionProviders
         private readonly ILoggerService _loggerService;
         private readonly string _connectionString;
         internal readonly bool skipQuotes = true;
+        internal readonly bool ForceQuotes = false;
 
-        internal SqlServerExecutionProvider(string connectionString)
+        internal SqlServerExecutionProvider(string connectionString, bool forceQuotes)
         {
             _connectionString = connectionString;
+            ForceQuotes = forceQuotes;
             _loggerService = new LoggerService();
         }
 
         public bool SkipQuotes()
         {
-            return skipQuotes;
+            return ForceQuotes? false : skipQuotes;
         }
         #endregion
 

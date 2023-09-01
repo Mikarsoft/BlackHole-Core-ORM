@@ -10,17 +10,20 @@ namespace BlackHole.DataProviders
     {
         #region Constructor
         private readonly string _connectionString;
-        internal readonly string insertedOutput = "output Inserted.Id";
+        internal readonly string insertedOutput;
         internal readonly bool skipQuotes = true;
+        internal readonly bool ForceQuotes = false;
         private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
         private readonly string TableName = string.Empty;
 
-        internal SqlServerDataProvider(string connectionString, BlackHoleIdTypes idType, string tableName)
+        internal SqlServerDataProvider(string connectionString, BlackHoleIdTypes idType, string tableName, bool forceQuotes)
         {
             _connectionString = connectionString;
             _loggerService = new LoggerService();
             TableName = tableName;
+            ForceQuotes = forceQuotes;
+            insertedOutput = ForceQuotes ? @"output Inserted.""Id""" : "output Inserted.Id";
 
             if (idType != BlackHoleIdTypes.StringId)
             {
@@ -146,7 +149,12 @@ namespace BlackHole.DataProviders
         #region Helper Methods
         public bool SkipQuotes()
         {
-            return skipQuotes;
+            return ForceQuotes? false : skipQuotes;
+        }
+
+        private string QuotedId()
+        {
+            return ForceQuotes ? @"""Id""" : "Id";
         }
         #endregion
 
@@ -158,7 +166,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart},Id) {commandEnd},@Id);", entry))
+                if (ExecuteEntry($"{commandStart}, {QuotedId()}) {commandEnd},@Id);", entry))
                 {
                     return Id;
                 }
@@ -180,7 +188,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (ExecuteEntry($"{commandStart}, Id) {commandEnd}, @Id);", entry, bhTransaction))
+                if (ExecuteEntry($"{commandStart}, {QuotedId()}) {commandEnd}, @Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -202,7 +210,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart}, Id) {commandEnd}, @Id);", entry))
+                if (await ExecuteEntryAsync($"{commandStart}, {QuotedId()}) {commandEnd}, @Id);", entry))
                 {
                     return Id;
                 }
@@ -224,7 +232,7 @@ namespace BlackHole.DataProviders
                 G? Id = GenerateId<G>();
                 entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
 
-                if (await ExecuteEntryAsync($"{commandStart}, Id) {commandEnd}, @Id);", entry, bhTransaction))
+                if (await ExecuteEntryAsync($"{commandStart}, {QuotedId()}) {commandEnd}, @Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -245,7 +253,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $"{commandStart}, Id) {commandEnd}, @Id);";
+                string commandText = $"{commandStart}, {QuotedId()}) {commandEnd}, @Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
@@ -280,7 +288,7 @@ namespace BlackHole.DataProviders
 
             if (useGenerator)
             {
-                string commandText = $"{commandStart}, Id) {commandEnd}, @Id);";
+                string commandText = $"{commandStart}, {QuotedId()}) {commandEnd}, @Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
