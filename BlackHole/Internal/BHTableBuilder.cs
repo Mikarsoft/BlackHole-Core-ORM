@@ -110,7 +110,7 @@ namespace BlackHole.Internal
                     object[] attributes = Property.GetCustomAttributes(true);
 
                     tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType));
+                    tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, pkSettings.Contains(Property.Name)));
                 }
 
                 string creationCommand = tableCreator.ToString();
@@ -132,7 +132,7 @@ namespace BlackHole.Internal
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
                 tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-                tableCreator.Append(GetSqlColumn(new object[] {new DefaultValue(0)}, true, typeof(int)));
+                tableCreator.Append(GetSqlColumn(new object[] {new DefaultValue(0)}, true, typeof(int), false));
 
                 foreach (PropertyInfo Property in Properties)
                 {
@@ -142,7 +142,7 @@ namespace BlackHole.Internal
                     {
                         tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType));
+                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, false));
                     }
                     else
                     {
@@ -325,6 +325,7 @@ namespace BlackHole.Internal
         void ForeignKeyLiteAsignment(Type TableType, bool firstTime)
         {
             string Tablename = MyShit(TableType.Name);
+            string OldTablename = MyShit($"{TableType.Name}_Old");
 
             List<string> ColumnNames = new();
             List<string> NewColumnNames = new()
@@ -344,9 +345,9 @@ namespace BlackHole.Internal
             StringBuilder foreignKeys = new();
             StringBuilder closingCommand = new();
 
-            alterTable.Append($"PRAGMA foreign_keys = off; ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; CREATE TABLE {Tablename} (");
+            alterTable.Append($"PRAGMA foreign_keys = off; ALTER TABLE {Tablename} RENAME TO {OldTablename}; CREATE TABLE {Tablename} (");
             alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-            alterTable.Append(GetSqlColumn(new object[] { new DefaultValue(0) }, true, typeof(int)));
+            alterTable.Append(GetSqlColumn(new object[] { new DefaultValue(0) }, true, typeof(int), false));
 
             foreach (PropertyInfo Property in TableType.GetProperties())
             {
@@ -357,7 +358,7 @@ namespace BlackHole.Internal
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType));
+                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, false));
                 }
                 else
                 {
@@ -386,7 +387,7 @@ namespace BlackHole.Internal
                         var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
                         var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
                         var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
-                        foreignKeys.Append(LiteConstraint(Tablename, Property.Name, tName, tColumn, cascadeInfo));
+                        foreignKeys.Append(LiteConstraint(TableType.Name, Property.Name, tName, tColumn, cascadeInfo));
                     }
                 }
             }
@@ -424,9 +425,9 @@ namespace BlackHole.Internal
             alterTable.Clear(); foreignKeys.Clear();
 
             closingCommand.Append(FkCommand);
-            closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old")} DROP TABLE {Tablename}_Old;");
-            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};");
-            closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {Tablename}_Old");
+            closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, Tablename, OldTablename)} DROP TABLE {OldTablename};");
+            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
+            closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {OldTablename}");
             connection.JustExecute(closingCommand.ToString(), null);
             CliConsoleLogs($"{closingCommand}");
             closingCommand.Clear();
@@ -436,6 +437,7 @@ namespace BlackHole.Internal
         void ForeignKeyLiteOpenAsignment(Type TableType, bool firstTime)
         {
             string Tablename = MyShit(TableType.Name);
+            string OldTablename = MyShit($"{TableType.Name}_Old");
             List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
             string Pkoption = OpenPrimaryKey(pkSettings, Tablename);
 
@@ -454,7 +456,7 @@ namespace BlackHole.Internal
             StringBuilder foreignKeys = new();
             StringBuilder closingCommand = new();
 
-            alterTable.Append($"PRAGMA foreign_keys=off; ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; CREATE TABLE {Tablename} (");
+            alterTable.Append($"PRAGMA foreign_keys=off; ALTER TABLE {Tablename} RENAME TO {OldTablename}; CREATE TABLE {Tablename} (");
 
             foreach (PropertyInfo Property in TableType.GetProperties())
             {
@@ -462,7 +464,7 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
 
                 alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType));
+                alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name)));
 
                 if (attributes.Length > 0)
                 {
@@ -473,7 +475,7 @@ namespace BlackHole.Internal
                         var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
                         var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
                         var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
-                        foreignKeys.Append(LiteConstraint(Tablename, Property.Name, tName, tColumn, cascadeInfo));
+                        foreignKeys.Append(LiteConstraint(TableType.Name, Property.Name, tName, tColumn, cascadeInfo));
                     }
                 }
             }
@@ -516,9 +518,9 @@ namespace BlackHole.Internal
             alterTable.Clear(); foreignKeys.Clear();
 
             closingCommand.Append(FkCommand);
-            closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, $"{Tablename}", $"{Tablename}_Old")} DROP TABLE {Tablename}_Old;");
-            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {Tablename}_Old; ALTER TABLE {Tablename}_Old RENAME TO {Tablename};");
-            closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {Tablename}_Old");
+            closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, Tablename, OldTablename)} DROP TABLE {OldTablename};");
+            closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
+            closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {OldTablename}");
             string test = closingCommand.ToString();
             connection.JustExecute(closingCommand.ToString(), null);
             CliConsoleLogs($"{closingCommand}");
@@ -924,10 +926,10 @@ namespace BlackHole.Internal
             return constraintsCommand;
         }
 
-        string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType)
+        string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk)
         {
             bool mandatoryNull = false;
-            string nullPhase = string.Empty;
+            string nullPhase = "NULL, ";
 
             if (PropertyType.Name.Contains("Nullable"))
             {
@@ -950,6 +952,11 @@ namespace BlackHole.Internal
                     nullPhase = "NULL, ";
                 }
 
+                if (isOpenPk)
+                {
+                    nullPhase = "NOT NULL, ";
+                }
+
                 return nullPhase;
             }
 
@@ -965,6 +972,11 @@ namespace BlackHole.Internal
                 if (mandatoryNull)
                 {
                     nullPhase = "NULL, ";
+                }
+
+                if (isOpenPk)
+                {
+                    nullPhase = "NOT NULL, ";
                 }
 
                 var isDatetimeVal = nnAttributeType.GetProperty("IsDatetimeValue")?.GetValue(nnAttribute, null);
@@ -990,7 +1002,13 @@ namespace BlackHole.Internal
                 {
                     useDateTimeVal = (bool)isDatetimeValue;
                 }
-                return $"{DefaultValueCheck(PropertyType, defaultVal,useDateTimeVal)} NULL, ";
+
+                if (isOpenPk)
+                {
+                    nullPhase = "NOT NULL, ";
+                }
+
+                return $"{DefaultValueCheck(PropertyType, defaultVal,useDateTimeVal)} {nullPhase}";
             }
 
             if (mandatoryNull)
@@ -1015,18 +1033,21 @@ namespace BlackHole.Internal
         {
             string constraint = $"ADD CONSTRAINT fk_{Tablename}_{tName}{TableSchemaFk}";
 
-            string result = $"{alterTable} {constraint} FOREIGN KEY ({propName}) REFERENCES {TableSchema}{tName}({tColumn}) {cascadeInfo}";
-
             if (!IsMyShit)
             {
-                result = $@"{alterTable} {constraint} FOREIGN KEY (""{propName}"") REFERENCES {TableSchema}""{tName}""(""{tColumn}"") {cascadeInfo}";
+                return $@"{alterTable} {constraint} FOREIGN KEY (""{propName}"") REFERENCES {TableSchema}""{tName}""(""{tColumn}"") {cascadeInfo}";
             }
 
-            return result;
+            return $"{alterTable} {constraint} FOREIGN KEY ({propName}) REFERENCES {TableSchema}{tName}({tColumn}) {cascadeInfo}";
         }
 
         string LiteConstraint(string Tablename, string propName, object? tName, object? tColumn, object? cascadeInfo)
         {
+            if (!IsMyShit)
+            {
+                return $@"CONSTRAINT fk_{Tablename}_{tName} FOREIGN KEY (""{propName}"") REFERENCES ""{tName}""(""{tColumn}"") {cascadeInfo}, ";
+            }
+
             return $"CONSTRAINT fk_{Tablename}_{tName} FOREIGN KEY ({propName}) REFERENCES {tName}({tColumn}) {cascadeInfo}, ";
         }
 
@@ -1043,8 +1064,8 @@ namespace BlackHole.Internal
 
                 foreach (string column in CommonList)
                 {
-                    result += $"{column},";
-                    selectionClosing += $"{column},";
+                    result += $"{MyShit(column)},";
+                    selectionClosing += $"{MyShit(column)},";
                 }
                 result = $"{result[..^1]}{selection}{selectionClosing[..^1]} FROM {oldTablename};";
             }
