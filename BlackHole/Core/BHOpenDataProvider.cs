@@ -301,24 +301,90 @@ namespace BlackHole.Core
             return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters,bhTransaction.transaction);
         }
 
+        async Task<T?> IBHOpenDataProvider<T>.InsertAndReturnEntryAsync(T entry)
+        {
+            T newEntry = CheckGenerateValue(entry);
+            if(await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry)))
+            {
+                return newEntry;
+            }
+            return default;
+        }
+
+        async Task<T?> IBHOpenDataProvider<T>.InsertAndReturnEntryAsync(T entry, BHTransaction bhTransaction)
+        {
+            T newEntry = CheckGenerateValue(entry);
+            if (await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry), bhTransaction.transaction))
+            {
+                return newEntry;
+            }
+            return default;
+        }
+
+        async Task<List<T>> IBHOpenDataProvider<T>.InsertAndReturnEntriesAsync(List<T> entries)
+        {
+            entries = await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
+            return entries;
+        }
+
+        async Task<List<T>> IBHOpenDataProvider<T>.InsertAndReturnEntriesAsync(List<T> entries, BHTransaction bhTransaction)
+        {
+            entries = await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
+            return entries;
+        }
+
         bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries)
         {
-            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
+            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})").Any();
         }
 
         bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
         {
-            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
+            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction).Any();
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries)
         {
-            return await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
+            entries = await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
+            return entries.Any();
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
         {
-            return await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
+            entries = await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
+            return entries.Any();
+        }
+
+        T? IBHOpenDataProvider<T>.InsertAndReturnEntry(T entry)
+        {
+            T newEntry = CheckGenerateValue(entry);
+            if (_executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry)))
+            {
+                return newEntry;
+            }
+            return default;
+        }
+
+        T? IBHOpenDataProvider<T>.InsertAndReturnEntry(T entry, BHTransaction bhTransaction)
+        {
+            T newEntry = CheckGenerateValue(entry);
+            if (_executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry),bhTransaction.transaction))
+            {
+                return newEntry;
+            }
+            return default;
+        }
+
+        List<T> IBHOpenDataProvider<T>.InsertAndReturnEntries(List<T> entries)
+        {
+            entries = InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
+            return entries;
+        }
+
+        List<T> IBHOpenDataProvider<T>.InsertAndReturnEntries(List<T> entries, BHTransaction bhTransaction)
+        {
+            entries = InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
+            return entries;
         }
 
         bool IBHOpenDataProvider<T>.InsertEntry(T entry)
@@ -462,63 +528,94 @@ namespace BlackHole.Core
             return PNsb.ToString().Remove(0, 1);
         }
 
-        private bool InsertMany<Dto>(List<Dto> entries, string textCommand)
+        private List<Dto> InsertMany<Dto>(List<Dto> entries, string textCommand)
         {
             BlackHoleTransaction bhTransaction = new();
+            List<Dto> insertedEntries = new();
 
             foreach (Dto entry in entries)
             {
-                _executionProvider.JustExecute(textCommand, MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction);
+                Dto newEntry = CheckGenerateValue(entry);
+                insertedEntries.Add(newEntry);
+                _executionProvider.JustExecute(textCommand, MapObjectToParameters(newEntry), bhTransaction);
             }
 
-            bool result = bhTransaction.Commit();
+            if (!bhTransaction.Commit())
+            {
+                insertedEntries.Clear();
+            }
             bhTransaction.Dispose();
 
-            return result;
+            return insertedEntries;
         }
 
-        private bool InsertMany<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
+        private List<Dto> InsertMany<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
         {
             bool result = true;
+            List<Dto> insertedEntries = new();
 
             foreach (Dto entry in entries)
             {
-                if (!_executionProvider.JustExecute(textCommand, MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction))
+                Dto newEntry = CheckGenerateValue(entry);
+                insertedEntries.Add(newEntry);
+
+                if (!_executionProvider.JustExecute(textCommand, MapObjectToParameters(newEntry), bhTransaction))
                 {
                     result = false;
                 }
             }
 
-            return result;
-        }
-
-        private async Task<bool> InsertManyAsync<Dto>(List<Dto> entries, string textCommand)
-        {
-            BlackHoleTransaction bhTransaction = new();
-
-            foreach (Dto entry in entries)
+            if (!result)
             {
-                await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction);
+                insertedEntries.Clear();
             }
 
-            bool result = bhTransaction.Commit();
-            bhTransaction.Dispose();
-
-            return result;
+            return insertedEntries;
         }
 
-        private async Task<bool> InsertManyAsync<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
+        private async Task<List<Dto>> InsertManyAsync<Dto>(List<Dto> entries, string textCommand)
         {
-            bool result = true;
+            BlackHoleTransaction bhTransaction = new();
+            List<Dto> insertedEntries = new();
 
             foreach (Dto entry in entries)
             {
-                if (!await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction))
+                Dto newEntry = CheckGenerateValue(entry);
+                insertedEntries.Add(newEntry);
+                await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(newEntry), bhTransaction);
+            }
+
+            if (!bhTransaction.Commit())
+            {
+                insertedEntries.Clear();
+            }
+            bhTransaction.Dispose();
+
+            return insertedEntries;
+        }
+
+        private async Task<List<Dto>> InsertManyAsync<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
+        {
+            bool result = true;
+            List<Dto> insertedEntries = new();
+
+            foreach (Dto entry in entries)
+            {
+                Dto newEntry = CheckGenerateValue(entry);
+                insertedEntries.Add(newEntry);
+
+                if (!await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(newEntry), bhTransaction))
                 {
                     result = false;
                 }
             }
-            return result;
+
+            if (!result)
+            {
+                insertedEntries.Clear();
+            }
+
+            return insertedEntries;
         }
 
         private string CompareColumnsToEntity(Type dto)

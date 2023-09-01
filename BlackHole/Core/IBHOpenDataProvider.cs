@@ -152,6 +152,40 @@ namespace BlackHole.Core
         bool InsertEntries(List<T> entries, BHTransaction transaction);
 
         /// <summary>
+        /// Inserts the Entity into the table, generates a new Id 
+        /// and returns the Id
+        /// </summary>
+        /// <param name="entry">Entity</param>
+        /// <returns>Id of the Entity</returns>
+        T? InsertAndReturnEntry(T entry);
+
+        /// <summary>
+        /// Transaction.Inserts the Entity into the table, generates a new Id 
+        /// and returns the Id
+        /// </summary>
+        /// <param name="entry">Entity</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Id of the Entity</returns>
+        T? InsertAndReturnEntry(T entry, BHTransaction transaction);
+
+        /// <summary>
+        /// Inserts a list of Entities into the table, generates a new Id of each one
+        /// and returns the list of Ids
+        /// </summary>
+        /// <param name="entries">Entities</param>
+        /// <returns>Ids of the Entities</returns>
+        List<T> InsertAndReturnEntries(List<T> entries);
+
+        /// <summary>
+        /// Transaction.Inserts a list of Entities into the table, generates a new Id of each one
+        /// and returns the list of Ids
+        /// </summary>
+        /// <param name="entries">Entities</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Ids of the Entities</returns>
+        List<T> InsertAndReturnEntries(List<T> entries, BHTransaction transaction);
+
+        /// <summary>
         /// Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
         /// the columns based on the inserted Entity's property values. 
@@ -384,6 +418,39 @@ namespace BlackHole.Core
         /// <returns>Ids of the Entities</returns>
         Task<bool> InsertEntriesAsync(List<T> entries, BHTransaction transaction);
 
+        /// <summary>
+        /// Asyncronous. Inserts the Entity into the table, generates a new Id 
+        /// and returns the Id
+        /// </summary>
+        /// <param name="entry">Entity</param>
+        /// <returns>Id of the Entity</returns>
+        Task<T?> InsertAndReturnEntryAsync(T entry);
+
+        /// <summary>
+        /// Transaction.Asyncronous. Inserts the Entity into the table, generates a new Id 
+        /// and returns the Id
+        /// </summary>
+        /// <param name="entry">Entity</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Id of the Entity</returns>
+        Task<T?> InsertAndReturnEntryAsync(T entry, BHTransaction transaction);
+
+        /// <summary>
+        /// Asyncronous. Inserts a list of Entities into the table, generates a new Id of each one
+        /// and returns the list of Ids
+        /// </summary>
+        /// <param name="entries">List of Entities</param>
+        /// <returns>Ids of the Entities</returns>
+        Task<List<T>> InsertAndReturnEntriesAsync(List<T> entries);
+
+        /// <summary>
+        /// Transaction.Asyncronous. Inserts a list of Entities into the table, generates a new Id of each one
+        /// and returns the list of Ids
+        /// </summary>
+        /// <param name="entries">List of Entities</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Ids of the Entities</returns>
+        Task<List<T>> InsertAndReturnEntriesAsync(List<T> entries, BHTransaction transaction);
 
         /// <summary>
         /// Asyncronous. Finds the entries in the table
