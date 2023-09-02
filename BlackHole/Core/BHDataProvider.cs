@@ -33,11 +33,7 @@ namespace BlackHole.Core
         {
             Type EntityType = typeof(T);
 
-            if (EntityType.GetCustomAttributes(true).SingleOrDefault(x => x.GetType() == typeof(UseActivator)) != null)
-            {
-                WithActivator = true;
-            }
-
+            WithActivator = EntityType.CheckActivator();
             _dataProvider = typeof(G).GetDataProvider(EntityType.Name);
             IsMyShit = _dataProvider.SkipQuotes();
             ThisSchema = BHDataProviderSelector.GetDatabaseSchema();

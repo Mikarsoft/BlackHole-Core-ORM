@@ -1,4 +1,5 @@
 ﻿using BlackHole.DataProviders;
+using BlackHole.Entities;
 using BlackHole.Enums;
 using BlackHole.ExecutionProviders;
 using BlackHole.Statics;
@@ -17,6 +18,11 @@ namespace BlackHole.CoreSupport
                 BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType),tableName, DatabaseStatics.IsQuotedDatabase),
                 _ => new OracleDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType),tableName),
             };
+        }
+
+        internal static bool CheckActivator(this Type entity)
+        {
+            return entity.GetCustomAttributes(true).Any(x => x.GetType() == typeof(UseActivator));
         }
 
         internal static IExecutionProvider GetExecutionProvider()

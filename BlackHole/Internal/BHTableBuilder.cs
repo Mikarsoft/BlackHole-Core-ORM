@@ -439,7 +439,7 @@ namespace BlackHole.Internal
             string Tablename = MyShit(TableType.Name);
             string OldTablename = MyShit($"{TableType.Name}_Old");
             List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
-            string Pkoption = OpenPrimaryKey(pkSettings, Tablename);
+            string Pkoption = OpenPrimaryKey(pkSettings, TableType.Name);
 
             List<string> ColumnNames = new();
             List<string> NewColumnNames = new();
@@ -497,7 +497,7 @@ namespace BlackHole.Internal
 
                         if (fkC != null)
                         {
-                            foreignKeys.Append($"CONSTRAINT fk_{Tablename}_{fkC.table} FOREIGN KEY ({fkC.from}) REFERENCES {fkC.table}({fkC.to}) on delete {fkC.on_delete}, ");
+                            foreignKeys.Append($"CONSTRAINT fk_{TableType.Name}_{fkC.table} FOREIGN KEY ({fkC.from}) REFERENCES {fkC.table}({fkC.to}) on delete {fkC.on_delete}, ");
                         }
                     }
                 }
