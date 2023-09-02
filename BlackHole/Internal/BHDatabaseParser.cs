@@ -400,45 +400,51 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    parseCommand = @"SELECT distinct tb.name as TableName, c.name as ColumnName, t.name as DataType, c.max_length as MaxLength,
+                    parseCommand = @"SELECT distinct tb.name as TableName, c.name as ColumnName,PT.COLUMN_NAME as ReferencedColumn, t.name as DataType, c.max_length as MaxLength,
                         c.precision as NumPrecision , c.scale  as NumScale, c.is_nullable as Nullable, ISNULL(i.is_primary_key, 0) as PrimaryKey,
-	                    RC.DELETE_RULE as DeleteRule, TC.TABLE_NAME as ReferencedTable, K.CONSTRAINT_NAME as ConstraintName FROM sys.columns c
+	                    RC.DELETE_RULE as DeleteRule, TC.TABLE_NAME as ReferencedTable, K.CONSTRAINT_NAME as ConstraintName, CD.COLUMN_DEFAULT as DefaultValue
+						FROM sys.columns c
                         inner join sys.types t ON c.user_type_id = t.user_type_id
                         inner join sys.tables tb  on tb.object_id = c.object_id
                         left outer join sys.index_columns ic ON ic.object_id = c.object_id AND ic.column_id = c.column_id
                         left outer join sys.indexes i ON ic.object_id = i.object_id AND ic.index_id = i.index_id
                         left outer join INFORMATION_SCHEMA.KEY_COLUMN_USAGE K on K.COLUMN_NAME = c.name and K.TABLE_NAME = tb.name
                         left join INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC on RC.CONSTRAINT_NAME = K.CONSTRAINT_NAME
-                        left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON TC.CONSTRAINT_NAME= RC.UNIQUE_CONSTRAINT_NAME " +
+                        left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON TC.CONSTRAINT_NAME= RC.UNIQUE_CONSTRAINT_NAME
+						left outer join INFORMATION_SCHEMA.COLUMNS CD ON C.name = CD.COLUMN_NAME AND CD.COLUMN_DEFAULT IS NOT NULL
+						LEFT OUTER JOIN (SELECT i1.TABLE_NAME,i2.COLUMN_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS i1
+						INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE i2 ON i1.CONSTRAINT_NAME = i2.CONSTRAINT_NAME WHERE
+						i1.CONSTRAINT_TYPE = 'PRIMARY KEY') PT ON PT.TABLE_NAME = TC.TABLE_NAME " +
                         $" {schemaCheck}";
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    parseCommand = @"select distinct K.table_name as TableName, K.column_name as ColumnName, K.udt_name as DataType,
+                    parseCommand = @"select distinct K.table_name as TableName, K.column_name as ColumnName, K.column_default as DefaultValue, K.udt_name as DataType,
                         K.character_maximum_length as MaxLength, K.numeric_precision as NumPrecision, K.numeric_scale as NumScale,
                         case when K.is_nullable='YES' then true else false end as Nullable, 
                         case when T.constraint_type ='PRIMARY KEY' then true else false end as PrimaryKey,
                         case when T.constraint_type = 'FOREIGN KEY' then CU.table_name else '' end as ReferencedTable,
 						case when (T.constraint_type = 'FOREIGN KEY' and K.is_nullable = 'YES') then 'SET NULL'
 							 when (T.constraint_type = 'FOREIGN KEY' and K.is_nullable = 'NO') then	'CASCADE'
-							 else '' end as DeleteRule, T.CONSTRAINT_NAME as ConstraintName
+							 else '' end as DeleteRule, T.CONSTRAINT_NAME as ConstraintName, 
+						case when T.constraint_type = 'FOREIGN KEY' then CU.column_name else '' end as ReferencedColumn
 						from INFORMATION_SCHEMA.COLUMNS K 
                         left join INFORMATION_SCHEMA.KEY_COLUMN_USAGE C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME)
                         left join INFORMATION_SCHEMA.TABLE_CONSTRAINTS T on T.CONSTRAINT_NAME = C.CONSTRAINT_NAME 
-                        left join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CU on CU.CONSTRAINT_NAME = T.CONSTRAINT_NAME " +
+                        left join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CU on CU.CONSTRAINT_NAME = T.CONSTRAINT_NAME" +
                         $" {schemaCheck}";
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    parseCommand = @"select distinct K.TABLE_NAME as TableName, K.COLUMN_NAME as ColumnName, K.DATA_TYPE as DataType, 
+                    parseCommand = @"select distinct K.TABLE_NAME as TableName, K.COLUMN_NAME as ColumnName, K.column_default as DefaultValue,K.EXTRA, K.COLUMN_COMMENT, K.DATA_TYPE as DataType, 
                         K.CHARACTER_MAXIMUM_LENGTH as MaxLength, K.NUMERIC_PRECISION as NumPrecision, K.NUMERIC_SCALE as NumScale , 
                         case when K.IS_NULLABLE = 'YES' THEN true else false end as Nullable,
                         case when K.COLUMN_KEY ='PRI' then true else false end as PrimaryKey,
                         case when (K.COLUMN_KEY ='MUL' and  K.IS_NULLABLE = 'YES') then 'SET NULL'
 	                         when (K.COLUMN_KEY ='MUL' and K.IS_NULLABLE = 'NO') then 'CASCADE'
                              else '' end as DeleteRule,
-                        C.REFERENCED_TABLE_NAME as ReferencedTable, C.CONSTRAINT_NAME as ConstraintName
-                        from INFORMATION_SCHEMA.COLUMNS K 
+                        C.REFERENCED_TABLE_NAME as ReferencedTable, C.REFERENCED_COLUMN_NAME as ReferencedColumn,
+                        C.CONSTRAINT_NAME as ConstraintName from INFORMATION_SCHEMA.COLUMNS K 
 		                left outer join information_schema.key_column_usage C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME) " +
                         $" where K.TABLE_SCHEMA ='{schemaCheck}'";
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);

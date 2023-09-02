@@ -14,6 +14,22 @@ namespace BlackHole.Internal
         /// Current Column Name
         /// </summary>
         public string ColumnName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Referenced Column
+        /// </summary>
+        public string ReferencedColumn { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Default value of the column
+        /// </summary>
+        public string DefaultValue { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Extra { get; set; } = string.Empty;
+
         /// <summary>
         /// Current Column Data Type
         /// </summary>
