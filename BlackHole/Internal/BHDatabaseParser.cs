@@ -455,11 +455,17 @@ namespace BlackHole.Internal
                         case when col.nullable = 'Y' then 1 else 0 end as Nullable,
                         case when c.constraint_type = 'P' then 1 else 0 end as PrimaryKey,
                         c.delete_rule as DeleteRule, c.constraint_name as ConstraintName,
-                        case when c.constraint_type = 'R' then c_pk.table_name else '' end as ReferencedTable
+                        case when c.constraint_type = 'R' then c_pk.table_name else '' end as ReferencedTable,
+                        ccu.column_name as ReferencedColumn,
+                        case when col.default_length is null then '0'
+                           else extractvalue ( dbms_xmlgen.getxmltype
+                            ( 'select data_default from user_tab_columns where table_name = ''' || col.table_name || ''' and column_name = ''' || col.column_name || '''' )
+                            , '//text()' ) end as DefaultValue
                         from sys.all_tab_columns col
                         left join sys.all_cons_columns a on (a.column_name = col.column_name and a.table_name = col.table_name and a.owner = col.owner and a.position is not null)
                         left join all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name
-                        left JOIN all_constraints c_pk ON c.r_owner = c_pk.owner AND c.r_constraint_name = c_pk.constraint_name "+
+                        left JOIN all_constraints c_pk ON c.r_owner = c_pk.owner AND c.r_constraint_name = c_pk.constraint_name
+                        left outer join USER_CONS_COLUMNS ccu on ccu.CONSTRAINT_NAME = c.r_constraint_name And c.constraint_type='R'" +
                         $" where col.owner ='{schemaCheck}'";
                     parsingData = connection.Query<TableParsingInfo>(parseCommand, null);
                     break;
