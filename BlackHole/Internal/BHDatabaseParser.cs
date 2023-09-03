@@ -394,8 +394,8 @@ namespace BlackHole.Internal
                 case BlackHoleSqlTypes.SqlServer:
                     parseCommand = @"SELECT distinct tb.name as TableName, c.name as ColumnName,PT.COLUMN_NAME as ReferencedColumn, t.name as DataType, c.max_length as MaxLength,
                         c.precision as NumPrecision , c.scale  as NumScale, c.is_nullable as Nullable, ISNULL(i.is_primary_key, 0) as PrimaryKey,
-	                    RC.DELETE_RULE as DeleteRule, TC.TABLE_NAME as ReferencedTable, K.CONSTRAINT_NAME as ConstraintName, CD.COLUMN_DEFAULT as DefaultValue
-						FROM sys.columns c
+	                    RC.DELETE_RULE as DeleteRule, TC.TABLE_NAME as ReferencedTable, K.CONSTRAINT_NAME as ConstraintName, CD.COLUMN_DEFAULT as DefaultValue,
+						c.is_identity as IsIdentity FROM sys.columns c
                         inner join sys.types t ON c.user_type_id = t.user_type_id
                         inner join sys.tables tb  on tb.object_id = c.object_id
                         left outer join sys.index_columns ic ON ic.object_id = c.object_id AND ic.column_id = c.column_id

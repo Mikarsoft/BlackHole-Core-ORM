@@ -66,6 +66,11 @@ namespace BlackHole.Internal
         /// Constraint Name
         /// </summary>
         public string ConstraintName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Autoincrement for sql server check
+        /// </summary>
+        public bool IsIdentity { get; set; }
     }
 
     internal class TableAspectsInfo
