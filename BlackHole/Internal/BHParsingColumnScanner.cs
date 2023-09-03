@@ -29,6 +29,157 @@ namespace BlackHole.Internal
             };
         }
 
+        internal PKConfiguration? CheckPrimaryKeySettings(List<TableParsingInfo> tableColumnInfo)
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => CheckServerPK(tableColumnInfo),
+                BlackHoleSqlTypes.MySql => CheckMySqlPK(tableColumnInfo),
+                BlackHoleSqlTypes.Postgres => CheckNpgPK(tableColumnInfo),
+                BlackHoleSqlTypes.Oracle => CheckOraclePK(tableColumnInfo),
+                _ => CheckLitePK(tableColumnInfo),
+            };
+        }
+
+        internal PKConfiguration? CheckNpgPK(List<TableParsingInfo> tableColumnInfo)
+        {
+            List<TableParsingInfo> autoIncrementUuid = tableColumnInfo.Where(x => x.Extra.ToLower().Contains("gen_random")).ToList();
+            List<TableParsingInfo> autoIncrementInteger = tableColumnInfo.Where(x => x.Extra.ToLower().Contains("nextval")).ToList();
+            string WarningMessage = string.Empty;
+            string MainPrimaryKey = string.Empty;
+
+            if (autoIncrementUuid.Any() && autoIncrementInteger.Any())
+            {
+                WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementUuid[0].TableName}. Please Fix your database before running this project.";
+            }
+
+            if (autoIncrementInteger.Any())
+            {
+                if (autoIncrementInteger.Count > 1)
+                {
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementInteger[0].TableName}. Please Fix your database before running this project.";
+                }
+
+                return new PKConfiguration
+                {
+                    MainPrimaryKey = autoIncrementInteger[0].ColumnName,
+                    HasAutoIncrement = true,
+                    WarningMessage = WarningMessage,
+                    PKCount = tableColumnInfo.Count
+                };
+            }
+
+            if (autoIncrementUuid.Any())
+            {
+                if (autoIncrementUuid.Count > 1)
+                {
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementUuid[0].TableName}. Please Fix your database before running this project.";
+                }
+
+                return new PKConfiguration
+                {
+                    MainPrimaryKey = autoIncrementUuid[0].ColumnName,
+                    HasAutoIncrement = true,
+                    WarningMessage = WarningMessage,
+                    PKCount = tableColumnInfo.Count
+                };
+            }
+
+            if (tableColumnInfo.Any())
+            {
+                MainPrimaryKey = tableColumnInfo[0].ColumnName;
+            }
+
+            return new PKConfiguration
+            {
+                MainPrimaryKey = MainPrimaryKey,
+                HasAutoIncrement = false,
+                WarningMessage = WarningMessage,
+                PKCount = tableColumnInfo.Count
+            };
+        }
+
+        internal PKConfiguration CheckServerPK(List<TableParsingInfo> tableColumnInfo)
+        {
+
+        }
+        internal PKConfiguration? CheckOraclePK(List<TableParsingInfo> tableColumnInfo)
+        {
+
+        }
+        internal PKConfiguration CheckMySqlPK(List<TableParsingInfo> tableColumnInfo)
+        {
+            List<TableParsingInfo> autoIncrementColumn = tableColumnInfo.Where(x => x.Extra.ToLower().Contains("auto_increment")).ToList();
+            string WarningMessage = string.Empty;
+            string MainPrimaryKey = string.Empty;
+
+            if (autoIncrementColumn.Any())
+            {
+                if(autoIncrementColumn.Count > 1)
+                {
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementColumn[0].TableName}. Please Fix your database before running this project.";
+                }
+
+                return new PKConfiguration
+                {
+                    MainPrimaryKey = autoIncrementColumn[0].ColumnName,
+                    HasAutoIncrement = true,
+                    WarningMessage = WarningMessage,
+                    PKCount = tableColumnInfo.Count
+                };
+            }
+
+            if (tableColumnInfo.Any())
+            {
+                MainPrimaryKey = tableColumnInfo[0].ColumnName;
+            }
+
+            return new PKConfiguration
+            {
+                MainPrimaryKey = MainPrimaryKey,
+                HasAutoIncrement = false,
+                WarningMessage = WarningMessage,
+                PKCount = tableColumnInfo.Count
+            };
+        }
+
+        internal PKConfiguration CheckLitePK(List<TableParsingInfo> tableColumnInfo)
+        {
+            List<TableParsingInfo> autoIncrementColumn = tableColumnInfo.Where(x => x.Extra.ToLower().Contains("auto_increment")).ToList();
+
+            string WarningMessage = string.Empty;
+            string MainPrimaryKey = string.Empty;
+
+            if (autoIncrementColumn.Any())
+            {
+                if (autoIncrementColumn.Count > 1)
+                {
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementColumn[0].TableName}. Please Fix your database before running this project.";
+                }
+
+                return new PKConfiguration
+                {
+                    MainPrimaryKey = autoIncrementColumn[0].ColumnName,
+                    HasAutoIncrement = true,
+                    WarningMessage = WarningMessage,
+                    PKCount = tableColumnInfo.Count
+                };
+            }
+
+            if (tableColumnInfo.Any())
+            {
+                MainPrimaryKey = tableColumnInfo[0].ColumnName;
+            }
+
+            return new PKConfiguration
+            {
+                MainPrimaryKey = MainPrimaryKey,
+                HasAutoIncrement = false,
+                WarningMessage = WarningMessage,
+                PKCount = tableColumnInfo.Count
+            };
+        }
+
         internal ColumnScanResult GetSqlServerColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
         {
             ColumnScanResult scanResult = new()

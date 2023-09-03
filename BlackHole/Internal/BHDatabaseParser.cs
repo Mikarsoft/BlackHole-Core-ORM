@@ -176,9 +176,9 @@ namespace BlackHole.Internal
 
         internal DbParsingStates CheckCompatibility(List<TableAspectsInfo> parsingData, BHParsingColumnScanner columnScanner)
         {
-            bool minorChangesRequired = false;
             DbParsingStates dbState = DbParsingStates.Proceed;
             string errorMessage = string.Empty;
+            bool blockParsing = false;
 
             foreach (TableAspectsInfo tableAspectInf in parsingData)
             {
@@ -186,89 +186,81 @@ namespace BlackHole.Internal
 
                 TableParsingInfo? inactiveColumn = tableAspectInf.TableColumns.FirstOrDefault(x => x.ColumnName == "Inactive");
 
-                if(inactiveColumn == null)
+                if (primaryKey.Count == 1 && inactiveColumn != null && primaryKey[0].ColumnName == "Id")
                 {
-                    errorMessage = $"Column 'Inactive' must be added on Table '{tableAspectInf.TableName}' as it's required by BlackHole.";
-                    CliLog(errorMessage);
-                    WriteMinorChanges(tableAspectInf.TableName,errorMessage);
-                    minorChangesRequired = true;
-                }
+                    ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(primaryKey[0]);
 
-                if (primaryKey.Count == 1)
-                {
-                    if (primaryKey[0].ColumnName != "Id")
+                    if (scanPkResult.UnidentifiedColumn)
                     {
-                        errorMessage = $"Column '{primaryKey[0].ColumnName}' of the Table '{tableAspectInf.TableName}', must be renamed to Id.";
+                        errorMessage = $"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHoleEntity 's Supported Primary keys.";
                         CliLog(errorMessage);
-                        WriteRequiredChange(tableAspectInf.TableName, errorMessage);
-                        dbState = DbParsingStates.ChangesRequired;
+                        CliLog($"Attempting to parse {tableAspectInf.TableName} Table as BHOpenEntity..");
 
-                        ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(primaryKey[0]);
+                        ColumnScanResult scanOtherResult = columnScanner.ParseColumnToProperty(primaryKey[0]);
 
-                        if (scanPkResult.UnidentifiedColumn)
+                        if (scanOtherResult.UnidentifiedColumn)
                         {
-                            errorMessage = $"Column '{primaryKey[0].ColumnName}' of the Table '{tableAspectInf.TableName}', is Incompatible with BlackHole's Supported Primary keys.";
-                            CliLog(errorMessage);
-                            WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
                             tableAspectInf.GeneralError = true;
 
                             if (CliCommand.ForceAction)
                             {
-                                errorMessage = $"Table {tableAspectInf.TableName} will not be generated as Entity.";
+                                errorMessage = $"Table {tableAspectInf.TableName} is not Compatible with BHOpenEntity either and it will not be generated as Entity.";
                                 CliLog(errorMessage);
                                 dbState = DbParsingStates.ChangesRequired;
                             }
                             else
                             {
-                                errorMessage = $"Incompatible Table {tableAspectInf.TableName}";
+                                errorMessage = $"Incompatible Table {tableAspectInf.TableName}, has unidentified column {primaryKey[0].ColumnName}";
                                 CliLog(errorMessage);
-                                dbState = DbParsingStates.Incompatible;
-                                break;
+                                WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
+                                blockParsing = true;
                             }
                         }
-                    }
-                    else
-                    {
-                        ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(primaryKey[0]);
-
-                        if (scanPkResult.UnidentifiedColumn)
+                        else
                         {
-                            errorMessage = $"Column {primaryKey[0].ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BlackHole's Supported Primary keys.";
-                            CliLog(errorMessage);
-                            WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
-                            tableAspectInf.GeneralError = true;
-
-                            if (CliCommand.ForceAction)
-                            {
-                                errorMessage = $"Table {tableAspectInf.TableName} will not be generated as Entity.";
-                                CliLog(errorMessage);
-                                dbState = DbParsingStates.ChangesRequired;
-                            }
-                            else
-                            {
-                                errorMessage = $"Incompatible Table {tableAspectInf.TableName}";
-                                CliLog(errorMessage);
-                                dbState = DbParsingStates.Incompatible;
-                                break;
-                            }
+                            tableAspectInf.UseOpenEntity = true;
                         }
                     }
                 }
                 else
                 {
-                    tableAspectInf.GeneralError = true;
-                    errorMessage = $"Zero or more than one primary keys detected on the table {tableAspectInf.TableName}. This Entity will be ignored.";
-                    CliLog(errorMessage);
-                    WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
+                    tableAspectInf.UseOpenEntity = true;
+                }
 
-                    if (CliCommand.ForceAction)
+                if (tableAspectInf.UseOpenEntity)
+                {
+                    foreach(TableParsingInfo columnInfo in primaryKey)
                     {
-                        dbState = DbParsingStates.ChangesRequired;
+                        ColumnScanResult scanOpenPkResult = columnScanner.ParseColumnToProperty(columnInfo);
+
+                        if (scanOpenPkResult.UnidentifiedColumn)
+                        {
+                            errorMessage = $"Column {columnInfo.ColumnName} of the Table {tableAspectInf.TableName}, is Incompatible with BHOpenEntity 's Supported types.";
+                            tableAspectInf.GeneralError = true;
+
+                            if (CliCommand.ForceAction)
+                            {
+                                errorMessage = $"A primary key of {tableAspectInf.TableName} Table, is not Compatible with BHOpenEntity either and it will not be generated as Entity.";
+                                CliLog(errorMessage);
+                                dbState = DbParsingStates.ChangesRequired;
+                            }
+                            else
+                            {
+                                errorMessage = $"Incompatible Table {tableAspectInf.TableName}, has unidentified column {columnInfo.ColumnName}";
+                                CliLog(errorMessage);
+                                WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
+                                blockParsing = true;
+                            }
+                        }
+                        else
+                        {
+                            tableAspectInf.CheckPrimaryKeys = true;
+                        }
                     }
-                    else
+
+                    if (tableAspectInf.CheckPrimaryKeys)
                     {
-                        dbState = DbParsingStates.Incompatible;
-                        break;
+                        tableAspectInf.Configuration = columnScanner.CheckPrimaryKeySettings(primaryKey);
                     }
                 }
             }
@@ -278,9 +270,9 @@ namespace BlackHole.Internal
                 dbState = DbParsingStates.ForceChanges;
             }
 
-            if(dbState == DbParsingStates.Proceed && minorChangesRequired)
+            if (blockParsing)
             {
-                dbState = DbParsingStates.MinorChanges;
+                dbState = DbParsingStates.Incompatible;
             }
 
             return dbState;
@@ -516,9 +508,9 @@ namespace BlackHole.Internal
                         DefaultValue = info.dflt_value
                     };
 
-                    if (info.pk > 0 && isAutoIncrement != null && info.type.ToLower().Contains("integer"))
+                    if (info.pk == 1 && isAutoIncrement != null && info.type.ToLower().Contains("integer"))
                     {
-                        parsingLine.Extra = "auto increment";
+                        parsingLine.Extra = "auto_increment";
                     }
 
                     SqLiteForeignKeySchema? foreignKey = foreignKeys.Where(x => x.from == parsingLine.ColumnName).FirstOrDefault();

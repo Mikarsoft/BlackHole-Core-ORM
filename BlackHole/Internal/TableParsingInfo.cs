@@ -72,17 +72,18 @@ namespace BlackHole.Internal
     {
         internal string TableName { get; set; } = string.Empty;
         internal List<TableParsingInfo> TableColumns { get; set; } = new List<TableParsingInfo>();
-        internal bool InCompatibleIdColumn { get; set; }
-        internal bool MissingInactiveColumn { get; set; }
         internal bool GeneralError { get; set; }
         internal bool IncompatibleIdDataType { get; set; }
+        internal bool UseOpenEntity { get; set; }
+        internal bool CheckPrimaryKeys { get; set; }
+        internal PKConfiguration? Configuration { get; set; }
+    }
 
-        internal bool BothIncompatible
-        {
-            get
-            {
-                return InCompatibleIdColumn && MissingInactiveColumn;
-            }
-        }
+    internal class PKConfiguration
+    {
+        internal string MainPrimaryKey { get; set; } = string.Empty;
+        internal bool HasAutoIncrement { get; set; }
+        internal string WarningMessage { get; set; } = string.Empty;
+        internal int PKCount { get; set; }
     }
 }
