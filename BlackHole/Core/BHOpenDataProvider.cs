@@ -49,10 +49,26 @@ namespace BlackHole.Core
                 foreach (PropertyInfo prop in EntityType.GetProperties())
                 {
                     string property = MyShit(prop.Name);
-                    sb.PNSb.Append($", {property}");
-                    sb.PPSb.Append($", @{prop.Name}");
-                    sb.UPSb.Append($",{property} = @{prop.Name}");
-                        
+
+                    if (_settings.HasAutoIncrement)
+                    {
+                        if(prop.Name != _settings.MainPrimaryKey)
+                        {
+                            sb.PNSb.Append($", {property}");
+                            sb.PPSb.Append($", @{prop.Name}");
+                        }
+                    }
+                    else
+                    {
+                        sb.PNSb.Append($", {property}");
+                        sb.PPSb.Append($", @{prop.Name}");
+                    }
+
+                    if (!_settings.PKPropertyNames.Contains(prop.Name))
+                    {
+                        sb.UPSb.Append($",{property} = @{prop.Name}");
+                    }
+
                     Columns.Add(prop.Name);                   
                 }
                 PropertyNames = $"{sb.PNSb.ToString().Remove(0, 1)} ";

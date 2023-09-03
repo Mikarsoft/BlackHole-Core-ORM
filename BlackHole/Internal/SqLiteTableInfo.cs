@@ -28,6 +28,6 @@
         /// <summary>
         /// Is it primary key
         /// </summary>
-        public bool pk { get; set; }
+        public int pk { get; set; }
     }
 }

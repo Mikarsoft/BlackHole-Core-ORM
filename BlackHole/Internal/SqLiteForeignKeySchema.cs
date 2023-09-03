@@ -40,4 +40,19 @@ namespace BlackHole.Internal
         /// </summary>
         public string match { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class LiteAutoIncrementInfo
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public string name { get; set; } = string.Empty;
+        /// <summary>
+        /// 
+        /// </summary>
+        public int seq { get; set; }
+    }
 }

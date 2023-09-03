@@ -457,7 +457,7 @@ namespace BlackHole.Internal
                         c.delete_rule as DeleteRule, c.constraint_name as ConstraintName,
                         case when c.constraint_type = 'R' then c_pk.table_name else '' end as ReferencedTable,
                         ccu.column_name as ReferencedColumn,
-                        case when col.default_length is null then '0'
+                        case when col.default_length is null then ''
                            else extractvalue ( dbms_xmlgen.getxmltype
                             ( 'select data_default from user_tab_columns where table_name = ''' || col.table_name || ''' and column_name = ''' || col.column_name || '''' )
                             , '//text()' ) end as DefaultValue
@@ -502,6 +502,7 @@ namespace BlackHole.Internal
             {
                 List<SqLiteTableInfo> tableInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({tableName});", null);
                 List<SqLiteForeignKeySchema> foreignKeys = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({tableName});", null);
+                LiteAutoIncrementInfo? isAutoIncrement = connection.QueryFirst<LiteAutoIncrementInfo>($"SELECT * FROM sqlite_sequence WHERE name='{tableName}'", null);
 
                 foreach(SqLiteTableInfo info in tableInfo)
                 {
@@ -511,8 +512,14 @@ namespace BlackHole.Internal
                         ColumnName = info.name,
                         DataType = info.type,
                         Nullable = !info.notnull,
-                        PrimaryKey = info.pk
+                        PrimaryKey = info.pk > 0,
+                        DefaultValue = info.dflt_value
                     };
+
+                    if (info.pk > 0 && isAutoIncrement != null && info.type.ToLower().Contains("integer"))
+                    {
+                        parsingLine.Extra = "auto increment";
+                    }
 
                     SqLiteForeignKeySchema? foreignKey = foreignKeys.Where(x => x.from == parsingLine.ColumnName).FirstOrDefault();
 
