@@ -92,6 +92,29 @@ namespace BlackHole.Internal
             };
         }
 
+        string IBHDatabaseSelector.GetCompositePrimaryKeyCommand(Type propType, string columName)
+        {
+            if(propType == typeof(Guid))
+            {
+                return DatabaseStatics.DatabaseType switch
+                {
+                    BlackHoleSqlTypes.SqlServer => $"{GetMyShit(columName)} UNIQUEIDENTIFIER DEFAULT (NEWID()) ,",
+                    BlackHoleSqlTypes.Postgres => $"{GetMyShit(columName)} uuid DEFAULT gen_random_uuid() ,",
+                    _ => string.Empty,
+                };
+            }
+
+
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => $"{GetMyShit(columName)} INT IDENTITY(1,1) NOT NULL ,",
+                BlackHoleSqlTypes.MySql => $"{GetMyShit(columName)} int AUTO_INCREMENT NOT NULL ,",
+                BlackHoleSqlTypes.Postgres => $"{GetMyShit(columName)} SERIAL ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetMyShit(columName)} INTEGER default (last_insert_rowid() + 1) NOT NULL ,",
+                _ => $"{GetMyShit(columName)} NUMBER(8,0) GENERATED ALWAYS AS IDENTITY ,",
+            };
+        }
+
         /// <summary>
         /// Checks if the dabase type is MySql or SqLite and returns boolean
         /// </summary>

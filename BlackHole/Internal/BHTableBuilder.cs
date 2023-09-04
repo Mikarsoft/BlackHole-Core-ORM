@@ -97,7 +97,8 @@ namespace BlackHole.Internal
         {
             if (!CheckTable(TableType.Name))
             {
-                List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
+                PKInfo pkInformation = ReadOpenEntityPrimaryKeys(TableType);
+                List<string> pkSettings = pkInformation.PKPropertyNames;
                 string Pkoption = OpenPrimaryKey(pkSettings, TableType.Name);
 
                 PropertyInfo[] Properties = TableType.GetProperties();
@@ -109,8 +110,23 @@ namespace BlackHole.Internal
                 {
                     object[] attributes = Property.GetCustomAttributes(true);
 
-                    tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, pkSettings.Contains(Property.Name)));
+                    if (pkInformation.HasAutoIncrement)
+                    {
+                        if (Property.Name != pkInformation.MainPrimaryKey)
+                        {
+                            tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                            tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, pkSettings.Contains(Property.Name)));
+                        }
+                        else
+                        {
+                            tableCreator.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey));
+                        }
+                    }
+                    else
+                    {
+                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, pkSettings.Contains(Property.Name)));
+                    }
                 }
 
                 string creationCommand = tableCreator.ToString();
@@ -183,9 +199,12 @@ namespace BlackHole.Internal
             };
         }
 
-        List<string> ReadOpenEntityPrimaryKeys(Type openEntity)
+        PKInfo ReadOpenEntityPrimaryKeys(Type openEntity)
         {
             List<string> pkNames = new();
+            string mainPkCol = string.Empty;
+            bool hasAutoIncrement = false;
+
             var pkOptionsBuilderType = typeof(PKOptionsBuilder<>).MakeGenericType(openEntity);
             object? pkOptionsBuilderObj = Activator.CreateInstance(pkOptionsBuilderType, new object[] { });
 
@@ -201,8 +220,24 @@ namespace BlackHole.Internal
                 {
                     pkNames = pkSettings;
                 }
+
+                if (pkSettingsObj.GetType().GetProperty("MainPrimaryKey")?.GetValue(pkSettingsObj, null) is string mainPK)
+                {
+                    mainPkCol = mainPK;
+                }
+
+                if (pkSettingsObj.GetType().GetProperty("HasAutoIncrement")?.GetValue(pkSettingsObj, null) is bool autoInc)
+                {
+                    hasAutoIncrement = autoInc;
+                }
             }
-            return pkNames;
+
+            return new PKInfo
+            {
+                PKPropertyNames = pkNames,
+                HasAutoIncrement = hasAutoIncrement,
+                MainPrimaryKey= mainPkCol
+            };
         }
 
         string OpenPrimaryKey(List<string> pkSettings, string TableName)
@@ -438,7 +473,8 @@ namespace BlackHole.Internal
         {
             string Tablename = MyShit(TableType.Name);
             string OldTablename = MyShit($"{TableType.Name}_Old");
-            List<string> pkSettings = ReadOpenEntityPrimaryKeys(TableType);
+            PKInfo pkInformation = ReadOpenEntityPrimaryKeys(TableType);
+            List<string> pkSettings = pkInformation.PKPropertyNames;
             string Pkoption = OpenPrimaryKey(pkSettings, TableType.Name);
 
             List<string> ColumnNames = new();
@@ -463,8 +499,23 @@ namespace BlackHole.Internal
                 object[] attributes = Property.GetCustomAttributes(true);
                 NewColumnNames.Add(Property.Name);
 
-                alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name)));
+                if (pkInformation.HasAutoIncrement)
+                {
+                    if(Property.Name != pkInformation.MainPrimaryKey)
+                    {
+                        alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                        alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name)));
+                    }
+                    else
+                    {
+                        alterTable.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey));
+                    }
+                }
+                else
+                {
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name)));
+                }
 
                 if (attributes.Length > 0)
                 {

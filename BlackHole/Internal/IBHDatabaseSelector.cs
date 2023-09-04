@@ -15,6 +15,7 @@ namespace BlackHole.Internal
         string GetPrimaryKeyCommand();
         string GetGuidPrimaryKeyCommand();
         string GetStringPrimaryKeyCommand();
+        string GetCompositePrimaryKeyCommand(Type propType, string columName);
 
         int GetSqlTypeId();
         bool GetMyShit();
