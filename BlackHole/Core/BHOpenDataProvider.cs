@@ -20,6 +20,7 @@ namespace BlackHole.Core
         private string PropertyParams { get; }
         private string UpdateParams { get; }
         private string ThisSchema { get; }
+        private string MainPK { get; set; } = string.Empty;
         private bool IsMyShit { get; }
         private readonly IExecutionProvider _executionProvider;
 
@@ -43,6 +44,11 @@ namespace BlackHole.Core
             IsMyShit = _executionProvider.SkipQuotes();
             ThisSchema = BHDataProviderSelector.GetDatabaseSchema();
             ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";
+
+            if (_settings.HasAutoIncrement)
+            {
+                MainPK = $"{MyShit(_settings.MainPrimaryKey)},";
+            }
 
             using (TripleStringBuilder sb = new())
             {
@@ -128,7 +134,7 @@ namespace BlackHole.Core
 
         List<T> IBHOpenDataProvider<T>.GetAllEntries(BHTransaction bhTransaction)
         {
-            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable}", null , bhTransaction.transaction);
+            return _executionProvider.Query<T>($"select {MainPK}{PropertyNames} from {ThisTable}", null , bhTransaction.transaction);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>()
@@ -153,12 +159,12 @@ namespace BlackHole.Core
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetAllEntriesAsync()
         {
-            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable}", null);
+            return await _executionProvider.QueryAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable}", null);
         }
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetAllEntriesAsync(BHTransaction bhTransaction)
         {
-            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable}", null, bhTransaction.transaction);
+            return await _executionProvider.QueryAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable}", null, bhTransaction.transaction);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>()
@@ -184,13 +190,13 @@ namespace BlackHole.Core
         async Task<List<T>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _executionProvider.QueryAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _executionProvider.QueryAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate)
@@ -218,13 +224,13 @@ namespace BlackHole.Core
         List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return _executionProvider.Query<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _executionProvider.Query<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate)
@@ -252,13 +258,13 @@ namespace BlackHole.Core
         async Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _executionProvider.QueryFirstAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _executionProvider.QueryFirstAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
@@ -286,13 +292,13 @@ namespace BlackHole.Core
         T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return _executionProvider.QueryFirst<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _executionProvider.QueryFirst<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
@@ -639,7 +645,7 @@ namespace BlackHole.Core
             StringBuilder PNsb = new();
             foreach (PropertyInfo property in dto.GetProperties())
             {
-                if (property.Name != "Id" && Columns.Contains(property.Name)
+                if (!_settings.PKPropertyNames.Contains(property.Name) && Columns.Contains(property.Name)
                     && typeof(T).GetProperty(property.Name)?.PropertyType == property.PropertyType)
                 {
                     PNsb.Append($",{MyShit(property.Name)}=@{property.Name}");
