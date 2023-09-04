@@ -120,7 +120,7 @@ namespace BlackHole.Internal
                 Directory.CreateDirectory(scriptsPath);
             }
 
-            foreach (TableAspectsInfo tableAspectInf in parsingData.Where(x => x.GeneralError == false))
+            foreach (TableAspectsInfo tableAspectInf in parsingData.Where(x => x.GeneralError == false && x.UseOpenEntity == false))
             {
                 CliLog($"Creating Entity {tableAspectInf.TableName} in BHEntities Folder...");
 
@@ -130,6 +130,59 @@ namespace BlackHole.Internal
                 EntityScript += $"\t public class {tableAspectInf.TableName} :";
 
                 foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns.Where(x=>x.ColumnName.ToLower() != "inactive"))
+                {
+                    if (!columnInfo.PrimaryKey)
+                    {
+                        ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
+
+                        if (!scanResult.UnidentifiedColumn)
+                        {
+                            PropertiesScript += GetBHAttribute(columnInfo, scanResult.PropertyNameForColumn);
+                            PropertiesScript += $"\t\t public {scanResult.PropertyNameForColumn} {columnInfo.ColumnName}" + " {get; set;}" + $" {scanResult.DefaultValue} \n";
+                        }
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(columnInfo.ReferencedTable))
+                        {
+                            ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(columnInfo);
+                            EntityScript += $" BlackHoleEntity<{scanPkResult.PropertyNameForColumn}> \n";
+                            EntityScript += "\t { \n";
+                        }
+                    }
+                }
+
+                EntityScript += PropertiesScript;
+                EntityScript += "\t } \n";
+                EntityScript += " } \n";
+
+                string pathFile = Path.Combine(scriptsPath, $"{tableAspectInf.TableName}.cs");
+
+                try
+                {
+                    using (var tw = new StreamWriter(pathFile, true))
+                    {
+                        tw.Write(EntityScript);
+                    }
+
+                    CliLog($"Created Entity {tableAspectInf.TableName} in BHEntities Folder");
+                }
+                catch
+                {
+                    CliLog($"Failed to create Entity {tableAspectInf.TableName} in BHEntities Folder");
+                }
+            }
+
+            foreach (TableAspectsInfo tableAspectInf in parsingData.Where(x => x.GeneralError == false && x.UseOpenEntity))
+            {
+                CliLog($"Creating Entity {tableAspectInf.TableName} in BHEntities Folder...");
+
+                string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
+                string PropertiesScript = string.Empty;
+                EntityScript += " { \n";
+                EntityScript += $"\t public class {tableAspectInf.TableName} :";
+
+                foreach (TableParsingInfo columnInfo in tableAspectInf.TableColumns.Where(x => x.ColumnName.ToLower() != "inactive"))
                 {
                     if (!columnInfo.PrimaryKey)
                     {
@@ -359,13 +412,14 @@ namespace BlackHole.Internal
 
             if (!string.IsNullOrEmpty(columnInfo.ReferencedTable))
             {
+                string referencedCol = $@"""{columnInfo.ReferencedColumn}""";
                 if (columnInfo.Nullable)
                 {
-                    return $"{VarcharSize}\n\t\t [ForeignKey(typeof({columnInfo.ReferencedTable}))]\n";
+                    return $"{VarcharSize}\n\t\t [ForeignKey(typeof({columnInfo.ReferencedTable}),{referencedCol})]\n";
                 }
                 else
                 {
-                    return $"{VarcharSize}\n\t\t [ForeignKey(typeof({columnInfo.ReferencedTable}),false)]\n";
+                    return $"{VarcharSize}\n\t\t [ForeignKey(typeof({columnInfo.ReferencedTable}),{referencedCol},false)]\n";
                 }
             }
 
@@ -379,6 +433,15 @@ namespace BlackHole.Internal
                 return $"{VarcharSize}\n";
             }
 
+            return string.Empty;
+        }
+
+        internal string DefaultValueCheck(TableParsingInfo columnInfo)
+        {
+            if (string.IsNullOrEmpty(columnInfo.DefaultValue))
+            {
+
+            }
             return string.Empty;
         }
 

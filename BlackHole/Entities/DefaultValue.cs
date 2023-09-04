@@ -1,4 +1,6 @@
 ﻿
+using BlackHole.Statics;
+
 namespace BlackHole.Entities
 {
     /// <summary>
@@ -36,7 +38,7 @@ namespace BlackHole.Entities
         {
             try
             {
-                ValueDefault = new DateTime(year, month, day).ToString("MM-dd-yyyy");
+                ValueDefault = new DateTime(year, month, day).ToString(DatabaseStatics.DbDateFormat);
                 IsDatetimeValue = true;
             }
             catch

@@ -394,6 +394,16 @@ namespace BlackHole.Configuration
             return databaseBuilder.DropDatabase();
         }
 
+        /// <summary>
+        /// Initialize BlackHole without Host
+        /// </summary>
+        /// <param name="settings">Black Hole Settings Class</param>
+        public static void SuperNova(Action<BlackHoleSettings> settings)
+        {
+            IServiceCollection newServices = new ServiceCollection();
+            newServices.SuperNova(settings);
+        }
+
         internal static void SetMode(bool isDevMode)
         {
             DatabaseConfiguration.SetMode(isDevMode);

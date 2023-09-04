@@ -174,6 +174,29 @@ namespace BlackHole.Internal
             };
         }
 
+        void IBHDatabaseSelector.SetDbDateFormat(IExecutionProvider _executionProvider)
+        {
+            string getDateCommand = DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => "SELECT r.date_format FROM master.sys.dm_exec_requests r WHERE r.session_id = @@SPID",
+                BlackHoleSqlTypes.MySql => "",
+                BlackHoleSqlTypes.Postgres => "show datestyle",
+                BlackHoleSqlTypes.SqlLite => "",
+                _ => "SELECT NLS_DATE_FORMAT FROM V$NLS_PARAMETERS",
+            };
+
+            string? dateFormat = _executionProvider.ExecuteScalar<string>(getDateCommand, null);
+
+            if (!string.IsNullOrEmpty(dateFormat))
+            {
+                DatabaseStatics.DbDateFormat = AnalyzeDateFormat(dateFormat);
+            }
+        }
+
+        private string AnalyzeDateFormat(string dateFormat)
+        {
+            return dateFormat;
+        }
         /// <summary>
         /// Based on the selected Sql Type , returns an array of datatypes that correspond to
         /// C# datatypes in a specific order
