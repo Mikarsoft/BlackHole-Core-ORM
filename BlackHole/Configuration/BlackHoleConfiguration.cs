@@ -46,7 +46,7 @@ namespace BlackHole.Configuration
 
             SetMode(blackHoleSettings.isInDevMode);
 
-            bool cliMode = BHCliCommandReader.ReadCliJson(assembly);
+            bool cliMode = BHCliCommandReader.ReadCliJson(assembly, blackHoleSettings.connectionConfig.ConnectionString);
 
             if (cliMode)
             {

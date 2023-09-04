@@ -7,7 +7,7 @@ namespace BlackHole.Internal
 {
     internal static class BHCliCommandReader
     {
-        internal static bool ReadCliJson(Assembly assembly)
+        internal static bool ReadCliJson(Assembly assembly, string connectionString)
         {
             bool isInCliMode = false;
 
@@ -20,7 +20,7 @@ namespace BlackHole.Internal
                 if (File.Exists(commandFilePath))
                 {
                     Console.WriteLine("_bhLog_");
-                    Console.WriteLine("_bhLog_ Mikarsoft (R) BlackHole Cli v6.0.1 (C) for .Net Core");
+                    Console.WriteLine("_bhLog_ Mikarsoft (R) BlackHole Cli v6.1.0 (C) for .Net Core");
                     Console.WriteLine("_bhLog_");
                     Console.WriteLine("_bhLog_ \t Cli Mode Enabled. Reading Command Arguments..");
 
@@ -29,7 +29,7 @@ namespace BlackHole.Internal
                         CliCommand.CliExecution = true;
                         string jsonString = File.ReadAllText(commandFilePath);
                         BHCommandProperties commandFile = JsonSerializer.Deserialize<BHCommandProperties>(jsonString)!;
-                        Console.WriteLine($"_bhLog_ \t {commandFile.CliCommand.ToUpper()} Database: '{DatabaseStatics.ConnectionString}'");
+                        Console.WriteLine($"_bhLog_ \t {commandFile.CliCommand.ToUpper()} Database: '{connectionString}'");
                         Console.WriteLine($"_bhLog_ \t Project Directory: '{commandFile.ProjectPath}'");
                         CliCommand.BHRun = commandFile.CliCommand;
                         CliCommand.ProjectPath = commandFile.ProjectPath;
