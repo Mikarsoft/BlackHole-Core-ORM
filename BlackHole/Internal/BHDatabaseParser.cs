@@ -112,9 +112,7 @@ namespace BlackHole.Internal
         {
             string scriptsPath = Path.Combine(CliCommand.ProjectPath, "BHEntities");
             string applicationName = Path.GetFileName(CliCommand.ProjectPath).Replace(".csproj","");
-
             CliLog($"Application Name: {applicationName}");
-
             if (!Directory.Exists(scriptsPath))
             {
                 Directory.CreateDirectory(scriptsPath);
@@ -123,7 +121,6 @@ namespace BlackHole.Internal
             foreach (TableAspectsInfo tableAspectInf in parsingData.Where(x => x.GeneralError == false && x.UseOpenEntity == false))
             {
                 CliLog($"Creating Entity {tableAspectInf.TableName} in BHEntities Folder...");
-
                 string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
                 string PropertiesScript = string.Empty;
                 EntityScript += " { \n";
@@ -156,10 +153,9 @@ namespace BlackHole.Internal
                 EntityScript += "\t } \n";
                 EntityScript += " } \n";
 
-                string pathFile = Path.Combine(scriptsPath, $"{tableAspectInf.TableName}.cs");
-
                 try
                 {
+                    string pathFile = Path.Combine(scriptsPath, $"{tableAspectInf.TableName}.cs");
                     using (var tw = new StreamWriter(pathFile, true))
                     {
                         tw.Write(EntityScript);
@@ -176,43 +172,68 @@ namespace BlackHole.Internal
             foreach (TableAspectsInfo tableAspectInf in parsingData.Where(x => x.GeneralError == false && x.UseOpenEntity))
             {
                 CliLog($"Creating Entity {tableAspectInf.TableName} in BHEntities Folder...");
-
+                string ClassName = tableAspectInf.TableName.Replace("-", "_");
                 string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
                 string PropertiesScript = string.Empty;
+                string PKOptionsScript = $"\n\n\t\t public PKSettings<{ClassName}> PrimaryKeyOptions(PKOptionsBuilder<{ClassName}> builder)\n";
+                PKOptionsScript += "\t\t {\n";
+                PKOptionsScript += "\t\t\t return builder";
                 EntityScript += " { \n";
-                EntityScript += $"\t public class {tableAspectInf.TableName} :";
+                EntityScript += $"\t public class {ClassName} : BHOpenEntity<{ClassName}> \n";
+                EntityScript += "\t {\n";
+                string MainPK = string.Empty;
+                string OtherPKs = string.Empty;
+                bool noPrimaryKey = true;
 
-                foreach (TableParsingInfo columnInfo in tableAspectInf.TableColumns.Where(x => x.ColumnName.ToLower() != "inactive"))
+                foreach (TableParsingInfo columnInfo in tableAspectInf.TableColumns)
                 {
-                    if (!columnInfo.PrimaryKey)
-                    {
-                        ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
+                    ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
 
-                        if (!scanResult.UnidentifiedColumn)
-                        {
-                            PropertiesScript += GetBHAttribute(columnInfo, scanResult.PropertyNameForColumn);
-                            PropertiesScript += $"\t\t public {scanResult.PropertyNameForColumn} {columnInfo.ColumnName}" + " {get; set;}" + $" {scanResult.DefaultValue} \n";
-                        }
-                    }
-                    else
+                    if (!scanResult.UnidentifiedColumn)
                     {
-                        if (string.IsNullOrEmpty(columnInfo.ReferencedTable))
+                        PropertiesScript += GetBHAttribute(columnInfo, scanResult.PropertyNameForColumn);
+                        PropertiesScript += $"\t\t public {scanResult.PropertyNameForColumn} {columnInfo.ColumnName}" + " {get; set;}" + $" {scanResult.DefaultValue} \n";
+                    }
+
+                    if (columnInfo.PrimaryKey && tableAspectInf.Configuration != null)
+                    {
+                        noPrimaryKey = false;
+                        if(columnInfo.ColumnName == tableAspectInf.Configuration.MainPrimaryKey)
                         {
-                            ColumnScanResult scanPkResult = columnScanner.ParsePrimaryKeyToProperty(columnInfo);
-                            EntityScript += $" BlackHoleEntity<{scanPkResult.PropertyNameForColumn}> \n";
-                            EntityScript += "\t { \n";
+                            if (tableAspectInf.Configuration.HasAutoIncrement)
+                            {
+                                MainPK = $".SetPrimaryKey(x => x.{columnInfo.ColumnName}, true)";
+                            }
+                            else
+                            {
+                                MainPK = $".SetPrimaryKey(x => x.{columnInfo.ColumnName})";
+                            }
+                        }
+                        else
+                        {
+                            OtherPKs += $".CompositeKey(x => x.{columnInfo.ColumnName})";
                         }
                     }
                 }
 
+                if (noPrimaryKey)
+                {
+                    PKOptionsScript += ".NoPrimaryKey();";
+                }
+                else
+                {
+                    PKOptionsScript += $"{MainPK}{OtherPKs};";
+                }
+
                 EntityScript += PropertiesScript;
+                EntityScript += PKOptionsScript;
+                EntityScript += "\n\t\t }\n";
                 EntityScript += "\t } \n";
                 EntityScript += " } \n";
 
-                string pathFile = Path.Combine(scriptsPath, $"{tableAspectInf.TableName}.cs");
-
                 try
                 {
+                    string pathFile = Path.Combine(scriptsPath, $"{ClassName}.cs");
                     using (var tw = new StreamWriter(pathFile, true))
                     {
                         tw.Write(EntityScript);
@@ -449,9 +470,8 @@ namespace BlackHole.Internal
         {
             string parseCommand = string.Empty;
             string schemaCheck = GetSchemaCheckCommand();
-            List<TableAspectsInfo> tableAspects = new List<TableAspectsInfo>();
-            List<TableParsingInfo> parsingData = new List<TableParsingInfo>();
-
+            List<TableAspectsInfo> tableAspects = new();
+            List<TableParsingInfo> parsingData = new();
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
@@ -528,37 +548,29 @@ namespace BlackHole.Internal
                     parsingData = SqLiteParsing();
                     break;
             }
-
             List<string> TableNames = parsingData.Select(parsingData => parsingData.TableName).Distinct().ToList();
-
             foreach (string tableName in TableNames)
             {
                 List<TableParsingInfo> tableInfo = parsingData.Where(x => x.TableName == tableName).ToList();
-
                 TableAspectsInfo tableAspectInf = new TableAspectsInfo
                 {
                     TableName = tableName,
                     TableColumns = tableInfo
                 };
-
                 tableAspects.Add(tableAspectInf);
             }
-
             return tableAspects;
         }
 
         internal List<TableParsingInfo> SqLiteParsing()
         {
             List<TableParsingInfo> parsingLiteData = new List<TableParsingInfo>();
-
             List<string> tableNames = connection.Query<string>("SELECT name FROM sqlite_master  where type = 'table' and name != 'sqlite_sequence';", null);
-
             foreach(string tableName in tableNames)
             {
                 List<SqLiteTableInfo> tableInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({tableName});", null);
                 List<SqLiteForeignKeySchema> foreignKeys = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({tableName});", null);
                 LiteAutoIncrementInfo? isAutoIncrement = connection.QueryFirst<LiteAutoIncrementInfo>($"SELECT * FROM sqlite_sequence WHERE name='{tableName}'", null);
-
                 foreach(SqLiteTableInfo info in tableInfo)
                 {
                     TableParsingInfo parsingLine = new TableParsingInfo
@@ -570,24 +582,19 @@ namespace BlackHole.Internal
                         PrimaryKey = info.pk > 0,
                         DefaultValue = info.dflt_value
                     };
-
                     if (info.pk == 1 && isAutoIncrement != null && info.type.ToLower().Contains("integer"))
                     {
                         parsingLine.Extra = "auto_increment";
                     }
-
                     SqLiteForeignKeySchema? foreignKey = foreignKeys.Where(x => x.from == parsingLine.ColumnName).FirstOrDefault();
-
                     if(foreignKey != null)
                     {
                         parsingLine.DeleteRule = foreignKey.on_delete;
                         parsingLine.ReferencedTable = foreignKey.table;
                     }
-
                     parsingLiteData.Add(parsingLine);
                 }
             }
-
             return parsingLiteData;
         }
 

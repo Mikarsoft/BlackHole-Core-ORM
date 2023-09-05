@@ -13,7 +13,6 @@ namespace BlackHole.Internal
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
         private readonly IExecutionProvider connection;
         private BHSqlExportWriter SqlWriter { get; set; }
-
         private List<DataConstraints> AllConstraints { get; set; }
         private readonly string[] SqlDatatypes;
         private readonly bool IsMyShit;
@@ -38,31 +37,20 @@ namespace BlackHole.Internal
             SqlWriter = new BHSqlExportWriter("2_TablesSql","SqlFiles","sql");
         }
 
-        /// <summary>
-        /// Build a Table using a List of BlazarEntity or BlazarEntityWithActivator Types. 
-        /// Constraints Are Handled Automatically. If the Table Already Exists it gets Ignored or Updated.
-        /// </summary>
-        /// <param name="TableTypes"></param>
-        /// <param name="OpenTableTypes"></param>
         internal void BuildMultipleTables(List<Type> TableTypes, List<Type> OpenTableTypes)
         {
             DatabaseStatics.InitializeData = true;
-
             bool[] Builded = new bool[TableTypes.Count];
             bool[] OpenBuilded = new bool[OpenTableTypes.Count];
-
             for (int i = 0; i < Builded.Length; i++)
             {
                 Builded[i] = CreateTable(TableTypes[i]);
             }
-
             for (int i = 0; i < OpenBuilded.Length; i++)
             {
                 OpenBuilded[i] = CreateOpenTable(OpenTableTypes[i]);
             }
-
             CliConsoleLogs("");
-
             for (int j = 0; j < Builded.Length; j++)
             {
                 if (Builded[j])
@@ -74,7 +62,6 @@ namespace BlackHole.Internal
                     UpdateSchema(TableTypes[j]);
                 }
             }
-
             for (int j = 0; j < OpenBuilded.Length; j++)
             {
                 if (OpenBuilded[j])
@@ -86,7 +73,6 @@ namespace BlackHole.Internal
                     UpdateOpenSchema(OpenTableTypes[j]);
                 }
             }
-
             if (CliCommand.ExportSql)
             {
                 SqlWriter.CreateSqlFile();

@@ -55,11 +55,11 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
       <PackagePath>\</PackagePath>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <EmbeddedResource Include="..\README.md">
+    <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
     <EmbeddedResource Include="LICENSE.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

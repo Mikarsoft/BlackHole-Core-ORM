@@ -19,19 +19,16 @@ namespace BlackHole.Internal
         internal void InsertDefaultData(List<Type> initialDataClasses)
         {
             CliConsoleLogs("Default data Initializer start..");
-
             foreach (Type initialData in initialDataClasses)
             {
                 object? instance = Activator.CreateInstance(initialData);
                 MethodInfo? method = initialData.GetMethod("DefaultData");
-
                 if(instance !=null && method != null)
                 {
                     object[] Argumnet = new object[1];
                     BHDataInitializer initializer = new();
                     Argumnet[0] = initializer;
                     method.Invoke(instance, Argumnet);
-
                     foreach(InitialCommandsAndParameters colsParams in initializer.commandsAndParameters)
                     {
                         bool result = connection.JustExecute(colsParams.commandText);
@@ -52,12 +49,10 @@ namespace BlackHole.Internal
                     }
                 }
             }
-
             if (CliCommand.ExportSql)
             {
                 sqlWriter.CreateSqlFile();
             }
-
             CliConsoleLogs("Default data were inserted.");
         }
 

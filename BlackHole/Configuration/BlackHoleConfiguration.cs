@@ -65,7 +65,7 @@ namespace BlackHole.Configuration
             CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
 
             int exitCode = 0;
-            //ParseDatabaseCliProcess();
+
             switch (cliSettings.commandType)
             {
                 case CliCommandTypes.Update:
@@ -395,7 +395,9 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
-        /// Initialize BlackHole without Host
+        /// Initialize BlackHole without Host.
+        /// The Dependency injection is not working with this method.
+        /// It is suggested to use this in Console and Desktop applications.
         /// </summary>
         /// <param name="settings">Black Hole Settings Class</param>
         public static void SuperNova(Action<BlackHoleSettings> settings)
