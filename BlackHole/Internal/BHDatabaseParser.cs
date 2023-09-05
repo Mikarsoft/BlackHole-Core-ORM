@@ -1,6 +1,7 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Enums;
 using BlackHole.Statics;
+using System.Globalization;
 
 namespace BlackHole.Internal
 {
@@ -19,7 +20,6 @@ namespace BlackHole.Internal
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
             sqlWriter = new BHSqlExportWriter("ParsingResult", "ParsingReport", "txt");
             sqlWriter.DeleteSqlFolder();
-
             MinorChanges.Add("-- Minor Changes that will be applied in the StartUp of the Application. Severity: Minor -- ");
             MinorChanges.Add($"");
             IgnoredTables.Add($"");
@@ -36,6 +36,12 @@ namespace BlackHole.Internal
         {
             int result = 0;
             CliLog("\t Please wait while reading the Database. This may take up to 2 minutes in large databases..");
+
+            if (!_multiDatabaseSelector.SetDbDateFormat(connection))
+            {
+                CliLog("Error 404. Database was not found. Please check the connection string in your project");
+                return 404;
+            }
 
             List<TableAspectsInfo> tableInfo = GetDatabaseInformation();
             BHParsingColumnScanner columnScanner = new BHParsingColumnScanner();
@@ -113,6 +119,8 @@ namespace BlackHole.Internal
             string scriptsPath = Path.Combine(CliCommand.ProjectPath, "BHEntities");
             string applicationName = Path.GetFileName(CliCommand.ProjectPath).Replace(".csproj","");
             CliLog($"Application Name: {applicationName}");
+            CliLog("");
+
             if (!Directory.Exists(scriptsPath))
             {
                 Directory.CreateDirectory(scriptsPath);
@@ -156,17 +164,24 @@ namespace BlackHole.Internal
                 try
                 {
                     string pathFile = Path.Combine(scriptsPath, $"{tableAspectInf.TableName}.cs");
+
+                    if (File.Exists(pathFile))
+                    {
+                        File.Delete(pathFile);
+                    }
+
                     using (var tw = new StreamWriter(pathFile, true))
                     {
                         tw.Write(EntityScript);
                     }
 
-                    CliLog($"Created Entity {tableAspectInf.TableName} in BHEntities Folder");
+                    CliLog($"Successfully Created Entity {tableAspectInf.TableName} in BHEntities Folder");
                 }
                 catch
                 {
                     CliLog($"Failed to create Entity {tableAspectInf.TableName} in BHEntities Folder");
                 }
+                CliLog("");
             }
 
             foreach (TableAspectsInfo tableAspectInf in parsingData.Where(x => x.GeneralError == false && x.UseOpenEntity))
@@ -234,17 +249,24 @@ namespace BlackHole.Internal
                 try
                 {
                     string pathFile = Path.Combine(scriptsPath, $"{ClassName}.cs");
+
+                    if (File.Exists(pathFile))
+                    {
+                        File.Delete(pathFile);
+                    }
+
                     using (var tw = new StreamWriter(pathFile, true))
                     {
                         tw.Write(EntityScript);
                     }
 
-                    CliLog($"Created Entity {tableAspectInf.TableName} in BHEntities Folder");
+                    CliLog($"Successfully Created Entity {tableAspectInf.TableName} in BHEntities Folder");
                 }
                 catch
                 {
                     CliLog($"Failed to create Entity {tableAspectInf.TableName} in BHEntities Folder");
                 }
+                CliLog("");
             }
         }
 
@@ -405,8 +427,9 @@ namespace BlackHole.Internal
         internal string GetBHAttribute(TableParsingInfo columnInfo, string dotNetType)
         {
             string VarcharSize = string.Empty;
+            string DefaultVal = DefaultValueCheck(columnInfo);
 
-            if(dotNetType == "string")
+            if (dotNetType == "string")
             {
                 int characterSize = columnInfo.MaxLength;
 
@@ -446,10 +469,20 @@ namespace BlackHole.Internal
 
             if (!columnInfo.Nullable)
             {
+                if(DefaultVal != string.Empty)
+                {
+                    return $"{VarcharSize}\n\t\t [NotNullable{DefaultVal}]\n";
+                }
+
                 return $"{VarcharSize}\n\t\t [NotNullable]\n";
             }
 
-            if(VarcharSize != string.Empty)
+            if (DefaultVal != string.Empty)
+            {
+                return $"{VarcharSize}\n\t\t [DefaultValue{DefaultVal}]\n";
+            }
+
+            if (VarcharSize != string.Empty)
             {
                 return $"{VarcharSize}\n";
             }
@@ -459,9 +492,31 @@ namespace BlackHole.Internal
 
         internal string DefaultValueCheck(TableParsingInfo columnInfo)
         {
-            if (string.IsNullOrEmpty(columnInfo.DefaultValue))
+            if (!columnInfo.PrimaryKey && !string.IsNullOrEmpty(columnInfo.DefaultValue))
             {
+                string[] testValue = columnInfo.DefaultValue.Replace("(", "").Replace(")", "").Split("'");
 
+                if(testValue.Length > 2)
+                {
+                    string mainValue = testValue[1];
+
+                    if(DateTime.TryParseExact(mainValue, DatabaseStatics.DbDateFormat, CultureInfo.InvariantCulture,DateTimeStyles.None, out DateTime parseDt))
+                    {
+                        return $"({parseDt.Year},{parseDt.Month},{parseDt.Day})";
+                    }
+
+                    return $@"(""{mainValue}"")";
+                }
+
+                if(testValue.Length > 0)
+                {
+                    string mainValue = testValue[0];
+
+                    if(Double.TryParse(mainValue, out double result))
+                    {
+                        return $"({result})";
+                    }
+                }
             }
             return string.Empty;
         }

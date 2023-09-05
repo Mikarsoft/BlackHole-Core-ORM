@@ -11,7 +11,6 @@ namespace BlackHole.Configuration
     /// </summary>
     public static class BlackHoleConfiguration
     {
-
         /// <summary>
         /// <para>Generates a Database , based on the inserted connection string, to an
         /// Existing Database Server.</para><para>The connection string Must lead to the server and the 
@@ -26,46 +25,34 @@ namespace BlackHole.Configuration
         public static IServiceCollection SuperNova(this IServiceCollection services, Action<BlackHoleSettings> settings)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
-
             BlackHoleSettings blackHoleSettings = new();
             settings.Invoke(blackHoleSettings);
-
             if (blackHoleSettings.directorySettings.DataPath == string.Empty)
             {
                 blackHoleSettings.directorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
             }
-
             bool useLogsCleaner = false;
             int daysToClean = 60;
-
             if (blackHoleSettings.directorySettings.UseLogsCleaner)
             {
                 useLogsCleaner = true;
                 daysToClean = blackHoleSettings.directorySettings.DaysForCleanUp;
             }
-
             SetMode(blackHoleSettings.isInDevMode);
-
             bool cliMode = BHCliCommandReader.ReadCliJson(assembly, blackHoleSettings.connectionConfig.ConnectionString);
-
             if (cliMode)
             {
                 useLogsCleaner = false;
                 blackHoleSettings.directorySettings.UseLogger = true;
                 blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut = 300;
             }
-
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString,
                 blackHoleSettings.directorySettings.DataPath, blackHoleSettings.connectionConfig.TableSchema,
                 blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut,
                 blackHoleSettings.connectionConfig.UseQuotedDb);
-
             DataPathAndLogs(blackHoleSettings.directorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.directorySettings.UseLogger);
-
             CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
-
             int exitCode = 0;
-
             switch (cliSettings.commandType)
             {
                 case CliCommandTypes.Update:
@@ -81,29 +68,24 @@ namespace BlackHole.Configuration
                     services.BuildDatabaseAndServices(blackHoleSettings.connectionConfig.additionalSettings, assembly);
                     break;
             }
-
             if (cliMode)
             {
                 Environment.Exit(exitCode);
             }
-
             return services;
         }
 
         private static int BuildOrUpdateDatabaseCliProcess(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
         {
             BHDatabaseBuilder databaseBuilder = new();
-
             bool dbExists = databaseBuilder.CreateDatabase();
             databaseBuilder.CreateDatabaseSchema();
-
             if (dbExists)
             {
                 Console.WriteLine("_bhLog_ \t The database is ready.");
                 Console.WriteLine("_bhLog_ \t Creating or Updating the tables..");
                 CreateOrUpdateTables(additionalSettings, callingAssembly, databaseBuilder);
                 Console.WriteLine("_bhLog_");
-
                 return 0;
             }
             else

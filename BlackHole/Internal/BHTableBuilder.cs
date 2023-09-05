@@ -1116,6 +1116,17 @@ namespace BlackHole.Internal
             {
                 if (IsNumericType(defaultValue))
                 {
+                    if (IsIntegerType(PropertyType))
+                    {
+                        string? obj = defaultValue.ToString();
+
+                        if (!string.IsNullOrEmpty(obj))
+                        {
+                            string[] numberParts = obj.Split(".");
+                            return $" default {numberParts[0]} ";
+                        }
+                    }
+
                     if (IsNumericType(PropertyType))
                     {
                         return $" default {defaultValue} ";
@@ -1172,6 +1183,21 @@ namespace BlackHole.Internal
                 TypeCode.Byte or TypeCode.SByte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or TypeCode.Decimal or TypeCode.Double or TypeCode.Single => true,
                 _ => false,
             };
+        }
+
+        public bool IsIntegerType(Type obj)
+        {
+            Type propType = obj;
+
+            if (obj.Name.Contains("Nullable"))
+            {
+                if (obj.GenericTypeArguments != null && obj.GenericTypeArguments.Length > 0)
+                {
+                    propType = obj.GenericTypeArguments[0];
+                }
+            }
+
+            return Type.GetTypeCode(propType) == TypeCode.Int32;
         }
 
         public bool IsNumericType(Type obj)

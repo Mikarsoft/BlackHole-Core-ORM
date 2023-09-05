@@ -174,28 +174,59 @@ namespace BlackHole.Internal
             };
         }
 
-        void IBHDatabaseSelector.SetDbDateFormat(IExecutionProvider _executionProvider)
+        bool IBHDatabaseSelector.SetDbDateFormat(IExecutionProvider _executionProvider)
         {
             string getDateCommand = DatabaseStatics.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => "SELECT r.date_format FROM master.sys.dm_exec_requests r WHERE r.session_id = @@SPID",
-                BlackHoleSqlTypes.MySql => "",
+                BlackHoleSqlTypes.MySql => "system",
                 BlackHoleSqlTypes.Postgres => "show datestyle",
-                BlackHoleSqlTypes.SqlLite => "",
-                _ => "SELECT NLS_DATE_FORMAT FROM V$NLS_PARAMETERS",
+                BlackHoleSqlTypes.SqlLite => "system",
+                _ => "SELECT value FROM V$NLS_PARAMETERS WHERE parameter = 'NLS_DATE_FORMAT'",
             };
-
-            string? dateFormat = _executionProvider.ExecuteScalar<string>(getDateCommand, null);
-
-            if (!string.IsNullOrEmpty(dateFormat))
+            if (getDateCommand == "system")
             {
+                return true;
+            }
+            else
+            {
+                string? dateFormat = _executionProvider.ExecuteScalar<string>(getDateCommand, null);
+                if (string.IsNullOrEmpty(dateFormat))
+                {
+                    return false;
+                }
                 DatabaseStatics.DbDateFormat = AnalyzeDateFormat(dateFormat);
             }
+            return true;
         }
 
         private string AnalyzeDateFormat(string dateFormat)
         {
-            return dateFormat;
+            if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+            {
+                return dateFormat.ToLower().Replace("/", "-").Replace("mm", "MM").Replace("rr", "yyyy");
+            }
+            string[] parts = dateFormat.Split(",");
+            string cleanDateFormat = string.Empty;
+            if(parts.Length > 1)
+            {
+                cleanDateFormat = parts[1].Trim();
+            }
+            else
+            {
+                cleanDateFormat = parts[0].Trim();
+            }
+            string result = string.Empty;
+            foreach(char letter in cleanDateFormat.ToLower())
+            {
+                result += letter switch
+                {
+                    'm' => "-MM",
+                    'd' => "-dd",
+                    _ => "-yyyy"
+                };
+            }
+            return result.Remove(0,1);
         }
         /// <summary>
         /// Based on the selected Sql Type , returns an array of datatypes that correspond to

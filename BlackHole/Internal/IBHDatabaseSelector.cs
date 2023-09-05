@@ -20,7 +20,7 @@ namespace BlackHole.Internal
         int GetSqlTypeId();
         bool GetMyShit();
         bool GetOpenPKConstraint();
-        void SetDbDateFormat(IExecutionProvider _executionProvider);
+        bool SetDbDateFormat(IExecutionProvider _executionProvider);
 
         string TableSchemaCheck();
         string GetDatabaseSchema();
