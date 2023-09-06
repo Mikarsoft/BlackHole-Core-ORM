@@ -39,7 +39,6 @@ namespace BlackHole.ExecutionProviders
                         BindByName = true
                     };
                     ArrayToParameters(parameters, Command.Parameters);
-
                     object? Result = Command.ExecuteScalar();
                     connection.Close();
 
@@ -52,7 +51,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -68,9 +67,7 @@ namespace BlackHole.ExecutionProviders
                     BindByName = true,
                     Transaction = transaction
                 };
-
                 ArrayToParameters(parameters, Command.Parameters);
-
                 object? Result = Command.ExecuteScalar();
 
                 if (Result != null)
@@ -80,7 +77,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Scalar", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Scalar", commandText, ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -98,7 +95,6 @@ namespace BlackHole.ExecutionProviders
                         BindByName = true
                     };
                     ArrayToParameters(parameters, Command.Parameters);
-
                     object? Result = await Command.ExecuteScalarAsync();
                     await connection.CloseAsync();
 
@@ -111,7 +107,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"ScalarAsync", commandText, ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"ScalarAsync", commandText, ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -128,7 +124,6 @@ namespace BlackHole.ExecutionProviders
                     BindByName = true
                 };
                 ArrayToParameters(parameters, Command.Parameters);
-
                 object? Result = await Command.ExecuteScalarAsync();
 
                 if (Result != null)
@@ -138,7 +133,99 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                object? Id = default;
+                using (OracleConnection connection = new(_connectionString))
+                {
+                    connection.Open();
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
+                    ArrayToParameters(parameters, Command.Parameters);
+                    Id = Command.ExecuteScalar();
+                    connection.Close();
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("RawScalar", commandText, ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    BindByName = true,
+                    Transaction = transaction
+                };
+                ArrayToParameters(parameters, Command.Parameters);
+                return Command.ExecuteScalar();
+            }
+            catch (Exception ex)
+            {
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"RawScalar", commandText, ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public async Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                object? Id = default;
+                using (OracleConnection connection = new(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
+                    ArrayToParameters(parameters, Command.Parameters);
+                    Id = await Command.ExecuteScalarAsync();
+                    await connection.CloseAsync();
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"RawScalarAsync", commandText, ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public async Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
+                ArrayToParameters(parameters, Command.Parameters);
+                return await Command.ExecuteScalarAsync();
+            }
+            catch (Exception ex)
+            {
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("RawScalarAsync", commandText, ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -155,16 +242,14 @@ namespace BlackHole.ExecutionProviders
                         BindByName = true
                     };
                     ArrayToParameters(parameters, Command.Parameters);
-
                     Command.ExecuteNonQuery();
                     connection.Close();
                 }
-
                 return true;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("NonQuery", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("NonQuery", commandText, ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -181,13 +266,12 @@ namespace BlackHole.ExecutionProviders
                     BindByName = true
                 };
                 ArrayToParameters(parameters, Command.Parameters);
-
                 Command.ExecuteNonQuery();
                 return true;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("NonQuery", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("NonQuery", commandText, ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -204,7 +288,6 @@ namespace BlackHole.ExecutionProviders
                         BindByName = true
                     };
                     ArrayToParameters(parameters, Command.Parameters);
-
                     await Command.ExecuteNonQueryAsync();
                     await connection.CloseAsync();
                 }
@@ -212,7 +295,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("NonQueryAsync", commandText, ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("NonQueryAsync", commandText, ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -229,13 +312,12 @@ namespace BlackHole.ExecutionProviders
                     BindByName = true
                 };
                 ArrayToParameters(parameters, Command.Parameters);
-
                 await Command.ExecuteNonQueryAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs("NonQueryAsync", commandText, ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("NonQueryAsync", commandText, ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -245,7 +327,6 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 T? result = default;
-
                 using (OracleConnection connection = new(_connectionString))
                 {
                     connection.Open();
@@ -274,7 +355,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -284,7 +365,6 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 T? result = default;
-
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new(commandText.Replace("@", ":"), connection)
@@ -311,7 +391,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -321,7 +401,6 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 List<T> result = new();
-
                 using (OracleConnection connection = new(_connectionString))
                 {
                     connection.Open();
@@ -349,7 +428,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Query_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Query_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -359,7 +438,6 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 List<T> result = new();
-
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new(commandText.Replace("@", ":"), connection)
@@ -385,7 +463,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Query_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Query_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -395,7 +473,6 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 T? result = default;
-
                 using (OracleConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
@@ -424,7 +501,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -434,7 +511,6 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 T? result = default;
-
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new(commandText.Replace("@", ":"), connection)
@@ -461,7 +537,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -471,7 +547,6 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 List<T> result = new();
-
                 using (OracleConnection connection = new(_connectionString))
                 {
                     await connection.OpenAsync();
@@ -499,7 +574,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -509,7 +584,6 @@ namespace BlackHole.ExecutionProviders
             try
             {
                 List<T> result = new();
-
                 OracleConnection? connection = bHTransaction.connection as OracleConnection;
                 OracleTransaction? transaction = bHTransaction._transaction as OracleTransaction;
                 OracleCommand Command = new(commandText.Replace("@", ":"), connection)
@@ -535,7 +609,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -581,10 +655,7 @@ namespace BlackHole.ExecutionProviders
                 {
                     if (!reader.IsDBNull(i))
                     {
-                        string propertyName = reader.GetName(i);
-
-                        PropertyInfo? property = properties.Where(x => string.Equals(x.Name, propertyName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-
+                        PropertyInfo? property = properties.FirstOrDefault(x => string.Equals(x.Name, reader.GetName(i), StringComparison.OrdinalIgnoreCase));
                         if (property != null)
                         {
                             if (property.PropertyType == typeof(Guid))
@@ -597,8 +668,7 @@ namespace BlackHole.ExecutionProviders
                             }
                             else
                             {
-                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
-                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, propValue);
+                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, Convert.ChangeType(reader.GetValue(i), property.PropertyType));
                             }
                         }
                     }
@@ -607,7 +677,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -650,8 +720,7 @@ namespace BlackHole.ExecutionProviders
                 {
                     if (!reader.IsDBNull(i))
                     {
-                        string propertyName = reader.GetName(i);
-                        PropertyInfo? property = properties.Where(x => string.Equals(x.Name, propertyName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                        PropertyInfo? property = properties.FirstOrDefault(x => string.Equals(x.Name, reader.GetName(i), StringComparison.OrdinalIgnoreCase));
 
                         if (property != null)
                         {
@@ -665,8 +734,7 @@ namespace BlackHole.ExecutionProviders
                             }
                             else
                             {
-                                object? propValue = Convert.ChangeType(reader.GetValue(i), property.PropertyType);
-                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, propValue);
+                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, Convert.ChangeType(reader.GetValue(i), property.PropertyType));
                             }
                         }
                     }
@@ -675,12 +743,12 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString()));
                 return default;
             }
         }
 
-        private static Guid GuidParser(string guid)
+        private Guid GuidParser(string guid)
         {
             try
             {
@@ -692,7 +760,7 @@ namespace BlackHole.ExecutionProviders
             }
         }
 
-        private static void ArrayToParameters(List<BlackHoleParameter>? bhParameters, OracleParameterCollection parameters)
+        private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, OracleParameterCollection parameters)
         {
             if (bhParameters != null)
             {

@@ -11,6 +11,12 @@ namespace BlackHole.CoreSupport
         Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters);
         Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 
+        object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters);
+        object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
+
+        Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters);
+        Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
+
         bool JustExecute(string commandText, List<BlackHoleParameter>? parameters);
         bool JustExecute(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
 

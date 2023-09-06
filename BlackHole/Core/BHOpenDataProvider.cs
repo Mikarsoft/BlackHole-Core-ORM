@@ -340,7 +340,6 @@ namespace BlackHole.Core
                 newEntry.GetType().GetProperty(_settings.MainPrimaryKey)?.SetValue(Id, null);
                 return newEntry;
             }
-
             if (await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry)))
             {
                 return newEntry;
