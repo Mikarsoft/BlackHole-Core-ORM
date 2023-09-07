@@ -14,18 +14,17 @@ namespace BlackHole.DataProviders
         internal readonly bool skipQuotes = true;
         internal readonly bool ForceQuotes = false;
         private readonly BlackHoleIdTypes _idType;
-        private readonly ILoggerService _loggerService;
         private readonly bool useGenerator = false;
         private readonly string TableName = string.Empty;
+        internal readonly string PK = "Id";
 
         internal SqLiteDataProvider(string connectionString, BlackHoleIdTypes idType, string tableName, bool forceQuotes)
         {
             _connectionString = connectionString;
             _idType = idType;
-            _loggerService = new LoggerService();
             TableName = tableName;
             ForceQuotes = forceQuotes;
-            insertedOutput = ForceQuotes ? @"returning ""Id""" : "returning Id";
+            if (ForceQuotes) { PK = @"""Id"""; insertedOutput = @"returning ""Id"""; }
 
             if (idType != BlackHoleIdTypes.IntId)
             {
@@ -61,7 +60,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Insert_{TableName}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Insert_{TableName}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -88,7 +87,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"InsertAsync_{TableName}", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString())).Start();
                 return default;
             }
         }
@@ -110,7 +109,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Insert_{TableName}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Insert_{TableName}", ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -122,9 +121,7 @@ namespace BlackHole.DataProviders
                 SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
                 SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
                 SqliteCommand Command = new(commandText, connection, transaction);
-
                 ObjectToParameters(entry, Command.Parameters);
-
                 object? Result = await Command.ExecuteScalarAsync();
 
                 if (Result != null)
@@ -134,7 +131,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"InsertAsync_{TableName}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -145,12 +142,6 @@ namespace BlackHole.DataProviders
         {
             return ForceQuotes? false : skipQuotes;
         }
-
-        private string QuotedId()
-        {
-            return ForceQuotes ? @"""Id""" :"Id";
-        }
-
         #endregion
 
         #region Execution Methods
@@ -159,9 +150,8 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
-                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
-
-                if (ExecuteEntry($"{commandStart}, {QuotedId()}) {commandEnd}, @Id);", entry))
+                typeof(T).GetProperty("Id")?.SetValue(entry, Id);
+                if (ExecuteEntry($"{commandStart}, {PK}) {commandEnd}, @Id);", entry))
                 {
                     return Id;
                 }
@@ -181,9 +171,8 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
-                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
-
-                if (ExecuteEntry($"{commandStart}, {QuotedId()}) {commandEnd}, @Id);", entry, bhTransaction))
+                typeof(T).GetProperty("Id")?.SetValue(entry, Id);
+                if (ExecuteEntry($"{commandStart}, {PK}) {commandEnd}, @Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -203,9 +192,8 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
-                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
-
-                if (await ExecuteEntryAsync($"{commandStart}, {QuotedId()}) {commandEnd}, @Id);", entry))
+                typeof(T).GetProperty("Id")?.SetValue(entry, Id);
+                if (await ExecuteEntryAsync($"{commandStart}, {PK}) {commandEnd}, @Id);", entry))
                 {
                     return Id;
                 }
@@ -225,9 +213,8 @@ namespace BlackHole.DataProviders
             if (useGenerator)
             {
                 G? Id = GenerateId<G>();
-                entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
-
-                if (await ExecuteEntryAsync($"{commandStart}, {QuotedId()}) {commandEnd}, @Id);", entry, bhTransaction))
+                typeof(T).GetProperty("Id")?.SetValue(entry, Id);
+                if (await ExecuteEntryAsync($"{commandStart}, {PK}) {commandEnd}, @Id);", entry, bhTransaction))
                 {
                     return Id;
                 }
@@ -245,15 +232,13 @@ namespace BlackHole.DataProviders
         public async Task<List<G?>> MultiInsertScalarAsync<T, G>(string commandStart, string commandEnd, List<T> entries, BlackHoleTransaction bhTransaction)
         {
             List<G?> Ids = new();
-
             if (useGenerator)
             {
-                string commandText = $"{commandStart}, {QuotedId()}) {commandEnd}, @Id);";
+                string commandText = $"{commandStart}, {PK}) {commandEnd}, @Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
-
+                    typeof(T).GetProperty("Id")?.SetValue(entry, Id);
                     if (await ExecuteEntryAsync(commandText, entry, bhTransaction))
                     {
                         Ids.Add(Id);
@@ -267,27 +252,24 @@ namespace BlackHole.DataProviders
             else
             {
                 string commandText = $"{commandStart}) {commandEnd}) {insertedOutput};";
-
                 foreach (T entry in entries)
                 {
                     Ids.Add(await ExecuteEntryScalarAsync<T, G>(commandText, entry, bhTransaction));
                 }
             }
-
             return Ids;
         }
 
         public List<G?> MultiInsertScalar<T, G>(string commandStart, string commandEnd, List<T> entries, BlackHoleTransaction bhTransaction)
         {
             List<G?> Ids = new();
-
             if (useGenerator)
             {
-                string commandText = $"{commandStart},{QuotedId()}) {commandEnd},@Id);";
+                string commandText = $"{commandStart},{PK}) {commandEnd},@Id);";
                 foreach (T entry in entries)
                 {
                     G? Id = GenerateId<G>();
-                    entry?.GetType().GetProperty("Id")?.SetValue(entry, Id);
+                    typeof(T).GetProperty("Id")?.SetValue(entry, Id);
                     if (ExecuteEntry(commandText, entry, bhTransaction))
                     {
                         Ids.Add(Id);
@@ -325,7 +307,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Insert_{TableName}", commandText, ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Insert_{TableName}", ex.Message, ex.ToString())).Start();
                 return false;
             }
         }
@@ -346,7 +328,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"InsertAsync_{TableName}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -364,7 +346,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Insert_{TableName}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Insert_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -382,7 +364,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"InsertAsync_{TableName}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -400,7 +382,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Execute_{TableName}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Execute_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -421,7 +403,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Execute_{TableName}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Execute_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -439,7 +421,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"ExecuteAsync_{TableName}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"ExecuteAsync_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -460,7 +442,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"ExecuteAsync_{TableName}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"ExecuteAsync_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -496,7 +478,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"SelectFirst_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectFirst_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -530,7 +512,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Select_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Select_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -565,7 +547,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"SelectFirstAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectFirstAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -599,7 +581,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"SelectAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -631,7 +613,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"SelectFirst_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectFirst_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -662,7 +644,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Select_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Select_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -694,7 +676,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"SelectFirstAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectFirstAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -725,7 +707,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"SelectAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -788,7 +770,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "MapperError", ex.ToString()));
                 return default;
             }
         }

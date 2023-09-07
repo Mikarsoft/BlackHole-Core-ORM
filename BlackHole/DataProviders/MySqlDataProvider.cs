@@ -21,7 +21,7 @@ namespace BlackHole.DataProviders
         {
             _connectionString = connectionString;
             _idType = idType;
-            TableName=tableName;
+            TableName = tableName;
 
             if(idType != BlackHoleIdTypes.IntId)
             {

@@ -54,7 +54,7 @@ namespace BlackHole.Logger
             return hash.ToString();
         }
 
-        public static void CreateErrorLogs(this string commandText, string Area, string Message, string Details)
+        internal static void CreateErrorLogs(this string commandText, string Area, string Message, string Details)
         {
             if (CanWriteLogs)
             {

@@ -8,14 +8,12 @@ namespace BlackHole.ExecutionProviders
     internal class PostgresExecutionProvider : IExecutionProvider
     {
         #region Constructor
-        private readonly ILoggerService _loggerService;
         private readonly string _connectionString;
         internal readonly bool skipQuotes = false;
 
         internal PostgresExecutionProvider(string connectionString)
         {
             _connectionString = connectionString;
-            _loggerService = new LoggerService();
         }
 
         public bool SkipQuotes()

@@ -1,5 +1,6 @@
 ﻿using BlackHole.Enums;
 using BlackHole.Statics;
+using BlackHole.Logger;
 
 namespace BlackHole.Configuration
 {
@@ -30,6 +31,7 @@ namespace BlackHole.Configuration
             {
                 new LogsCleaner();
             }
+            LoggerService.SetUpLogger();
         }
 
         internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema, int timeoutSeconds, bool isQuoted)

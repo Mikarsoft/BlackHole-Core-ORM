@@ -1,6 +1,7 @@
 ﻿using BlackHole.Statics;
 using System.Linq.Expressions;
 using System.Reflection;
+using BlackHole.Logger;
 
 namespace BlackHole.CoreSupport
 {
@@ -49,7 +50,9 @@ namespace BlackHole.CoreSupport
 
             if (!WasTranslated)
             {
-                MiniLogger(MethodData.MethodName);
+                Task.Factory.StartNew(() => MethodData.MethodName.CreateErrorLogs($"SqlFunctionsReader_{MethodData.MethodName}", 
+                    $"Unknown Method: {MethodData.MethodName}. It was translated into '1 != 1' to avoid data corruption.",
+                    "Please read the documentation to find the supported Sql functions and the correct usage of them."));
             }
         }
 
@@ -494,34 +497,6 @@ namespace BlackHole.CoreSupport
                 default:
                     WasTranslated = false;
                     break;
-            }
-        }
-
-        private static void MiniLogger(string commandName)
-        {
-            try
-            {
-                string LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
-
-                if (!Directory.Exists(LogsPath))
-                {
-                    Directory.CreateDirectory(LogsPath);
-                }
-
-                string LogId = Guid.NewGuid().ToString();
-                string pathFile = Path.Combine(LogsPath, $"{commandName}_Error_{LogId}.txt");
-
-                using (StreamWriter tw = new(pathFile, true))
-                {
-                    tw.WriteLine($"Date and Time: {DateTime.Now.ToString("s").Replace(":", ".")}");
-                    tw.WriteLine($"Sql Method {commandName} has some errors in syntax.");
-                    tw.WriteLine($"The method will get translated to '1 != 1' to avoid damaging database.");
-                    tw.WriteLine($"Please read the documentation and learn how to use Sql Functions correctly.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
             }
         }
 
