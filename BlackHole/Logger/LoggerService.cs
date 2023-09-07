@@ -4,12 +4,12 @@ using System.Text;
 
 namespace BlackHole.Logger
 {
-    internal class LoggerService : ILoggerService
+    internal static class LoggerService
     {
-        bool canWriteLogs { get; set; } = false;
-        string LogsPath { get; set; }
+        internal static bool CanWriteLogs { get; set; } = false;
+        internal static string LogsPath { get; set; } = string.Empty;
 
-        internal LoggerService()
+        internal static void  SetUpLogger()
         {
             try
             {
@@ -22,23 +22,23 @@ namespace BlackHole.Logger
                         Directory.CreateDirectory(LogsPath);
                     }
 
-                    canWriteLogs = true;
+                    CanWriteLogs = true;
                 }
                 else
                 {
                     LogsPath = string.Empty;
-                    canWriteLogs = false;
+                    CanWriteLogs = false;
                 }
             }
             catch
             {
                 DatabaseStatics.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData");
                 LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
-                canWriteLogs = false;
+                CanWriteLogs = false;
             }
         }
 
-        private static string LogHashId(string text)
+        internal static string GenerateSHA1(this string text)
         {
             var sh = SHA1.Create();
             var hash = new StringBuilder();
@@ -54,14 +54,14 @@ namespace BlackHole.Logger
             return hash.ToString();
         }
 
-        public void CreateErrorLogs(string Area,string commandText, string Message, string Details)
+        public static void CreateErrorLogs(this string commandText, string Area, string Message, string Details)
         {
-            if (canWriteLogs)
+            if (CanWriteLogs)
             {
                 try
                 {
-                    string LogId = LogHashId(Guid.NewGuid().ToString() + DateTime.Now.ToString());
-                    string pathFile = Path.Combine(LogsPath,$"{Area}_{LogId}.txt");
+                    string LogId = Guid.NewGuid().ToString() + DateTime.Now.ToString();
+                    string pathFile = Path.Combine(LogsPath,$"{Area}_{LogId.GenerateSHA1()}.txt");
 
                     using (StreamWriter tw = new(pathFile, true))
                     {

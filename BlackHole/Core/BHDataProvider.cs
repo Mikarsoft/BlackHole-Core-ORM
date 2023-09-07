@@ -1017,7 +1017,6 @@ namespace BlackHole.Core
             {
                 return $@"""{propName}""";
             }
-
             return propName ?? string.Empty;
         }
 
