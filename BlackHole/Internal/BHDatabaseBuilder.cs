@@ -21,6 +21,7 @@ namespace BlackHole.Internal
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ServerConnection);
             SqlWriter = new BHSqlExportWriter("1_DatabaseSql", "SqlFiles", "sql");
             DbSchema = DatabaseStatics.DatabaseSchema;
+            _multiDatabaseSelector.SetDbDateFormat(connection);
         }
 
         /// <summary>

@@ -149,7 +149,13 @@ namespace BlackHole.ExecutionProviders
                         BindByName = true
                     };
                     ArrayToParameters(parameters, Command.Parameters);
-                    Id = Command.ExecuteScalar();
+                    Command.Parameters.Add(new OracleParameter("Tziaveleas", 1));
+                    Command.ExecuteScalar();
+                    int paramIndex = Command.Parameters.IndexOf("Tziaveleas");
+                    if (paramIndex > -1)
+                    {
+                        Id = Command.Parameters[paramIndex].Value;
+                    }
                     connection.Close();
                 }
                 return Id;
@@ -173,7 +179,13 @@ namespace BlackHole.ExecutionProviders
                     Transaction = transaction
                 };
                 ArrayToParameters(parameters, Command.Parameters);
-                return Command.ExecuteScalar();
+                Command.Parameters.Add(new OracleParameter("Tziaveleas", 1));
+                Command.ExecuteScalar();
+                int paramIndex = Command.Parameters.IndexOf("Tziaveleas");
+                if (paramIndex > -1)
+                {
+                    return (int)Command.Parameters[paramIndex].Value;
+                }
             }
             catch (Exception ex)
             {
@@ -195,7 +207,13 @@ namespace BlackHole.ExecutionProviders
                         BindByName = true
                     };
                     ArrayToParameters(parameters, Command.Parameters);
-                    Id = await Command.ExecuteScalarAsync();
+                    Command.Parameters.Add(new OracleParameter("Tziaveleas", 1));
+                    await Command.ExecuteScalarAsync();
+                    int paramIndex = Command.Parameters.IndexOf("Tziaveleas");
+                    if(paramIndex > -1)
+                    {
+                        Id = (int)Command.Parameters[paramIndex].Value;
+                    }
                     await connection.CloseAsync();
                 }
                 return Id;
@@ -219,7 +237,13 @@ namespace BlackHole.ExecutionProviders
                     BindByName = true
                 };
                 ArrayToParameters(parameters, Command.Parameters);
-                return await Command.ExecuteScalarAsync();
+                Command.Parameters.Add(new OracleParameter("Tziaveleas", 1));
+                await Command.ExecuteScalarAsync();
+                int paramIndex = Command.Parameters.IndexOf("Tziaveleas");
+                if (paramIndex > -1)
+                {
+                    return (int)Command.Parameters[paramIndex].Value;
+                }
             }
             catch (Exception ex)
             {

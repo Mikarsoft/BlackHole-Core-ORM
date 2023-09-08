@@ -328,139 +328,76 @@ namespace BlackHole.Core
             return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters,bhTransaction.transaction);
         }
 
-        async Task<T?> IBHOpenDataProvider<T>.InsertAndReturnEntryAsync(T entry)
-        {
-            T newEntry = CheckGenerateValue(entry);
-            if (_settings.HasAutoIncrement)
-            {
-                object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(newEntry));
-                if (IdEntry == null) { return default; }
-                typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(newEntry, IdEntry);
-                return newEntry;
-            }
-            if (await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry)))
-            {
-                return newEntry;
-            }
-
-            return default;
-        }
-
-        async Task<T?> IBHOpenDataProvider<T>.InsertAndReturnEntryAsync(T entry, BHTransaction bhTransaction)
-        {
-            T newEntry = CheckGenerateValue(entry);
-            if (_settings.HasAutoIncrement)
-            {
-                object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into { ThisTable} ({ PropertyNames}) {ReturningCase[0]} values({ PropertyParams}) {ReturningCase[1]}",MapObjectToParameters(newEntry), bhTransaction.transaction);
-                if(IdEntry == null) { return default; }
-                typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(newEntry, IdEntry);
-                return newEntry;
-            }
-            if (await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry), bhTransaction.transaction))
-            {
-                return newEntry;
-            }
-            return default;
-        }
-
-        async Task<List<T>> IBHOpenDataProvider<T>.InsertAndReturnEntriesAsync(List<T> entries)
-        {
-            entries = await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
-            return entries;
-        }
-
-        async Task<List<T>> IBHOpenDataProvider<T>.InsertAndReturnEntriesAsync(List<T> entries, BHTransaction bhTransaction)
-        {
-            entries = await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
-            return entries;
-        }
-
         bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries)
         {
-            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})").Any();
+            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
         }
 
         bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
         {
-            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction).Any();
+            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries)
         {
-            entries = await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
-            return entries.Any();
+            return await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
         {
-            entries = await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
-            return entries.Any();
-        }
-
-        T? IBHOpenDataProvider<T>.InsertAndReturnEntry(T entry)
-        {
-            T newEntry = CheckGenerateValue(entry);
-            if (_settings.HasAutoIncrement)
-            {
-                object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(newEntry));
-                if (IdEntry == null) { return default; }
-                typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(newEntry, IdEntry);
-                return newEntry;
-            }
-            if (_executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry)))
-            {
-                return newEntry;
-            }
-            return default;
-        }
-
-        T? IBHOpenDataProvider<T>.InsertAndReturnEntry(T entry, BHTransaction bhTransaction)
-        {
-            T newEntry = CheckGenerateValue(entry);
-            if (_settings.HasAutoIncrement)
-            {
-                object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(newEntry), bhTransaction.transaction);
-                if (IdEntry == null) { return default; }
-                typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(newEntry, IdEntry);
-                return newEntry;
-            }
-            if (_executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(newEntry),bhTransaction.transaction))
-            {
-                return newEntry;
-            }
-            return default;
-        }
-
-        List<T> IBHOpenDataProvider<T>.InsertAndReturnEntries(List<T> entries)
-        {
-            entries = InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
-            return entries;
-        }
-
-        List<T> IBHOpenDataProvider<T>.InsertAndReturnEntries(List<T> entries, BHTransaction bhTransaction)
-        {
-            entries = InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
-            return entries;
+            return await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
         }
 
         bool IBHOpenDataProvider<T>.InsertEntry(T entry)
         {
-            return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(CheckGenerateValue(entry)));
+            CheckGenerateValue(entry);
+            if (_settings.HasAutoIncrement)
+            {
+                object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry));
+                if (IdEntry == null) { return false; }
+                typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
+                return true;
+            }
+            return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry));
         }
 
         bool IBHOpenDataProvider<T>.InsertEntry(T entry, BHTransaction bhTransaction)
         {
-            return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction.transaction);
+            CheckGenerateValue(entry);
+            if (_settings.HasAutoIncrement)
+            {
+                object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry), bhTransaction.transaction);
+                if (IdEntry == null) { return false; }
+                typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
+                return true;
+            }
+            return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry), bhTransaction.transaction);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry)
         {
-            return await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(CheckGenerateValue(entry)));
+            CheckGenerateValue(entry);
+            if (_settings.HasAutoIncrement)
+            {
+                object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry));
+                if (IdEntry == null) { return false; }
+                typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
+                return true;
+            }
+            return await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry));
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
         {
-            return await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(CheckGenerateValue(entry)), bhTransaction.transaction);
+            CheckGenerateValue(entry);
+            if (_settings.HasAutoIncrement)
+            {
+                object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry), bhTransaction.transaction);
+                if (IdEntry == null) { return false; }
+                typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
+                return true;
+            }
+            return await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry), bhTransaction.transaction);
         }
 
         JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
@@ -583,45 +520,43 @@ namespace BlackHole.Core
             return PNsb.ToString().Remove(0, 1);
         }
 
-        private List<Dto> InsertMany<Dto>(List<Dto> entries, string textCommand)
+        private bool InsertMany<Dto>(List<Dto> entries, string textCommand)
         {
             BlackHoleTransaction bhTransaction = new();
-            List<Dto> insertedEntries = new();
+            bool result = true;
             foreach (Dto entry in entries)
             {
-                Dto newEntry = CheckGenerateValue(entry);
+                CheckGenerateValue(entry);
                 if (_settings.HasAutoIncrement)
                 {
-                    object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(newEntry), bhTransaction);
-                    if (IdEntry != null) { typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(newEntry, IdEntry); }
+                    object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry), bhTransaction);
+                    if (IdEntry != null) { typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry); }
                 }
                 else
                 {
-                    _executionProvider.JustExecute(textCommand, MapObjectToParameters(newEntry), bhTransaction);
+                    _executionProvider.JustExecute(textCommand, MapObjectToParameters(entry), bhTransaction);
                 }
-                insertedEntries.Add(newEntry);
             }
             if (!bhTransaction.Commit())
             {
-                insertedEntries.Clear();
+                result = false;
             }
             bhTransaction.Dispose();
-            return insertedEntries;
+            return result;
         }
 
-        private List<Dto> InsertMany<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
+        private bool InsertMany<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
         {
             bool result = true;
-            List<Dto> insertedEntries = new();
             foreach (Dto entry in entries)
             {
-                Dto newEntry = CheckGenerateValue(entry);
+                CheckGenerateValue(entry);
                 if (_settings.HasAutoIncrement)
                 {
-                    object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(newEntry), bhTransaction);
+                    object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry), bhTransaction);
                     if (IdEntry != null)
                     {
-                        typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(newEntry, IdEntry);
+                        typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
                     }
                     else
                     {
@@ -630,59 +565,52 @@ namespace BlackHole.Core
                 }
                 else
                 {
-                    if (!_executionProvider.JustExecute(textCommand, MapObjectToParameters(newEntry), bhTransaction))
+                    if (!_executionProvider.JustExecute(textCommand, MapObjectToParameters(entry), bhTransaction))
                     {
                         result = false;
                     }
                 }
-                insertedEntries.Add(newEntry);
             }
-            if (!result)
-            {
-                insertedEntries.Clear();
-            }
-            return insertedEntries;
+            return result;
         }
 
-        private async Task<List<Dto>> InsertManyAsync<Dto>(List<Dto> entries, string textCommand)
+        private async Task<bool> InsertManyAsync<Dto>(List<Dto> entries, string textCommand)
         {
             BlackHoleTransaction bhTransaction = new();
-            List<Dto> insertedEntries = new();
+            bool result = true;
             foreach (Dto entry in entries)
             {
-                Dto newEntry = CheckGenerateValue(entry);
+                CheckGenerateValue(entry);
                 if (_settings.HasAutoIncrement)
                 {
-                    object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(newEntry), bhTransaction);
-                    if (IdEntry != null) { typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(newEntry, IdEntry); }
+                    object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry), bhTransaction);
+                    if (IdEntry != null) { typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry); }
                 }
                 else
                 {
-                    await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(newEntry), bhTransaction);
+                    await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(entry), bhTransaction);
                 }
-                insertedEntries.Add(newEntry);
             }
             if (!bhTransaction.Commit())
             {
-                insertedEntries.Clear();
+                result = false;
             }
             bhTransaction.Dispose();
-            return insertedEntries;
+            return result;
         }
 
-        private async Task<List<Dto>> InsertManyAsync<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
+        private async Task<bool> InsertManyAsync<Dto>(List<Dto> entries, string textCommand, BlackHoleTransaction bhTransaction)
         {
             bool result = true;
-            List<Dto> insertedEntries = new();
             foreach (Dto entry in entries)
             {
-                Dto newEntry = CheckGenerateValue(entry);
+                CheckGenerateValue(entry);
                 if (_settings.HasAutoIncrement)
                 {
-                    object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(newEntry), bhTransaction);
+                    object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry), bhTransaction);
                     if (IdEntry != null)
                     {
-                        typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(newEntry, IdEntry);
+                        typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
                     }
                     else
                     {
@@ -691,18 +619,13 @@ namespace BlackHole.Core
                 }
                 else
                 {
-                    if (!await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(newEntry), bhTransaction))
+                    if (!await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(entry), bhTransaction))
                     {
                         result = false;
                     }
                 }
-                insertedEntries.Add(newEntry);
             }
-            if (!result)
-            {
-                insertedEntries.Clear();
-            }
-            return insertedEntries;
+            return result;
         }
 
         private string CompareColumnsToEntity(Type dto)
@@ -736,23 +659,20 @@ namespace BlackHole.Core
             return parameters.Parameters;
         }
 
-        private Dto CheckGenerateValue<Dto>(Dto entry)
+        private void CheckGenerateValue<Dto>(Dto entry)
         {
             foreach(AutoGeneratedProperty settings in _settings.AutoGeneratedColumns)
             {
                 if (settings.Autogenerated && settings.Generator != null)
                 {
-                    entry?.GetType().GetProperty(settings.PropertyName)?.SetValue(entry, GetGeneratorsValue(settings.Generator));
+                    typeof(Dto).GetProperty(settings.PropertyName)?.SetValue(entry, GetGeneratorsValue(settings.Generator));
                 }
             }
-            return entry;
         }
 
         private object? GetGeneratorsValue(object Generator)
         {
-            object? result = null;
-            Generator.GetType().GetMethod("GenerateValue")?.Invoke(result, null);
-            return result;
+            return Generator.GetType().GetMethod("GenerateValue")?.Invoke(Generator,null);
         }
     }
 }
