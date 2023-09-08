@@ -39,43 +39,52 @@ namespace BlackHole.Internal
 
         internal void BuildMultipleTables(List<Type> TableTypes, List<Type> OpenTableTypes)
         {
-            DatabaseStatics.InitializeData = true;
-            bool[] Builded = new bool[TableTypes.Count];
-            bool[] OpenBuilded = new bool[OpenTableTypes.Count];
-            for (int i = 0; i < Builded.Length; i++)
+            if(!DatabaseStatics.BlockAutoUpdate || CliCommand.CliExecution)
             {
-                Builded[i] = CreateTable(TableTypes[i]);
-            }
-            for (int i = 0; i < OpenBuilded.Length; i++)
-            {
-                OpenBuilded[i] = CreateOpenTable(OpenTableTypes[i]);
-            }
-            CliConsoleLogs("");
-            for (int j = 0; j < Builded.Length; j++)
-            {
-                if (Builded[j])
+                DatabaseStatics.InitializeData = true;
+                bool[] Builded = new bool[TableTypes.Count];
+                bool[] OpenBuilded = new bool[OpenTableTypes.Count];
+
+                for (int i = 0; i < Builded.Length; i++)
                 {
-                    AsignForeignKeys(TableTypes[j]);
+                    Builded[i] = CreateTable(TableTypes[i]);
                 }
-                else
+
+                for (int i = 0; i < OpenBuilded.Length; i++)
                 {
-                    UpdateSchema(TableTypes[j]);
+                    OpenBuilded[i] = CreateOpenTable(OpenTableTypes[i]);
                 }
-            }
-            for (int j = 0; j < OpenBuilded.Length; j++)
-            {
-                if (OpenBuilded[j])
+
+                CliConsoleLogs("");
+
+                for (int j = 0; j < Builded.Length; j++)
                 {
-                    AsignOpenForeignKeys(OpenTableTypes[j]);
+                    if (Builded[j])
+                    {
+                        AsignForeignKeys(TableTypes[j]);
+                    }
+                    else
+                    {
+                        UpdateSchema(TableTypes[j]);
+                    }
                 }
-                else
+
+                for (int j = 0; j < OpenBuilded.Length; j++)
                 {
-                    UpdateOpenSchema(OpenTableTypes[j]);
+                    if (OpenBuilded[j])
+                    {
+                        AsignOpenForeignKeys(OpenTableTypes[j]);
+                    }
+                    else
+                    {
+                        UpdateOpenSchema(OpenTableTypes[j]);
+                    }
                 }
-            }
-            if (CliCommand.ExportSql)
-            {
-                SqlWriter.CreateSqlFile();
+
+                if (CliCommand.ExportSql)
+                {
+                    SqlWriter.CreateSqlFile();
+                }
             }
         }
 
@@ -1244,14 +1253,19 @@ namespace BlackHole.Internal
 
         internal void UpdateWithoutForceWarning()
         {
-            if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
+            if (CliCommand.CliExecution)
             {
-                CliConsoleLogsNoSpace("Warning:");
-                CliConsoleLogsNoSpace("BlackHole is not in Dev Mode. Columns of deleted properties will change to nullable instead of dropping.");
-                CliConsoleLogsNoSpace("If you want to drop some columns, run the update command using the '-f' or '--force' argument");
-                CliConsoleLogsNoSpace("");
-                CliConsoleLogsNoSpace("Example : bhl update -f");
-                CliConsoleLogsNoSpace("");
+                Console.WriteLine("_bhLog_ \t Update finished");
+                Console.WriteLine("_bhLog_");
+                if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
+                {
+                    CliConsoleLogsNoSpace("Warning:");
+                    CliConsoleLogsNoSpace("BlackHole is not in Dev Mode. Columns of deleted properties will change to nullable instead of dropping.");
+                    CliConsoleLogsNoSpace("If you want to drop some columns, run the update command using the '-f' or '--force' argument");
+                    CliConsoleLogsNoSpace("");
+                    CliConsoleLogsNoSpace("Example : bhl update -f");
+                    CliConsoleLogsNoSpace("");
+                }
             }
         }
 

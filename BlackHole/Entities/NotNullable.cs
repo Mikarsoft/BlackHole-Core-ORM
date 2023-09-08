@@ -7,17 +7,17 @@
     public class NotNullable : Attribute
     {
         /// <summary>
-        /// 
+        /// Nullability
         /// </summary>
         public string IsNotNull = "NOT NULL";
 
         /// <summary>
-        /// 
+        /// Default Value of Column in Database
         /// </summary>
         public object? ValueDefault { get; set; }
 
         /// <summary>
-        /// 
+        /// Checks if Default Value is DateTime
         /// </summary>
         public bool IsDatetimeValue { get; set; }
 
@@ -31,7 +31,7 @@
         }
 
         /// <summary>
-        /// 
+        /// Setting Default Value on Not Nullable Column
         /// </summary>
         /// <param name="defaultValue"></param>
         public NotNullable(object defaultValue)
@@ -40,7 +40,7 @@
         }
 
         /// <summary>
-        /// 
+        /// Setting Default Value on Not Nullable DateTime Column
         /// </summary>
         /// <param name="year"></param>
         /// <param name="month"></param>
@@ -59,7 +59,7 @@
         }
 
         /// <summary>
-        /// 
+        /// Setting Default Value on Not Nullable DateTime Column with specific format
         /// </summary>
         /// <param name="year"></param>
         /// <param name="month"></param>

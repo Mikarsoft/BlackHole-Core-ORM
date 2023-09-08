@@ -31,14 +31,18 @@ namespace BlackHole.Configuration
             {
                 blackHoleSettings.directorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
             }
+
             bool useLogsCleaner = false;
             int daysToClean = 60;
+
             if (blackHoleSettings.directorySettings.UseLogsCleaner)
             {
                 useLogsCleaner = true;
                 daysToClean = blackHoleSettings.directorySettings.DaysForCleanUp;
             }
-            SetMode(blackHoleSettings.isInDevMode);
+
+            SetMode(blackHoleSettings.isInDevMode, blackHoleSettings.blockAutoUpdate);
+
             bool cliMode = BHCliCommandReader.ReadCliJson(assembly, blackHoleSettings.connectionConfig.ConnectionString);
             if (cliMode)
             {
@@ -46,13 +50,17 @@ namespace BlackHole.Configuration
                 blackHoleSettings.directorySettings.UseLogger = true;
                 blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut = 300;
             }
+
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString,
                 blackHoleSettings.directorySettings.DataPath, blackHoleSettings.connectionConfig.TableSchema,
                 blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut,
                 blackHoleSettings.connectionConfig.UseQuotedDb);
+
             DataPathAndLogs(blackHoleSettings.directorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.directorySettings.UseLogger);
             CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
+
             int exitCode = 0;
+
             switch (cliSettings.commandType)
             {
                 case CliCommandTypes.Update:
@@ -68,6 +76,7 @@ namespace BlackHole.Configuration
                     services.BuildDatabaseAndServices(blackHoleSettings.connectionConfig.additionalSettings, assembly);
                     break;
             }
+
             if (cliMode)
             {
                 Environment.Exit(exitCode);
@@ -256,6 +265,7 @@ namespace BlackHole.Configuration
 
         private static void CreateOrUpdateTables(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, BHDatabaseBuilder databaseBuilder)
         {
+            DatabaseConfiguration.SetBlockMode(false);
             BHTableBuilder tableBuilder = new();
             BHNamespaceSelector namespaceSelector = new();
             BHInitialDataBuilder dataBuilder = new();
@@ -342,18 +352,69 @@ namespace BlackHole.Configuration
                     }
                 }
             }
-            Console.WriteLine("_bhLog_ \t Update finished");
-            Console.WriteLine("_bhLog_");
             tableBuilder.UpdateWithoutForceWarning();
         }
 
         /// <summary>
-        /// 
+        /// Manually Update the database at any point
         /// </summary>
+        /// <param name="connectionSettings">Connection Settings</param>
+        /// <param name="isDevMode">Set Developer mode</param>
         /// <returns></returns>
-        public static bool UpdateDatabase()
+        public static bool UpdateDatabase(Action<ConnectionSettings> connectionSettings, bool isDevMode)
         {
-            return true;
+            Assembly assembly = Assembly.GetCallingAssembly();
+            ConnectionSettings blackHoleSettings = new();
+            connectionSettings.Invoke(blackHoleSettings);
+
+            DataPathAndLogs(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData"), false, 60, true);
+            DatabaseConfiguration.SetMode(isDevMode);
+
+            ScanConnectionString(blackHoleSettings.ConnectionType, blackHoleSettings.ConnectionString,
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData"),
+                blackHoleSettings.TableSchema,
+                blackHoleSettings.additionalSettings.ConnectionTimeOut,
+                blackHoleSettings.UseQuotedDb);
+
+            return UpdateManually(blackHoleSettings.additionalSettings, assembly);
+        }
+
+        internal static bool UpdateManually(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
+        {
+            BHDatabaseBuilder databaseBuilder = new();
+            bool dbExists = databaseBuilder.CreateDatabase();
+            databaseBuilder.CreateDatabaseSchema();
+            if (dbExists)
+            {
+                CreateOrUpdateTables(additionalSettings, callingAssembly, databaseBuilder);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Manually Update the database at any point
+        /// </summary>
+        /// <param name="connectionSettings">Connection Settings</param>
+        /// <param name="isDevMode">Set Developer mode</param>
+        /// <param name="dataPath">Path for Logs and SqLite</param>
+        /// <returns></returns>
+        public static bool UpdateDatabase(Action<ConnectionSettings> connectionSettings, bool isDevMode, string dataPath)
+        {
+            Assembly assembly = Assembly.GetCallingAssembly();
+            ConnectionSettings blackHoleSettings = new();
+            connectionSettings.Invoke(blackHoleSettings);
+            DataPathAndLogs(dataPath, false, 1, true);
+            DatabaseConfiguration.SetMode(isDevMode);
+            ScanConnectionString(blackHoleSettings.ConnectionType, blackHoleSettings.ConnectionString,
+                dataPath, blackHoleSettings.TableSchema,
+                blackHoleSettings.additionalSettings.ConnectionTimeOut,
+                blackHoleSettings.UseQuotedDb);
+
+            return UpdateManually(blackHoleSettings.additionalSettings, assembly);
         }
 
         /// <summary>
@@ -388,9 +449,10 @@ namespace BlackHole.Configuration
             newServices.SuperNova(settings);
         }
 
-        internal static void SetMode(bool isDevMode)
+        internal static void SetMode(bool isDevMode, bool stopUpdate)
         {
             DatabaseConfiguration.SetMode(isDevMode);
+            DatabaseConfiguration.SetBlockMode(stopUpdate);
         }
 
         internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema, int timoutSeconds, bool isQuoted)

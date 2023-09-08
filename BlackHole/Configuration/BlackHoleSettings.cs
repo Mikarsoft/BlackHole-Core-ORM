@@ -23,6 +23,11 @@ namespace BlackHole.Configuration
         public bool isInDevMode { get; set; } = false;
 
         /// <summary>
+        /// blocks automatic update of the database
+        /// </summary>
+        public bool blockAutoUpdate { get; set; } = false;
+
+        /// <summary>
         /// Add the configuration for a database.
         /// </summary>
         /// <param name="connectionSettings">connection settings</param>
@@ -46,6 +51,18 @@ namespace BlackHole.Configuration
         public BlackHoleSettings IsDeveloperMode(bool isDevMode)
         {
             isInDevMode = isDevMode;
+            return this;
+        }
+
+        /// <summary>
+        /// This prevents BlackHole from Updating the Database on the StartUp.
+        /// <para>If you use this configuration, You will have to update the database manually, using the Cli or the
+        /// BlackHoleConfiguration.UpdateDatabase() command</para>
+        /// </summary>
+        /// <returns></returns>
+        public BlackHoleSettings BlockAutomaticUpdate()
+        {
+            blockAutoUpdate = true;
             return this;
         }
     }

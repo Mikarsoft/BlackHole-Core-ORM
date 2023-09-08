@@ -8,9 +8,9 @@ using System.Text;
 namespace BlackHole.Core
 {
     /// <summary>
-    /// 
+    /// Makes all the communication between the Datbase Table and The Specified Open Entity
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The BHOpenEntity</typeparam>
     public class BHOpenDataProvider<T> : IBHOpenDataProvider<T> where T : BHOpenEntity<T>
     {
         private readonly PKSettings<T> _settings;
@@ -26,7 +26,7 @@ namespace BlackHole.Core
         private readonly IExecutionProvider _executionProvider;
 
         /// <summary>
-        /// 
+        /// Create a Data Provider that Automatically Communicates with the Database Using the BHOpenEntity, that you pass in.
         /// </summary>
         public BHOpenDataProvider()
         {

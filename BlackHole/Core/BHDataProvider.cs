@@ -27,7 +27,7 @@ namespace BlackHole.Core
         private readonly IDataProvider _dataProvider;
 
         /// <summary>
-        /// Create a Data Provider that Automatically Communicates with the Database Using the Black Hole Entity you pass in.
+        /// Create a Data Provider that Automatically Communicates with the Database Using the Black Hole Entity, that you pass in.
         /// </summary>
         public BHDataProvider()
         {
