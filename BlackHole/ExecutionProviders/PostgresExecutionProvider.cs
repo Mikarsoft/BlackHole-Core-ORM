@@ -46,7 +46,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Scalar", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -68,7 +68,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("Scalar", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Scalar", ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -96,7 +96,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -118,7 +118,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("ScalarAsync", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -140,7 +140,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("RawScalar", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -157,7 +157,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("RawScalar", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -179,7 +179,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("RawScalarAsync", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -196,7 +196,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("RawScalarAsync", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -217,7 +217,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("NonQuery", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("NonQuery", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -235,7 +235,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("NonQuery", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("NonQuery", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -256,7 +256,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("NonQueryAsync", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("NonQueryAsync", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -274,7 +274,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs("NonQueryAsync", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("NonQueryAsync", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -309,7 +309,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryFirst_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryFirst_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -341,7 +341,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryFirst_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryFirst_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -375,7 +375,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Query_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Query_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -406,7 +406,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Query_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Query_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -441,7 +441,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryFirstAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryFirstAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -473,7 +473,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryFirstAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryFirstAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -507,7 +507,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -538,7 +538,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", commandText, ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
         }
@@ -581,7 +581,7 @@ namespace BlackHole.ExecutionProviders
                         PropertyInfo? property = properties.FirstOrDefault(x => string.Equals(x.Name, reader.GetName(i), StringComparison.OrdinalIgnoreCase));
                         if (property != null)
                         {
-                            obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, reader.GetValue(i));
+                            type.GetProperty(property.Name)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }
@@ -589,7 +589,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => _loggerService.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "", ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object_Mapping_{typeof(T).Name}", "MapperError", ex.ToString()));
                 return default;
             }
         }

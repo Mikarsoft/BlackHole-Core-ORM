@@ -754,7 +754,7 @@ namespace BlackHole.DataProviders
                         PropertyInfo? property = properties.FirstOrDefault(x => string.Equals(x.Name, reader.GetName(i), StringComparison.OrdinalIgnoreCase));
                         if (property != null)
                         {
-                            obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, reader.GetValue(i));
+                            type.GetProperty(property.Name)?.SetValue(obj, reader.GetValue(i));
                         }
                     }
                 }
@@ -762,7 +762,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "MapperError", ex.ToString()));
+                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object_Mapping_{typeof(T).Name}", "MapperError", ex.ToString()));
                 return default;
             }
         }

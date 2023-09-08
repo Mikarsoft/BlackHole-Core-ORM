@@ -758,11 +758,11 @@ namespace BlackHole.DataProviders
                         {
                             if (property.PropertyType == typeof(Guid))
                             {
-                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, reader.GetGuid(i));
+                                type.GetProperty(property.Name)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
-                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, Convert.ChangeType(reader.GetValue(i), property.PropertyType));
+                                type.GetProperty(property.Name)?.SetValue(obj, Convert.ChangeType(reader.GetValue(i), property.PropertyType));
                             }
                         }
                     }
@@ -771,7 +771,7 @@ namespace BlackHole.DataProviders
             }
             catch(Exception ex)
             {
-                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "MapperError", ex.ToString()));
+                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object_Mapping_{typeof(T).Name}", "MapperError", ex.ToString()));
                 return default;
             }
         }
@@ -819,11 +819,11 @@ namespace BlackHole.DataProviders
                         {
                             if (property.PropertyType == typeof(Guid))
                             {
-                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, reader.GetGuid(i));
+                                type.GetType()?.GetProperty(property.Name)?.SetValue(obj, reader.GetGuid(i));
                             }
                             else
                             {
-                                obj?.GetType()?.GetProperty(property.Name)?.SetValue(obj, Convert.ChangeType(reader.GetValue(i), property.PropertyType));
+                                type.GetProperty(property.Name)?.SetValue(obj, Convert.ChangeType(reader.GetValue(i), property.PropertyType));
                             }
                         }
                     }
@@ -832,7 +832,7 @@ namespace BlackHole.DataProviders
             }
             catch(Exception ex)
             {
-                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object Mapping {typeof(T).Name}", "MapperError", ex.ToString()));
+                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object_Mapping_{typeof(T).Name}", "MapperError", ex.ToString()));
                 return default;
             }
         }
