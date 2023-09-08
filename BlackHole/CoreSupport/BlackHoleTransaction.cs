@@ -17,7 +17,6 @@ namespace BlackHole.CoreSupport
         /// Generic transaction
         /// </summary>
         public IDbTransaction _transaction;
-        private readonly ILoggerService _loggerService;
         private bool commited = false;
 
         internal BlackHoleTransaction()
@@ -26,7 +25,6 @@ namespace BlackHole.CoreSupport
             connection = connectionBuilder.GetConnection();
             connection.Open();
             _transaction = connection.BeginTransaction();
-            _loggerService = new LoggerService();
         }
 
         internal bool Commit()
@@ -40,7 +38,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Commit", "Commit", ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Transaction_Commit", "Commit", ex.ToString())).Start();
                 result = false;
             }
             return result;
@@ -63,7 +61,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Rollback", "Rollback", ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Transaction_Rollback", "Rollback", ex.ToString())).Start();
                 result = false;
             }
             return result;
@@ -83,7 +81,7 @@ namespace BlackHole.CoreSupport
             }
             catch (Exception ex)
             {
-                new Thread(() => _loggerService.CreateErrorLogs($"Transaction_Commit", "Commit", ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Transaction_Commit", "Commit", ex.ToString()));
                 _transaction.Rollback();
             }
 

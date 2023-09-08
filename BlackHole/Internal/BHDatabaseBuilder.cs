@@ -9,7 +9,6 @@ namespace BlackHole.Internal
     internal class BHDatabaseBuilder
     {
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
-        private readonly ILoggerService _loggerService;
         private readonly IExecutionProvider connection;
         private bool ExistingDb { get; set; } = false;
         private string SchemaCreationCommand { get; set; } = string.Empty;
@@ -19,7 +18,6 @@ namespace BlackHole.Internal
         internal BHDatabaseBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
-            _loggerService = new LoggerService();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ServerConnection);
             SqlWriter = new BHSqlExportWriter("1_DatabaseSql", "SqlFiles", "sql");
             DbSchema = DatabaseStatics.DatabaseSchema;
@@ -124,7 +122,7 @@ namespace BlackHole.Internal
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
+                Task.Factory.StartNew(() => CheckDb.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString()));
 
                 if (CliCommand.CliExecution)
                 {
@@ -217,7 +215,7 @@ namespace BlackHole.Internal
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
+                Task.Factory.StartNew(() => CheckDb.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString()));
 
                 if (CliCommand.CliExecution)
                 {
@@ -289,7 +287,7 @@ namespace BlackHole.Internal
             }
             catch (Exception ex)
             {
-                _loggerService.CreateErrorLogs("DatabaseBuilder", CheckDb, ex.Message, ex.ToString());
+                Task.Factory.StartNew(() => CheckDb.CreateErrorLogs("DatabaseBuilder", ex.Message, ex.ToString()));
                 return false;
             }
         }
