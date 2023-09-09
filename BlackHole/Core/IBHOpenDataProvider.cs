@@ -172,7 +172,7 @@ namespace BlackHole.Core
         bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry);
 
         /// <summary>
-        /// <b>Transaction.</b>Finds the entries in the table
+        /// <b>Transaction.</b> Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
         /// the columns based on the inserted Entity's property values.
         /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>

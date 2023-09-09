@@ -21,10 +21,6 @@ namespace BlackHole.CoreSupport
         internal int ParamsCount { get; set; }
     }
 
-    /// <summary>
-    /// Stores All the required data to perform the Joins in this class
-    /// To get the result you need to Execute this object.
-    /// </summary>
     internal class JoinsData
     {
         internal Type? DtoType { get; set; }

@@ -7,13 +7,7 @@ namespace BlackHole.Core
     /// </summary>
     public class BHViewStorage : IBHViewStorage
     {
-        /// <summary>
-        /// Executes the stored view that has the inserted DTO as
-        /// Identifier. If there is no view stored with this DTO it returns
-        /// an empty IList
-        /// </summary>
-        /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
-        /// <returns>IList of the DTO</returns>
+ 
         List<Dto> IBHViewStorage.ExecuteView<Dto>()
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
@@ -27,13 +21,6 @@ namespace BlackHole.Core
             return result;
         }
 
-        /// <summary>
-        /// Transaction. Executes the stored view that has the inserted DTO as
-        /// Identifier. If there is no view stored with this DTO it returns
-        /// an empty IList
-        /// </summary>
-        /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
-        /// <returns>IList of the DTO</returns>
         List<Dto> IBHViewStorage.ExecuteView<Dto>(BHTransaction transaction)
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
@@ -47,13 +34,6 @@ namespace BlackHole.Core
             return result;
         }
 
-        /// <summary>
-        /// Executes the stored view that has the inserted DTO as
-        /// Identifier. If there is no view stored with this DTO it returns
-        /// an empty IList
-        /// </summary>
-        /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
-        /// <returns>IList of the DTO</returns>
         async Task<List<Dto>> IBHViewStorage.ExecuteViewAsync<Dto>()
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
@@ -67,13 +47,6 @@ namespace BlackHole.Core
             return result;
         }
 
-        /// <summary>
-        /// Transaction. Executes the stored view that has the inserted DTO as
-        /// Identifier. If there is no view stored with this DTO it returns
-        /// an empty IList
-        /// </summary>
-        /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
-        /// <returns>IList of the DTO</returns>
         async Task<List<Dto>> IBHViewStorage.ExecuteViewAsync<Dto>(BHTransaction transaction)
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();

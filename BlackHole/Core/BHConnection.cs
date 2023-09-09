@@ -30,7 +30,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// <para>Classic Execute Scalar</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -42,7 +42,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// <para> Classic Execute Scalar with BHParameters</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -55,7 +55,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// <para> Classic Execute Scalar with Object as Parameters</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -67,8 +67,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Transaction. Classic Execute Scalar with BHParameters</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Transaction.</b> Classic Execute Scalar with BHParameters</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -81,8 +81,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Transaction. Classic Execute Scalar</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Transaction.</b> Classic Execute Scalar</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -94,8 +94,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Transaction. Classic Execute Scalar with Object as Parameters</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Transaction.</b> Classic Execute Scalar with Object as Parameters</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -108,8 +108,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Asyncronous. Classic Execute Scalar</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Asyncronous.</b> Classic Execute Scalar</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -120,8 +121,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Asyncronous. Classic Execute Scalar with BHParameters</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Asyncronous.</b> Classic Execute Scalar with BHParameters</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -133,8 +135,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Asyncronous. Classic Execute Scalar with Object as Parameters</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Asyncronous.</b> Classic Execute Scalar with Object as Parameters</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -146,8 +149,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Asyncronous. Transaction. Classic Execute Scalar</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Asyncronous.</b> <b>Transaction.</b> Classic Execute Scalar</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -159,8 +163,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Asyncronous. Transaction. Classic Execute Scalar with BHParameters</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Asyncronous.</b> <b>Transaction.</b> Classic Execute Scalar with BHParameters</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -173,8 +178,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para>Asyncronous. Transaction. Classic Execute Scalar with Object as Parameters</para>
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Asyncronous.</b> <b>Transaction.</b> Classic Execute Scalar with Object as Parameters</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -188,7 +194,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Classic Execute without output.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <returns>Success Boolean</returns>
@@ -199,7 +205,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Classic Execute with BHParameters.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
@@ -211,7 +217,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Classic Execute with Object as Parameters
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
@@ -222,8 +228,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. Classic Execute without output.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> Classic Execute without output.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
@@ -234,8 +240,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. Classic Execute without output.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> Classic Execute without output.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
@@ -247,8 +253,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. Classic Execute with Object as Parameters.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> Classic Execute with Object as Parameters.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
@@ -260,8 +266,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Classic Execute without output.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> Classic Execute without output.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <returns>Success Boolean</returns>
@@ -271,8 +278,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Classic Execute with BHParameters.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> Classic Execute with BHParameters.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
@@ -283,8 +291,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Classic Execute with Object as Parameters.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> Classic Execute with Object as Parameters.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
@@ -295,8 +304,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. Classic Execute without output. 
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> Classic Execute without output. 
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
@@ -307,8 +317,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. Classic Execute with BHParameters.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> Classic Execute with BHParameters.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
@@ -320,8 +331,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. Classic Execute with Object as Parameters.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> Classic Execute with Object as Parameters.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
@@ -334,7 +346,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// A Query that returns returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -346,7 +358,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// A Query that takes BHParameters and returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -359,7 +371,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// A Query that takes an Object as parameters and returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command text</param>
@@ -371,8 +383,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. A Query that returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> A Query that returns all Lines of the Result as List.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -384,8 +396,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. A Query that takes BHParameters and returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> A Query that takes BHParameters and returns all Lines of the Result as List.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -398,8 +410,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. A Query that takes an Object as parameters and returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> A Query that takes an Object as parameters and returns all Lines of the Result as List.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -412,8 +424,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. A Query that returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> A Query that returns all Lines of the Result as List.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -424,8 +437,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. A Query that takes BHParameters and returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> A Query that takes BHParameters and returns all Lines of the Result as List.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -437,8 +451,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. A Query that takes an Object as parameters and returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> A Query that takes an Object as parameters and returns all Lines of the Result as List.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -450,8 +465,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. A Query that returns all Lines of the Result as List. 
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that returns all Lines of the Result as List. 
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -463,8 +479,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. A Query that takes BHParameters and returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that takes BHParameters and returns all Lines of the Result as List.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -477,8 +494,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. A Query that takes an Object as parameters and returns all Lines of the Result as List.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that takes an Object as parameters and returns all Lines of the Result as List.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -492,7 +510,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// A Query that returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -504,7 +522,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// A Query that takes BHParameters and returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -517,7 +535,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// A Query that takes an Object as parameters and returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command text</param>
@@ -529,8 +547,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. A Query that returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> A Query that returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -542,8 +560,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. A Query that takes BHParameters and returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> A Query that takes BHParameters and returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -556,8 +574,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. A Query that takes an Object as parameters and returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Transaction.</b> A Query that takes an Object as parameters and returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -570,8 +588,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. A Query that returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> A Query that returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -582,8 +601,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. A Query that takes BHParameters and returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> A Query that takes BHParameters and returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -595,8 +615,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. A Query that takes an Object as parameters and returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> A Query that takes an Object as parameters and returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command text</param>
@@ -608,8 +629,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. A Query that returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -621,8 +643,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. A Query that takes BHParameters and returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that takes BHParameters and returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
@@ -635,8 +658,9 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Transaction. A Query that takes an Object as parameters and returns only the first Line of the result.
-        /// <para>Tip: For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that takes an Object as parameters and returns only the first Line of the result.
+        /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>

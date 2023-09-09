@@ -19,7 +19,7 @@ namespace BlackHole.Core
         #region Joins
         /// <summary>
         /// Performs a Right Join between the First and the Second specified Entities. 
-        /// <para>!!Important!! => For safety reasons, The first Entity must have been used 
+        /// <para><b>Important</b> => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
         /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
@@ -55,7 +55,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Performs a Left Join between the First and the Second specified Entities. 
-        /// <para>!!Important!! => For safety reasons, The first Entity must have been used 
+        /// <para><b>Important</b> => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
         /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
@@ -91,7 +91,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Performs an Outer Join between the First and the Second specified Entities. 
-        /// <para>!!Important!! => For safety reasons, The first Entity must have been used 
+        /// <para><b>Important</b> => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
         /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
@@ -127,7 +127,7 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Performs an Inner Join between the First and the Second specified Entities. 
-        /// <para>!!Important!! => For safety reasons, The first Entity must have been used 
+        /// <para><b>Important</b> => For safety reasons, The first Entity must have been used 
         /// at least once in the previous Joins, otherwise this Join and its settings will be ignored on the 
         /// Execution and you might get some null values on the exported DTOs.</para>
         /// </summary>
@@ -228,11 +228,11 @@ namespace BlackHole.Core
         /// <summary>
         /// Casts a column of the second Entity as a column of the 
         /// output's DTO. 
-        /// <para>!!Important!! => There are some restrictions
+        /// <para><b>Important</b> => There are some restrictions
         /// to the types of the properties that can be casted. Read the Documentation
         /// for details. If a data type is not allowed to be converted to another type,
         /// then the cast will be ignored in the Execution and the DTO column will be null.</para>
-        /// <para>Tip: Cast has priority over normal mapping, For example the Column Id of the DTO is 
+        /// <para><b>Tip</b> : Cast has priority over normal mapping, For example the Column Id of the DTO is 
         /// by default mapped to the First Entity of all Joins. If you want to map a different
         /// Entity's Id into that column, use a Cast.</para>
         /// </summary>
@@ -279,11 +279,11 @@ namespace BlackHole.Core
         /// <summary>
         /// Casts a column of the first Entity as a column of the 
         /// output's DTO. 
-        /// <para>!!Important!! => There are some restrictions
+        /// <para><b>Important</b> => There are some restrictions
         /// to the types of the properties that can be casted. Read the Documentation
         /// for details. If a data type is not allowed to be converted to another type,
         /// then the cast will be ignored in the Execution and the DTO column will be null.</para>
-        /// <para>Tip: Cast has priority over normal mapping, For example the Column Id of the DTO is 
+        /// <para><b>Tip</b> : Cast has priority over normal mapping, For example the Column Id of the DTO is 
         /// by default mapped to the First Entity of all Joins. If you want to map a different
         /// Entity's Id into that column, use a Cast.</para>
         /// </summary>
@@ -405,8 +405,8 @@ namespace BlackHole.Core
         /// <typeparam name="Dto"></typeparam>
         /// <typeparam name="Tsource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Calculated Data of all previous Joins</returns>
         public static JoinsData<Dto> Then<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data)
         {
             return new JoinsData<Dto>
@@ -433,15 +433,15 @@ namespace BlackHole.Core
         /// Stores the Joins Data with the DTO Class as Identifier
         /// and then you can execute them as many times as you want
         /// using the 'IBlackHoleViewStorage' Interface.
-        /// <para>Benefit: With this method, the program doesn't have to calculate the
+        /// <para><b>Benefit</b> : With this method, the program doesn't have to calculate the
         /// Joins Data multiple times and it executes the Joins faster.</para>
-        /// <para>Tip: This method is recommended if the parameters in the current
+        /// <para><b>Tip</b> : This method is recommended if the parameters in the current
         /// Joins Data are not depending on the user's inputs.
         /// Run your Joins Once in the StartUp of your program and store them
         /// as Views.</para>
         /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
         /// <returns>The index of this Joins Data in the Stored Views List</returns>
         public static int StoreAsView<Dto>(this JoinsData<Dto> data) where Dto : IBHDtoIdentifier
         {
@@ -471,12 +471,6 @@ namespace BlackHole.Core
             return BlackHoleViews.Stored.Count;
         }
 
-        /// <summary>
-        /// Executes the Joins Data from The View Storage
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="data">Joins Data</param>
-        /// <returns>The Entries of the Joins mapped into DTO</returns>
         internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
@@ -491,13 +485,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// Transaction. Executes the Joins Data from The View Storage
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="data">Joins Data</param>
-        /// <param name="bHTransaction">Transaction object</param>
-        /// <returns>The Entries of the Joins mapped into DTO</returns>
         internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
@@ -512,12 +499,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// Executes the Joins Data from The View Storage
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="data">Joins Data</param>
-        /// <returns>The Entries of the Joins mapped into DTO</returns>
         internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
@@ -533,13 +514,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// Transaction. Executes the Joins Data from The View Storage
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="data">Joins Data</param>
-        /// <param name="bHTransaction">Transaction object</param>
-        /// <returns>The Entries of the Joins mapped into DTO</returns>
         internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
@@ -571,7 +545,7 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction. Executes the Joins Data and returns the result
+        /// <b>Transaction</b>. Executes the Joins Data and returns the result
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
@@ -588,7 +562,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Asyncronous. Executes the Joins Data and returns the result
+        /// <b>Asyncronous</b>. Executes the Joins Data and returns the result
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
@@ -604,7 +579,8 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Transaction.Asyncronous. Executes the Joins Data and returns the result
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Executes the Joins Data and returns the result
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="data">Joins Data</param>
