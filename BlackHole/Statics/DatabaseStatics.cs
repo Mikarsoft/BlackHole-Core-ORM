@@ -18,6 +18,6 @@ namespace BlackHole.Statics
         internal static bool BlockAutoUpdate { get; set; } = false;
         internal static bool IsQuotedDatabase { get; set; } = false;
         internal static bool InitializeData { get; set; } = false;
-        internal static string DbDateFormat { get; set; } = "MM-dd-yyyy";
+        internal static string DbDateFormat { get; set; } = "yyyy-MM-dd";
     }
 }

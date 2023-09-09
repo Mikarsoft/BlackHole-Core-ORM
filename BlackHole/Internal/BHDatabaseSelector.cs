@@ -104,6 +104,17 @@ namespace BlackHole.Internal
                 };
             }
 
+            if(propType == typeof(long))
+            {
+                return DatabaseStatics.DatabaseType switch
+                {
+                    BlackHoleSqlTypes.SqlServer => $"{GetMyShit(columName)} BIGINT IDENTITY(1,1) NOT NULL ,",
+                    BlackHoleSqlTypes.MySql => $"{GetMyShit(columName)} bigint AUTO_INCREMENT NOT NULL ,",
+                    BlackHoleSqlTypes.Postgres => $"{GetMyShit(columName)} BIGSERIAL ,",
+                    BlackHoleSqlTypes.SqlLite => $"{GetMyShit(columName)} bigint default (last_insert_rowid() + 1) NOT NULL ,",
+                    _ => $"{GetMyShit(columName)} NUMBER(16,0) GENERATED ALWAYS AS IDENTITY ,",
+                };
+            }
 
             return DatabaseStatics.DatabaseType switch
             {

@@ -48,6 +48,24 @@ namespace BlackHole.Entities
         /// 
         /// </summary>
         /// <param name="primaryKey"></param>
+        /// <param name="HasAutoIncrement"></param>
+        /// <returns></returns>
+        public PKSettings<T> SetPrimaryKey(Expression<Func<T, long>> primaryKey, bool HasAutoIncrement)
+        {
+            PKSettings<T> settings = new(false);
+            if (primaryKey.Body is MemberExpression pkMember)
+            {
+                settings.PKPropertyNames.Add(pkMember.Member.Name);
+                settings.MainPrimaryKey = pkMember.Member.Name;
+                settings.HasAutoIncrement = HasAutoIncrement;
+            }
+            return settings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primaryKey"></param>
         /// <param name="HasSequence"></param>
         /// <returns></returns>
         public PKSettings<T> SetPrimaryKey(Expression<Func<T, Guid>> primaryKey, bool HasSequence)

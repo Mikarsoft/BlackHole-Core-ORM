@@ -11,10 +11,6 @@ namespace BlackHole.ConnectionProvider
 {
     internal class ConnectionBuilder
     {
-        /// <summary>
-        /// Returns and IDBConnection with the specified database
-        /// </summary>
-        /// <returns></returns>
         internal IDbConnection GetConnection()
         {
             return DatabaseStatics.DatabaseType switch

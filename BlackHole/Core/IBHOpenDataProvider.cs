@@ -6,43 +6,44 @@ using System.Linq.Expressions;
 namespace BlackHole.Core
 {
     /// <summary>
-    /// 
+    /// Makes all the communication between the Datbase Table and The Specified Entity
+    /// <para>For custom commands, use IBHConnection Interface</para>
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">BHOpenEntity</typeparam>
     public interface IBHOpenDataProvider<T> where T :BHOpenEntity<T>
     {
         /// <summary>
         /// Gets all the entries of the specific Table
-        /// and returns an IList of Entities
+        /// and returns a List of Entities
         /// </summary>
-        /// <returns>All Active Entities of the Table</returns>
+        /// <returns>All Entities of the Table</returns>
         List<T> GetAllEntries();
 
         /// <summary>
         /// Transaction.Gets all the entries of the specific Table
-        /// and returns an IList of Entities
+        /// and returns a List of Entities
         /// </summary>
-        /// <returns>All Active Entities of the Table</returns>
+        /// <returns>All Entities of the Table</returns>
         List<T> GetAllEntries(BHTransaction transaction);
 
         /// <summary>
         /// Selects only the columns of the specified Dto that exist on the Table
-        /// and returns an IList of the Dto.
-        /// Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <returns>All Active Entities of the Table mapped to DTO</returns>
+        /// <returns>All Entities of the Table mapped to DTO</returns>
         List<Dto> GetAllEntries<Dto>() where Dto : BHOpenDto;
 
         /// <summary>
         /// Transaction.Selects only the columns of the specified Dto that exist on the Table
-        /// and returns an IList of the Dto.
-        /// Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <returns>All Active Entities of the Table mapped to DTO</returns>
+        /// <returns>All Entities of the Table mapped to DTO</returns>
         List<Dto> GetAllEntries<Dto>(BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace BlackHole.Core
         T? GetEntryWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction.Generates an Sql command using the Lambda Expression, that filters the
+        /// Transaction. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns the first one that matches the filters
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
@@ -73,7 +74,7 @@ namespace BlackHole.Core
         Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class;
 
         /// <summary>
-        /// Transaction.Generates an Sql command using the Lambda Expression and the Dto properties that match
+        /// Transaction. Generates an Sql command using the Lambda Expression and the Dto properties that match
         /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
         /// filters
         /// </summary>
@@ -88,16 +89,16 @@ namespace BlackHole.Core
         /// Entries of the table and returns all Entries that match the filters
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
-        /// <returns>IList of Entities</returns>
+        /// <returns>List of Entities</returns>
         List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction.Generates an Sql command using the Lambda Expression, that filters the
+        /// Transaction. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Entries that match the filters
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
-        /// <returns>IList of Entities</returns>
+        /// <returns>List of Entities</returns>
         List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
@@ -107,188 +108,191 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
-        /// <returns>IList of DTOs</returns>
+        /// <returns>List of DTOs</returns>
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
 
         /// <summary>
-        /// Transaction.Generates an Sql command using the Lambda Expression, that filters the
+        /// Transaction. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Columns that match with the filters
         /// and the Dto properties
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
-        /// <returns>IList of DTOs</returns>
+        /// <returns>List of DTOs</returns>
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
-        /// Inserts the Entity into the table, generates a new Id 
-        /// and returns the Id
+        /// Inserts the Entity into the table, and updates its
+        /// values, if there is auto increment or custom IBHValueGenerators,
+        /// applied on its properties.
         /// </summary>
         /// <param name="entry">Entity</param>
-        /// <returns>Id of the Entity</returns>
+        /// <returns>Success</returns>
         bool InsertEntry(T entry);
 
         /// <summary>
-        /// Transaction.Inserts the Entity into the table, generates a new Id 
-        /// and returns the Id
+        /// Transaction. Inserts the Entity into the table, and updates its
+        /// values, if there is auto increment or custom IBHValueGenerators,
+        /// applied on its properties.
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
-        /// <returns>Id of the Entity</returns>
+        /// <returns>Success</returns>
         bool InsertEntry(T entry, BHTransaction transaction);
 
         /// <summary>
-        /// Inserts a list of Entities into the table, generates a new Id of each one
-        /// and returns the list of Ids
+        /// Inserts a list of Entities into the table, and updates their
+        /// values, if there is auto increment or custom IBHValueGenerators,
+        /// applied on their properties.
         /// </summary>
         /// <param name="entries">Entities</param>
-        /// <returns>Ids of the Entities</returns>
+        /// <returns>Success</returns>
         bool InsertEntries(List<T> entries);
 
         /// <summary>
-        /// Transaction.Inserts a list of Entities into the table, generates a new Id of each one
-        /// and returns the list of Ids
+        /// Transaction. Inserts a list of Entities into the table, and updates their
+        /// values, if there is auto increment or custom IBHValueGenerators,
+        /// applied on their properties.
         /// </summary>
         /// <param name="entries">Entities</param>
         /// <param name="transaction">Transaction Object</param>
-        /// <returns>Ids of the Entities</returns>
+        /// <returns>Success</returns>
         bool InsertEntries(List<T> entries, BHTransaction transaction);
 
         /// <summary>
         /// Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
-        /// the columns based on the inserted Entity's property values. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// the columns based on the inserted Entity's property values.
+        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Entity</param>
+        /// <returns>Success</returns>
         bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry);
 
         /// <summary>
         /// Transaction.Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
-        /// the columns based on the inserted Entity's property values. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// the columns based on the inserted Entity's property values.
+        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <param name="entry">Entity</param>
+        /// <returns>Success</returns>
         bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction);
 
         /// <summary>
         /// Finds the entries in the database table
         /// using a Lambda Expression as filter and
         /// uses a 'Columns' class that has properties with the same
-        /// name and type with some properties of the Entity, to specificaly update
+        /// name and type with some properties of the Entity, to specifically update
         /// these columns on each database entry with the Columns Object's values.
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
         /// </summary>
         /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Columns Object</param>
+        /// <returns>Success</returns>
         bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class;
 
         /// <summary>
-        /// Transaction.Finds the entries in the database table
+        /// Transaction. Finds the entries in the database table
         /// using a Lambda Expression as filter and
         /// uses a 'Columns' class that has properties with the same
-        /// name and type with some properties of the Entity, to specificaly update
+        /// name and type with some properties of the Entity, to specifically update
         /// these columns on each database entry with the Columns Object's values.
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
         /// </summary>
         /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Columns Object</param>
         /// <param name="transaction">Transaction Object</param>
+        /// <returns>Success</returns>
         bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class;
 
         /// <summary>
         /// Deletes All entires of the database table.
-        /// If you are using a 'UseActivator' Attribute on this Entity,
-        /// the entries get deactivated instead of deleted and they can only
-        /// be accessed with the 'GetInactiveEntries' command. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
         /// </summary>
+        /// <returns>Success</returns>
         bool DeleteAllEntries();
 
         /// <summary>
-        /// Transaction.Deletes All entires of the database table.
-        /// If you are using a 'UseActivator' Attribute on this Entity,
-        /// the entries get deactivated instead of deleted and they can only
-        /// be accessed with the 'GetInactiveEntries' command. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// Transaction. Deletes All entires of the database table.
         /// </summary>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Success</returns>
         bool DeleteAllEntries(BHTransaction transaction);
 
         /// <summary>
         /// Finds and deletes the entries of the database table
         /// that match with the Lambda Expression filters.
-        /// If you are using a 'UseActivator' Attribute on this Entity,
-        /// the entries get deactivated instead of deleted and they can only
-        /// be accessed with the 'GetInactiveEntries' command. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
+        /// <returns>Success</returns>
         bool DeleteEntriesWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction.Finds and deletes the entries of the database table
+        /// Transaction. Finds and deletes the entries of the database table
         /// that match with the Lambda Expression filters.
-        /// If you are using a 'UseActivator' Attribute on this Entity,
-        /// the entries get deactivated instead of deleted and they can only
-        /// be accessed with the 'GetInactiveEntries' command. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
+        /// <returns>Success</returns>
         bool DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
         /// Asyncronous. Gets all the entries of the specific Table
-        /// and returns an IList of Entities
+        /// and returns a List of Entities
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
-        /// <returns>All Active Entities of the Table</returns>
+        /// <returns>All Entities of the Table</returns>
         Task<List<T>> GetAllEntriesAsync();
 
         /// <summary>
         /// Transaction.Asyncronous. Gets all the entries of the specific Table
-        /// and returns an IList of Entities
+        /// and returns a List of Entities
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
-        /// <returns>All Active Entities of the Table</returns>
+        /// <returns>All Entities of the Table</returns>
         Task<List<T>> GetAllEntriesAsync(BHTransaction transaction);
 
         /// <summary>
         /// Asyncronous. Selects only the columns of the specified Dto that exist on the Table
-        /// and returns an IList of the Dto.
-        /// Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
-        /// <returns>All Active Entities of the Table mapped to DTO</returns>
+        /// <returns>All Entities of the Table mapped to DTO</returns>
         Task<List<Dto>> GetAllEntriesAsync<Dto>() where Dto : BHOpenDto;
 
         /// <summary>
-        /// Transaction.Asyncronous. Selects only the columns of the specified Dto that exist on the Table
-        /// and returns an IList of the Dto.
-        /// Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null
+        /// Transaction. Asyncronous. Selects only the columns of the specified Dto that exist on the Table
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
-        /// <returns>All Active Entities of the Table mapped to DTO</returns>
+        /// <returns>All Entities of the Table mapped to DTO</returns>
         Task<List<Dto>> GetAllEntriesAsync<Dto>(BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
         /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns the first one that matches the filters
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Entity</returns>
         Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction.Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// Transaction. Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns the first one that matches the filters
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
@@ -299,6 +303,9 @@ namespace BlackHole.Core
         /// Asyncronous. Generates an Sql command using the Lambda Expression and the Dto properties that match
         /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
         /// filters
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -306,9 +313,12 @@ namespace BlackHole.Core
         Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class;
 
         /// <summary>
-        /// Transaction.Asyncronous. Generates an Sql command using the Lambda Expression and the Dto properties that match
+        /// Transaction. Asyncronous. Generates an Sql command using the Lambda Expression and the Dto properties that match
         /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
         /// filters
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -319,162 +329,178 @@ namespace BlackHole.Core
         /// <summary>
         /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Entries that match the filters
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
-        /// <returns>IList of Entities</returns>
+        /// <returns>List of Entities</returns>
         Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction.Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// Transaction. Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Entries that match the filters
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
-        /// <returns>IList of Entities</returns>
+        /// <returns>List of Entities</returns>
         Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
         /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Columns that match with the filters
         /// and the Dto properties 
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
-        /// <returns>IList of DTOs</returns>
+        /// <returns>List of DTOs</returns>
         Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
 
         /// <summary>
-        /// Transaction.Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// Transaction. Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Columns that match with the filters
         /// and the Dto properties 
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
-        /// <returns>IList of DTOs</returns>
+        /// <returns>List of DTOs</returns>
         Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
-        /// Asyncronous. Inserts the Entity into the table, generates a new Id 
-        /// and returns the Id
+        /// Asyncronous. Inserts the Entity into the table, and updates its
+        /// values, if there is auto increment or custom IBHValueGenerators,
+        /// applied on its properties.
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="entry">Entity</param>
-        /// <returns>Id of the Entity</returns>
+        /// <returns>Success</returns>
         Task<bool> InsertEntryAsync(T entry);
 
         /// <summary>
-        /// Transaction.Asyncronous. Inserts the Entity into the table, generates a new Id 
-        /// and returns the Id
+        /// Transaction. Asyncronous. Inserts the Entity into the table, and updates its
+        /// values, if there is auto increment or custom IBHValueGenerators,
+        /// applied on its properties.
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
-        /// <returns>Id of the Entity</returns>
+        /// <returns>Success</returns>
         Task<bool> InsertEntryAsync(T entry, BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Inserts a list of Entities into the table, generates a new Id of each one
-        /// and returns the list of Ids
+        /// Asyncronous. Inserts a list of Entities into the table, and updates their
+        /// values, if there is auto increment or custom IBHValueGenerators,
+        /// applied on their properties.
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="entries">List of Entities</param>
-        /// <returns>Ids of the Entities</returns>
+        /// <returns>Success</returns>
         Task<bool> InsertEntriesAsync(List<T> entries);
 
         /// <summary>
-        /// Transaction.Asyncronous. Inserts a list of Entities into the table, generates a new Id of each one
-        /// and returns the list of Ids
+        /// Transaction. Asyncronous. Inserts a list of Entities into the table, and updates their
+        /// values, if there is auto increment or custom IBHValueGenerators,
+        /// applied on their properties.
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
-        /// <returns>Ids of the Entities</returns>
+        /// <returns>Success</returns>
         Task<bool> InsertEntriesAsync(List<T> entries, BHTransaction transaction);
 
         /// <summary>
         /// Asyncronous. Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
-        /// the columns based on the inserted Entity's property values. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// the columns based on the inserted Entity's property values.
+        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Entity</param>
+        /// <returns>Success</returns>
         Task<bool> UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry);
 
         /// <summary>
-        /// Transaction.Asyncronous. Finds the entries in the table
+        /// Transaction. Asyncronous. Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
-        /// the columns based on the inserted Entity's property values. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// the columns based on the inserted Entity's property values.
+        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
+        /// <returns>Success</returns>
         Task<bool> UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction);
 
         /// <summary>
         /// Asyncronous. Finds the entries in the database table
         /// using a Lambda Expression as filter and
         /// uses a 'Columns' class that has properties with the same
-        /// name and type with some properties of the Entity, to specificaly update
+        /// name and type with some properties of the Entity, to specifically update
         /// these columns on each database entry with the Columns Object's values.
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Columns Object</param>
+        /// <returns>Success</returns>
         Task<bool> UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class;
 
         /// <summary>
-        /// Transaction.Asyncronous. Finds the entries in the database table
+        /// Transaction. Asyncronous.  Finds the entries in the database table
         /// using a Lambda Expression as filter and
         /// uses a 'Columns' class that has properties with the same
-        /// name and type with some properties of the Entity, to specificaly update
+        /// name and type with some properties of the Entity, to specifically update
         /// these columns on each database entry with the Columns Object's values.
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Columns Object</param>
         /// <param name="transaction">Transaction Object</param>
+        /// <returns>Success</returns>
         Task<bool> UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class;
 
         /// <summary>
-        /// Asyncronous. Deletes All entires of the database table.
-        /// If you are using a 'UseActivator' Attribute on this Entity,
-        /// the entries get deactivated instead of deleted and they can only
-        /// be accessed with the 'GetInactiveEntries' command. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// Asyncronous. Deletes All entires of the database table. 
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
+        /// <returns>Success</returns>
         Task<bool> DeleteAllEntriesAsync();
 
         /// <summary>
-        /// Transaction.Asyncronous. Deletes All entires of the database table.
-        /// If you are using a 'UseActivator' Attribute on this Entity,
-        /// the entries get deactivated instead of deleted and they can only
-        /// be accessed with the 'GetInactiveEntries' command. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// Transaction. Asyncronous. Deletes All entires of the database table. 
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
+        /// <returns>Success</returns>
         Task<bool> DeleteAllEntriesAsync(BHTransaction transaction);
 
         /// <summary>
         /// Asyncronous. Finds and deletes the entries of the database table
-        /// that match with the Lambda Expression filters.
-        /// If you are using a 'UseActivator' Attribute on this Entity,
-        /// the entries get deactivated instead of deleted and they can only
-        /// be accessed with the 'GetInactiveEntries' command. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// that match with the Lambda Expression filters. 
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
+        /// <returns>Success</returns>
         Task<bool> DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction.Asyncronous. Finds and deletes the entries of the database table
-        /// that match with the Lambda Expression filters.
-        /// If you are using a 'UseActivator' Attribute on this Entity,
-        /// the entries get deactivated instead of deleted and they can only
-        /// be accessed with the 'GetInactiveEntries' command. 
-        /// !!Important!! => You must use 'await' operator if your next operation depends on this operation
+        /// Transaction.Asyncronous.Finds and deletes the entries of the database table
+        /// that match with the Lambda Expression filters. 
+        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
+        /// <returns>Success</returns>
         Task<bool> DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>

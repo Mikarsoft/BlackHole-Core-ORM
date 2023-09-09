@@ -6,33 +6,32 @@ using System.Linq.Expressions;
 namespace BlackHole.Core
 {
     /// <summary>
-    /// Provides all the functionality to communicate with the database with more than 100
-    /// methods and commands.
+    /// Makes all the communication between the Datbase Table and The Specified Entity.
     /// <para>For custom commands, use IBHConnection Interface</para>
     /// </summary>
-    /// <typeparam name="T">Type of Entity</typeparam>
-    /// <typeparam name="G">Type of Entity Id</typeparam>
+    /// <typeparam name="T">BlackHoleEntity</typeparam>
+    /// <typeparam name="G">The type of Entity's Id</typeparam>
     public interface IBHDataProvider<T, G> where T : BlackHoleEntity<G>
     {
         /// <summary>
         /// Gets all the entries of the specific Table
-        /// and returns an IList of Entities
+        /// and returns a List of Entities
         /// </summary>
         /// <returns>All Active Entities of the Table</returns>
         List<T> GetAllEntries();
 
         /// <summary>
         /// Transaction.Gets all the entries of the specific Table
-        /// and returns an IList of Entities
+        /// and returns a List of Entities
         /// </summary>
         /// <returns>All Active Entities of the Table</returns>
         List<T> GetAllEntries(BHTransaction transaction);
 
         /// <summary>
         /// Selects only the columns of the specified Dto that exist on the Table
-        /// and returns an IList of the Dto.
-        /// Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
@@ -40,9 +39,9 @@ namespace BlackHole.Core
 
         /// <summary>
         /// Transaction.Selects only the columns of the specified Dto that exist on the Table
-        /// and returns an IList of the Dto.
-        /// Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
@@ -50,14 +49,14 @@ namespace BlackHole.Core
 
         /// <summary>
         /// In case you are using the 'UseActivator' Attribute on the Entity
-        /// this method will return an IList of the Inactive Entries
+        /// this method will return a List of the Inactive Entries
         /// in this Table
         /// </summary>
         /// <returns>All Incative Entities of the Table</returns>
         List<T> GetAllInactiveEntries();
 
         /// <summary>
-        /// Transaction.In case you are using the 'UseActivator' Attribute on the Entity
+        /// Transaction. In case you are using the 'UseActivator' Attribute on the Entity
         /// this method will return an IList of the Inactive Entries
         /// in this Table
         /// </summary>
@@ -84,6 +83,8 @@ namespace BlackHole.Core
         /// <summary>
         /// Selects only the columns of the specified Dto that exist on the Table
         /// and returns a Dto of the Entity with the specified Id.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="Id">Specified Id</param>
@@ -93,6 +94,8 @@ namespace BlackHole.Core
         /// <summary>
         /// Transaction.Selects only the columns of the specified Dto that exist on the Table
         /// and returns a Dto of the Entity with the specified Id.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="Id">Specified Id</param>
@@ -109,7 +112,7 @@ namespace BlackHole.Core
         T? GetEntryWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction.Generates an Sql command using the Lambda Expression, that filters the
+        /// Transaction. Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns the first one that matches the filters
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>

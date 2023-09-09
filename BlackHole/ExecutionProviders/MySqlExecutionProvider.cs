@@ -136,7 +136,7 @@ namespace BlackHole.ExecutionProviders
                     Id = Command.ExecuteScalar();
                     connection.Close();
                 }
-                return Id;
+                return IntOrLong(Id);
             }
             catch (Exception ex)
             {
@@ -153,7 +153,7 @@ namespace BlackHole.ExecutionProviders
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
-                return Command.ExecuteScalar();
+                return IntOrLong(Command.ExecuteScalar());
             }
             catch (Exception ex)
             {
@@ -175,7 +175,7 @@ namespace BlackHole.ExecutionProviders
                     Id = await Command.ExecuteScalarAsync();
                     await connection.CloseAsync();
                 }
-                return Id;
+                return IntOrLong(Id);
             }
             catch (Exception ex)
             {
@@ -192,7 +192,7 @@ namespace BlackHole.ExecutionProviders
                 MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
                 MySqlCommand Command = new(commandText, connection, transaction);
                 ArrayToParameters(parameters, Command.Parameters);
-                return await Command.ExecuteScalarAsync();
+                return IntOrLong(await Command.ExecuteScalarAsync());
             }
             catch (Exception ex)
             {
@@ -666,6 +666,24 @@ namespace BlackHole.ExecutionProviders
                 Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Object_Mapping_{typeof(T).Name}", "MapperError", ex.ToString()));
                 return default;
             }
+        }
+
+        private object? IntOrLong(object? scalarResult)
+        {
+            object? result = null;
+            try
+            {
+                result = Convert.ToInt32(scalarResult);
+                return result;
+            }
+            catch{}
+
+            try
+            {
+                result = Convert.ToInt64(scalarResult);
+                return result;
+            }
+            catch { return 0;}
         }
 
         private void ArrayToParameters(List<BlackHoleParameter>? bhParameters, MySqlParameterCollection parameters)

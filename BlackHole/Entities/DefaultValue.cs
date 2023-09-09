@@ -29,11 +29,11 @@ namespace BlackHole.Entities
         }
 
          /// <summary>
-         /// 
+         /// Sets a default value to a Datetime column in the Database
          /// </summary>
-         /// <param name="year"></param>
-         /// <param name="month"></param>
-         /// <param name="day"></param>
+         /// <param name="year">Year</param>
+         /// <param name="month">Month</param>
+         /// <param name="day">Day</param>
         public DefaultValue(int year, int month, int day)
         {
             try

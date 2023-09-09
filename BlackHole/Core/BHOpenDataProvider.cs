@@ -8,9 +8,10 @@ using System.Text;
 namespace BlackHole.Core
 {
     /// <summary>
-    /// Makes all the communication between the Datbase Table and The Specified Open Entity
+    /// Makes all the communication between the Datbase Table and The Specified Entity.
+    /// <para>For custom commands, use IBHConnection Interface</para>
     /// </summary>
-    /// <typeparam name="T">The BHOpenEntity</typeparam>
+    /// <typeparam name="T">BHOpenEntity</typeparam>
     public class BHOpenDataProvider<T> : IBHOpenDataProvider<T> where T : BHOpenEntity<T>
     {
         private readonly PKSettings<T> _settings;
