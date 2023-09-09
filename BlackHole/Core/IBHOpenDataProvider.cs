@@ -20,7 +20,7 @@ namespace BlackHole.Core
         List<T> GetAllEntries();
 
         /// <summary>
-        /// Transaction.Gets all the entries of the specific Table
+        /// <b>Transaction.</b>Gets all the entries of the specific Table
         /// and returns a List of Entities
         /// </summary>
         /// <returns>All Entities of the Table</returns>
@@ -37,7 +37,7 @@ namespace BlackHole.Core
         List<Dto> GetAllEntries<Dto>() where Dto : BHOpenDto;
 
         /// <summary>
-        /// Transaction.Selects only the columns of the specified Dto that exist on the Table
+        /// <b>Transaction.</b>Selects only the columns of the specified Dto that exist on the Table
         /// and returns a List of the Dto.
         /// <para>Only the properties of the Dto that have the same name and type with 
         /// some properties of the Entity will be returned. Unmatched properties will be null</para>
@@ -55,7 +55,7 @@ namespace BlackHole.Core
         T? GetEntryWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns the first one that matches the filters
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
@@ -74,7 +74,7 @@ namespace BlackHole.Core
         Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class;
 
         /// <summary>
-        /// Transaction. Generates an Sql command using the Lambda Expression and the Dto properties that match
+        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
         /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
         /// filters
         /// </summary>
@@ -93,7 +93,7 @@ namespace BlackHole.Core
         List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Entries that match the filters
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
@@ -112,7 +112,7 @@ namespace BlackHole.Core
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
 
         /// <summary>
-        /// Transaction. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Columns that match with the filters
         /// and the Dto properties
         /// </summary>
@@ -132,7 +132,7 @@ namespace BlackHole.Core
         bool InsertEntry(T entry);
 
         /// <summary>
-        /// Transaction. Inserts the Entity into the table, and updates its
+        /// <b>Transaction.</b> Inserts the Entity into the table, and updates its
         /// values, if there is auto increment or custom IBHValueGenerators,
         /// applied on its properties.
         /// </summary>
@@ -151,7 +151,7 @@ namespace BlackHole.Core
         bool InsertEntries(List<T> entries);
 
         /// <summary>
-        /// Transaction. Inserts a list of Entities into the table, and updates their
+        /// <b>Transaction.</b> Inserts a list of Entities into the table, and updates their
         /// values, if there is auto increment or custom IBHValueGenerators,
         /// applied on their properties.
         /// </summary>
@@ -164,7 +164,7 @@ namespace BlackHole.Core
         /// Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
         /// the columns based on the inserted Entity's property values.
-        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Entity</param>
@@ -172,10 +172,10 @@ namespace BlackHole.Core
         bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry);
 
         /// <summary>
-        /// Transaction.Finds the entries in the table
+        /// <b>Transaction.</b>Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
         /// the columns based on the inserted Entity's property values.
-        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
@@ -189,7 +189,7 @@ namespace BlackHole.Core
         /// uses a 'Columns' class that has properties with the same
         /// name and type with some properties of the Entity, to specifically update
         /// these columns on each database entry with the Columns Object's values.
-        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
         /// </summary>
         /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -198,12 +198,12 @@ namespace BlackHole.Core
         bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class;
 
         /// <summary>
-        /// Transaction. Finds the entries in the database table
+        /// <b>Transaction.</b> Finds the entries in the database table
         /// using a Lambda Expression as filter and
         /// uses a 'Columns' class that has properties with the same
         /// name and type with some properties of the Entity, to specifically update
         /// these columns on each database entry with the Columns Object's values.
-        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
         /// </summary>
         /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -219,7 +219,7 @@ namespace BlackHole.Core
         bool DeleteAllEntries();
 
         /// <summary>
-        /// Transaction. Deletes All entires of the database table.
+        /// <b>Transaction.</b> Deletes All entires of the database table.
         /// </summary>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
@@ -234,7 +234,7 @@ namespace BlackHole.Core
         bool DeleteEntriesWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction. Finds and deletes the entries of the database table
+        /// <b>Transaction.</b> Finds and deletes the entries of the database table
         /// that match with the Lambda Expression filters.
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
@@ -243,56 +243,56 @@ namespace BlackHole.Core
         bool DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Gets all the entries of the specific Table
+        /// <b>Asyncronous.</b> Gets all the entries of the specific Table
         /// and returns a List of Entities
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <returns>All Entities of the Table</returns>
         Task<List<T>> GetAllEntriesAsync();
 
         /// <summary>
-        /// Transaction.Asyncronous. Gets all the entries of the specific Table
+        /// <b>Transaction.</b><b>Asyncronous.</b> Gets all the entries of the specific Table
         /// and returns a List of Entities
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <returns>All Entities of the Table</returns>
         Task<List<T>> GetAllEntriesAsync(BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Selects only the columns of the specified Dto that exist on the Table
+        /// <b>Asyncronous.</b> Selects only the columns of the specified Dto that exist on the Table
         /// and returns a List of the Dto.
         /// <para>Only the properties of the Dto that have the same name and type with 
         /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
         /// <returns>All Entities of the Table mapped to DTO</returns>
         Task<List<Dto>> GetAllEntriesAsync<Dto>() where Dto : BHOpenDto;
 
         /// <summary>
-        /// Transaction. Asyncronous. Selects only the columns of the specified Dto that exist on the Table
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Selects only the columns of the specified Dto that exist on the Table
         /// and returns a List of the Dto.
         /// <para>Only the properties of the Dto that have the same name and type with 
         /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
         /// <returns>All Entities of the Table mapped to DTO</returns>
         Task<List<Dto>> GetAllEntriesAsync<Dto>(BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
-        /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns the first one that matches the filters
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Entity</returns>
         Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction. Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns the first one that matches the filters
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
@@ -300,12 +300,12 @@ namespace BlackHole.Core
         Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Generates an Sql command using the Lambda Expression and the Dto properties that match
+        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
         /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
         /// filters
         /// <para>Only the properties of the Dto that have the same name and type with 
         /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -313,12 +313,12 @@ namespace BlackHole.Core
         Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class;
 
         /// <summary>
-        /// Transaction. Asyncronous. Generates an Sql command using the Lambda Expression and the Dto properties that match
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
         /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
         /// filters
         /// <para>Only the properties of the Dto that have the same name and type with 
         /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -327,18 +327,18 @@ namespace BlackHole.Core
         Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : class;
 
         /// <summary>
-        /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Entries that match the filters
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>List of Entities</returns>
         Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction. Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Entries that match the filters
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
@@ -346,12 +346,12 @@ namespace BlackHole.Core
         Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Columns that match with the filters
         /// and the Dto properties 
         /// <para>Only the properties of the Dto that have the same name and type with 
         /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -359,12 +359,12 @@ namespace BlackHole.Core
         Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
 
         /// <summary>
-        /// Transaction. Asyncronous. Generates an Sql command using the Lambda Expression, that filters the
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
         /// Entries of the table and returns all Columns that match with the filters
         /// and the Dto properties 
         /// <para>Only the properties of the Dto that have the same name and type with 
         /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -373,20 +373,20 @@ namespace BlackHole.Core
         Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BHOpenDto;
 
         /// <summary>
-        /// Asyncronous. Inserts the Entity into the table, and updates its
+        /// <b>Asyncronous.</b> Inserts the Entity into the table, and updates its
         /// values, if there is auto increment or custom IBHValueGenerators,
         /// applied on its properties.
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <returns>Success</returns>
         Task<bool> InsertEntryAsync(T entry);
 
         /// <summary>
-        /// Transaction. Asyncronous. Inserts the Entity into the table, and updates its
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Inserts the Entity into the table, and updates its
         /// values, if there is auto increment or custom IBHValueGenerators,
         /// applied on its properties.
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
@@ -394,20 +394,20 @@ namespace BlackHole.Core
         Task<bool> InsertEntryAsync(T entry, BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Inserts a list of Entities into the table, and updates their
+        /// <b>Asyncronous.</b> Inserts a list of Entities into the table, and updates their
         /// values, if there is auto increment or custom IBHValueGenerators,
         /// applied on their properties.
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="entries">List of Entities</param>
         /// <returns>Success</returns>
         Task<bool> InsertEntriesAsync(List<T> entries);
 
         /// <summary>
-        /// Transaction. Asyncronous. Inserts a list of Entities into the table, and updates their
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Inserts a list of Entities into the table, and updates their
         /// values, if there is auto increment or custom IBHValueGenerators,
         /// applied on their properties.
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
@@ -415,11 +415,11 @@ namespace BlackHole.Core
         Task<bool> InsertEntriesAsync(List<T> entries, BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Finds the entries in the table
+        /// <b>Asyncronous.</b> Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
         /// the columns based on the inserted Entity's property values.
-        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Entity</param>
@@ -427,11 +427,11 @@ namespace BlackHole.Core
         Task<bool> UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry);
 
         /// <summary>
-        /// Transaction. Asyncronous. Finds the entries in the table
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the entries in the table
         /// using a Lambda Expression as filter and updates all
         /// the columns based on the inserted Entity's property values.
-        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="entry">Entity</param>
@@ -440,13 +440,13 @@ namespace BlackHole.Core
         Task<bool> UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Finds the entries in the database table
+        /// <b>Asyncronous.</b> Finds the entries in the database table
         /// using a Lambda Expression as filter and
         /// uses a 'Columns' class that has properties with the same
         /// name and type with some properties of the Entity, to specifically update
         /// these columns on each database entry with the Columns Object's values.
-        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -455,13 +455,13 @@ namespace BlackHole.Core
         Task<bool> UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class;
 
         /// <summary>
-        /// Transaction. Asyncronous.  Finds the entries in the database table
+        /// <b>Transaction.</b> <b>Asyncronous.</b>  Finds the entries in the database table
         /// using a Lambda Expression as filter and
         /// uses a 'Columns' class that has properties with the same
         /// name and type with some properties of the Entity, to specifically update
         /// these columns on each database entry with the Columns Object's values.
-        /// <para>!!Important!! => Primary Key Columns Will NOT be updated</para>
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
         /// <param name="predicate">Lambda Expression</param>
@@ -471,32 +471,32 @@ namespace BlackHole.Core
         Task<bool> UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class;
 
         /// <summary>
-        /// Asyncronous. Deletes All entires of the database table. 
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <b>Asyncronous.</b> Deletes All entires of the database table. 
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <returns>Success</returns>
         Task<bool> DeleteAllEntriesAsync();
 
         /// <summary>
-        /// Transaction. Asyncronous. Deletes All entires of the database table. 
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Deletes All entires of the database table. 
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <returns>Success</returns>
         Task<bool> DeleteAllEntriesAsync(BHTransaction transaction);
 
         /// <summary>
-        /// Asyncronous. Finds and deletes the entries of the database table
+        /// <b>Asyncronous.</b> Finds and deletes the entries of the database table
         /// that match with the Lambda Expression filters. 
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Success</returns>
         Task<bool> DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate);
 
         /// <summary>
-        /// Transaction.Asyncronous.Finds and deletes the entries of the database table
+        /// <b>Transaction.</b><b>Asyncronous.</b>Finds and deletes the entries of the database table
         /// that match with the Lambda Expression filters. 
-        /// <para>!!Important!! => You must use 'await' operator if your next operation depends on this operation</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
