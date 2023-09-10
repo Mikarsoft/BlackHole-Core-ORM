@@ -12,9 +12,9 @@
 - Interface for Default Data.
 - Using [BlackHole.Core.Cli](https://www.nuget.org/packages/BlackHole.Core.Cli) it can Parse Any Database and Generate the Entities in the app.
 
-Find documentation here => [BlackHole Documentation](https://mikarsoft.com/BHDocumentation/index.html)
-Find Example Project here => [BlackHole Example](https://github.com/Mikarsoft/BlackHole-Example-Project)
-Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/channel/UCSTW9V4wuY-nmLg0CRgL37w)
+- Find documentation here => [BlackHole Documentation](https://mikarsoft.com/BHDocumentation/index.html)
+- Find Example Project here => [BlackHole Example](https://github.com/Mikarsoft/BlackHole-Example-Project)
+- Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/channel/UCSTW9V4wuY-nmLg0CRgL37w)
 
 
 [<h3>Latest Version 6.1.0</h3>](https://www.nuget.org/packages/BlackHole.Core.ORM)
