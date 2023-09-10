@@ -12,7 +12,7 @@ namespace BlackHole.Internal
         internal BHSqlExportWriter sqlWriter { get; set; }
         internal List<string> IgnoredTables { get; set; } = new List<string>();
         internal List<string> WarningsList { get; set; } = new List<string>();
-
+        internal bool majorErrors { get; set; } = false;
         internal BHDatabaseParser()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
@@ -20,6 +20,7 @@ namespace BlackHole.Internal
             sqlWriter = new BHSqlExportWriter("ParsingResult", "ParsingReport", "txt");
             sqlWriter.DeleteSqlFolder();
             WarningsList.Add("");
+            WarningsList.Add($"--------- -------- ---------- --------- --------");
             WarningsList.Add("-- Warnings. Need to be checked before starting the application. -- ");
             WarningsList.Add($"");
             IgnoredTables.Add($"");
@@ -56,7 +57,7 @@ namespace BlackHole.Internal
                     CliLog("");
                     CliLog("The 'parsing report' is stored at:");
                     CliLog($"\t {folderPath}");
-                    ParsingReportResult = "-- Successful Parsing of the Database --";
+                    ParsingReportResult = "---- Parsing Result: Successful Parsing of the Database ----";
                     result = 0;
                     break;
                 case DbParsingStates.ChangesRequired:
@@ -67,7 +68,7 @@ namespace BlackHole.Internal
                     CliLog("");
                     CliLog("The 'parsing report' is stored at:");
                     CliLog($"\t {folderPath}");
-                    ParsingReportResult = "-- Parsing was completed with Errors --";
+                    ParsingReportResult = "---- Parsing Result:  Parsing was completed with Errors ----";
                     result = 0;
                     break;
                 case DbParsingStates.Incompatible:
@@ -80,7 +81,7 @@ namespace BlackHole.Internal
                     CliLog("");
                     CliLog("If you want to force the parsing and get as many tables as possible, use the '-f' or '--force' argument with the 'parse' command.");
                     CliLog("The incompatible tables will be ignored.");
-                    ParsingReportResult = "-- Parsing of the Database Failed --";
+                    ParsingReportResult = "---- Parsing Result:  Parsing of the Database Failed ----";
                     result = 510;
                     break;
             }
@@ -233,7 +234,7 @@ namespace BlackHole.Internal
                 if (noPrimaryKey)
                 {
                     PKOptionsScript += ".NoPrimaryKey();";
-                    WriteWarningsList(tableAspectInf.TableName, $"No Primary keys were found for Table '{tableAspectInf.TableName}'. If this is incorrect, please modify the Entity manually before running your application.");
+                    WriteWarningsList(tableAspectInf.TableName, $"No Primary keys were found for Table '{tableAspectInf.TableName}'. \n If this is incorrect, please modify the Entity manually before running your application.");
                 }
                 else
                 {
@@ -303,6 +304,7 @@ namespace BlackHole.Internal
                             tableAspectInf.GeneralError = true;
                             errorMessage = $"Table '{tableAspectInf.TableName}' has incompatible Primary Key column type at '{primaryKey[0].ColumnName}' column.";
                             WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
+                            majorErrors = true;
 
                             if (CliCommand.ForceAction)
                             {
@@ -346,6 +348,7 @@ namespace BlackHole.Internal
                             errorMessage = $"Primary Key Column '{columnInfo.ColumnName}' of the Table '{tableAspectInf.TableName}', is Incompatible with BlackHole's Supported types.";
                             WriteIgnoredTable(tableAspectInf.TableName, errorMessage);
                             tableAspectInf.GeneralError = true;
+                            majorErrors = true;
 
                             if (CliCommand.ForceAction)
                             {
@@ -377,6 +380,7 @@ namespace BlackHole.Internal
                     if (!tableAspectInf.GeneralError)
                     {
                         CliLog($"Table '{tableAspectInf.TableName}' is compatible with BHOpenEntity.");
+                        CliLog("");
                     }
                 }
             }
@@ -407,7 +411,14 @@ namespace BlackHole.Internal
         {
             sqlWriter.AddSqlCommand(finalStatus);
             sqlWriter.AddMultiple(WarningsList);
+
+            if (!majorErrors)
+            {
+                IgnoredTables.Add("- No Errors -");
+            }
+
             sqlWriter.AddMultiple(IgnoredTables);
+
             sqlWriter.CreateSqlFile();
         }
 
