@@ -1,4 +1,4 @@
-A very Fast, Fully automated and easy to setup ORM that has ALL the required features:
+<h2>A very Fast, Fully automated and easy to setup ORM that has ALL the required features:</h2>
 
 - Supports out of the box: SQL Server, MySql, Postgres, Oracle and SqLite.
 - Handling all the databases with the same methods.
