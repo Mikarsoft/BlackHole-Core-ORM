@@ -33,7 +33,7 @@ namespace BlackHole.Configuration
         /// Namespace.
         /// </summary>
         /// <param name="entityNamespace">Namespace Full Name 'MyProject.Entities....'</param>
-        /// <returns></returns>
+        /// <returns>Services Settings</returns>
         public ServicesWithNamespace UseEntitiesInNamespace(string entityNamespace)
         {
             EntityNamespaces = new EntitiesWithNamespace();
@@ -47,7 +47,7 @@ namespace BlackHole.Configuration
         /// Using only the Entities in the specified Namespaces.
         /// </summary>
         /// <param name="entityNamespaces">List of Namespaces Full Names</param>
-        /// <returns></returns>
+        /// <returns>Services Settings</returns>
         public ServicesWithNamespace UseEntitiesInNamespaces(List<string> entityNamespaces)
         {
             EntityNamespaces = new EntitiesWithNamespace();
@@ -61,7 +61,7 @@ namespace BlackHole.Configuration
         /// Using only the Entities in the specified Namespaces.
         /// </summary>
         /// <param name="entityNamespaces">List of Namespaces Full Names</param>
-        /// <returns></returns>
+        /// <returns>Services Settings</returns>
         public ServicesWithNamespace UseEntitiesInNamespaces(Action<List<string>> entityNamespaces)
         {
             EntityNamespaces = new EntitiesWithNamespace();
@@ -76,7 +76,7 @@ namespace BlackHole.Configuration
         /// specified Namespace and inherit from BlackHole Services Classes.
         /// </summary>
         /// <param name="servicesNamespace">Namespace Full Name 'MyProject.Services....'</param>
-        /// <returns></returns>
+        /// <returns>Entities Settings</returns>
         public EntitiesWithNamespace AddServicesFromNamespace(string servicesNamespace)
         {
             ServicesNamespaces = new ServicesWithNamespace();
@@ -91,7 +91,7 @@ namespace BlackHole.Configuration
         /// specified Namespaces and inherit from BlackHole Services Classes.
         /// </summary>
         /// <param name="servicesNamespaces">List of Namespaces Full Names</param>
-        /// <returns></returns>
+        /// <returns>Entities Settings</returns>
         public EntitiesWithNamespace AddServicesFromNamespaces(List<string> servicesNamespaces)
         {
             ServicesNamespaces = new ServicesWithNamespace();
@@ -106,7 +106,7 @@ namespace BlackHole.Configuration
         /// specified Namespaces and inherit from BlackHole Services Classes.
         /// </summary>
         /// <param name="servicesNamespaces">List of Namespaces Full Names</param>
-        /// <returns></returns>
+        /// <returns>Entities Settings</returns>
         public EntitiesWithNamespace AddServicesFromNamespaces(Action<List<string>> servicesNamespaces)
         {
             ServicesNamespaces = new ServicesWithNamespace();

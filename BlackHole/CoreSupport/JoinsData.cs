@@ -41,9 +41,9 @@ namespace BlackHole.CoreSupport
     /// Stores All the required data to perform the Joins in this class
     /// To get the result you need to Execute this object.
     /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
-    /// <typeparam name="TOther"></typeparam>
+    /// <typeparam name="Dto">Data Transfer Object</typeparam>
+    /// <typeparam name="Tsource">First Entity</typeparam>
+    /// <typeparam name="TOther">Second Entity</typeparam>
     public class JoinsData<Dto, Tsource, TOther>
     {
         internal Type? BaseTable { get; set; }
