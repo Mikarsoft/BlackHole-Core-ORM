@@ -430,7 +430,7 @@ namespace BlackHole.Configuration
         /// <summary>
         /// Closes all connections and drops the database. Works only in Developer Mode
         /// </summary>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public static bool DropDatabase()
         {
             BHDatabaseBuilder databaseBuilder = new();
@@ -439,8 +439,9 @@ namespace BlackHole.Configuration
 
         /// <summary>
         /// Initialize BlackHole without Host.
-        /// The Dependency injection is not working with this method.
         /// It is suggested to use this in Console and Desktop applications.
+        /// <para><b>Important</b> => The automatic Dependency injection of BlackHole Interfaces and Services doesn't work with this method.
+        /// You have to instanciate the Services in order to use them.</para>
         /// </summary>
         /// <param name="settings">Black Hole Settings Class</param>
         public static void SuperNova(Action<BlackHoleSettings> settings)

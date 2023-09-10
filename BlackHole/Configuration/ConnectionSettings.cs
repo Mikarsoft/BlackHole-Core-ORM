@@ -35,7 +35,7 @@ namespace BlackHole.Configuration
         /// connection string.</para>
         /// </summary>
         /// <param name="connectionString">connection string to the database</param>
-        /// <param name="quotedDb"></param>
+        /// <param name="quotedDb">Use quotes for Naming</param>
         /// <returns>Additional Settings</returns>
         public ConnectionAdditionalSettings UseSqlServer(string connectionString, bool quotedDb)
         {
@@ -97,7 +97,7 @@ namespace BlackHole.Configuration
         /// <para>If you need to move it elsewhere you have to use 'SetDataPath()'</para>
         /// </summary>
         /// <param name="databaseName">Just the name of the database</param>
-        /// <param name="quotedDb"></param>
+        /// <param name="quotedDb">Use quotes for Naming</param>
         /// <returns>Additional Settings</returns>
         public ConnectionAdditionalSettings UseSqlite(string databaseName, bool quotedDb)
         {
@@ -148,7 +148,7 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString">connection string to the database</param>
         /// <param name="schema">The name of the schema</param>
-        /// <param name="quotedDb"></param>
+        /// <param name="quotedDb">Use quotes for Naming</param>
         /// <returns>Additional Settings</returns>
         public ConnectionAdditionalSettings UseSqlServer(string connectionString, string schema, bool quotedDb)
         {

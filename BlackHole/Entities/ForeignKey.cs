@@ -62,11 +62,11 @@
         }
 
         /// <summary>
-        /// 
+        /// Set the Column as Foreign Key that points to specific Table and Column.
         /// </summary>
-        /// <param name="table"></param>
-        /// <param name="columnName"></param>
-        /// <param name="isNullable"></param>
+        /// <param name="table">Type of the other Table</param>
+        /// <param name="columnName">Name of the other Table's Column</param>
+        /// <param name="isNullable">Is this Foreign Key Nullable</param>
         public ForeignKey(Type table, string columnName, bool isNullable)
         {
             TableName = table.Name;
@@ -85,10 +85,10 @@
         }
 
         /// <summary>
-        /// 
+        /// Set the Column as Foreign Key that points to specific Table and Column.
         /// </summary>
-        /// <param name="table"></param>
-        /// <param name="columnName"></param>
+        /// <param name="table">Type of the other Table</param>
+        /// <param name="columnName">Name of the other Table's Column</param>
         public ForeignKey(Type table, string columnName)
         {
             TableName = table.Name;

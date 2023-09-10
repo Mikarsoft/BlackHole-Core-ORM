@@ -26,7 +26,7 @@ namespace BlackHole.Internal
         public string DefaultValue { get; set; } = string.Empty;
 
         /// <summary>
-        /// 
+        /// Autoincrement on MySql
         /// </summary>
         public string Extra { get; set; } = string.Empty;
 

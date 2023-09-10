@@ -31,7 +31,7 @@ namespace BlackHole.Configuration
         /// Add the configuration for a database.
         /// </summary>
         /// <param name="connectionSettings">connection settings</param>
-        /// <returns>BlackHoleSettings to add more settings</returns>
+        /// <returns>DataPath Settings to add more settings</returns>
         public DataPathSettings AddDatabase(Action<ConnectionSettings> connectionSettings)
         {
             connectionSettings.Invoke(connectionConfig);
@@ -46,8 +46,8 @@ namespace BlackHole.Configuration
         /// to protect the production database from data loss in case of developer's mistake </para>
         /// <para>The default value is FALSE</para>
         /// </summary>
-        /// <param name="isDevMode"></param>
-        /// <returns></returns>
+        /// <param name="isDevMode">Developer's Mode</param>
+        /// <returns>BlackHoleSettings to add more settings</returns>
         public BlackHoleSettings IsDeveloperMode(bool isDevMode)
         {
             isInDevMode = isDevMode;
@@ -59,7 +59,7 @@ namespace BlackHole.Configuration
         /// <para>If you use this configuration, You will have to update the database manually, using the Cli or the
         /// BlackHoleConfiguration.UpdateDatabase() command</para>
         /// </summary>
-        /// <returns></returns>
+        /// <returns>BlackHoleSettings to add more settings</returns>
         public BlackHoleSettings BlockAutomaticUpdate()
         {
             blockAutoUpdate = true;

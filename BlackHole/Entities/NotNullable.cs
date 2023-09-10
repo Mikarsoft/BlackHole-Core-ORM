@@ -31,7 +31,7 @@
         }
 
         /// <summary>
-        /// Setting Default Value on Not Nullable Column
+        /// It turns the property to a Non Nullable Column and Setting Default Value on the Column
         /// </summary>
         /// <param name="defaultValue"></param>
         public NotNullable(object defaultValue)
@@ -40,7 +40,7 @@
         }
 
         /// <summary>
-        /// Setting Default Value on Not Nullable DateTime Column
+        /// It turns the DateTime property to a Non Nullable Column and Setting Default Value on the Column
         /// </summary>
         /// <param name="year"></param>
         /// <param name="month"></param>

@@ -7,11 +7,7 @@ namespace BlackHole.Internal
 {
     internal class BHDatabaseSelector : IBHDatabaseSelector
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <returns></returns>
+
         IExecutionProvider IBHDatabaseSelector.GetExecutionProvider(string connectionString)
         {
             return DatabaseStatics.DatabaseType switch
@@ -24,10 +20,6 @@ namespace BlackHole.Internal
             };
         }
 
-        /// <summary>
-        /// Checks if the selected Sql Type is SQLite and returns boolean
-        /// </summary>
-        /// <returns></returns>
         bool IBHDatabaseSelector.IsLite()
         {
             bool lite = false;
@@ -40,12 +32,6 @@ namespace BlackHole.Internal
             return lite;
         }
 
-        /// <summary>
-        /// Based on the selected Sql Type, returns the required addition to the sql command,
-        /// to create an Integer ,autoincrement Id column
-        /// </summary>
-        /// <returns></returns>
-        /// 
         string IBHDatabaseSelector.GetPrimaryKeyCommand()
         {
             return DatabaseStatics.DatabaseType switch
@@ -58,10 +44,6 @@ namespace BlackHole.Internal
             };
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         string IBHDatabaseSelector.GetStringPrimaryKeyCommand()
         {
             return DatabaseStatics.DatabaseType switch
@@ -74,12 +56,6 @@ namespace BlackHole.Internal
             };
         }
 
-
-        /// <summary>
-        /// Based on the selected Sql Type, returns the required addition to the sql command,
-        /// to create a Uuid Id column
-        /// </summary>
-        /// <returns></returns>
         string IBHDatabaseSelector.GetGuidPrimaryKeyCommand()
         {
             return DatabaseStatics.DatabaseType switch
@@ -126,29 +102,16 @@ namespace BlackHole.Internal
             };
         }
 
-        /// <summary>
-        /// Checks if the dabase type is MySql or SqLite and returns boolean
-        /// </summary>
-        /// <returns></returns>
         bool IBHDatabaseSelector.GetMyShit()
         {
             return SkipQuotes();
         }
 
-        /// <summary>
-        /// Returns the connection string for the sql host server
-        /// </summary>
-        /// <returns></returns>
         string IBHDatabaseSelector.GetServerConnection()
         {
             return DatabaseStatics.ServerConnection;
         }
 
-        /// <summary>
-        /// Translated the Enum of the Sql Type 
-        /// and returns it as an integer, to be easier to save it in a config file
-        /// </summary>
-        /// <returns></returns>
         int IBHDatabaseSelector.GetSqlTypeId()
         {
             int sqlTypeId = 0;
@@ -239,11 +202,7 @@ namespace BlackHole.Internal
             }
             return result.Remove(0,1);
         }
-        /// <summary>
-        /// Based on the selected Sql Type , returns an array of datatypes that correspond to
-        /// C# datatypes in a specific order
-        /// </summary>
-        /// <returns></returns>
+
         string[] IBHDatabaseSelector.SqlDatatypesTranslation()
         {
             string[] SqlDatatypes = new string[12];
@@ -296,10 +255,6 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
-        /// <summary>
-        /// Return the name of the database in string
-        /// </summary>
-        /// <returns></returns>
         string IBHDatabaseSelector.GetDatabaseName()
         {
             if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite)

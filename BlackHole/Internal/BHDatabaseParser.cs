@@ -53,7 +53,7 @@ namespace BlackHole.Internal
                     EntityCodeGenerator(tableInfo, columnScanner);
                     CliLog("");
                     CliLog("The database is fully compatible with the BlackHole Orm.");
-                    CliLog("Parsing has been successfully completed.");
+                    CliLog("Parsing has been successfully completed. Check 'parsing report' for any minor warnings.");
                     CliLog("");
                     CliLog("The 'parsing report' is stored at:");
                     CliLog($"\t {folderPath}");
@@ -105,6 +105,9 @@ namespace BlackHole.Internal
         {
             string scriptsPath = Path.Combine(CliCommand.ProjectPath, "BHEntities");
             string applicationName = Path.GetFileName(CliCommand.ProjectPath).Replace(".csproj","");
+            CliLog(" Checking Tables has been completed");
+            CliLog("------------------------ --------------------- ---------------------");
+            CliLog("");
             CliLog($"Application Name: {applicationName}");
             CliLog("");
 
@@ -234,7 +237,7 @@ namespace BlackHole.Internal
                 if (noPrimaryKey)
                 {
                     PKOptionsScript += ".NoPrimaryKey();";
-                    WriteWarningsList(tableAspectInf.TableName, $"No Primary keys were found for Table '{tableAspectInf.TableName}'. \n If this is incorrect, please modify the Entity manually before running your application.");
+                    WriteWarningsList(tableAspectInf.TableName, $"No Primary keys were found for Table '{tableAspectInf.TableName}'. \n\t  If this is incorrect, please modify the Entity manually before running your application.");
                 }
                 else
                 {
@@ -396,15 +399,15 @@ namespace BlackHole.Internal
         internal void WriteIgnoredTable(string TableName, string message)
         {
             IgnoredTables.Add("");
-            IgnoredTables.Add($"Incompatible Table: {TableName}");
-            IgnoredTables.Add($"Ignore Reason: {message}");
+            IgnoredTables.Add($"\t - Incompatible Table: {TableName}");
+            IgnoredTables.Add($"\t   Ignore Reason: {message}");
         }
 
         internal void WriteWarningsList(string TableName, string message)
         {
             WarningsList.Add("");
-            WarningsList.Add($"Warning at Table: {TableName}");
-            WarningsList.Add($"Warning Information: {message}");
+            WarningsList.Add($"\t - Warning at Table: {TableName}");
+            WarningsList.Add($"\t   Warning Information: {message}");
         }
 
         internal void SaveParsingReport(string finalStatus)
@@ -414,7 +417,7 @@ namespace BlackHole.Internal
 
             if (!majorErrors)
             {
-                IgnoredTables.Add("- No Errors -");
+                IgnoredTables.Add("\t\t\t - No Errors -");
             }
 
             sqlWriter.AddMultiple(IgnoredTables);

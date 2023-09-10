@@ -4,23 +4,23 @@ using BlackHole.Statics;
 namespace BlackHole.Entities
 {
     /// <summary>
-    /// 
+    /// Sets Default Value to a column.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class DefaultValue : Attribute
     {
         /// <summary>
-        /// 
+        /// The Default Value
         /// </summary>
         public object? ValueDefault { get; set; }
 
         /// <summary>
-        /// 
+        /// Checks if Default value is DateTime
         /// </summary>
         public bool IsDatetimeValue { get; set; }
 
         /// <summary>
-        /// 
+        /// Sets Default Value to a column.
         /// </summary>
         /// <param name="valueDefault"></param>
         public DefaultValue(object valueDefault)
@@ -48,12 +48,12 @@ namespace BlackHole.Entities
         }
 
         /// <summary>
-        /// 
+        /// Sets a default value to a Datetime column in the Database with specific format.
         /// </summary>
-        /// <param name="year"></param>
-        /// <param name="month"></param>
-        /// <param name="day"></param>
-        /// <param name="dateFormat"></param>
+        /// <param name="year">Year</param>
+        /// <param name="month">Month</param>
+        /// <param name="day">Day</param>
+        /// <param name="dateFormat">Date Format</param>
         public DefaultValue(int year, int month, int day, string dateFormat)
         {
             try

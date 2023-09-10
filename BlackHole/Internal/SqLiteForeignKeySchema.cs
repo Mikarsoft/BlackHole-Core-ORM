@@ -42,7 +42,7 @@ namespace BlackHole.Internal
     }
 
     /// <summary>
-    /// 
+    /// SqLite autoincrement info.
     /// </summary>
     public class LiteAutoIncrementInfo
     {

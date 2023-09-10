@@ -50,14 +50,14 @@ namespace BlackHole.Internal
 
             if (autoIncrementUuid.Any() && autoIncrementInteger.Any())
             {
-                WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementUuid[0].TableName}. Please Fix your database before running this project.";
+                WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementUuid[0].TableName}'. Please Fix your database before running this project.";
             }
 
             if (autoIncrementInteger.Any())
             {
                 if (autoIncrementInteger.Count > 1)
                 {
-                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementInteger[0].TableName}. Please Fix your database before running this project.";
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementInteger[0].TableName}'. Please Fix your database before running this project.";
                 }
 
                 return new PKConfiguration
@@ -73,7 +73,7 @@ namespace BlackHole.Internal
             {
                 if (autoIncrementUuid.Count > 1)
                 {
-                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementUuid[0].TableName}. Please Fix your database before running this project.";
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementUuid[0].TableName}'. Please Fix your database before running this project.";
                 }
 
                 return new PKConfiguration
@@ -109,14 +109,14 @@ namespace BlackHole.Internal
 
             if (autoIncrementUuid.Any() && autoIncrementInteger.Any())
             {
-                WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementUuid[0].TableName}. Please Fix your database before running this project.";
+                WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementUuid[0].TableName}'. Please Fix your database before running this project.";
             }
 
             if (autoIncrementInteger.Any())
             {
                 if (autoIncrementInteger.Count > 1)
                 {
-                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementInteger[0].TableName}. Please Fix your database before running this project.";
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementInteger[0].TableName}'. Please Fix your database before running this project.";
                 }
 
                 return new PKConfiguration
@@ -132,7 +132,7 @@ namespace BlackHole.Internal
             {
                 if (autoIncrementUuid.Count > 1)
                 {
-                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementUuid[0].TableName}. Please Fix your database before running this project.";
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementUuid[0].TableName}'. Please Fix your database before running this project.";
                 }
 
                 return new PKConfiguration
@@ -167,7 +167,7 @@ namespace BlackHole.Internal
             {
                 if (autoIncrementColumn.Count > 1)
                 {
-                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementColumn[0].TableName}. Please Fix your database before running this project.";
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementColumn[0].TableName}'. Please Fix your database before running this project.";
                 }
 
                 return new PKConfiguration
@@ -202,7 +202,7 @@ namespace BlackHole.Internal
             {
                 if(autoIncrementColumn.Count > 1)
                 {
-                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementColumn[0].TableName}. Please Fix your database before running this project.";
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementColumn[0].TableName}'. Please Fix your database before running this project.";
                 }
 
                 return new PKConfiguration
@@ -239,7 +239,7 @@ namespace BlackHole.Internal
             {
                 if (autoIncrementColumn.Count > 1)
                 {
-                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table {autoIncrementColumn[0].TableName}. Please Fix your database before running this project.";
+                    WarningMessage = $"More than one Primary Keys with auto increment, were found in Table '{autoIncrementColumn[0].TableName}'. Please Fix your database before running this project.";
                 }
 
                 return new PKConfiguration
