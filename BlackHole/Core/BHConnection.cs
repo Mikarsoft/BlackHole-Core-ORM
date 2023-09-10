@@ -197,7 +197,7 @@ namespace BlackHole.Core
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public bool JustExecute(string commandText)
         {
             return _executionProvider.JustExecute(commandText, null);
@@ -209,7 +209,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public bool JustExecute(string commandText, BHParameters parameters)
         {
             return _executionProvider.JustExecute(commandText, parameters.Parameters);
@@ -221,7 +221,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public bool JustExecute(string commandText, object parametersObject)
         {
             return _executionProvider.JustExecute(commandText, MapObjectToParameters(parametersObject));
@@ -233,7 +233,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public bool JustExecute(string commandText, BHTransaction bHTransaction)
         {
             return _executionProvider.JustExecute(commandText, null, bHTransaction.transaction);
@@ -246,7 +246,7 @@ namespace BlackHole.Core
         /// <param name="commandText">Command Text</param>
         /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
         /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public bool JustExecute(string commandText, BHParameters parameters, BHTransaction bHTransaction)
         {
             return _executionProvider.JustExecute(commandText, parameters.Parameters, bHTransaction.transaction);
@@ -259,7 +259,7 @@ namespace BlackHole.Core
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
         /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public bool JustExecute(string commandText, object parametersObject, BHTransaction bHTransaction)
         {
             return _executionProvider.JustExecute(commandText , MapObjectToParameters(parametersObject), bHTransaction.transaction);
@@ -271,7 +271,7 @@ namespace BlackHole.Core
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public async Task<bool> JustExecuteAsync(string commandText)
         {
             return await _executionProvider.JustExecuteAsync(commandText, null);
@@ -284,7 +284,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public async Task<bool> JustExecuteAsync(string commandText, BHParameters parameters)
         {
             return await _executionProvider.JustExecuteAsync(commandText, parameters.Parameters);
@@ -297,7 +297,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public async Task<bool> JustExecuteAsync(string commandText, object parametersObject)
         {
             return await _executionProvider.JustExecuteAsync(commandText, MapObjectToParameters(parametersObject));
@@ -310,7 +310,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public async Task<bool> JustExecuteAsync(string commandText, BHTransaction bHTransaction)
         {
             return await _executionProvider.JustExecuteAsync(commandText, null, bHTransaction.transaction);
@@ -324,7 +324,7 @@ namespace BlackHole.Core
         /// <param name="commandText">Command Text</param>
         /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
         /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public async Task<bool> JustExecuteAsync(string commandText, BHParameters parameters, BHTransaction bHTransaction)
         {
             return await _executionProvider.JustExecuteAsync(commandText, parameters.Parameters, bHTransaction.transaction);
@@ -338,7 +338,7 @@ namespace BlackHole.Core
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
         /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
-        /// <returns>Success Boolean</returns>
+        /// <returns>Success</returns>
         public async Task<bool> JustExecuteAsync(string commandText, object parametersObject, BHTransaction bHTransaction)
         {
             return await _executionProvider.JustExecuteAsync(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction);

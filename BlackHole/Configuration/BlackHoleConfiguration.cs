@@ -360,7 +360,7 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionSettings">Connection Settings</param>
         /// <param name="isDevMode">Set Developer mode</param>
-        /// <returns></returns>
+        /// <returns>Success</returns>
         public static bool UpdateDatabase(Action<ConnectionSettings> connectionSettings, bool isDevMode)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
@@ -401,7 +401,7 @@ namespace BlackHole.Configuration
         /// <param name="connectionSettings">Connection Settings</param>
         /// <param name="isDevMode">Set Developer mode</param>
         /// <param name="dataPath">Path for Logs and SqLite</param>
-        /// <returns></returns>
+        /// <returns>Success</returns>
         public static bool UpdateDatabase(Action<ConnectionSettings> connectionSettings, bool isDevMode, string dataPath)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
