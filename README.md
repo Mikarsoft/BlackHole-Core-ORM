@@ -21,7 +21,7 @@ Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/chann
 
 Latest Version : [6.1.0](https://www.nuget.org/packages/BlackHole.Core.ORM)
 
-<h4>Changes:</h4>
+<h4>Changes: v6.1.0 </h4>
 
 - Maximum Performance and Memory Optimization
 - Added fully customizable BHOpenEntity
