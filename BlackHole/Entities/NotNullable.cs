@@ -1,4 +1,6 @@
-﻿namespace BlackHole.Entities
+﻿using BlackHole.Statics;
+
+namespace BlackHole.Entities
 {
     /// <summary>
     /// It turns the property to a Non Nullable Column in the Table.
@@ -49,7 +51,7 @@
         {
             try
             {
-                ValueDefault = new DateTime(year, month, day).ToString("MM-dd-yyyy");
+                ValueDefault = new DateTime(year, month, day).ToString(DatabaseStatics.DbDateFormat);
                 IsDatetimeValue = true;
             }
             catch
