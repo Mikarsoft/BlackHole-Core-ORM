@@ -17,7 +17,7 @@ Find Example Project here => [BlackHole Example](https://github.com/Mikarsoft/Bl
 Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/channel/UCSTW9V4wuY-nmLg0CRgL37w)
 
 
-<h3>[Latest Version 6.1.0](https://www.nuget.org/packages/BlackHole.Core.ORM)</h3>
+[<h3>Latest Version 6.1.0</h3>](https://www.nuget.org/packages/BlackHole.Core.ORM)
 
 <h4>Changes:</h4>
 - Maximum Performance and Memory Optimization
