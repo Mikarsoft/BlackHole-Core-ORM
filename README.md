@@ -17,9 +17,9 @@ Find Example Project here => [BlackHole Example](https://github.com/Mikarsoft/Bl
 Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/channel/UCSTW9V4wuY-nmLg0CRgL37w)
 
 
-[Latest Version 6.1.0](https://www.nuget.org/packages/BlackHole.Core.ORM)
+<h3>[Latest Version 6.1.0](https://www.nuget.org/packages/BlackHole.Core.ORM)</h3>
 
-Changes:
+<h4>Changes:</h4>
 - Maximum Performance and Memory Optimization
 - Added fully customizable BHOpenEntity
 - New Additional DataProvider for BHOpenEntity
@@ -38,7 +38,7 @@ Changes:
 - BlackHoleEntities and BHOpenEntities can work together on Joins methods
 - Tracking and updating BHOpenEntity's values on the Insert methods
 
-Quick Start:
+<h2>Quick Start:</h2>
 
 - In Your project install Black.Hole.ORM from Nuget.org
 
