@@ -60,8 +60,8 @@ Latest Version : [6.1.0](https://www.nuget.org/packages/BlackHole.Core.ORM)
 
 - Add Attributes to the properties of your Entities' 
   '[ForeignKey(typeof(Entity), nullability)]' , '[NotNullable]', [DefaultValue(object)] and '[VarCharSize(int)]'
-  * You can also use '[UseActivator]' attribute on your Entity, to take advantage of the 'IsActive' column in case you need to keep the
-  data after delete. (Namespace => using BlackHole.Entities)
+* You can also use '[UseActivator]' Attribute on your BlackHoleEntity, to take advantage of the 'IsActive' column in case you need to keep the
+data after delete. (Namespace => using BlackHole.Entities)
 
 - Make your services Inherit from 'BlackHoleScoped' or 'BlackHoleSingleton' or 'BlackHoleTransient' so they will be automatically
   registered on the Startup to the IServiceCollection. (Namespace => using BlackHole.Services)
