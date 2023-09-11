@@ -11,9 +11,9 @@ namespace BlackHole.Configuration
             DatabaseStatics.IsDevMove = isDevMode;
         }
 
-        internal static void SetBlockMode(bool stopUpdate)
+        internal static void SetAutoUpdateMode(bool automaticUpdate)
         {
-            DatabaseStatics.BlockAutoUpdate = stopUpdate;
+            DatabaseStatics.AutoUpdate = automaticUpdate;
         }
 
         internal static void LogsSettings(string LogsPath, bool useLogsCleaner, int daysToClean, bool useLogging)

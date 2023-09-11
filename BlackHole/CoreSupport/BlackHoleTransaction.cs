@@ -1,6 +1,6 @@
 ﻿using BlackHole.ConnectionProvider;
-using BlackHole.Logger;
 using System.Data;
+using System.Transactions;
 
 namespace BlackHole.CoreSupport
 {
@@ -18,6 +18,8 @@ namespace BlackHole.CoreSupport
         /// </summary>
         public IDbTransaction _transaction;
         private bool commited = false;
+        internal bool hasError = false;
+        private bool pendingRollback = false;
 
         internal BlackHoleTransaction()
         {
@@ -29,42 +31,44 @@ namespace BlackHole.CoreSupport
 
         internal bool Commit()
         {
-            commited = true;
-            bool result = false;
-            try
+            if (!commited)
             {
+                commited = true;
+
+                if (hasError)
+                {
+                    _transaction.Rollback();
+                    return false;
+                }
+
                 _transaction.Commit();
-                result = true;
+                return commited;
             }
-            catch (Exception ex)
-            {
-                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Transaction_Commit", "Commit", ex.ToString())).Start();
-                result = false;
-            }
-            return result;
+            return false;
         }
 
         internal bool DoNotCommit()
         {
-            commited = true;
-            return commited;
+            if (!commited)
+            {
+                commited = true;
+                pendingRollback = true;
+                return true;
+            }
+
+            return false;
         }
 
         internal bool RollBack()
         {
-            commited = true;
-            bool result = false;
-            try
+            if (!commited || pendingRollback)
             {
                 _transaction.Rollback();
-                result = true;
+                hasError = false;
+                return true;
             }
-            catch (Exception ex)
-            {
-                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Transaction_Rollback", "Rollback", ex.ToString())).Start();
-                result = false;
-            }
-            return result;
+ 
+            return false;
         }
 
         /// <summary>
@@ -72,16 +76,20 @@ namespace BlackHole.CoreSupport
         /// </summary>
         public void Dispose()
         {
-            try
+            if (!commited)
             {
-                if (!commited)
+                if (hasError)
+                {
+                    _transaction.Rollback();
+                }
+                else
                 {
                     _transaction.Commit();
                 }
             }
-            catch (Exception ex)
+
+            if (pendingRollback)
             {
-                Task.Factory.StartNew(() => ex.Message.CreateErrorLogs($"Transaction_Commit", "Commit", ex.ToString()));
                 _transaction.Rollback();
             }
 

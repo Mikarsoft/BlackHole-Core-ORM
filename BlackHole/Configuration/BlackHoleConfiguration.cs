@@ -41,7 +41,7 @@ namespace BlackHole.Configuration
                 daysToClean = blackHoleSettings.directorySettings.DaysForCleanUp;
             }
 
-            SetMode(blackHoleSettings.isInDevMode, blackHoleSettings.blockAutoUpdate);
+            SetMode(blackHoleSettings.isInDevMode, blackHoleSettings.AutoUpdate);
 
             bool cliMode = BHCliCommandReader.ReadCliJson(assembly, blackHoleSettings.connectionConfig.ConnectionString);
             if (cliMode)
@@ -265,7 +265,7 @@ namespace BlackHole.Configuration
 
         private static void CreateOrUpdateTables(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, BHDatabaseBuilder databaseBuilder)
         {
-            DatabaseConfiguration.SetBlockMode(false);
+            DatabaseConfiguration.SetAutoUpdateMode(true);
             BHTableBuilder tableBuilder = new();
             BHNamespaceSelector namespaceSelector = new();
             BHInitialDataBuilder dataBuilder = new();
@@ -444,16 +444,16 @@ namespace BlackHole.Configuration
         /// You have to instanciate the Services in order to use them.</para>
         /// </summary>
         /// <param name="settings">Black Hole Settings Class</param>
-        public static void SuperNova(Action<BlackHoleSettings> settings)
+        public static IServiceCollection SuperNova(Action<BlackHoleSettings> settings)
         {
             IServiceCollection newServices = new ServiceCollection();
-            newServices.SuperNova(settings);
+            return newServices.SuperNova(settings);
         }
 
-        internal static void SetMode(bool isDevMode, bool stopUpdate)
+        internal static void SetMode(bool isDevMode, bool automaticUpdate)
         {
             DatabaseConfiguration.SetMode(isDevMode);
-            DatabaseConfiguration.SetBlockMode(stopUpdate);
+            DatabaseConfiguration.SetAutoUpdateMode(automaticUpdate);
         }
 
         internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema, int timoutSeconds, bool isQuoted)

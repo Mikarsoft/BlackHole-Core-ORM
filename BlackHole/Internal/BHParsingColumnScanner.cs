@@ -717,14 +717,24 @@ namespace BlackHole.Internal
                 return "double";
             }
 
+            if(NumPrecision > 13)
+            {
+                return "long";
+            }
+
             if (NumPrecision > 9)
             {
                 return "decimal";
             }
 
-            if (NumPrecision > 1)
+            if (NumPrecision > 4)
             {
                 return "int";
+            }
+
+            if(NumPrecision > 1)
+            {
+                return "short";
             }
 
             return string.Empty;

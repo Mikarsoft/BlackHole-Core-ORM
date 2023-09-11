@@ -15,7 +15,7 @@ namespace BlackHole.Statics
         internal static int CleanUpDays { get; set; }
         internal static bool UseLogging { get; set; } = true;
         internal static bool IsDevMove { get; set; } = false;
-        internal static bool BlockAutoUpdate { get; set; } = false;
+        internal static bool AutoUpdate { get; set; } = false;
         internal static bool IsQuotedDatabase { get; set; } = false;
         internal static bool InitializeData { get; set; } = false;
         internal static string DbDateFormat { get; set; } = "yyyy-MM-dd";

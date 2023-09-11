@@ -673,7 +673,7 @@ namespace BlackHole.Core
 
         private object? GetGeneratorsValue(object Generator)
         {
-            var fn = Generator as Func<object>;
+            Func<object>? fn = Generator as Func<object>;
             if (fn != null)
             {
                 return fn();

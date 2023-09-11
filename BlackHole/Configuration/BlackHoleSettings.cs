@@ -25,7 +25,7 @@ namespace BlackHole.Configuration
         /// <summary>
         /// blocks automatic update of the database
         /// </summary>
-        public bool blockAutoUpdate { get; set; } = false;
+        public bool AutoUpdate { get; set; } = false;
 
         /// <summary>
         /// Add the configuration for a database.
@@ -60,9 +60,9 @@ namespace BlackHole.Configuration
         /// BlackHoleConfiguration.UpdateDatabase() command</para>
         /// </summary>
         /// <returns>BlackHoleSettings to add more settings</returns>
-        public BlackHoleSettings BlockAutomaticUpdate()
+        public BlackHoleSettings AutomaticUpdate()
         {
-            blockAutoUpdate = true;
+            AutoUpdate = true;
             return this;
         }
     }

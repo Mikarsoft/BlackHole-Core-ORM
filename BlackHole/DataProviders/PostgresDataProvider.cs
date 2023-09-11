@@ -104,6 +104,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Insert_{TableName}", ex.Message, ex.ToString()));
             }
             return default;
@@ -126,6 +127,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString()));
             }
             return default;
@@ -341,6 +343,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Insert_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
@@ -359,6 +362,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
@@ -377,6 +381,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Execute_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
@@ -416,6 +421,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"ExecuteAsync_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
@@ -607,6 +613,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bHTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectFirst_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
@@ -638,6 +645,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bHTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Select_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
@@ -670,6 +678,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bHTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectFirstAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
@@ -701,6 +710,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
+                bHTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"SelectAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }

@@ -75,6 +75,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Scalar", ex.Message, ex.ToString()));
             }
             return default;
@@ -131,6 +132,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString()));
             }
             return default;
@@ -149,9 +151,9 @@ namespace BlackHole.ExecutionProviders
                         BindByName = true
                     };
                     ArrayToParameters(parameters, Command.Parameters);
-                    Command.Parameters.Add(new OracleParameter("Tziaveleas", 1));
+                    Command.Parameters.Add(new OracleParameter("OracleReturningValue", 1));
                     Command.ExecuteScalar();
-                    int paramIndex = Command.Parameters.IndexOf("Tziaveleas");
+                    int paramIndex = Command.Parameters.IndexOf("OracleReturningValue");
                     if (paramIndex > -1)
                     {
                         Id = Command.Parameters[paramIndex].Value;
@@ -179,9 +181,9 @@ namespace BlackHole.ExecutionProviders
                     Transaction = transaction
                 };
                 ArrayToParameters(parameters, Command.Parameters);
-                Command.Parameters.Add(new OracleParameter("Tziaveleas", 1));
+                Command.Parameters.Add(new OracleParameter("OracleReturningValue", 1));
                 Command.ExecuteScalar();
-                int paramIndex = Command.Parameters.IndexOf("Tziaveleas");
+                int paramIndex = Command.Parameters.IndexOf("OracleReturningValue");
                 if (paramIndex > -1)
                 {
                     return (int)Command.Parameters[paramIndex].Value;
@@ -189,6 +191,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"RawScalar", ex.Message, ex.ToString()));
             }
             return default;
@@ -207,9 +210,9 @@ namespace BlackHole.ExecutionProviders
                         BindByName = true
                     };
                     ArrayToParameters(parameters, Command.Parameters);
-                    Command.Parameters.Add(new OracleParameter("Tziaveleas", 1));
+                    Command.Parameters.Add(new OracleParameter("OracleReturningValue", 1));
                     await Command.ExecuteScalarAsync();
-                    int paramIndex = Command.Parameters.IndexOf("Tziaveleas");
+                    int paramIndex = Command.Parameters.IndexOf("OracleReturningValue");
                     if(paramIndex > -1)
                     {
                         Id = (int)Command.Parameters[paramIndex].Value;
@@ -237,9 +240,9 @@ namespace BlackHole.ExecutionProviders
                     BindByName = true
                 };
                 ArrayToParameters(parameters, Command.Parameters);
-                Command.Parameters.Add(new OracleParameter("Tziaveleas", 1));
+                Command.Parameters.Add(new OracleParameter("OracleReturningValue", 1));
                 await Command.ExecuteScalarAsync();
-                int paramIndex = Command.Parameters.IndexOf("Tziaveleas");
+                int paramIndex = Command.Parameters.IndexOf("OracleReturningValue");
                 if (paramIndex > -1)
                 {
                     return (int)Command.Parameters[paramIndex].Value;
@@ -247,6 +250,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
             }
             return default;
@@ -293,6 +297,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs("NonQuery", ex.Message, ex.ToString()));
                 return false;
             }
@@ -339,6 +344,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bhTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs("NonQueryAsync", ex.Message, ex.ToString()));
                 return false;
             }
@@ -413,6 +419,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bHTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryFrist_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
@@ -485,6 +492,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bHTransaction.hasError = true;
                 Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Query_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }
@@ -559,6 +567,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bHTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryFristAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return default;
             }
@@ -631,6 +640,7 @@ namespace BlackHole.ExecutionProviders
             }
             catch (Exception ex)
             {
+                bHTransaction.hasError = true;
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"QueryAsync_{typeof(T).Name}", ex.Message, ex.ToString()));
                 return new List<T>();
             }

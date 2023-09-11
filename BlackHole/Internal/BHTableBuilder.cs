@@ -21,6 +21,7 @@ namespace BlackHole.Internal
         private string TableSchemaCheck { get; set; }
         private string TableSchema { get; set; }
         private string TableSchemaFk { get; set; }
+        public BlackHoleTransaction transaction = new(); 
 
         internal BHTableBuilder()
         {
@@ -39,7 +40,7 @@ namespace BlackHole.Internal
 
         internal void BuildMultipleTables(List<Type> TableTypes, List<Type> OpenTableTypes)
         {
-            if(!DatabaseStatics.BlockAutoUpdate || CliCommand.CliExecution)
+            if(DatabaseStatics.AutoUpdate)
             {
                 DatabaseStatics.InitializeData = true;
                 bool[] Builded = new bool[TableTypes.Count];
@@ -81,11 +82,18 @@ namespace BlackHole.Internal
                     }
                 }
 
+                if (!transaction.Commit())
+                {
+                    transaction.Dispose();
+                    throw new Exception("Something went wrong with the Update of the Database. Please check the BlackHole logs to detect and fix the problem.");
+                }
+
                 if (CliCommand.ExportSql)
                 {
                     SqlWriter.CreateSqlFile();
                 }
             }
+            transaction.Dispose();
         }
 
         bool CreateOpenTable(Type TableType)
@@ -127,7 +135,7 @@ namespace BlackHole.Internal
                 string creationCommand = tableCreator.ToString();
                 creationCommand = $"{creationCommand[..^2]}{Pkoption})";
                 CliConsoleLogs($"{creationCommand};");
-                return connection.JustExecute(creationCommand, null);
+                return connection.JustExecute(creationCommand, null, transaction);
             }
 
             DatabaseStatics.InitializeData = false;
@@ -177,7 +185,7 @@ namespace BlackHole.Internal
                 string creationCommand = tableCreator.ToString();
                 creationCommand = $"{creationCommand[..^2]})";
                 CliConsoleLogs($"{creationCommand};");
-                return connection.JustExecute(creationCommand , null);
+                return connection.JustExecute(creationCommand , null, transaction);
             }
 
             DatabaseStatics.InitializeData = false;
@@ -188,9 +196,9 @@ namespace BlackHole.Internal
         {
             return DatabaseStatics.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlLite => connection.ExecuteScalar<string>($@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'", null) == Tablename,
-                BlackHoleSqlTypes.Oracle => connection.ExecuteScalar<string>($"SELECT table_name FROM all_tables WHERE owner ='{_multiDatabaseSelector.GetDatabaseName()}' and TABLE_NAME = '{Tablename}'", null) == Tablename,
-                _ => connection.ExecuteScalar<int>($"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + $"' {TableSchemaCheck})) then 1 else 0 end", null) == 1,
+                BlackHoleSqlTypes.SqlLite => connection.ExecuteScalar<string>($@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'", null, transaction) == Tablename,
+                BlackHoleSqlTypes.Oracle => connection.ExecuteScalar<string>($"SELECT table_name FROM all_tables WHERE owner ='{_multiDatabaseSelector.GetDatabaseName()}' and TABLE_NAME = '{Tablename}'", null, transaction) == Tablename,
+                _ => connection.ExecuteScalar<int>($"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + $"' {TableSchemaCheck})) then 1 else 0 end", null, transaction) == 1,
             };
         }
 
@@ -316,7 +324,7 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            foreach (SqLiteTableInfo column in connection.Query<SqLiteTableInfo>($"PRAGMA table_info({MyShit(TableType.Name)}); ", null))
+            foreach (SqLiteTableInfo column in connection.Query<SqLiteTableInfo>($"PRAGMA table_info({MyShit(TableType.Name)}); ", null, transaction))
             {
                 ColumnNames.Add(column.name);
             }
@@ -363,8 +371,8 @@ namespace BlackHole.Internal
                 "Inactive"
             };
 
-            List<SqLiteForeignKeySchema> SchemaInfo = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null);
-            List<SqLiteTableInfo> ColumnsInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null);
+            List<SqLiteForeignKeySchema> SchemaInfo = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null, transaction);
+            List<SqLiteTableInfo> ColumnsInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null, transaction);
 
             foreach (SqLiteTableInfo column in ColumnsInfo)
             {
@@ -458,7 +466,7 @@ namespace BlackHole.Internal
             closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, Tablename, OldTablename)} DROP TABLE {OldTablename};");
             closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
             closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {OldTablename}");
-            connection.JustExecute(closingCommand.ToString(), null);
+            connection.JustExecute(closingCommand.ToString(), null, transaction);
             CliConsoleLogs($"{closingCommand}");
             closingCommand.Clear();
         }
@@ -475,8 +483,8 @@ namespace BlackHole.Internal
             List<string> ColumnNames = new();
             List<string> NewColumnNames = new();
 
-            List<SqLiteForeignKeySchema> SchemaInfo = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null);
-            List<SqLiteTableInfo> ColumnsInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null);
+            List<SqLiteForeignKeySchema> SchemaInfo = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null, transaction);
+            List<SqLiteTableInfo> ColumnsInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null, transaction);
 
             foreach (SqLiteTableInfo column in ColumnsInfo)
             {
@@ -568,7 +576,7 @@ namespace BlackHole.Internal
             closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
             closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {OldTablename}");
             string test = closingCommand.ToString();
-            connection.JustExecute(closingCommand.ToString(), null);
+            connection.JustExecute(closingCommand.ToString(), null, transaction);
             CliConsoleLogs($"{closingCommand}");
             closingCommand.Clear();
         }
@@ -593,7 +601,7 @@ namespace BlackHole.Internal
                         var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
                         var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
                         string alterColumn = MyShitConstraint(alterTable, Tablename, Property.Name, tName, tColumn, cascadeInfo);
-                        connection.JustExecute(alterColumn, null);
+                        connection.JustExecute(alterColumn, null, transaction);
                         CliConsoleLogs($"{alterColumn};");
                     }
                 }
@@ -623,7 +631,7 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            List<string> ColumnNames = connection.Query<string>(getColumns, null);
+            List<string> ColumnNames = connection.Query<string>(getColumns, null, transaction);
             List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
             List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
             DropColumns(ColumnsToDrop, TableType.Name);
@@ -645,7 +653,7 @@ namespace BlackHole.Internal
                     {
                         if (!string.IsNullOrEmpty(commandText))
                         {
-                            connection.JustExecute(commandText, null);
+                            connection.JustExecute(commandText, null, transaction);
                             CliConsoleLogs($"{commandText};");
                         }
                     }
@@ -654,7 +662,7 @@ namespace BlackHole.Internal
                 if (ColumnName == "Inactive")
                 {
                     columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
-                    connection.JustExecute(columnCreator.ToString(), null);
+                    connection.JustExecute(columnCreator.ToString(), null, transaction);
                     CliConsoleLogs($"{columnCreator};");
                 }
 
@@ -664,6 +672,9 @@ namespace BlackHole.Internal
 
         void UpdateOpenTableSchema(Type TableType)
         {
+            PKInfo pkInformation = ReadOpenEntityPrimaryKeys(TableType);
+            string Tablename = MyShit(TableType.Name);
+
             string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}' {TableSchemaCheck}";
 
             if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
@@ -673,7 +684,6 @@ namespace BlackHole.Internal
             }
 
             PropertyInfo[] Properties = TableType.GetProperties();
-            string Tablename = MyShit(TableType.Name);
 
             List<string> NewColumnNames = new();
 
@@ -682,7 +692,9 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            List<string> ColumnNames = connection.Query<string>(getColumns, null);
+            List<string> ColumnNames = connection.Query<string>(getColumns, null,transaction);
+            connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} DROP PRIMARY KEY", null, transaction);
+
             List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
             List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
             DropColumns(ColumnsToDrop, TableType.Name);
@@ -704,13 +716,23 @@ namespace BlackHole.Internal
                     {
                         if (!string.IsNullOrEmpty(commandText))
                         {
-                            connection.JustExecute(commandText, null);
+                            connection.JustExecute(commandText, null, transaction);
                             CliConsoleLogs($"{commandText};");
                         }
                     }
                 }
 
                 columnCreator.Clear();
+            }
+
+            if (pkInformation.PKPropertyNames.Any())
+            {
+                string primaryKeys = string.Empty;
+                foreach(string pkName in pkInformation.PKPropertyNames)
+                {
+                    primaryKeys += $",{MyShit(pkName)}";
+                }
+                connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})", null, transaction);
             }
         }
 
@@ -726,12 +748,12 @@ namespace BlackHole.Internal
                     foreach(DataConstraints columnConstraint in columnForeignKeys)
                     {
                         string dropConstraint = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP CONSTRAINT {columnConstraint.CONSTRAINT_NAME}";
-                        connection.JustExecute(dropConstraint, null);
+                        connection.JustExecute(dropConstraint, null, transaction);
                         CliConsoleLogs($"{dropConstraint};");
                     }
 
                     string dropCommand = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)}";
-                    connection.JustExecute(dropCommand, null);
+                    connection.JustExecute(dropCommand, null, transaction);
                     CliConsoleLogs($"{dropCommand};");
                 }
             }
@@ -745,7 +767,7 @@ namespace BlackHole.Internal
                         string getColumnInfo = @$"SELECT Column_name, Data_type, data_length, data_precision, NULLABLE From all_tab_cols 
                                            where owner = '{_multiDatabaseSelector.GetDatabaseName()}' and TABLE_NAME = '{TableName}'";
 
-                        List<OracleTableInfo> OraTableInfo = connection.Query<OracleTableInfo>(getColumnInfo, null);
+                        List<OracleTableInfo> OraTableInfo = connection.Query<OracleTableInfo>(getColumnInfo, null, transaction);
 
                         if (OraTableInfo.Count > 0)
                         {
@@ -756,7 +778,7 @@ namespace BlackHole.Internal
                                 {
                                     string DataType = GetOracleDataType(columnInfo);
                                     string setToNullable = $"ALTER TABLE {MyShit(TableName)} Modify ({MyShit(ColumnName)} NULL)";
-                                    connection.JustExecute(setToNullable, null);
+                                    connection.JustExecute(setToNullable, null, transaction);
                                     CliConsoleLogs($"{setToNullable};");
                                 }
                             }
@@ -766,7 +788,7 @@ namespace BlackHole.Internal
                         setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable, column_type 
                                             from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}' {TableSchemaCheck};";
 
-                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
+                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null, transaction);
 
                         if (TableInfo.Count > 0)
                         {
@@ -777,7 +799,7 @@ namespace BlackHole.Internal
                                 {
                                     string DataType = columnInfo.column_type;
                                     string setToNullable = $"ALTER TABLE {TableSchema}{MyShit(TableName)} MODIFY {MyShit(ColumnName)} {DataType} NULL ";
-                                    connection.JustExecute(setToNullable, null);
+                                    connection.JustExecute(setToNullable, null, transaction);
                                     CliConsoleLogs($"{setToNullable};");
                                 }
                             }
@@ -788,7 +810,7 @@ namespace BlackHole.Internal
                         setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable, udt_name 
                                             from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}' {TableSchemaCheck};";
 
-                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
+                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null, transaction);
 
                         if (TableInfo.Count > 0)
                         {
@@ -805,7 +827,7 @@ namespace BlackHole.Internal
                                     }
 
                                     string setToNullable = $"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
-                                    connection.JustExecute(setToNullable, null);
+                                    connection.JustExecute(setToNullable, null, transaction);
                                     CliConsoleLogs($"{setToNullable};");
                                 }
                             }
@@ -816,7 +838,7 @@ namespace BlackHole.Internal
                         setColumnToNull = @$" select table_name,column_name, ordinal_position, data_type, character_maximum_length, is_nullable 
                                             from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{TableName}' {TableSchemaCheck};";
 
-                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null);
+                        TableInfo = connection.Query<SqlTableInfo>(setColumnToNull, null, transaction);
 
                         if (TableInfo.Count > 0)
                         {
@@ -833,7 +855,7 @@ namespace BlackHole.Internal
                                     }
 
                                     string setToNullable = $"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(ColumnName)} {DataType} NULL ";
-                                    connection.JustExecute(setToNullable, null);
+                                    connection.JustExecute(setToNullable, null, transaction);
                                     CliConsoleLogs($"{setToNullable};");
                                 }
                             }
@@ -862,7 +884,7 @@ namespace BlackHole.Internal
                 INFORMATION_SCHEMA.KEY_COLUMN_USAGE K
                 INNER JOIN INFORMATION_SCHEMA.COLUMNS C ON (C.COLUMN_NAME= K.COLUMN_NAME AND C.TABLE_NAME=K.TABLE_NAME)
                 WHERE REFERENCED_TABLE_NAME is not null";
-            return connection.Query<DataConstraints>(GetConstrainsCommand, null);
+            return connection.Query<DataConstraints>(GetConstrainsCommand, null, transaction);
         }
 
         private List<DataConstraints> LoadMsSqlConstraints()
@@ -872,7 +894,7 @@ namespace BlackHole.Internal
 	            INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC ON TC.CONSTRAINT_NAME=T.UNIQUE_CONSTRAINT_NAME
                 INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE K ON K.CONSTRAINT_NAME= T.CONSTRAINT_NAME
                 INNER JOIN INFORMATION_SCHEMA.COLUMNS C ON (C.COLUMN_NAME= K.COLUMN_NAME AND C.TABLE_NAME=K.TABLE_NAME)";
-            return connection.Query<DataConstraints>(GetConstrainsCommand, null);
+            return connection.Query<DataConstraints>(GetConstrainsCommand, null, transaction);
         }
 
         private List<DataConstraints> LoadOracleConstraints()
@@ -882,7 +904,7 @@ namespace BlackHole.Internal
                 JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name
                 JOIN all_constraints c_pk ON c.r_owner = c_pk.owner AND c.r_constraint_name = c_pk.constraint_name
                 WHERE c.constraint_type = 'R' and a.owner =" + $"'{_multiDatabaseSelector.GetDatabaseName()}'";
-            return connection.Query<DataConstraints>(GetConstrainsCommand, null);
+            return connection.Query<DataConstraints>(GetConstrainsCommand, null, transaction);
         }
 
         private List<DataConstraints> LoadPgConstraints()
@@ -893,7 +915,7 @@ namespace BlackHole.Internal
                 INNER JOIN INFORMATION_SCHEMA.COLUMNS C ON(C.COLUMN_NAME = K.COLUMN_NAME AND C.TABLE_NAME = K.TABLE_NAME)
                 INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CU ON CU.CONSTRAINT_NAME = T.CONSTRAINT_NAME
                 WHERE T.CONSTRAINT_TYPE = 'FOREIGN KEY'";
-            return connection.Query<DataConstraints>(GetConstrainsCommand, null);
+            return connection.Query<DataConstraints>(GetConstrainsCommand, null, transaction);
         }
 
         private string GetOracleDataType(OracleTableInfo columnInfo)

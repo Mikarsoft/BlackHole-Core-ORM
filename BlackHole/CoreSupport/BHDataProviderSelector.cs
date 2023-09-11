@@ -30,7 +30,7 @@ namespace BlackHole.CoreSupport
                     BlackHoleSqlTypes.MySql => new string[] {"", ";SELECT LAST_INSERT_ID();" },
                     BlackHoleSqlTypes.Postgres => new string[] {"", $"returning {Tablename}.{MainColumn}"},
                     BlackHoleSqlTypes.SqlLite => new string[] {"", $"returning {MainColumn}" },
-                    _ => new string[] {"", $"returning {MainColumn} into :Tziaveleas" },
+                    _ => new string[] {"", $"returning {MainColumn} into :OracleReturningValue" },
                 };
             }
 
