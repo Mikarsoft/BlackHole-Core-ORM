@@ -14,6 +14,9 @@ namespace BlackHole.Internal
         private readonly IExecutionProvider connection;
         private BHSqlExportWriter SqlWriter { get; set; }
         private List<DataConstraints> AllConstraints { get; set; }
+
+        private List<TableParsingInfo> DbConstraints { get; set; } = new();
+
         private readonly string[] SqlDatatypes;
         private readonly bool IsMyShit;
         private readonly bool IsLite;
@@ -22,11 +25,13 @@ namespace BlackHole.Internal
         private string TableSchema { get; set; }
         private string TableSchemaFk { get; set; }
         public BlackHoleTransaction transaction = new(); 
+        internal BHDatabaseInfoReader dbInfoReader { get; set; }
 
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
+            dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
             SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
             TableSchemaCheck = _multiDatabaseSelector.TableSchemaCheck();
             TableSchema = _multiDatabaseSelector.GetDatabaseSchema();
@@ -54,6 +59,11 @@ namespace BlackHole.Internal
                 for (int i = 0; i < OpenBuilded.Length; i++)
                 {
                     OpenBuilded[i] = CreateOpenTable(OpenTableTypes[i]);
+                }
+
+                if(Builded.Any(x=> !x) || OpenBuilded.Any(x=> !x))
+                {
+                    DbConstraints = dbInfoReader.GetDatabaseParsingInfo();
                 }
 
                 CliConsoleLogs("");
@@ -85,6 +95,8 @@ namespace BlackHole.Internal
                 if (!transaction.Commit())
                 {
                     transaction.Dispose();
+                    Console.WriteLine("Errors were detected on the Entities. BlackHole will not update the database. Transaction failed.");
+                    Thread.Sleep(2000);
                     throw new Exception("Something went wrong with the Update of the Database. Please check the BlackHole logs to detect and fix the problem.");
                 }
 
@@ -94,6 +106,8 @@ namespace BlackHole.Internal
                 }
             }
             transaction.Dispose();
+            DbConstraints.Clear();
+            DatabaseStatics.AutoUpdate = false;
         }
 
         bool CreateOpenTable(Type TableType)
@@ -673,6 +687,9 @@ namespace BlackHole.Internal
         void UpdateOpenTableSchema(Type TableType)
         {
             PKInfo pkInformation = ReadOpenEntityPrimaryKeys(TableType);
+            List<TableParsingInfo> ExistingPkInfo = DbConstraints.Where(x => x.TableName == TableType.Name && x.PrimaryKey).ToList();
+            bool canUpdatePKs = CompairPrimaryKeys(ExistingPkInfo,pkInformation.PKPropertyNames, TableType.Name);
+
             string Tablename = MyShit(TableType.Name);
 
             string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}' {TableSchemaCheck}";
@@ -693,7 +710,13 @@ namespace BlackHole.Internal
             }
 
             List<string> ColumnNames = connection.Query<string>(getColumns, null,transaction);
-            connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} DROP PRIMARY KEY", null, transaction);
+
+            bool PKsDropped = false;
+
+            if (canUpdatePKs)
+            {
+                PKsDropped = connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT PK_{TableType.Name} ", null, transaction);
+            }
 
             List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
             List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
@@ -725,7 +748,7 @@ namespace BlackHole.Internal
                 columnCreator.Clear();
             }
 
-            if (pkInformation.PKPropertyNames.Any())
+            if (pkInformation.PKPropertyNames.Any() && PKsDropped)
             {
                 string primaryKeys = string.Empty;
                 foreach(string pkName in pkInformation.PKPropertyNames)
@@ -734,6 +757,34 @@ namespace BlackHole.Internal
                 }
                 connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})", null, transaction);
             }
+        }
+
+        private bool CompairPrimaryKeys(List<TableParsingInfo> existingPKs, List<string> newPKs, string TableName)
+        {
+            List<string> primaryKeys = new List<string>();
+            foreach (TableParsingInfo pkInDb in existingPKs)
+            {
+                primaryKeys.Add(pkInDb.ColumnName);
+            }
+
+            List<string> PKsToAdd = newPKs.Except(primaryKeys).ToList();
+            List<string> PKsToDrop = primaryKeys.Except(newPKs).ToList();
+
+            bool result = PKsToAdd.Any() || PKsToDrop.Any();
+
+            if (DatabaseStatics.IsDevMove || CliCommand.ForceAction)
+            {
+                return result;
+            }
+
+            if (result)
+            {
+                transaction.DoNotCommit();
+                transaction.Dispose();
+                throw new Exception($"Error at Table '{TableName}' Primary keys Configuration. You CAN ONLY change the PRIMARY KEYS of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'");
+            }
+
+            return false;
         }
 
         private void DropColumns(List<string> ColumnsToDrop, string TableName)
@@ -773,8 +824,8 @@ namespace BlackHole.Internal
                         {
                             foreach (string ColumnName in ColumnsToDrop)
                             {
-                                OracleTableInfo? columnInfo = OraTableInfo.Where(x => x.COLUMN_NAME.ToLower() == ColumnName.ToLower()).FirstOrDefault();
-                                if (columnInfo != null)
+                                OracleTableInfo? columnInfo = OraTableInfo.FirstOrDefault(x => x.COLUMN_NAME.ToLower() == ColumnName.ToLower());
+                                if (columnInfo != null && columnInfo.NULLABLE.ToLower() != "yes")
                                 {
                                     string DataType = GetOracleDataType(columnInfo);
                                     string setToNullable = $"ALTER TABLE {MyShit(TableName)} Modify ({MyShit(ColumnName)} NULL)";
@@ -795,7 +846,7 @@ namespace BlackHole.Internal
                             foreach (string ColumnName in ColumnsToDrop)
                             {
                                 SqlTableInfo? columnInfo = TableInfo.Where(x => x.column_name.ToLower() == ColumnName.ToLower()).FirstOrDefault();
-                                if (columnInfo != null)
+                                if (columnInfo != null && columnInfo.is_nullable.ToLower() != "yes")
                                 {
                                     string DataType = columnInfo.column_type;
                                     string setToNullable = $"ALTER TABLE {TableSchema}{MyShit(TableName)} MODIFY {MyShit(ColumnName)} {DataType} NULL ";
@@ -816,8 +867,9 @@ namespace BlackHole.Internal
                         {
                             foreach (string ColumnName in ColumnsToDrop)
                             {
-                                SqlTableInfo? columnInfo = TableInfo.Where(x => x.column_name.ToLower() == ColumnName.ToLower()).FirstOrDefault();
-                                if (columnInfo != null)
+                                SqlTableInfo? columnInfo = TableInfo.FirstOrDefault(x => x.column_name.ToLower() == ColumnName.ToLower());
+
+                                if (columnInfo != null && columnInfo.is_nullable.ToLower() != "yes")
                                 {
                                     string DataType = columnInfo.udt_name;
 
@@ -844,8 +896,8 @@ namespace BlackHole.Internal
                         {
                             foreach (string ColumnName in ColumnsToDrop)
                             {
-                                SqlTableInfo? columnInfo = TableInfo.Where(x => x.column_name.ToLower() == ColumnName.ToLower()).FirstOrDefault();
-                                if (columnInfo != null)
+                                SqlTableInfo? columnInfo = TableInfo.FirstOrDefault(x => x.column_name.ToLower() == ColumnName.ToLower());
+                                if (columnInfo != null && columnInfo.is_nullable.ToLower() != "yes")
                                 {
                                     string DataType = columnInfo.data_type;
 
