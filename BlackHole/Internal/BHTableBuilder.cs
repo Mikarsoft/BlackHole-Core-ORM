@@ -23,14 +23,20 @@ namespace BlackHole.Internal
         private string TableSchema { get; set; }
         private string TableSchemaFk { get; set; }
         public BlackHoleTransaction transaction = new(); 
-        internal BHDatabaseInfoReader dbInfoReader { get; set; }
-
+        internal BHDatabaseInfoReader? dbInfoReader { get; set; }
+        internal bool IsForcedUpdate { get; } 
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
-            dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
-            DbConstraints = dbInfoReader.GetDatabaseParsingInfo();
+            IsForcedUpdate = DatabaseStatics.AutoUpdate && (DatabaseStatics.IsDevMove || CliCommand.ForceAction);
+
+            if (IsForcedUpdate)
+            {
+                dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
+                DbConstraints = dbInfoReader.GetDatabaseParsingInfo();
+            }
+
             SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
             TableSchemaCheck = _multiDatabaseSelector.TableSchemaCheck();
             TableSchema = _multiDatabaseSelector.GetDatabaseSchema();
@@ -545,7 +551,7 @@ namespace BlackHole.Internal
                 }
             }
 
-            if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
+            if (!IsForcedUpdate)
             {
                 List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
 
@@ -684,8 +690,7 @@ namespace BlackHole.Internal
         void UpdateOpenTableSchema(Type TableType)
         {
             PKInfo pkInformation = ReadOpenEntityPrimaryKeys(TableType);
-            List<TableParsingInfo> ExistingPkInfo = DbConstraints.Where(x => x.TableName == TableType.Name && x.PrimaryKey).ToList();
-            bool canUpdatePKs = CompairPrimaryKeys(ExistingPkInfo,pkInformation.PKPropertyNames, TableType.Name);
+            bool canUpdatePKs = false;
 
             string Tablename = MyShit(TableType.Name);
 
@@ -706,13 +711,20 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            List<string> ColumnNames = connection.Query<string>(getColumns, null,transaction);
+            List<string> ColumnNames = connection.Query<string>(getColumns, null, transaction);
 
             bool PKsDropped = false;
 
-            if (canUpdatePKs)
+            if (IsForcedUpdate)
             {
-                PKsDropped = connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT PK_{TableType.Name} ", null, transaction);
+                List<string> CommonColumns = NewColumnNames.Intersect(ColumnNames).ToList();
+                UpdateTableColumnsNullability(CommonColumns, Properties, TableType.Name);
+                List<TableParsingInfo> ExistingPkInfo = DbConstraints.Where(x => x.TableName.ToLower() == TableType.Name.ToLower() && x.PrimaryKey).ToList();
+                canUpdatePKs = CompairPrimaryKeys(ExistingPkInfo, pkInformation.PKPropertyNames, TableType.Name);
+                if (canUpdatePKs)
+                {
+                    PKsDropped = connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT PK_{TableType.Name} ", null, transaction);
+                }
             }
 
             List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
@@ -786,7 +798,17 @@ namespace BlackHole.Internal
             return false;
         }
 
-        private bool NullabilityUpdateCheck(PropertyInfo newColumn,TableParsingInfo existingColumn, string TableName)
+        private void UpdateTableColumnsNullability(List<string> ColumnNames, PropertyInfo[] Properties, string TableName)
+        {
+            foreach(string ColumnName in ColumnNames)
+            {
+                PropertyInfo Property = Properties.First(x => x.Name == ColumnName);
+                TableParsingInfo Column = DbConstraints.First(x=> x.TableName.ToLower() == TableName.ToLower() && x.ColumnName.ToLower() == ColumnName.ToLower());
+                NullabilityUpdateCheck(Property, Column, TableName);
+            }
+        }
+
+        private void NullabilityUpdateCheck(PropertyInfo newColumn,TableParsingInfo existingColumn, string TableName)
         {
             bool isNullable = existingColumn.Nullable;
             object? defaultVal = null;
@@ -831,28 +853,15 @@ namespace BlackHole.Internal
 
             if (isNullable != existingColumn.Nullable)
             {
-                if (DatabaseStatics.IsDevMove || CliCommand.ForceAction)
+                if (existingColumn.Nullable)
                 {
-                    if(existingColumn.Nullable)
-                    {
-                        SetColumnToNotNull(newColumn.PropertyType, defaultVal, isColumnDateTime, newColumn.Name, TableName, existingColumn);
-                    }
-                    else
-                    {
-                        SetColumnToNull(TableName, newColumn.Name, existingColumn);
-                    }
+                    SetColumnToNotNull(newColumn.PropertyType, defaultVal, isColumnDateTime, newColumn.Name, TableName, existingColumn);
                 }
                 else
                 {
-                    transaction.DoNotCommit();
-                    transaction.Dispose();
-                    string errorMessage = $"Error at Table '{TableName}' and Column '{newColumn.Name}' on Nullability Change. You CAN ONLY Change Nullability of a Column in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'";
-                    CliConsoleLogs(errorMessage);
-                    throw new Exception(errorMessage);
+                    SetColumnToNull(TableName, newColumn.Name, existingColumn);
                 }
             }
-
-            return false;
         }
 
         private void SetColumnToNotNull(Type PropType,object? defaultVal, bool isDatetime, string PropName, string TableName, TableParsingInfo ColumnInfo)
