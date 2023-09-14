@@ -55,9 +55,10 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
-        /// This prevents BlackHole from Updating the Database on the StartUp.
-        /// <para>If you use this configuration, You will have to update the database manually, using the Cli or the
-        /// BlackHoleConfiguration.UpdateDatabase() command</para>
+        /// Enables Automatic Database Update on the Start of the Application.
+        /// <para><b>Important</b> => Changes on Existing Column's Nullability, on Composite Primary Keys and on Dropping 
+        /// Columns can only be performed, if 'DeveloperMode' is Enabled, or by using the CLI 'update' command with the 
+        /// '--force' argument => 'bhl update --force'</para>
         /// </summary>
         /// <returns>BlackHoleSettings to add more settings</returns>
         public BlackHoleSettings AutomaticUpdate()

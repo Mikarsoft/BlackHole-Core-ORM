@@ -24,6 +24,11 @@
         public string CascadeInfo { get; set; }
 
         /// <summary>
+        /// Nullability boolean
+        /// </summary>
+        public bool Nullability { get; set; }
+
+        /// <summary>
         /// This Overload of the Constructor Sets by Default the corresponding column
         /// on the Primary Table as Id. You Can choose the Primary Table and
         /// if the Foreign Key is Nullable
@@ -34,6 +39,7 @@
         {
             TableName = table.Name;
             Column = "Id";
+            Nullability = isNullable;
 
             if (isNullable)
             {
@@ -59,6 +65,7 @@
             Column = "Id";
             IsNullable = "NULL";
             CascadeInfo = "on delete set null";
+            Nullability = true;
         }
 
         /// <summary>
@@ -71,6 +78,7 @@
         {
             TableName = table.Name;
             Column = columnName;
+            Nullability = isNullable;
 
             if (isNullable)
             {

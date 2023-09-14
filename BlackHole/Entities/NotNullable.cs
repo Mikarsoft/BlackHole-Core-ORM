@@ -11,7 +11,7 @@ namespace BlackHole.Entities
         /// <summary>
         /// Nullability
         /// </summary>
-        public string IsNotNull = "NOT NULL";
+        public string IsNotNull { get; } = "NOT NULL";
 
         /// <summary>
         /// Default Value of Column in Database
@@ -23,6 +23,10 @@ namespace BlackHole.Entities
         /// </summary>
         public bool IsDatetimeValue { get; set; }
 
+        /// <summary>
+        /// Nullability boolean
+        /// </summary>
+        public bool Nullability { get; } = false;
 
         /// <summary>
         /// It turns the property to a Non Nullable Column in the Table.

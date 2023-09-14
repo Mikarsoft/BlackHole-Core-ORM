@@ -261,6 +261,7 @@ namespace BlackHole.Configuration
                     }
                 }
             }
+            tableBuilder.CleanupConstraints();
         }
 
         private static void CreateOrUpdateTables(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, BHDatabaseBuilder databaseBuilder)
@@ -353,6 +354,7 @@ namespace BlackHole.Configuration
                 }
             }
             tableBuilder.UpdateWithoutForceWarning();
+            tableBuilder.CleanupConstraints();
         }
 
         /// <summary>
