@@ -795,7 +795,7 @@ namespace BlackHole.DataProviders
 
                     if (value != null)
                     {
-                        if (value?.GetType() == typeof(Guid))
+                        if (value.GetType() == typeof(Guid))
                         {
                             parameters.Add(new SqliteParameter(@param.Name, value.ToString()));
                         }

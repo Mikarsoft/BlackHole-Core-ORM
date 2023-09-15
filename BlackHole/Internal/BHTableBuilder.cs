@@ -168,7 +168,7 @@ namespace BlackHole.Internal
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
                 tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-                tableCreator.Append(GetSqlColumn(new object[] {new DefaultValue(0)}, true, typeof(int), false, "Inactive", TableType.Name));
+                tableCreator.Append(GetSqlColumn(new object[0], true, typeof(int), false, "Inactive", TableType.Name));
 
                 foreach (PropertyInfo Property in Properties)
                 {
@@ -225,13 +225,13 @@ namespace BlackHole.Internal
             string mainPkCol = string.Empty;
             bool hasAutoIncrement = false;
 
-            var pkOptionsBuilderType = typeof(PKOptionsBuilder<>).MakeGenericType(openEntity);
+            var pkOptionsBuilderType = typeof(EntityOptionsBuilder<>).MakeGenericType(openEntity);
             object? pkOptionsBuilderObj = Activator.CreateInstance(pkOptionsBuilderType, new object[] { });
 
             ConstructorInfo? openEntityConstructor = openEntity.GetConstructor(Type.EmptyTypes);
             object? openEntityObj = openEntityConstructor?.Invoke(new object[] { });
 
-            MethodInfo? pkOptionsMethod = openEntity?.GetMethod("PrimaryKeyOptions");
+            MethodInfo? pkOptionsMethod = openEntity?.GetMethod("EntityOptions");
             object? pkSettingsObj = pkOptionsMethod?.Invoke(openEntityObj, new object?[] { pkOptionsBuilderObj });
 
             if(pkSettingsObj != null)
@@ -402,7 +402,7 @@ namespace BlackHole.Internal
 
             alterTable.Append($"PRAGMA foreign_keys = off; ALTER TABLE {Tablename} RENAME TO {OldTablename}; CREATE TABLE {Tablename} (");
             alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-            alterTable.Append(GetSqlColumn(new object[] { new DefaultValue(0) }, true, typeof(int), false, "Inactive",TableType.Name));
+            alterTable.Append(GetSqlColumn(new object[0], true, typeof(int), false, "Inactive",TableType.Name));
 
             foreach (PropertyInfo Property in TableType.GetProperties())
             {
@@ -811,9 +811,7 @@ namespace BlackHole.Internal
         private void NullabilityUpdateCheck(PropertyInfo newColumn,TableParsingInfo existingColumn, string TableName)
         {
             bool isNullable = existingColumn.Nullable;
-            object? defaultVal = null;
             object[] bhAttributes = newColumn.GetCustomAttributes(true);
-            bool isColumnDateTime = false;
 
             object? fkAttribute = bhAttributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
             if(fkAttribute != null)
@@ -829,17 +827,10 @@ namespace BlackHole.Internal
             if (notNullableAtr != null)
             {
                 object? nullabilityAtr = typeof(NotNullable).GetProperty("Nullability")?.GetValue(notNullableAtr, null);
-                defaultVal = typeof(NotNullable).GetProperty("ValueDefault")?.GetValue(notNullableAtr, null);
-                object? isDatetimeVal = typeof(NotNullable).GetProperty("IsDatetimeValue")?.GetValue(notNullableAtr, null);
 
                 if (nullabilityAtr is bool nullableColAtr)
                 {
                     isNullable = nullableColAtr;
-                }
-
-                if(isDatetimeVal is bool isdateTimeType)
-                {
-                    isColumnDateTime = isdateTimeType;
                 }
             }
 
@@ -855,7 +846,7 @@ namespace BlackHole.Internal
             {
                 if (existingColumn.Nullable)
                 {
-                    SetColumnToNotNull(newColumn.PropertyType, defaultVal, isColumnDateTime, newColumn.Name, TableName, existingColumn);
+                    SetColumnToNotNull(newColumn.PropertyType, newColumn.Name, TableName, existingColumn);
                 }
                 else
                 {
@@ -864,20 +855,11 @@ namespace BlackHole.Internal
             }
         }
 
-        private void SetColumnToNotNull(Type PropType,object? defaultVal, bool isDatetime, string PropName, string TableName, TableParsingInfo ColumnInfo)
+        private void SetColumnToNotNull(Type PropType, string PropName, string TableName, TableParsingInfo ColumnInfo)
         {
-            string defaultValCommand = DefaultValueCheck(PropType, defaultVal, isDatetime, PropName,TableName, true);
-
-            if (string.IsNullOrEmpty(defaultValCommand))
-            {
-                transaction.DoNotCommit();
-                transaction.Dispose();
-                string errorMessage = $"Error at Table '{TableName}' and Column '{PropName}'. A DEFAULT VALUE is REQUIRED to change a 'NULL' Column to 'NOT NULL' on an existing Table. Use the '[NotNullable(value)]' Attribute Overload";
-                CliConsoleLogs(errorMessage);
-                throw new Exception(errorMessage);
-            }
-            connection.JustExecute($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand.Trim()} where {MyShit(PropName)} is null", null, transaction);
-            connection.JustExecute($"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} default {defaultValCommand.Trim()} NOT NULL", null, transaction);
+            string defaultValCommand = GetDefaultValue(PropType);
+            connection.JustExecute($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null", null, transaction);
+            connection.JustExecute($"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL", null, transaction);
         }
 
         private void SetColumnToNull(string TableName, string PropName, TableParsingInfo ColumnInfo)
@@ -985,23 +967,7 @@ namespace BlackHole.Internal
                 {
                     usingDateTime = (bool)isDatetimeVal;
                 }
-                return $"{DefaultValueCheck(PropType, defaultValNotnull, usingDateTime, PropName, Tablename)} NOT NULL ";
-            }
-
-            object? dvAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(DefaultValue));
-
-            if(dvAttribute != null)
-            {
-                Type dvAttributeType = typeof(DefaultValue);
-
-                var defaultVal = dvAttributeType.GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
-                var isDatetimeValue = dvAttributeType.GetProperty("IsDatetimeValue")?.GetValue(dvAttribute, null);
-                bool useDateTimeVal = false;
-                if (isDatetimeValue is bool)
-                {
-                    useDateTimeVal = (bool)isDatetimeValue;
-                }
-                return $"{DefaultValueCheck(PropType, defaultVal, useDateTimeVal,PropName,Tablename)} NULL ";
+                return $" NOT NULL ";
             }
 
             return constraintsCommand;
@@ -1010,7 +976,9 @@ namespace BlackHole.Internal
         string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName)
         {
             bool mandatoryNull = false;
+            bool isNullable = true;
             string nullPhase = "NULL, ";
+            string defVal = string.Empty;
 
             if (PropertyType.Name.Contains("Nullable"))
             {
@@ -1020,22 +988,25 @@ namespace BlackHole.Internal
                 }
             }
 
-            Type Fk_Type = typeof(ForeignKey);
-            object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == Fk_Type);
+            object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
 
             if (fkAttribute != null)
             {
-                var tNull = Fk_Type.GetProperty("IsNullable")?.GetValue(fkAttribute, null);
-                nullPhase = firstTime ? $"{tNull}, " : "NULL, ";
-
-                if (mandatoryNull)
+                if(typeof(ForeignKey).GetProperty("Nullability")?.GetValue(fkAttribute, null) is bool Nullability)
                 {
-                    nullPhase = "NULL, ";
+                    isNullable = Nullability;
                 }
 
-                if (isOpenPk)
+                nullPhase = firstTime ? $"NOT NULL, " : "NULL, ";
+
+                if (mandatoryNull && !isNullable)
                 {
-                    nullPhase = "NOT NULL, ";
+                    nullPhase = "NULL, "; //throw
+                }
+
+                if (isOpenPk && isNullable)
+                {
+                    nullPhase = "NOT NULL, "; // throw
                 }
 
                 return nullPhase;
@@ -1045,51 +1016,20 @@ namespace BlackHole.Internal
 
             if (nnAttribute != null)
             {
-                Type nnAttributeType = typeof(NotNullable);
-
-                var defaultValNotnull = nnAttributeType.GetProperty("ValueDefault")?.GetValue(nnAttribute, null);
+                isNullable = false;
                 nullPhase = firstTime ? "NOT NULL, " : "NULL, ";
 
-                if (mandatoryNull)
+                if (mandatoryNull && !isNullable)
                 {
-                    nullPhase = "NULL, ";
+                    nullPhase = "NULL, "; //throw
                 }
 
-                if (isOpenPk)
+                if (isOpenPk && isNullable)
                 {
-                    nullPhase = "NOT NULL, ";
+                    nullPhase = "NOT NULL, "; // throw
                 }
 
-                var isDatetimeVal = nnAttributeType.GetProperty("IsDatetimeValue")?.GetValue(nnAttribute, null);
-                bool useDateTime = false;
-                if (isDatetimeVal is bool)
-                {
-                    useDateTime = (bool)isDatetimeVal;
-                }
-
-                return $"{DefaultValueCheck(PropertyType, defaultValNotnull,useDateTime, PropName, TableName)} {nullPhase}";
-            }
-
-            object? dvAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(DefaultValue));
-
-            if (dvAttribute != null)
-            {
-                Type dvAttributeType = typeof(DefaultValue);
-
-                var defaultVal = dvAttributeType.GetProperty("ValueDefault")?.GetValue(dvAttribute, null);
-                var isDatetimeValue = dvAttributeType.GetProperty("IsDatetimeValue")?.GetValue(dvAttribute, null);
-                bool useDateTimeVal = false;
-                if (isDatetimeValue is bool)
-                {
-                    useDateTimeVal = (bool)isDatetimeValue;
-                }
-
-                if (isOpenPk)
-                {
-                    nullPhase = "NOT NULL, ";
-                }
-
-                return $"{DefaultValueCheck(PropertyType, defaultVal,useDateTimeVal, PropName, TableName)} {nullPhase}";
+                return $"{defVal}{nullPhase}";
             }
 
             if (mandatoryNull)
@@ -1314,6 +1254,7 @@ namespace BlackHole.Internal
                 }
             }
         }
+        
 
         string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname)
         {
@@ -1388,6 +1329,26 @@ namespace BlackHole.Internal
             }
 
             return dataCommand;
+        }
+
+        string GetDefaultValue(Type PropertyType)
+        {
+            return PropertyType.Name switch
+            {
+                "String" => "'-'",
+                "Char" => "'-'",
+                "Int16" => "0",
+                "Int32" => "0",
+                "Int64" => "0",
+                "Decimal" => "0",
+                "Single" => "0",
+                "Double" => "0",
+                "Guid" => $"'{Guid.Empty}'",
+                "Boolean" => "0",
+                "DateTime" => $"'{DateTime.MinValue.ToString(DatabaseStatics.DbDateFormat)}'",
+                "Byte[]" => $"'{new byte[0]}'",
+                _ => throw (new Exception($"Unsupported property type {PropertyType.FullName}")),
+            };
         }
     }
 }

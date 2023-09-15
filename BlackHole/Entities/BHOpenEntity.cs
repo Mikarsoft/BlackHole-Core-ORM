@@ -13,6 +13,6 @@ namespace BlackHole.Entities
         /// <para><b>Important</b> => The result of this method is Required. All 'builder' methods will return a Settings Object.</para>
         /// </summary>
         /// <param name="builder">Entity's Settings Builder</param>
-        public PKSettings<Self> PrimaryKeyOptions(PKOptionsBuilder<Self> builder);
+        public EntitySettings<Self> EntityOptions(EntityOptionsBuilder<Self> builder);
     }
 }

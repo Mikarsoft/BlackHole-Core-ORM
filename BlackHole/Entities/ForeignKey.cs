@@ -14,10 +14,7 @@
         /// Name of the column
         /// </summary>
         public string Column { get; set; }
-        /// <summary>
-        /// Nullability
-        /// </summary>
-        public string IsNullable { get; set; }
+
         /// <summary>
         /// On Delete
         /// </summary>
@@ -43,12 +40,10 @@
 
             if (isNullable)
             {
-                IsNullable = "NULL";
                 CascadeInfo = "on delete set null";
             }
             else
             {
-                IsNullable = "NOT NULL";
                 CascadeInfo = "on delete cascade";
             }
         }
@@ -63,7 +58,6 @@
         {
             TableName = table.Name;
             Column = "Id";
-            IsNullable = "NULL";
             CascadeInfo = "on delete set null";
             Nullability = true;
         }
@@ -82,12 +76,10 @@
 
             if (isNullable)
             {
-                IsNullable = "NULL";
                 CascadeInfo = "on delete set null";
             }
             else
             {
-                IsNullable = "NOT NULL";
                 CascadeInfo = "on delete cascade";
             }
         }
@@ -101,8 +93,8 @@
         {
             TableName = table.Name;
             Column = columnName;
-            IsNullable = "NULL";
             CascadeInfo = "on delete set null";
+            Nullability = true;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace BlackHole.CoreSupport
             };
         }
 
-        internal static string[] GetReturningPrimaryKey<T>(this PKSettings<T> pkOptions,string MainProp, string MainColumn, string Tablename)
+        internal static string[] GetReturningPrimaryKey<T>(this EntitySettings<T> pkOptions,string MainProp, string MainColumn, string Tablename)
         {
             if (pkOptions.HasAutoIncrement)
             {
