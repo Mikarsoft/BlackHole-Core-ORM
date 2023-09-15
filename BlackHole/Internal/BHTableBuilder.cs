@@ -14,6 +14,7 @@ namespace BlackHole.Internal
         private readonly IExecutionProvider connection;
         private BHSqlExportWriter SqlWriter { get; set; }
         private List<TableParsingInfo> DbConstraints { get; set; } = new();
+        private List<string> AfterMathCommands { get; set; } = new();
 
         private readonly string[] SqlDatatypes;
         private readonly bool IsMyShit;
@@ -93,10 +94,8 @@ namespace BlackHole.Internal
 
                 if (!transaction.Commit())
                 {
-                    transaction.Dispose();
-                    CliConsoleLogs("Errors were detected on the Entities. BlackHole will not update the database.Check the BlackHole Logs for more information. Transaction failed.");
                     Thread.Sleep(2000);
-                    throw new Exception("Something went wrong with the Update of the Database. Please check the BlackHole logs to detect and fix the problem.");
+                    throw ProtectDbAndThrow("Something went wrong with the Update of the Database. Please check the BlackHole logs to detect and fix the problem.");
                 }
 
                 if (CliCommand.ExportSql)
@@ -788,11 +787,7 @@ namespace BlackHole.Internal
 
             if (result)
             {
-                transaction.DoNotCommit();
-                transaction.Dispose();
-                string errorMessage = $"Error at Table '{TableName}' on Primary Keys Configuration. You CAN ONLY change the PRIMARY KEYS of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'";
-                CliConsoleLogs(errorMessage);
-                throw new Exception(errorMessage);
+                throw ProtectDbAndThrow($"Error at Table '{TableName}' on Primary Keys Configuration. You CAN ONLY change the PRIMARY KEYS of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'");
             }
 
             return false;
@@ -921,11 +916,7 @@ namespace BlackHole.Internal
             {
                 if (ColumnsToDrop.Any())
                 {
-                    transaction.DoNotCommit();
-                    transaction.Dispose();
-                    string errorMessage = $"Error at Table '{TableName}' on Dropping Columns. You CAN ONLY Drop Columns of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'";
-                    CliConsoleLogs(errorMessage);
-                    throw new Exception(errorMessage);
+                    throw ProtectDbAndThrow($"Error at Table '{TableName}' on Dropping Columns. You CAN ONLY Drop Columns of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'");
                 }
             }
         }
@@ -978,7 +969,6 @@ namespace BlackHole.Internal
             bool mandatoryNull = false;
             bool isNullable = true;
             string nullPhase = "NULL, ";
-            string defVal = string.Empty;
 
             if (PropertyType.Name.Contains("Nullable"))
             {
@@ -997,16 +987,24 @@ namespace BlackHole.Internal
                     isNullable = Nullability;
                 }
 
-                nullPhase = firstTime ? $"NOT NULL, " : "NULL, ";
+                nullPhase = isNullable ? "NULL, " : "NOT NULL, ";
 
                 if (mandatoryNull && !isNullable)
                 {
-                    nullPhase = "NULL, "; //throw
+                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a NOT NULL column in the Database." +
+                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove the (?) from the Property's Type.");
                 }
 
                 if (isOpenPk && isNullable)
                 {
-                    nullPhase = "NOT NULL, "; // throw
+                    throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it CAN NOT be NULLABLE." +
+                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
+                }
+
+                if (!firstTime && !isNullable)
+                {
+                    throw ProtectDbAndThrow("CAN NOT Add a 'NOT NULLABLE' Foreign Key on an Existing Table. Please Change the Nullability on the " +
+                        $"'[ForeignKey]' Attribute on the Property '{PropName}' of the Entity '{TableName}'.");
                 }
 
                 return nullPhase;
@@ -1017,27 +1015,39 @@ namespace BlackHole.Internal
             if (nnAttribute != null)
             {
                 isNullable = false;
-                nullPhase = firstTime ? "NOT NULL, " : "NULL, ";
+                nullPhase = "NOT NULL, ";
 
-                if (mandatoryNull && !isNullable)
+                if (mandatoryNull)
                 {
-                    nullPhase = "NULL, "; //throw
+                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a 'NOT NULL' column in the Database." +
+                        $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
                 }
 
-                if (isOpenPk && isNullable)
+                if (!firstTime)
                 {
-                    nullPhase = "NOT NULL, "; // throw
+                    string defaultValCommand = GetDefaultValue(PropertyType);
+
+                    if (IsForcedUpdate)
+                    {
+                        nullPhase = "NULL, ";
+                        TableParsingInfo ColumnInfo = DbConstraints.First(x => x.TableName.ToLower() == TableName.ToLower() && x.ColumnName.ToLower() == PropName.ToLower());
+                        AfterMathCommands.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null");
+                        AfterMathCommands.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL");
+                        return nullPhase;
+                    }
+                    throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' REQUIRES 'DeveloperMode' or the 'update' CLI command with '--force' argument, " +
+                        $"to be added as 'NOT NULLABLE' Column on an Existing Table. The default value of it, will be {defaultValCommand}.");
                 }
 
-                return $"{defVal}{nullPhase}";
+                return nullPhase;
             }
 
-            if (mandatoryNull)
+            if (isOpenPk)
             {
-                return "NULL, ";
+                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it Requires the '[NotNullable]' Attribute.");
             }
 
-            return ", ";
+            return "NULL, ";
         }
 
         string MyShit(string propName)
@@ -1094,126 +1104,6 @@ namespace BlackHole.Internal
             return result;
         }
 
-        string DefaultValueCheck(Type PropertyType, object? defaultValue, bool useDateTime,string PropName, string TableName, bool JustValue = false)
-        {
-            if(defaultValue != null)
-            {
-                string defaultCase = "default";
-                if (JustValue)
-                {
-                    defaultCase = string.Empty;
-                }
-                if (IsNumericType(defaultValue))
-                {
-                    if (IsIntegerType(PropertyType))
-                    {
-                        string? obj = defaultValue.ToString();
-
-                        if (!string.IsNullOrEmpty(obj))
-                        {
-                            string[] numberParts = obj.Split(".");
-                            return $" {defaultCase} {numberParts[0]} ";
-                        }
-                    }
-
-                    if (IsNumericType(PropertyType))
-                    {
-                        return $" {defaultCase} {defaultValue} ";
-                    }
-                }
-                else
-                {
-                    bool isDateTimeProp = IsDateTimeType(PropertyType);
-
-                    if (useDateTime)
-                    {
-                        if (isDateTimeProp)
-                        {
-                            return $" {defaultCase} '{defaultValue}' ";
-                        }
-                    }
-                    else
-                    {
-                        if (!IsNumericType(PropertyType) && !isDateTimeProp)
-                        {
-                            return $" {defaultCase} '{defaultValue}' ";
-                        }
-                    }
-                }
-
-                transaction.DoNotCommit();
-                transaction.Dispose();
-                string errorMessage = $"Error at Table '{TableName}' and Column '{PropName}'. The DEFAULT VALUE Does NOT match with the property Type.";
-                CliConsoleLogs(errorMessage);
-                throw new Exception(errorMessage);
-            }
-
-            return string.Empty;
-        }
-
-        private bool IsDateTimeType(Type propertyType)
-        {
-            Type propType = propertyType;
-
-            if (propertyType.Name.Contains("Nullable"))
-            {
-                if (propertyType.GenericTypeArguments != null && propertyType.GenericTypeArguments.Length > 0)
-                {
-                    propType = propertyType.GenericTypeArguments[0];
-                }
-            }
-
-            if(Type.GetTypeCode(propType) == TypeCode.DateTime)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        public bool IsNumericType(object obj)
-        {
-            return Type.GetTypeCode(obj.GetType()) switch
-            {
-                TypeCode.Byte or TypeCode.SByte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or TypeCode.Decimal or TypeCode.Double or TypeCode.Single => true,
-                _ => false,
-            };
-        }
-
-        public bool IsIntegerType(Type obj)
-        {
-            Type propType = obj;
-
-            if (obj.Name.Contains("Nullable"))
-            {
-                if (obj.GenericTypeArguments != null && obj.GenericTypeArguments.Length > 0)
-                {
-                    propType = obj.GenericTypeArguments[0];
-                }
-            }
-
-            return Type.GetTypeCode(propType) == TypeCode.Int32;
-        }
-
-        public bool IsNumericType(Type obj)
-        {
-            Type propType = obj;
-
-            if (obj.Name.Contains("Nullable"))
-            {
-                if (obj.GenericTypeArguments != null && obj.GenericTypeArguments.Length > 0)
-                {
-                    propType = obj.GenericTypeArguments[0];
-                }
-            }
-
-            return Type.GetTypeCode(propType) switch
-            {
-                TypeCode.Byte or TypeCode.SByte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 or TypeCode.Decimal or TypeCode.Double or TypeCode.Single => true,
-                _ => false,
-            };
-        }
-
         void CliConsoleLogs(string logCommand)
         {
             if (CliCommand.CliExecution)
@@ -1227,6 +1117,14 @@ namespace BlackHole.Internal
             {
                 SqlWriter.AddSqlCommand(logCommand);
             }
+        }
+
+        Exception ProtectDbAndThrow(string errorMessage)
+        {
+            transaction.DoNotCommit();
+            transaction.Dispose();
+            CliConsoleLogs(errorMessage);
+            return new Exception(errorMessage);
         }
 
         void CliConsoleLogsNoSpace(string logCommand)
@@ -1253,8 +1151,7 @@ namespace BlackHole.Internal
                     CliConsoleLogsNoSpace("");
                 }
             }
-        }
-        
+        } 
 
         string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname)
         {
@@ -1325,7 +1222,7 @@ namespace BlackHole.Internal
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[11]} ";
                     break;
                 default:
-                    throw (new Exception($"Unsupported property type {PropertyType.FullName}"));
+                   throw ProtectDbAndThrow($"Unsupported property type {PropertyType.FullName}");
             }
 
             return dataCommand;
@@ -1347,7 +1244,7 @@ namespace BlackHole.Internal
                 "Boolean" => "0",
                 "DateTime" => $"'{DateTime.MinValue.ToString(DatabaseStatics.DbDateFormat)}'",
                 "Byte[]" => $"'{new byte[0]}'",
-                _ => throw (new Exception($"Unsupported property type {PropertyType.FullName}")),
+                _ => throw ProtectDbAndThrow($"Unsupported property type {PropertyType.FullName}"),
             };
         }
     }

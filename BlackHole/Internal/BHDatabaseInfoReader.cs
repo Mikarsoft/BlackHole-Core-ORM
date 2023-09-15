@@ -9,7 +9,7 @@ namespace BlackHole.Internal
         private readonly IExecutionProvider connection;
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
 
-        public BHDatabaseInfoReader(IExecutionProvider _connection , IBHDatabaseSelector databaseSelector)
+        internal BHDatabaseInfoReader(IExecutionProvider _connection , IBHDatabaseSelector databaseSelector)
         {
             connection = _connection;
             _multiDatabaseSelector = databaseSelector;
