@@ -394,6 +394,20 @@ namespace BlackHole.Internal
                 ColumnNames.Add(column.name);
             }
 
+            PropertyInfo[] Properties = TableType.GetProperties();
+            foreach (PropertyInfo Property in Properties)
+            {
+                NewColumnNames.Add(Property.Name);
+            }
+
+            List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
+            if(ColumnsToDrop.Any() && !IsForcedUpdate)
+            {
+                throw ProtectDbAndThrow($"Error at Table '{TableType.Name}' on Dropping Columns. You CAN ONLY Drop Columns of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'");
+            }
+            List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
+            List<string> CommonColumns = ColumnNames.Intersect(NewColumnNames).ToList();
+
             StringBuilder alterTable = new();
             StringBuilder foreignKeys = new();
             StringBuilder closingCommand = new();
@@ -401,17 +415,18 @@ namespace BlackHole.Internal
             alterTable.Append($"PRAGMA foreign_keys = off; ALTER TABLE {Tablename} RENAME TO {OldTablename}; CREATE TABLE {Tablename} (");
             alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
             alterTable.Append(" NULL, ");
+            bool missingInactiveColumn = false;
 
-            foreach (PropertyInfo Property in TableType.GetProperties())
+            foreach (string AddColumn in CommonColumns)
             {
+                PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
                 object[] attributes = Property.GetCustomAttributes(true);
-                NewColumnNames.Add(Property.Name);
 
                 if (Property.Name != "Id")
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name,TableType.Name));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name));
                 }
                 else
                 {
@@ -445,26 +460,31 @@ namespace BlackHole.Internal
                 }
             }
 
-            if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
+            foreach (string AddColumn in ColumnsToAdd)
             {
-                List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
-
-                foreach(string ColumnName in ColumnsToAdd)
+                if(AddColumn != "Inactive")
                 {
-                    SqLiteTableInfo? columnInfo = ColumnsInfo.Where(x => x.name == ColumnName).FirstOrDefault();
-                    SqLiteForeignKeySchema? fkC = SchemaInfo.Where(x => x.from == ColumnName).FirstOrDefault();
+                    PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
+                    object[] attributes = Property.GetCustomAttributes(true);
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name));
 
-                    if(columnInfo != null)
+                    if (attributes.Length > 0)
                     {
-                        NewColumnNames.Add(ColumnName);
+                        object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
 
-                        alterTable.Append($"{columnInfo.name} {columnInfo.type} NULL, ");
-
-                        if(fkC != null)
+                        if (FK_attribute != null)
                         {
-                            foreignKeys.Append($"CONSTRAINT fk_{Tablename}_{fkC.table} FOREIGN KEY ({fkC.from}) REFERENCES {fkC.table}({fkC.to}) on delete {fkC.on_delete}, ");
+                            var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
+                            var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
+                            var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
+                            foreignKeys.Append(LiteConstraint(TableType.Name, Property.Name, tName, tColumn, cascadeInfo));
                         }
                     }
+                }
+                else
+                {
+                    missingInactiveColumn = true;
                 }
             }
 
@@ -484,6 +504,13 @@ namespace BlackHole.Internal
             connection.JustExecute(closingCommand.ToString(), null, transaction);
             CliConsoleLogs($"{closingCommand}");
             closingCommand.Clear();
+
+            if (missingInactiveColumn)
+            {
+                string updateInactiveCol = $"Update Table {TableSchema}{Tablename} set {MyShit("Inactive")} = 0 where {MyShit("Inactive")} is null";
+                connection.JustExecute(updateInactiveCol, null, transaction);
+                CliConsoleLogs($"{updateInactiveCol};");
+            }
         }
 
 
@@ -537,7 +564,7 @@ namespace BlackHole.Internal
 
                 if (attributes.Length > 0)
                 {
-                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
+                    object? FK_attribute = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
 
                     if (FK_attribute != null)
                     {
@@ -647,10 +674,18 @@ namespace BlackHole.Internal
             }
 
             List<string> ColumnNames = connection.Query<string>(getColumns, null, transaction);
+
+            if (IsForcedUpdate)
+            {
+                List<string> CommonColumns = NewColumnNames.Intersect(ColumnNames).ToList();
+                UpdateTableColumnsNullability(CommonColumns, Properties, TableType.Name);
+            }
+
             List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
             List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
             DropColumns(ColumnsToDrop, TableType.Name);
 
+            bool inactiveColMissing = false;
             StringBuilder columnCreator = new();
 
             foreach (string ColumnName in ColumnsToAdd)
@@ -659,6 +694,7 @@ namespace BlackHole.Internal
 
                 if (ColumnName == "Inactive")
                 {
+                    inactiveColMissing = true;
                     columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
                     connection.JustExecute(columnCreator.ToString() + "NULL ", null, transaction);
                     CliConsoleLogs($"{columnCreator} NULL;");
@@ -680,8 +716,14 @@ namespace BlackHole.Internal
                         }
                     }
                 }
-
                 columnCreator.Clear();
+            }
+
+            if (inactiveColMissing)
+            {
+                string updateInactiveCol = $"Update Table {TableSchema}{Tablename} set {MyShit("Inactive")} = 0 where {MyShit("Inactive")} is null";
+                connection.JustExecute(updateInactiveCol, null, transaction);
+                CliConsoleLogs($"{updateInactiveCol};");
             }
         }
 
@@ -929,6 +971,12 @@ namespace BlackHole.Internal
 
         string AddColumnConstaints(object[] attributes, string TableName, string PropName, Type PropType, bool isOpenPk)
         {
+            if(isOpenPk && !IsForcedUpdate)
+            {
+                throw ProtectDbAndThrow($"Error at Entity '{TableName}' and Property '{PropName}'. You CAN ONLY change PRIMARY KEYS of a Table by using " +
+                    "'DeveloperMode' or the 'update' CLI command with '--force' argument");
+            }
+
             bool isNullable = true;
             bool mandatoryNull = false;
             string constraintsCommand = "NULL";
@@ -1081,7 +1129,103 @@ namespace BlackHole.Internal
 
         private string SQLiteColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName)
         {
-            return string.Empty;
+            if (isOpenPk && !firstTime && !IsForcedUpdate)
+            {
+                throw ProtectDbAndThrow($"Error at Entity '{TableName}' and Property '{PropName}'. You CAN ONLY change PRIMARY KEYS of a Table by using " +
+                    "'DeveloperMode' or the 'update' CLI command with '--force' argument");
+            }
+
+            bool mandatoryNull = false;
+            bool isNullable = true;
+            string nullPhase = "NULL, ";
+
+            if (PropertyType.Name.Contains("Nullable"))
+            {
+                if (PropertyType.GenericTypeArguments != null && PropertyType.GenericTypeArguments.Length > 0)
+                {
+                    mandatoryNull = true;
+                }
+            }
+
+            object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
+
+            if (fkAttribute != null)
+            {
+                if (typeof(ForeignKey).GetProperty("Nullability")?.GetValue(fkAttribute, null) is bool Nullability)
+                {
+                    isNullable = Nullability;
+                }
+
+                nullPhase = isNullable ? "NULL, " : "NOT NULL, ";
+
+                if (mandatoryNull && !isNullable)
+                {
+                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a NOT NULL column in the Database." +
+                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove the (?) from the Property's Type.");
+                }
+
+                if (isOpenPk && isNullable)
+                {
+                    throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it CAN NOT be NULLABLE." +
+                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
+                }
+
+                if(!firstTime && !isNullable)
+                {
+                    throw ProtectDbAndThrow("CAN NOT Add a 'NOT NULLABLE' Foreign Key on an Existing Table. Please Change the Nullability on the " +
+                        $"'[ForeignKey]' Attribute on the Property '{PropName}' of the Entity '{TableName}'.");
+                }
+
+                return nullPhase;
+            }
+
+            object? nnAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
+
+            if (nnAttribute != null)
+            {
+                isNullable = false;
+                nullPhase = "NOT NULL, ";
+
+                if (mandatoryNull)
+                {
+                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a 'NOT NULL' column in the Database." +
+                        $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
+                }
+
+                if (!firstTime && !IsForcedUpdate)
+                {
+                    string defaultValCommand = GetDefaultValue(PropertyType);
+
+                    if (IsForcedUpdate)
+                    {
+                        return CheckLitePreviousColumnState(defaultValCommand, nullPhase, TableName, PropName);
+                    }
+                    else
+                    {
+                        throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' REQUIRES 'DeveloperMode' or the 'update' CLI command with '--force' argument, " +
+                            $"to be added as 'NOT NULLABLE' Column on an Existing Table. The default value of it, will be {defaultValCommand}.");
+                    }
+                }
+
+                return nullPhase;
+            }
+
+            if (isOpenPk)
+            {
+                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it Requires the '[NotNullable]' Attribute.");
+            }
+
+            return "NULL, ";
+        }
+
+        string CheckLitePreviousColumnState(string defaultVal, string nullPhase, string TableName , string ColumnName)
+        {
+            TableParsingInfo? oldColumn = DbConstraints.FirstOrDefault(x=>x.TableName.ToLower() == TableName.ToLower() && x.ColumnName.ToLower() == ColumnName.ToLower());
+            if(oldColumn != null && !oldColumn.Nullable)
+            {
+                return nullPhase;
+            }
+            return $"default {defaultVal} {nullPhase}";
         }
 
         string MyShit(string propName)
