@@ -14,8 +14,6 @@ namespace BlackHole.Internal
         private readonly IExecutionProvider connection;
         private BHSqlExportWriter SqlWriter { get; set; }
         private List<TableParsingInfo> DbConstraints { get; set; } = new();
-        private List<string> AfterMathCommands { get; set; } = new();
-
         private readonly string[] SqlDatatypes;
         private readonly bool IsMyShit;
         private readonly bool IsLite;
@@ -26,6 +24,7 @@ namespace BlackHole.Internal
         public BlackHoleTransaction transaction = new(); 
         internal BHDatabaseInfoReader? dbInfoReader { get; set; }
         internal bool IsForcedUpdate { get; } 
+
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
@@ -134,7 +133,7 @@ namespace BlackHole.Internal
                         if (Property.Name != pkInformation.MainPrimaryKey)
                         {
                             tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                            tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
+                            tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
                         }
                         else
                         {
@@ -144,7 +143,7 @@ namespace BlackHole.Internal
                     else
                     {
                         tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name));
+                        tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name));
                     }
                 }
 
@@ -167,7 +166,7 @@ namespace BlackHole.Internal
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
                 tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-                tableCreator.Append(GetSqlColumn(new object[0], true, typeof(int), false, "Inactive", TableType.Name));
+                tableCreator.Append(" NULL, ");
 
                 foreach (PropertyInfo Property in Properties)
                 {
@@ -177,7 +176,7 @@ namespace BlackHole.Internal
                     {
                         tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                        tableCreator.Append(GetSqlColumn(attributes, true, Property.PropertyType, false,Property.Name,TableType.Name));
+                        tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, false,Property.Name,TableType.Name));
                     }
                     else
                     {
@@ -401,7 +400,7 @@ namespace BlackHole.Internal
 
             alterTable.Append($"PRAGMA foreign_keys = off; ALTER TABLE {Tablename} RENAME TO {OldTablename}; CREATE TABLE {Tablename} (");
             alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
-            alterTable.Append(GetSqlColumn(new object[0], true, typeof(int), false, "Inactive",TableType.Name));
+            alterTable.Append(" NULL, ");
 
             foreach (PropertyInfo Property in TableType.GetProperties())
             {
@@ -412,7 +411,7 @@ namespace BlackHole.Internal
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
 
-                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, false, Property.Name,TableType.Name));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name,TableType.Name));
                 }
                 else
                 {
@@ -523,7 +522,7 @@ namespace BlackHole.Internal
                     if(Property.Name != pkInformation.MainPrimaryKey)
                     {
                         alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                        alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
+                        alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
                     }
                     else
                     {
@@ -533,7 +532,7 @@ namespace BlackHole.Internal
                 else
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    alterTable.Append(GetSqlColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
                 }
 
                 if (attributes.Length > 0)
@@ -657,29 +656,29 @@ namespace BlackHole.Internal
             foreach (string ColumnName in ColumnsToAdd)
             {
                 columnCreator.Append($"ALTER TABLE {TableSchema}{Tablename} ADD ");
-                PropertyInfo? Property = Properties.Where(x => x.Name == ColumnName).FirstOrDefault();
 
-                if (Property != null)
+                if (ColumnName == "Inactive")
                 {
+                    columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
+                    connection.JustExecute(columnCreator.ToString() + "NULL ", null, transaction);
+                    CliConsoleLogs($"{columnCreator} NULL;");
+                }
+                else
+                {
+                    PropertyInfo Property = Properties.First(x => x.Name == ColumnName);
+
                     object[]? attributes = Property.GetCustomAttributes(true);
                     columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
-                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType));
+                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, false));
 
-                    foreach(string commandText in columnCreator.ToString().Split("##"))
+                    foreach (string commandText in columnCreator.ToString().Split("##"))
                     {
-                        if (!string.IsNullOrEmpty(commandText))
+                        if (!string.IsNullOrEmpty(commandText.Trim()))
                         {
                             connection.JustExecute(commandText, null, transaction);
                             CliConsoleLogs($"{commandText};");
                         }
                     }
-                }
-
-                if (ColumnName == "Inactive")
-                {
-                    columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
-                    connection.JustExecute(columnCreator.ToString(), null, transaction);
-                    CliConsoleLogs($"{columnCreator};");
                 }
 
                 columnCreator.Clear();
@@ -722,7 +721,9 @@ namespace BlackHole.Internal
                 canUpdatePKs = CompairPrimaryKeys(ExistingPkInfo, pkInformation.PKPropertyNames, TableType.Name);
                 if (canUpdatePKs)
                 {
-                    PKsDropped = connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT PK_{TableType.Name} ", null, transaction);
+                    string commandText = $"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT PK_{TableType.Name} ";
+                    PKsDropped = connection.JustExecute(commandText, null, transaction);
+                    CliConsoleLogs($"{commandText};");
                 }
             }
 
@@ -735,24 +736,21 @@ namespace BlackHole.Internal
             foreach (string ColumnName in ColumnsToAdd)
             {
                 columnCreator.Append($"ALTER TABLE {TableSchema}{Tablename} ADD ");
-                PropertyInfo? Property = Properties.Where(x => x.Name == ColumnName).FirstOrDefault();
+                PropertyInfo? Property = Properties.First(x => x.Name == ColumnName);
+                
+                object[]? attributes = Property.GetCustomAttributes(true);
+                columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
+                columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, pkInformation.PKPropertyNames.Contains(ColumnName)));
 
-                if (Property != null)
+                foreach (string commandText in columnCreator.ToString().Split("##"))
                 {
-                    object[]? attributes = Property.GetCustomAttributes(true);
-                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
-                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType));
-
-                    foreach (string commandText in columnCreator.ToString().Split("##"))
+                    if (!string.IsNullOrEmpty(commandText.Trim()))
                     {
-                        if (!string.IsNullOrEmpty(commandText))
-                        {
-                            connection.JustExecute(commandText, null, transaction);
-                            CliConsoleLogs($"{commandText};");
-                        }
+                        connection.JustExecute(commandText, null, transaction);
+                        CliConsoleLogs($"{commandText};");
                     }
                 }
-
+                
                 columnCreator.Clear();
             }
 
@@ -763,7 +761,9 @@ namespace BlackHole.Internal
                 {
                     primaryKeys += $",{MyShit(pkName)}";
                 }
-                connection.JustExecute($"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})", null, transaction);
+                string commandTxt = $"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})";
+                connection.JustExecute(commandTxt, null, transaction);
+                CliConsoleLogs($"{commandTxt};");
             }
         }
 
@@ -853,13 +853,19 @@ namespace BlackHole.Internal
         private void SetColumnToNotNull(Type PropType, string PropName, string TableName, TableParsingInfo ColumnInfo)
         {
             string defaultValCommand = GetDefaultValue(PropType);
-            connection.JustExecute($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null", null, transaction);
-            connection.JustExecute($"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL", null, transaction);
+            string updateTxt = $"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null";
+            string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL";
+            connection.JustExecute(updateTxt, null, transaction);
+            connection.JustExecute(alterTxt, null, transaction);
+            CliConsoleLogs($"{updateTxt};");
+            CliConsoleLogs($"{alterTxt};");
         }
 
         private void SetColumnToNull(string TableName, string PropName, TableParsingInfo ColumnInfo)
-        { 
-            connection.JustExecute($"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL", null, transaction);
+        {
+            string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL";
+            connection.JustExecute(alterTxt, null, transaction);
+            CliConsoleLogs($"{alterTxt};");
         }
 
         private string GetSqlDataType(TableParsingInfo columnInfo)
@@ -921,50 +927,95 @@ namespace BlackHole.Internal
             }
         }
 
-        string AddColumnConstaints(object[] attributes, string Tablename, string PropName, Type PropType)
+        string AddColumnConstaints(object[] attributes, string TableName, string PropName, Type PropType, bool isOpenPk)
         {
-            string constraintsCommand = "NULL ##";
-            string alterTable = $"ALTER TABLE {TableSchema}{MyShit(Tablename)}";
+            bool isNullable = true;
+            bool mandatoryNull = false;
+            string constraintsCommand = "NULL";
+            string alterTable = $"ALTER TABLE {TableSchema}{MyShit(TableName)}";
+
+            if (PropType.Name.Contains("Nullable"))
+            {
+                if (PropType.GenericTypeArguments != null && PropType.GenericTypeArguments.Length > 0)
+                {
+                    mandatoryNull = true;
+                }
+            }
 
             Type fkAttributeType = typeof(ForeignKey);
             object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == fkAttributeType);
 
-            if(fkAttribute != null)
+            if (fkAttribute != null)
             {
                 var tName = fkAttributeType.GetProperty("TableName")?.GetValue(fkAttribute, null);
                 var tColumn = fkAttributeType.GetProperty("Column")?.GetValue(fkAttribute, null);
-                var tNullable = fkAttributeType.GetProperty("IsNullable")?.GetValue(fkAttribute, null);
+                string cascadeInfo = "on delete cascade";
 
-                var cascadeInfo = "on delete cascade";
-
-                if (tNullable != null && tNullable.ToString() == "NULL")
+                if (fkAttributeType.GetProperty("Nullability")?.GetValue(fkAttribute, null) is bool Nullability)
                 {
+                    isNullable = Nullability;
                     cascadeInfo = "on delete set null";
                 }
 
-                return $"{constraintsCommand} {MyShitConstraint(alterTable, Tablename, PropName, tName, tColumn, cascadeInfo)}";
+                if (mandatoryNull && !isNullable)
+                {
+                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a NOT NULL column in the Database." +
+                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove the (?) from the Property's Type.");
+                }
+
+                if (isOpenPk && isNullable)
+                {
+                    throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it CAN NOT be NULLABLE." +
+                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
+                }
+
+                if (!isNullable)
+                {
+                    throw ProtectDbAndThrow("CAN NOT Add a 'NOT NULLABLE' Foreign Key on an Existing Table. Please Change the Nullability on the " +
+                        $"'[ForeignKey]' Attribute on the Property '{PropName}' of the Entity '{TableName}'.");
+                }
+
+                return $"{constraintsCommand} ## {MyShitConstraint(alterTable, TableName, PropName, tName, tColumn, cascadeInfo)}";
             }
 
             object? nnAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
 
-            if(nnAttribute != null)
+            if (nnAttribute != null)
             {
-                Type nnAttributeType = typeof(NotNullable);
+                isNullable = false;
+                string nullPhase = "NULL ";
 
-                var defaultValNotnull = nnAttributeType.GetProperty("ValueDefault")?.GetValue(nnAttribute, null);
-                var isDatetimeVal = nnAttributeType.GetProperty("IsDatetimeValue")?.GetValue(nnAttribute, null);
-                bool usingDateTime = false;
-                if(isDatetimeVal is bool)
+                if (mandatoryNull)
                 {
-                    usingDateTime = (bool)isDatetimeVal;
+                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a 'NOT NULL' column in the Database." +
+                        $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
                 }
-                return $" NOT NULL ";
+
+                string defaultValCommand = GetDefaultValue(PropType);
+
+                if (IsForcedUpdate)
+                {
+                    TableParsingInfo ColumnInfo = DbConstraints.First(x => x.TableName.ToLower() == TableName.ToLower() && x.ColumnName.ToLower() == PropName.ToLower());
+                    nullPhase += $"## Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null ";
+                    nullPhase += $"## ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL";
+                    return nullPhase;
+                }
+                else
+                {
+                    throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' REQUIRES 'DeveloperMode' or the 'update' CLI command with '--force' argument, " +
+                        $"to be added as 'NOT NULLABLE' Column on an Existing Table. The default value of it, will be {defaultValCommand}.");
+                }
+            }
+
+            if (isOpenPk)
+            {
+                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it Requires the '[NotNullable]' Attribute.");
             }
 
             return constraintsCommand;
         }
 
-        string GetSqlColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName)
+        string GetSqlColumn(object[] attributes, Type PropertyType, bool isOpenPk, string PropName, string TableName)
         {
             bool mandatoryNull = false;
             bool isNullable = true;
@@ -1001,12 +1052,6 @@ namespace BlackHole.Internal
                         $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
                 }
 
-                if (!firstTime && !isNullable)
-                {
-                    throw ProtectDbAndThrow("CAN NOT Add a 'NOT NULLABLE' Foreign Key on an Existing Table. Please Change the Nullability on the " +
-                        $"'[ForeignKey]' Attribute on the Property '{PropName}' of the Entity '{TableName}'.");
-                }
-
                 return nullPhase;
             }
 
@@ -1023,22 +1068,6 @@ namespace BlackHole.Internal
                         $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
                 }
 
-                if (!firstTime)
-                {
-                    string defaultValCommand = GetDefaultValue(PropertyType);
-
-                    if (IsForcedUpdate)
-                    {
-                        nullPhase = "NULL, ";
-                        TableParsingInfo ColumnInfo = DbConstraints.First(x => x.TableName.ToLower() == TableName.ToLower() && x.ColumnName.ToLower() == PropName.ToLower());
-                        AfterMathCommands.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null");
-                        AfterMathCommands.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} ALTER COLUMN {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL");
-                        return nullPhase;
-                    }
-                    throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' REQUIRES 'DeveloperMode' or the 'update' CLI command with '--force' argument, " +
-                        $"to be added as 'NOT NULLABLE' Column on an Existing Table. The default value of it, will be {defaultValCommand}.");
-                }
-
                 return nullPhase;
             }
 
@@ -1048,6 +1077,11 @@ namespace BlackHole.Internal
             }
 
             return "NULL, ";
+        }
+
+        private string SQLiteColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName)
+        {
+            return string.Empty;
         }
 
         string MyShit(string propName)
@@ -1127,29 +1161,12 @@ namespace BlackHole.Internal
             return new Exception(errorMessage);
         }
 
-        void CliConsoleLogsNoSpace(string logCommand)
-        {
-            if (CliCommand.CliExecution)
-            {
-                Console.WriteLine($"_bhLog_{logCommand}");
-            }
-        }
-
         internal void UpdateWithoutForceWarning()
         {
             if (CliCommand.CliExecution)
             {
                 Console.WriteLine("_bhLog_ \t Update finished");
                 Console.WriteLine("_bhLog_");
-                if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
-                {
-                    CliConsoleLogsNoSpace("Warning:");
-                    CliConsoleLogsNoSpace("BlackHole is not in Dev Mode. Columns of deleted properties will change to nullable instead of dropping.");
-                    CliConsoleLogsNoSpace("If you want to drop some columns, run the update command using the '-f' or '--force' argument");
-                    CliConsoleLogsNoSpace("");
-                    CliConsoleLogsNoSpace("Example : bhl update -f");
-                    CliConsoleLogsNoSpace("");
-                }
             }
         } 
 
