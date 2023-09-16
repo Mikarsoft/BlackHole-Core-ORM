@@ -294,7 +294,7 @@ namespace BlackHole.Internal
         {
             if (IsLite)
             {
-                ForeignKeyLiteOpenAsignment(TableType, true);
+                ForeignKeyLiteOpenAsignment(TableType, true, ReadOpenEntityPrimaryKeys(TableType));
             }
             else
             {
@@ -344,9 +344,9 @@ namespace BlackHole.Internal
                 ColumnNames.Add(column.name);
             }
 
-            IEnumerable<string> CommonList = ColumnNames.Intersect(NewColumnNames);
+            List<string> CommonList = ColumnNames.Intersect(NewColumnNames).ToList();
 
-            if (CommonList.Count() != ColumnNames.Count)
+            if (CommonList.Count != NewColumnNames.Count || CommonList.Count != ColumnNames.Count)
             {
                 ForeignKeyLiteAsignment(TableType, false);
             }
@@ -356,6 +356,8 @@ namespace BlackHole.Internal
         {
             List<string> ColumnNames = new();
             List<string> NewColumnNames = new();
+            PKInfo pkInformation = ReadOpenEntityPrimaryKeys(TableType);
+            List<string> existingPks = new();
 
             foreach (PropertyInfo Property in TableType.GetProperties())
             {
@@ -365,13 +367,19 @@ namespace BlackHole.Internal
             foreach (SqLiteTableInfo column in connection.Query<SqLiteTableInfo>($"PRAGMA table_info({MyShit(TableType.Name)}); ", null))
             {
                 ColumnNames.Add(column.name);
+                if(column.pk > 0)
+                {
+                    existingPks.Add(column.name);
+                }
             }
 
-            IEnumerable<string> CommonList = ColumnNames.Intersect(NewColumnNames);
+            List<string> CommonList = ColumnNames.Intersect(NewColumnNames).ToList();
+            List<string> CommonPk = pkInformation.PKPropertyNames.Intersect(existingPks).ToList();
 
-            if (CommonList.Count() != ColumnNames.Count)
+            if (CommonList.Count != NewColumnNames.Count || CommonList.Count != ColumnNames.Count
+                || CommonPk.Count != existingPks.Count || CommonPk.Count != pkInformation.PKPropertyNames.Count)
             {
-                ForeignKeyLiteOpenAsignment(TableType, false);
+                ForeignKeyLiteOpenAsignment(TableType, false, pkInformation);
             }
         }
 
@@ -417,16 +425,16 @@ namespace BlackHole.Internal
             alterTable.Append(" NULL, ");
             bool missingInactiveColumn = false;
 
-            foreach (string AddColumn in CommonColumns)
-            {
+            foreach (string AddColumn in CommonColumns.Where(x=> x != "Inactive"))
+            { 
                 PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
                 object[] attributes = Property.GetCustomAttributes(true);
 
                 if (Property.Name != "Id")
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    SqLiteTableInfo existingCol = ColumnsInfo.First(x=> x.name == AddColumn);
-                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name, existingCol.notnull));
+                    SqLiteTableInfo existingCol = ColumnsInfo.First(x => x.name == AddColumn);
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name, existingCol.notnull, false));
                 }
                 else
                 {
@@ -467,7 +475,7 @@ namespace BlackHole.Internal
                     PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
                     object[] attributes = Property.GetCustomAttributes(true);
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name, false));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name, false, false));
 
                     if (attributes.Length > 0)
                     {
@@ -513,12 +521,10 @@ namespace BlackHole.Internal
             }
         }
 
-
-        void ForeignKeyLiteOpenAsignment(Type TableType, bool firstTime)
+        void ForeignKeyLiteOpenAsignment(Type TableType, bool firstTime, PKInfo pkInformation)
         {
             string Tablename = MyShit(TableType.Name);
             string OldTablename = MyShit($"{TableType.Name}_Old");
-            PKInfo pkInformation = ReadOpenEntityPrimaryKeys(TableType);
             List<string> pkSettings = pkInformation.PKPropertyNames;
             string Pkoption = OpenPrimaryKey(pkSettings, TableType.Name);
 
@@ -558,13 +564,14 @@ namespace BlackHole.Internal
                 PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
                 object[] attributes = Property.GetCustomAttributes(true);
                 SqLiteTableInfo existingCol = ColumnsInfo.First(x => x.name == AddColumn);
-
+                bool isOpenPk = pkSettings.Contains(Property.Name);
                 if (pkInformation.HasAutoIncrement)
                 {
                     if (Property.Name != pkInformation.MainPrimaryKey)
                     {
                         alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                        alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name, existingCol.notnull));
+                        alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, isOpenPk,
+                            Property.Name, TableType.Name, existingCol.notnull, HasLitePkChanged(existingCol.pk,isOpenPk)));
                     }
                     else
                     {
@@ -574,7 +581,8 @@ namespace BlackHole.Internal
                 else
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name, existingCol.notnull));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, isOpenPk,
+                        Property.Name, TableType.Name, existingCol.notnull, HasLitePkChanged(existingCol.pk,isOpenPk)));
                 }
 
                 if (attributes.Length > 0)
@@ -595,13 +603,15 @@ namespace BlackHole.Internal
             {
                 PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
                 object[] attributes = Property.GetCustomAttributes(true);
+                bool isOpenPk = pkSettings.Contains(Property.Name);
 
                 if (pkInformation.HasAutoIncrement)
                 {
                     if(Property.Name != pkInformation.MainPrimaryKey)
                     {
                         alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                        alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name, false));
+                        alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, isOpenPk,
+                            Property.Name,TableType.Name, false, HasLitePkChanged(0,isOpenPk)));
                     }
                     else
                     {
@@ -611,7 +621,8 @@ namespace BlackHole.Internal
                 else
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name, false));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, isOpenPk,
+                        Property.Name,TableType.Name, false, HasLitePkChanged(0,isOpenPk)));
                 }
 
                 if (attributes.Length > 0)
@@ -1156,9 +1167,9 @@ namespace BlackHole.Internal
             return "NULL, ";
         }
 
-        private string SQLiteColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName, bool wasNotNull)
+        private string SQLiteColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName, bool wasNotNull, bool hasPkChanged)
         {
-            if (isOpenPk && !firstTime && !IsForcedUpdate)
+            if (hasPkChanged && !firstTime && !IsForcedUpdate)
             {
                 throw ProtectDbAndThrow($"Error at Entity '{TableName}' and Property '{PropName}'. You CAN ONLY change PRIMARY KEYS of a Table by using " +
                     "'DeveloperMode' or the 'update' CLI command with '--force' argument");
@@ -1244,6 +1255,16 @@ namespace BlackHole.Internal
             }
 
             return "NULL, ";
+        }
+
+        bool HasLitePkChanged(int pk, bool isOpenPk)
+        {
+            bool wasPk = pk > 0;
+            if(wasPk != isOpenPk)
+            {
+                return true;
+            }
+            return false;
         }
 
         string CheckLitePreviousColumnState(string defaultVal, string nullPhase, string TableName , string ColumnName)
