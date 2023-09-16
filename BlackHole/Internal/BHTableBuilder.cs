@@ -425,8 +425,8 @@ namespace BlackHole.Internal
                 if (Property.Name != "Id")
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-
-                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name));
+                    SqLiteTableInfo existingCol = ColumnsInfo.First(x=> x.name == AddColumn);
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name, existingCol.notnull));
                 }
                 else
                 {
@@ -467,7 +467,7 @@ namespace BlackHole.Internal
                     PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
                     object[] attributes = Property.GetCustomAttributes(true);
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name, false));
 
                     if (attributes.Length > 0)
                     {
@@ -498,7 +498,7 @@ namespace BlackHole.Internal
             alterTable.Clear(); foreignKeys.Clear();
 
             closingCommand.Append(FkCommand);
-            closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, Tablename, OldTablename)} DROP TABLE {OldTablename};");
+            closingCommand.Append($"{TransferOldTableData(CommonColumns, Tablename, OldTablename)} DROP TABLE {OldTablename};");
             closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
             closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {OldTablename}");
             connection.JustExecute(closingCommand.ToString(), null, transaction);
@@ -533,23 +533,38 @@ namespace BlackHole.Internal
                 ColumnNames.Add(column.name);
             }
 
+            PropertyInfo[] Properties = TableType.GetProperties();
+            foreach (PropertyInfo Property in Properties)
+            {
+                NewColumnNames.Add(Property.Name);
+            }
+
+            List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
+            if (ColumnsToDrop.Any() && !IsForcedUpdate)
+            {
+                throw ProtectDbAndThrow($"Error at Table '{TableType.Name}' on Dropping Columns. You CAN ONLY Drop Columns of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'");
+            }
+            List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
+            List<string> CommonColumns = ColumnNames.Intersect(NewColumnNames).ToList();
+
             StringBuilder alterTable = new();
             StringBuilder foreignKeys = new();
             StringBuilder closingCommand = new();
 
             alterTable.Append($"PRAGMA foreign_keys=off; ALTER TABLE {Tablename} RENAME TO {OldTablename}; CREATE TABLE {Tablename} (");
 
-            foreach (PropertyInfo Property in TableType.GetProperties())
+            foreach (string AddColumn in CommonColumns)
             {
+                PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
                 object[] attributes = Property.GetCustomAttributes(true);
-                NewColumnNames.Add(Property.Name);
+                SqLiteTableInfo existingCol = ColumnsInfo.First(x => x.name == AddColumn);
 
                 if (pkInformation.HasAutoIncrement)
                 {
-                    if(Property.Name != pkInformation.MainPrimaryKey)
+                    if (Property.Name != pkInformation.MainPrimaryKey)
                     {
                         alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                        alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
+                        alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name, existingCol.notnull));
                     }
                     else
                     {
@@ -559,7 +574,7 @@ namespace BlackHole.Internal
                 else
                 {
                     alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
-                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name, existingCol.notnull));
                 }
 
                 if (attributes.Length > 0)
@@ -576,25 +591,39 @@ namespace BlackHole.Internal
                 }
             }
 
-            if (!IsForcedUpdate)
+            foreach (string AddColumn in ColumnsToAdd)
             {
-                List<string> ColumnsToAdd = ColumnNames.Except(NewColumnNames).ToList();
+                PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
+                object[] attributes = Property.GetCustomAttributes(true);
 
-                foreach (string ColumnName in ColumnsToAdd)
+                if (pkInformation.HasAutoIncrement)
                 {
-                    SqLiteTableInfo? columnInfo = ColumnsInfo.Where(x => x.name == ColumnName).FirstOrDefault();
-                    SqLiteForeignKeySchema? fkC = SchemaInfo.Where(x => x.from == ColumnName).FirstOrDefault();
-
-                    if (columnInfo != null)
+                    if(Property.Name != pkInformation.MainPrimaryKey)
                     {
-                        NewColumnNames.Add(ColumnName);
+                        alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                        alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name, false));
+                    }
+                    else
+                    {
+                        alterTable.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey));
+                    }
+                }
+                else
+                {
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name, false));
+                }
 
-                        alterTable.Append($"{columnInfo.name} {columnInfo.type} NULL, ");
+                if (attributes.Length > 0)
+                {
+                    object? FK_attribute = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
 
-                        if (fkC != null)
-                        {
-                            foreignKeys.Append($"CONSTRAINT fk_{TableType.Name}_{fkC.table} FOREIGN KEY ({fkC.from}) REFERENCES {fkC.table}({fkC.to}) on delete {fkC.on_delete}, ");
-                        }
+                    if (FK_attribute != null)
+                    {
+                        var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
+                        var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
+                        var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
+                        foreignKeys.Append(LiteConstraint(TableType.Name, Property.Name, tName, tColumn, cascadeInfo));
                     }
                 }
             }
@@ -614,7 +643,7 @@ namespace BlackHole.Internal
             alterTable.Clear(); foreignKeys.Clear();
 
             closingCommand.Append(FkCommand);
-            closingCommand.Append($"{TransferOldTableData(ColumnNames, NewColumnNames, Tablename, OldTablename)} DROP TABLE {OldTablename};");
+            closingCommand.Append($"{TransferOldTableData(CommonColumns, Tablename, OldTablename)} DROP TABLE {OldTablename};");
             closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
             closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {OldTablename}");
             string test = closingCommand.ToString();
@@ -1127,7 +1156,7 @@ namespace BlackHole.Internal
             return "NULL, ";
         }
 
-        private string SQLiteColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName)
+        private string SQLiteColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName, bool wasNotNull)
         {
             if (isOpenPk && !firstTime && !IsForcedUpdate)
             {
@@ -1170,7 +1199,7 @@ namespace BlackHole.Internal
                         $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
                 }
 
-                if(!firstTime && !isNullable)
+                if(!wasNotNull && !firstTime && !isNullable)
                 {
                     throw ProtectDbAndThrow("CAN NOT Add a 'NOT NULLABLE' Foreign Key on an Existing Table. Please Change the Nullability on the " +
                         $"'[ForeignKey]' Attribute on the Property '{PropName}' of the Entity '{TableName}'.");
@@ -1192,7 +1221,7 @@ namespace BlackHole.Internal
                         $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
                 }
 
-                if (!firstTime && !IsForcedUpdate)
+                if (!wasNotNull && !firstTime)
                 {
                     string defaultValCommand = GetDefaultValue(PropertyType);
 
@@ -1206,7 +1235,6 @@ namespace BlackHole.Internal
                             $"to be added as 'NOT NULLABLE' Column on an Existing Table. The default value of it, will be {defaultValCommand}.");
                     }
                 }
-
                 return nullPhase;
             }
 
@@ -1260,11 +1288,9 @@ namespace BlackHole.Internal
             return $"CONSTRAINT fk_{Tablename}_{tName} FOREIGN KEY ({propName}) REFERENCES {tName}({tColumn}) {cascadeInfo}, ";
         }
 
-        string TransferOldTableData(List<string> oldColumns, List<string> newColumns, string newTablename, string oldTablename)
+        string TransferOldTableData(List<string> CommonList, string newTablename, string oldTablename)
         {
             string result = "";
-            IEnumerable<string> CommonList = oldColumns.Intersect(newColumns);
-
             if (CommonList.Any())
             {
                 result = $"INSERT INTO {newTablename} (";
