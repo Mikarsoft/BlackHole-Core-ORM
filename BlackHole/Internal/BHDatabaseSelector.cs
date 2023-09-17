@@ -309,5 +309,14 @@ namespace BlackHole.Internal
             }
             return string.Empty;
         }
+
+        string IBHDatabaseSelector.GetColumnModifyCommand()
+        {
+            if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
+            {
+                return "MODIFY";
+            }
+            return "ALTER COLUMN";
+        }
     }
 }

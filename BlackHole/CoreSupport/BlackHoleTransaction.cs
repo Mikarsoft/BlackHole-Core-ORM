@@ -1,6 +1,5 @@
 ﻿using BlackHole.ConnectionProvider;
 using System.Data;
-using System.Transactions;
 
 namespace BlackHole.CoreSupport
 {

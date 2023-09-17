@@ -10,6 +10,6 @@ namespace BlackHole.Entities
         /// <summary>
         /// Nullability boolean
         /// </summary>
-        public bool Nullability { get; } = true;
+        public bool Nullability { get; } = false;
     }
 }
