@@ -26,6 +26,7 @@ namespace BlackHole.Internal
         internal bool IsForcedUpdate { get; } 
         private string AlterColumn { get; }
         private List<string> CustomTransaction { get; set; } = new();
+        private List<string> AfterMath { get; set; } = new();
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
@@ -93,7 +94,13 @@ namespace BlackHole.Internal
                     }
                 }
 
-                if (!transaction.Commit())
+                if (ExecuteThatShit())
+                {
+                    ExecuteAfterMath();
+                    CustomTransaction.Clear();
+                    AfterMath.Clear();
+                }
+                else
                 {
                     Thread.Sleep(2000);
                     throw ProtectDbAndThrow("Something went wrong with the Update of the Database. Please check the BlackHole logs to detect and fix the problem.");
@@ -153,7 +160,7 @@ namespace BlackHole.Internal
                 creationCommand = $"{creationCommand[..^2]}{Pkoption})";
                 CliConsoleLogs($"{creationCommand};");
                 CustomTransaction.Add(creationCommand);
-                return connection.JustExecute(creationCommand, null, transaction);
+                return true;
             }
 
             DatabaseStatics.InitializeData = false;
@@ -203,7 +210,8 @@ namespace BlackHole.Internal
                 string creationCommand = tableCreator.ToString();
                 creationCommand = $"{creationCommand[..^2]})";
                 CliConsoleLogs($"{creationCommand};");
-                return connection.JustExecute(creationCommand , null, transaction);
+                CustomTransaction.Add(creationCommand);
+                return true;
             }
 
             DatabaseStatics.InitializeData = false;
@@ -512,14 +520,15 @@ namespace BlackHole.Internal
             closingCommand.Append($"{TransferOldTableData(CommonColumns, Tablename, OldTablename)} DROP TABLE {OldTablename};");
             closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
             closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {OldTablename}");
-            connection.JustExecute(closingCommand.ToString(), null, transaction);
+            CustomTransaction.Add(closingCommand.ToString());
+
             CliConsoleLogs($"{closingCommand}");
             closingCommand.Clear();
 
             if (missingInactiveColumn)
             {
                 string updateInactiveCol = $"Update Table {TableSchema}{Tablename} set {MyShit("Inactive")} = 0 where {MyShit("Inactive")} is null";
-                connection.JustExecute(updateInactiveCol, null, transaction);
+                CustomTransaction.Add(updateInactiveCol);
                 CliConsoleLogs($"{updateInactiveCol};");
             }
         }
@@ -660,8 +669,7 @@ namespace BlackHole.Internal
             closingCommand.Append($"{TransferOldTableData(CommonColumns, Tablename, OldTablename)} DROP TABLE {OldTablename};");
             closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
             closingCommand.Append($"PRAGMA foreign_keys = on; DROP INDEX IF EXISTS {OldTablename}");
-            string test = closingCommand.ToString();
-            connection.JustExecute(closingCommand.ToString(), null, transaction);
+            CustomTransaction.Add(closingCommand.ToString());
             CliConsoleLogs($"{closingCommand}");
             closingCommand.Clear();
         }
@@ -686,7 +694,7 @@ namespace BlackHole.Internal
                         var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
                         var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
                         string alterColumn = MyShitConstraint(alterTable, Tablename, Property.Name, tName, tColumn, cascadeInfo);
-                        connection.JustExecute(alterColumn, null, transaction);
+                        CustomTransaction.Add(alterColumn);
                         CliConsoleLogs($"{alterColumn};");
                     }
                 }
@@ -739,7 +747,7 @@ namespace BlackHole.Internal
                 {
                     inactiveColMissing = true;
                     columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
-                    connection.JustExecute(columnCreator.ToString() + "NULL ", null, transaction);
+                    CustomTransaction.Add(columnCreator.ToString() + "NULL ");
                     CliConsoleLogs($"{columnCreator} NULL;");
                 }
                 else
@@ -754,7 +762,7 @@ namespace BlackHole.Internal
                     {
                         if (!string.IsNullOrEmpty(commandText.Trim()))
                         {
-                            connection.JustExecute(commandText, null, transaction);
+                            CustomTransaction.Add(commandText);
                             CliConsoleLogs($"{commandText};");
                         }
                     }
@@ -765,7 +773,7 @@ namespace BlackHole.Internal
             if (inactiveColMissing)
             {
                 string updateInactiveCol = $"Update Table {TableSchema}{Tablename} set {MyShit("Inactive")} = 0 where {MyShit("Inactive")} is null";
-                connection.JustExecute(updateInactiveCol, null, transaction);
+                CustomTransaction.Add(updateInactiveCol);
                 CliConsoleLogs($"{updateInactiveCol};");
             }
         }
@@ -805,7 +813,7 @@ namespace BlackHole.Internal
                 if (canUpdatePKs)
                 {
                     string commandText = $"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT PK_{TableType.Name} ";
-                    PKsDropped = connection.JustExecute(commandText, null, transaction);
+                    CustomTransaction.Add(commandText);
                     CliConsoleLogs($"{commandText};");
                 }
             }
@@ -829,7 +837,7 @@ namespace BlackHole.Internal
                 {
                     if (!string.IsNullOrEmpty(commandText.Trim()))
                     {
-                        connection.JustExecute(commandText, null, transaction);
+                        CustomTransaction.Add(commandText);
                         CliConsoleLogs($"{commandText};");
                     }
                 }
@@ -845,7 +853,7 @@ namespace BlackHole.Internal
                     primaryKeys += $",{MyShit(pkName)}";
                 }
                 string commandTxt = $"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})";
-                connection.JustExecute(commandTxt, null, transaction);
+                CustomTransaction.Add(commandTxt);
                 CliConsoleLogs($"{commandTxt};");
             }
         }
@@ -941,8 +949,10 @@ namespace BlackHole.Internal
             string defaultValCommand = GetDefaultValue(PropType);
             string updateTxt = $"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null";
             string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL";
-            connection.JustExecute(updateTxt, null, transaction);
-            connection.JustExecute(alterTxt, null, transaction);
+
+            CustomTransaction.Add(updateTxt);
+            CustomTransaction.Add(alterTxt);
+
             CliConsoleLogs($"{updateTxt};");
             CliConsoleLogs($"{alterTxt};");
         }
@@ -950,7 +960,7 @@ namespace BlackHole.Internal
         private void SetColumnToNull(string TableName, string PropName, TableParsingInfo ColumnInfo)
         {
             string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL";
-            connection.JustExecute(alterTxt, null, transaction);
+            CustomTransaction.Add(alterTxt);
             CliConsoleLogs($"{alterTxt};");
         }
 
@@ -995,12 +1005,12 @@ namespace BlackHole.Internal
                     foreach(TableParsingInfo referenced in referencedAt)
                     {
                         string dropConstraint = $"ALTER TABLE {TableSchema}{MyShit(referenced.TableName)} DROP CONSTRAINT {referenced.ConstraintName}";
-                        connection.JustExecute(dropConstraint, null, transaction);
+                        CustomTransaction.Add(dropConstraint);
                         CliConsoleLogs($"{dropConstraint};");
                     }
 
                     string dropCommand = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)}";
-                    connection.JustExecute(dropCommand, null, transaction);
+                    CustomTransaction.Add(dropCommand);
                     CliConsoleLogs($"{dropCommand};");
                 }
             }
@@ -1087,8 +1097,8 @@ namespace BlackHole.Internal
 
                 if (IsForcedUpdate)
                 {
-                    nullPhase += $"## Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null ";
-                    nullPhase += $"## ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName)} NOT NULL";
+                    AfterMath.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null ");
+                    AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName)} NOT NULL");
                     return nullPhase;
                 }
                 else
@@ -1457,6 +1467,42 @@ namespace BlackHole.Internal
                 "Byte[]" => $"'{new byte[0]}'",
                 _ => throw ProtectDbAndThrow($"Unsupported property type {PropertyType.FullName}"),
             };
+        }
+
+        internal bool ExecuteThatShit()
+        {
+            if (CustomTransaction.Any())
+            {
+                StringBuilder KickInTheTeeth = new();
+                KickInTheTeeth.Append("BEGIN TRANSACTION BEGIN TRY ");
+                foreach(string command in CustomTransaction)
+                {
+                    KickInTheTeeth.Append($"{command}; ");
+                }
+                KickInTheTeeth.Append(@"COMMIT END TRY BEGIN CATCH ROLLBACK;
+                THROW;
+                END CATCH");
+                return connection.JustExecute(KickInTheTeeth.ToString(), null);
+            }
+            return true;
+        }
+
+        internal bool ExecuteAfterMath()
+        {
+            if (AfterMath.Any())
+            {
+                StringBuilder KickInTheTeeth = new();
+                KickInTheTeeth.Append("BEGIN TRANSACTION BEGIN TRY ");
+                foreach (string command in AfterMath)
+                {
+                    KickInTheTeeth.Append($"{command}; ");
+                }
+                KickInTheTeeth.Append(@"COMMIT END TRY BEGIN CATCH ROLLBACK;
+                THROW;
+                END CATCH");
+                return connection.JustExecute(KickInTheTeeth.ToString(), null);
+            }
+            return true;
         }
     }
 }
