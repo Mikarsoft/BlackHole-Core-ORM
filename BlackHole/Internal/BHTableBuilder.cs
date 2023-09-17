@@ -22,7 +22,7 @@ namespace BlackHole.Internal
         private string TableSchema { get; set; }
         private string TableSchemaFk { get; set; }
         public BlackHoleTransaction transaction = new(); 
-        internal BHDatabaseInfoReader? dbInfoReader { get; set; }
+        internal BHDatabaseInfoReader dbInfoReader { get; set; }
         internal bool IsForcedUpdate { get; } 
 
         internal BHTableBuilder()
@@ -30,10 +30,10 @@ namespace BlackHole.Internal
             _multiDatabaseSelector = new BHDatabaseSelector();
             connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
             IsForcedUpdate = DatabaseStatics.AutoUpdate && (DatabaseStatics.IsDevMove || CliCommand.ForceAction);
+            dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
 
             if (IsForcedUpdate)
             {
-                dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
                 DbConstraints = dbInfoReader.GetDatabaseParsingInfo();
             }
 
@@ -770,10 +770,10 @@ namespace BlackHole.Internal
         void UpdateOpenTableSchema(Type TableType)
         {
             PKInfo pkInformation = ReadOpenEntityPrimaryKeys(TableType);
-            bool canUpdatePKs = false;
+            List<string> existingPKs = dbInfoReader.GetExistingPrimaryKeys(TableType.Name, transaction);
+            bool canUpdatePKs = CompairPrimaryKeys(existingPKs, pkInformation.PKPropertyNames, TableType.Name);
 
             string Tablename = MyShit(TableType.Name);
-
             string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}' {TableSchemaCheck}";
 
             if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
@@ -799,8 +799,6 @@ namespace BlackHole.Internal
             {
                 List<string> CommonColumns = NewColumnNames.Intersect(ColumnNames).ToList();
                 UpdateTableColumnsNullability(CommonColumns, Properties, TableType.Name);
-                List<TableParsingInfo> ExistingPkInfo = DbConstraints.Where(x => x.TableName.ToLower() == TableType.Name.ToLower() && x.PrimaryKey).ToList();
-                canUpdatePKs = CompairPrimaryKeys(ExistingPkInfo, pkInformation.PKPropertyNames, TableType.Name);
                 if (canUpdatePKs)
                 {
                     string commandText = $"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT PK_{TableType.Name} ";
@@ -849,20 +847,14 @@ namespace BlackHole.Internal
             }
         }
 
-        private bool CompairPrimaryKeys(List<TableParsingInfo> existingPKs, List<string> newPKs, string TableName)
+        private bool CompairPrimaryKeys(List<string> existingPKs, List<string> newPKs, string TableName)
         {
-            List<string> primaryKeys = new List<string>();
-            foreach (TableParsingInfo pkInDb in existingPKs)
-            {
-                primaryKeys.Add(pkInDb.ColumnName);
-            }
-
-            List<string> PKsToAdd = newPKs.Except(primaryKeys).ToList();
-            List<string> PKsToDrop = primaryKeys.Except(newPKs).ToList();
+            List<string> PKsToAdd = newPKs.Except(existingPKs).ToList();
+            List<string> PKsToDrop = existingPKs.Except(newPKs).ToList();
 
             bool result = PKsToAdd.Any() || PKsToDrop.Any();
 
-            if (DatabaseStatics.IsDevMove || CliCommand.ForceAction)
+            if (IsForcedUpdate)
             {
                 return result;
             }
@@ -872,7 +864,7 @@ namespace BlackHole.Internal
                 throw ProtectDbAndThrow($"Error at Table '{TableName}' on Primary Keys Configuration. You CAN ONLY change the PRIMARY KEYS of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'");
             }
 
-            return false;
+            return result;
         }
 
         private void UpdateTableColumnsNullability(List<string> ColumnNames, PropertyInfo[] Properties, string TableName)

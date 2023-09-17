@@ -34,6 +34,25 @@ namespace BlackHole.Internal
             return tableAspects;
         }
 
+        internal List<string> GetExistingPrimaryKeys(string TableName, BlackHoleTransaction transaction)
+        {
+            string pkSelectCommand = DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => $@"SELECT ccu.COLUMN_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
+                        JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu ON tc.CONSTRAINT_NAME = ccu.Constraint_name
+                        WHERE tc.TABLE_NAME = '{TableName}' AND tc.CONSTRAINT_TYPE = 'Primary Key' AND tc.TABLE_SCHEMA = '{GetSchema()}'",
+                BlackHoleSqlTypes.MySql => $@"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+                        WHERE TABLE_SCHEMA = '{GetSchema()}' AND TABLE_NAME = '{TableName}' AND COLUMN_KEY = 'PRI';",
+                BlackHoleSqlTypes.Postgres => $@"select kc.column_name from information_schema.table_constraints tc
+                        join information_schema.key_column_usage kc on kc.table_name = tc.table_name and kc.table_schema = tc.table_schema and kc.constraint_name = tc.constraint_name
+                        where tc.constraint_type = 'PRIMARY KEY' and tc.table_schema ='{GetSchema()}' and tc.table_name = '{TableName}'",
+                _ => $@"SELECT cols.column_name FROM all_constraints cons, all_cons_columns cols
+                        WHERE cols.table_name = '{TableName}' AND cons.constraint_type = 'P'
+                        AND cons.constraint_name = cols.constraint_name AND cons.owner = '{GetSchema()}'"
+            };
+            return connection.Query<string>(pkSelectCommand, null, transaction);
+        }
+
         internal List<TableParsingInfo> GetDatabaseParsingInfo(int mode = 0)
         {
             string parseCommand = string.Empty;
@@ -153,6 +172,30 @@ namespace BlackHole.Internal
                 }
             }
             return parsingLiteData;
+        }
+
+        internal string GetSchema()
+        {
+            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            {
+                return DatabaseStatics.DatabaseType switch
+                {
+                    BlackHoleSqlTypes.SqlServer => DatabaseStatics.DatabaseSchema,
+                    BlackHoleSqlTypes.MySql => _multiDatabaseSelector.GetDatabaseName(),
+                    BlackHoleSqlTypes.Postgres => DatabaseStatics.DatabaseSchema,
+                    _ => _multiDatabaseSelector.GetDatabaseName()
+                };
+            }
+            else
+            {
+                return DatabaseStatics.DatabaseType switch
+                {
+                    BlackHoleSqlTypes.SqlServer => "dbo",
+                    BlackHoleSqlTypes.MySql => _multiDatabaseSelector.GetDatabaseName(),
+                    BlackHoleSqlTypes.Postgres => "public",
+                    _ => _multiDatabaseSelector.GetDatabaseName()
+                };
+            }
         }
 
         internal string GetSchemaCheckCommand(int mode)
