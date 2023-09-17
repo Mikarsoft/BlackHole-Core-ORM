@@ -21,5 +21,13 @@
         {
             Charlength = Characters;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public VarCharSize()
+        {
+            Charlength = 255;
+        }
     }
 }

@@ -812,7 +812,8 @@ namespace BlackHole.Internal
                 UpdateTableColumnsNullability(CommonColumns, Properties, TableType.Name);
                 if (canUpdatePKs)
                 {
-                    string commandText = $"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT PK_{TableType.Name} ";
+                    PKsDropped = true;
+                    string commandText = $"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT IF EXISTS PK_{TableType.Name} ";
                     CustomTransaction.Add(commandText);
                     CliConsoleLogs($"{commandText};");
                 }
@@ -853,7 +854,7 @@ namespace BlackHole.Internal
                     primaryKeys += $",{MyShit(pkName)}";
                 }
                 string commandTxt = $"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})";
-                CustomTransaction.Add(commandTxt);
+                AfterMath.Add(commandTxt);
                 CliConsoleLogs($"{commandTxt};");
             }
         }
@@ -968,7 +969,12 @@ namespace BlackHole.Internal
         {
             string DataType = columnInfo.DataType;
 
-            if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer)
+            {
+                columnInfo.MaxLength = columnInfo.MaxLength / 2;
+            }
+
+            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
             {
                 if (DataType.ToLower().Contains("varchar"))
                 {
@@ -1302,7 +1308,7 @@ namespace BlackHole.Internal
 
         string MyShitConstraint(string alterTable, string Tablename, string propName, object? tName, object? tColumn, object? cascadeInfo)
         {
-            string constraint = $"ADD CONSTRAINT fk_{Tablename}_{tName}{TableSchemaFk}";
+            string constraint = $"ADD CONSTRAINT fk_{Tablename}{propName}{TableSchemaFk}";
 
             if (!IsMyShit)
             {
@@ -1316,7 +1322,7 @@ namespace BlackHole.Internal
         {
             if (!IsMyShit)
             {
-                return $@"CONSTRAINT fk_{Tablename}_{tName} FOREIGN KEY (""{propName}"") REFERENCES ""{tName}""(""{tColumn}"") {cascadeInfo}, ";
+                return $@"CONSTRAINT fk_{Tablename}{propName} FOREIGN KEY (""{propName}"") REFERENCES ""{tName}""(""{tColumn}"") {cascadeInfo}, ";
             }
 
             return $"CONSTRAINT fk_{Tablename}_{tName} FOREIGN KEY ({propName}) REFERENCES {tName}({tColumn}) {cascadeInfo}, ";
@@ -1403,7 +1409,7 @@ namespace BlackHole.Internal
                         dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[0]}(255) ";
                     }
 
-                    if(ForeignKeyAtt != null)
+                    if(CharLength == null && ForeignKeyAtt != null)
                     {
                         dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[0]}(50) ";
                     }
