@@ -189,7 +189,7 @@ namespace BlackHole.Internal
                 string ClassName = tableAspectInf.TableName.Replace("-", "_");
                 string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
                 string PropertiesScript = string.Empty;
-                string PKOptionsScript = $"\n\n\t\t public PKSettings<{ClassName}> PrimaryKeyOptions(PKOptionsBuilder<{ClassName}> builder)\n";
+                string PKOptionsScript = $"\n\n\t\t public EntitySettings<{ClassName}> EntityOptions(EntityOptionsBuilder<{ClassName}> builder)\n";
                 PKOptionsScript += "\t\t {\n";
                 PKOptionsScript += "\t\t\t return builder";
                 EntityScript += " { \n";
@@ -234,6 +234,7 @@ namespace BlackHole.Internal
                             OtherPKs += $".CompositeKey(x => x.{columnInfo.ColumnName})";
                         }
                     }
+                    OtherPKs += DefaultValueCheck(columnInfo);
                 }
 
                 if (noPrimaryKey)
@@ -451,7 +452,7 @@ namespace BlackHole.Internal
         internal string GetBHAttribute(TableParsingInfo columnInfo, string dotNetType)
         {
             string VarcharSize = string.Empty;
-            string DefaultVal = DefaultValueCheck(columnInfo);
+            //string DefaultVal = DefaultValueCheck(columnInfo);
 
             if (dotNetType == "string")
             {
@@ -472,7 +473,7 @@ namespace BlackHole.Internal
                     characterSize = 4000;
                 }
 
-                if(characterSize != 255)
+                if(characterSize != 255 || !string.IsNullOrEmpty(columnInfo.ReferencedTable))
                 {
                     VarcharSize = $"\n\t\t [VarCharSize({characterSize})]";
                 }
@@ -493,17 +494,7 @@ namespace BlackHole.Internal
 
             if (!columnInfo.Nullable)
             {
-                if(DefaultVal != string.Empty)
-                {
-                    return $"{VarcharSize}\n\t\t [NotNullable{DefaultVal}]\n";
-                }
-
                 return $"{VarcharSize}\n\t\t [NotNullable]\n";
-            }
-
-            if (DefaultVal != string.Empty)
-            {
-                return $"{VarcharSize}\n\t\t [DefaultValue{DefaultVal}]\n";
             }
 
             if (VarcharSize != string.Empty)
@@ -519,17 +510,17 @@ namespace BlackHole.Internal
             if (!columnInfo.PrimaryKey && !string.IsNullOrEmpty(columnInfo.DefaultValue))
             {
                 string[] testValue = columnInfo.DefaultValue.Replace("(", "").Replace(")", "").Split("'");
-
+                string Defval = $".SetDefaultValue(x => x.{columnInfo.ColumnName},";
                 if(testValue.Length > 2)
                 {
                     string mainValue = testValue[1];
 
                     if(DateTime.TryParseExact(mainValue, DatabaseStatics.DbDateFormat, CultureInfo.InvariantCulture,DateTimeStyles.None, out DateTime parseDt))
                     {
-                        return $"({parseDt.Year},{parseDt.Month},{parseDt.Day})";
+                        return $"{Defval} new DateTime({parseDt.Year},{parseDt.Month},{parseDt.Day}))";
                     }
 
-                    return $@"(""{mainValue}"")";
+                    return $@"{Defval}""{mainValue}"")";
                 }
 
                 if(testValue.Length > 0)
@@ -538,7 +529,7 @@ namespace BlackHole.Internal
 
                     if(Double.TryParse(mainValue, out double result))
                     {
-                        return $"({result})";
+                        return $"{Defval}{result})";
                     }
                 }
             }
