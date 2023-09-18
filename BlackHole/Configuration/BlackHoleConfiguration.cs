@@ -48,7 +48,10 @@ namespace BlackHole.Configuration
             {
                 useLogsCleaner = false;
                 blackHoleSettings.directorySettings.UseLogger = true;
-                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut = 300;
+                if(blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut < 300)
+                {
+                    blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut = 300;
+                }
             }
 
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString,

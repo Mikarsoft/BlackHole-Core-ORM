@@ -87,7 +87,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString())).Start();
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -309,7 +309,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Insert_{TableName}", ex.Message, ex.ToString())).Start();
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Insert_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
         }

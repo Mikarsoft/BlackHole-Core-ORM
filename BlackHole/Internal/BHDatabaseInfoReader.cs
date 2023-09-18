@@ -34,7 +34,7 @@ namespace BlackHole.Internal
             return tableAspects;
         }
 
-        internal List<string> GetExistingPrimaryKeys(string TableName, BlackHoleTransaction transaction)
+        internal List<string> GetExistingPrimaryKeys(string TableName)
         {
             string pkSelectCommand = DatabaseStatics.DatabaseType switch
             {
@@ -50,7 +50,7 @@ namespace BlackHole.Internal
                         WHERE cols.table_name = '{TableName}' AND cons.constraint_type = 'P'
                         AND cons.constraint_name = cols.constraint_name AND cons.owner = '{GetSchema()}'"
             };
-            return connection.Query<string>(pkSelectCommand, null, transaction);
+            return connection.Query<string>(pkSelectCommand, null);
         }
 
         internal List<TableParsingInfo> GetDatabaseParsingInfo(int mode = 0)
