@@ -63,7 +63,6 @@ namespace BlackHole.Configuration
             CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
 
             int exitCode = 0;
-
             switch (cliSettings.commandType)
             {
                 case CliCommandTypes.Update:

@@ -126,7 +126,7 @@ namespace BlackHole.Internal
                 EntityScript += " { \n";
                 EntityScript += $"\t public class {tableAspectInf.TableName} :";
 
-                foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns.Where(x=>x.ColumnName.ToLower() != "inactive"))
+                foreach(TableParsingInfo columnInfo in tableAspectInf.TableColumns.Where(x=>x.ColumnName.ToLower() != "inactive").DistinctBy(x=> x.ColumnName))
                 {
                     if (!columnInfo.PrimaryKey)
                     {
@@ -199,7 +199,7 @@ namespace BlackHole.Internal
                 string OtherPKs = string.Empty;
                 bool noPrimaryKey = true;
 
-                foreach (TableParsingInfo columnInfo in tableAspectInf.TableColumns)
+                foreach (TableParsingInfo columnInfo in tableAspectInf.TableColumns.DistinctBy(x => x.ColumnName))
                 {
                     ColumnScanResult scanResult = columnScanner.ParseColumnToProperty(columnInfo);
 

@@ -709,26 +709,30 @@ namespace BlackHole.Internal
         {
             string Tablename = TableType.Name;
             PropertyInfo[] Properties = TableType.GetProperties();
-            string alterTable = $" ALTER TABLE {TableSchema}{MyShit(Tablename)}";
+            List<FKInfo> fkInfos = new();
+            Type FkType = typeof(ForeignKey);
 
             foreach (PropertyInfo Property in Properties)
             {
                 object[] attributes = Property.GetCustomAttributes(true);
-
                 if (attributes.Length > 0)
                 {
-                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == typeof(ForeignKey));
+                    object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == FkType);
 
                     if (FK_attribute != null)
                     {
-                        var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
-                        var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
-                        var cascadeInfo = FK_attribute.GetType().GetProperty("CascadeInfo")?.GetValue(FK_attribute, null);
-                        string alterColumn = MyShitConstraint(alterTable, Tablename, Property.Name, tName, tColumn, cascadeInfo);
-                        CustomTransaction.Add(alterColumn);
-                        CliConsoleLogs($"{alterColumn};");
+                        var tName = FkType.GetProperty("TableName")?.GetValue(FK_attribute, null);
+                        var tColumn = FkType.GetProperty("Column")?.GetValue(FK_attribute, null);
+                        if (FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
+                        {
+                            fkInfos.Add(AddForeignKey(Property.Name, tName, tColumn, isNullable));
+                        }
                     }
                 }
+            }
+            if (fkInfos.Any())
+            {
+                AfterMath.Add(CreateForeignKeyConstraint(fkInfos, TableType.Name, $" ALTER TABLE {TableSchema}{MyShit(Tablename)}"));
             }
         }
 
@@ -1365,8 +1369,9 @@ namespace BlackHole.Internal
             fromColumn = fromColumn.Remove(0, 1);
             toColumn = toColumn.Remove(0, 1);
             string onDeleteRule = isNullable ? "on delete set null" : "on delete cascade";
-
-            return $"{AlterCommand} {constraintBegin} fk_{TableName}_{ReferencedTable} FOREIGN KEY ({fromColumn}) REFERENCES {TableSchema}{MyShit(ReferencedTable)}({toColumn}) {onDeleteRule}";
+            string constraintCommand = $"{AlterCommand} {constraintBegin} fk_{TableName}_{ReferencedTable} FOREIGN KEY ({fromColumn}) REFERENCES {TableSchema}{MyShit(ReferencedTable)}({toColumn}) {onDeleteRule}";
+            CliConsoleLogs($"{constraintCommand};");
+            return constraintCommand;
         }
 
         string CheckLitePreviousColumnState(string defaultVal, string nullPhase, string TableName, string ColumnName)
@@ -1386,28 +1391,6 @@ namespace BlackHole.Internal
                 return $@"""{propName}""";
             }
             return propName;
-        }
-
-        string MyShitConstraint(string alterTable, string Tablename, string propName, object? tName, object? tColumn, object? cascadeInfo)
-        {
-            string constraint = $"ADD CONSTRAINT fk_{Tablename}{propName}{TableSchemaFk}";
-
-            if (!IsMyShit)
-            {
-                return $@"{alterTable} {constraint} FOREIGN KEY (""{propName}"") REFERENCES {TableSchema}""{tName}""(""{tColumn}"") {cascadeInfo}";
-            }
-
-            return $"{alterTable} {constraint} FOREIGN KEY ({propName}) REFERENCES {TableSchema}{tName}({tColumn}) {cascadeInfo}";
-        }
-
-        string LiteConstraint(string Tablename, string propName, object? tName, object? tColumn, object? cascadeInfo)
-        {
-            if (!IsMyShit)
-            {
-                return $@"CONSTRAINT fk_{Tablename}{propName} FOREIGN KEY (""{propName}"") REFERENCES ""{tName}""(""{tColumn}"") {cascadeInfo}, ";
-            }
-
-            return $"CONSTRAINT fk_{Tablename}_{tName} FOREIGN KEY ({propName}) REFERENCES {tName}({tColumn}) {cascadeInfo}, ";
         }
 
         string TransferOldTableData(List<string> CommonList, string newTablename, string oldTablename)
