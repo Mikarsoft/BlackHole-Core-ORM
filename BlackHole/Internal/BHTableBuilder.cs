@@ -1178,9 +1178,20 @@ namespace BlackHole.Internal
 
                     foreach(TableParsingInfo referenced in referencedAt)
                     {
-                        string dropConstraint = $"ALTER TABLE {TableSchema}{MyShit(referenced.TableName)} DROP CONSTRAINT {referenced.ConstraintName}";
+                        string dropConstraint = $"ALTER TABLE {TableSchema}{MyShit(referenced.TableName)} DROP CONSTRAINT IF EXISTS {referenced.ConstraintName}";
                         AfterMath.Add(dropConstraint);
                         CliConsoleLogs($"{dropConstraint};");
+                    }
+
+                    TableParsingInfo? thisColumn = DbConstraints.FirstOrDefault(x =>
+                    x.TableName.ToLower() == lowerTbName
+                    && x.ColumnName.ToLower() == ColumnName.ToLower() && !string.IsNullOrEmpty(x.ReferencedTable));
+
+                    if(thisColumn != null)
+                    {
+                        string dropColConstraint = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP CONSTRAINT IF EXISTS {thisColumn.ConstraintName}";
+                        AfterMath.Add(dropColConstraint);
+                        CliConsoleLogs($"{dropColConstraint};");
                     }
 
                     string dropCommand = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)}";
