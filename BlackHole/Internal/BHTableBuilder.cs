@@ -101,18 +101,18 @@ namespace BlackHole.Internal
                 }
                 CreateTablesTransaction.Clear();
 
-                if (!ExecuteThatShit())
-                {
-                    Thread.Sleep(2000);
-                    throw ProtectDbAndThrow("Something went wrong with the Creation of the Columns. Please check the BlackHole logs to detect and fix the problem.");
-                }
+                //if (!ExecuteThatShit())
+                //{
+                //    Thread.Sleep(2000);
+                //    throw ProtectDbAndThrow("Something went wrong with the Creation of the Columns. Please check the BlackHole logs to detect and fix the problem.");
+                //}
                 CustomTransaction.Clear();
 
-                if (!ExecuteAfterMath())
-                {
-                    Thread.Sleep(2000);
-                    throw ProtectDbAndThrow("Something went wrong with the Update of the Columns and Constraints. Please check the BlackHole logs to detect and fix the problem.");
-                }
+                //if (!ExecuteAfterMath())
+                //{
+                //    Thread.Sleep(2000);
+                //    throw ProtectDbAndThrow("Something went wrong with the Update of the Columns and Constraints. Please check the BlackHole logs to detect and fix the problem.");
+                //}
                 AfterMath.Clear();
 
                 if (CliCommand.ExportSql)
@@ -149,7 +149,7 @@ namespace BlackHole.Internal
                     {
                         if (Property.Name != pkInformation.MainPrimaryKey)
                         {
-                            tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                            tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
                             tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
                         }
                         else
@@ -159,7 +159,7 @@ namespace BlackHole.Internal
                     }
                     else
                     {
-                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
                         tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name));
                     }
                 }
@@ -183,7 +183,7 @@ namespace BlackHole.Internal
                 StringBuilder tableCreator = new();
                 tableCreator.Append($"CREATE TABLE {TableSchema}{MyShit(TableType.Name)} (");
 
-                tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
+                tableCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive", TableType.Name));
                 tableCreator.Append(" NULL, ");
 
                 foreach (PropertyInfo Property in Properties)
@@ -192,7 +192,7 @@ namespace BlackHole.Internal
 
                     if (Property.Name != "Id")
                     {
-                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                        tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
 
                         tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, false,Property.Name,TableType.Name));
                     }
@@ -408,6 +408,8 @@ namespace BlackHole.Internal
             string OldTablename = MyShit($"{TableType.Name}_Old");
             List<FKInfo> FkOptions = new();
             Type FkType = typeof(ForeignKey);
+            List<UniqueInfo> UniqueOptions = new();
+            Type UQType = typeof(Unique);
 
             List<string> ColumnNames = new();
             List<string> NewColumnNames = new()
@@ -443,7 +445,7 @@ namespace BlackHole.Internal
             StringBuilder closingCommand = new();
 
             alterTable.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; CREATE TABLE {Tablename} (");
-            alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive"));
+            alterTable.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), "Inactive", TableType.Name));
             alterTable.Append(" NULL, ");
 
             foreach (string AddColumn in CommonColumns.Where(x=> x != "Inactive"))
@@ -453,7 +455,7 @@ namespace BlackHole.Internal
 
                 if (Property.Name != "Id")
                 {
-                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
                     SqLiteTableInfo existingCol = ColumnsInfo.First(x => x.name == AddColumn);
                     alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name, existingCol.notnull, false));
                 }
@@ -488,6 +490,16 @@ namespace BlackHole.Internal
                             FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, isNullable));
                         }
                     }
+
+                    object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
+
+                    if (UQ_attribute != null)
+                    {
+                        if (UQType.GetProperty("UniqueGroupId")?.GetValue(UQ_attribute, null) is int groupId)
+                        {
+                            UniqueOptions.Add(AddUniqueConstraint(Property.Name, groupId));
+                        }
+                    }
                 }
             }
 
@@ -497,7 +509,7 @@ namespace BlackHole.Internal
                 {
                     PropertyInfo Property = Properties.First(x => x.Name == AddColumn);
                     object[] attributes = Property.GetCustomAttributes(true);
-                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
                     alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, false, Property.Name, TableType.Name, false, false));
 
                     if (attributes.Length > 0)
@@ -511,6 +523,16 @@ namespace BlackHole.Internal
                             if (FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
                             {
                                 FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, isNullable));
+                            }
+                        }
+
+                        object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
+
+                        if (UQ_attribute != null)
+                        {
+                            if (UQType.GetProperty("UniqueGroupId")?.GetValue(UQ_attribute, null) is int groupId)
+                            {
+                                UniqueOptions.Add(AddUniqueConstraint(Property.Name, groupId));
                             }
                         }
                     }
@@ -534,7 +556,7 @@ namespace BlackHole.Internal
                 }
             }
 
-            string FkCommand = $"{alterTable}{CreateForeignKeyConstraint(FkOptions, TableType.Name, string.Empty)}";
+            string FkCommand = $"{alterTable}{CreateForeignKeyConstraint(FkOptions, TableType.Name, string.Empty)}{CreateUniqueConstraint(UniqueOptions, TableType.Name, string.Empty)}";
 
             if (FkCommand.Length > 1)
             {
@@ -566,6 +588,8 @@ namespace BlackHole.Internal
             string Pkoption = OpenPrimaryKey(pkSettings, TableType.Name);
             List<FKInfo> FkOptions = new();
             Type FkType = typeof(ForeignKey);
+            List<UniqueInfo> UniqueOptions = new();
+            Type UQType = typeof(Unique);
 
             List<string> ColumnNames = new();
             List<string> NewColumnNames = new();
@@ -608,7 +632,7 @@ namespace BlackHole.Internal
                 {
                     if (Property.Name != pkInformation.MainPrimaryKey)
                     {
-                        alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                        alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
                         alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, isOpenPk,
                             Property.Name, TableType.Name, existingCol.notnull, HasLitePkChanged(existingCol.pk,isOpenPk)));
                     }
@@ -619,7 +643,7 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
                     alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, isOpenPk,
                         Property.Name, TableType.Name, existingCol.notnull, HasLitePkChanged(existingCol.pk,isOpenPk)));
                 }
@@ -637,6 +661,16 @@ namespace BlackHole.Internal
                             FkOptions.Add(AddForeignKey(Property.Name,tName,tColumn,isNullable));
                         }
                     }
+
+                    object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
+
+                    if(UQ_attribute != null)
+                    {
+                        if(UQType.GetProperty("UniqueGroupId")?.GetValue(UQ_attribute,null) is int groupId)
+                        {
+                            UniqueOptions.Add(AddUniqueConstraint(Property.Name, groupId));
+                        }
+                    }
                 }
             }
 
@@ -650,7 +684,7 @@ namespace BlackHole.Internal
                 {
                     if(Property.Name != pkInformation.MainPrimaryKey)
                     {
-                        alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                        alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
                         alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, isOpenPk,
                             Property.Name,TableType.Name, false, HasLitePkChanged(0,isOpenPk)));
                     }
@@ -661,22 +695,32 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name));
+                    alterTable.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
                     alterTable.Append(SQLiteColumn(attributes, firstTime, Property.PropertyType, isOpenPk,
                         Property.Name,TableType.Name, false, HasLitePkChanged(0,isOpenPk)));
                 }
 
                 if (attributes.Length > 0)
                 {
-                    object? FK_attribute = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
+                    object? FK_attribute = attributes.FirstOrDefault(x => x.GetType() == FkType);
 
                     if (FK_attribute != null)
                     {
-                        var tName = FK_attribute.GetType().GetProperty("TableName")?.GetValue(FK_attribute, null);
-                        var tColumn = FK_attribute.GetType().GetProperty("Column")?.GetValue(FK_attribute, null);
-                        if (FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
+                        var tName = FkType.GetProperty("TableName")?.GetValue(FK_attribute, null);
+                        var tColumn = FkType.GetProperty("Column")?.GetValue(FK_attribute, null);
+                        if(FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
                         {
-                            FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, isNullable));
+                            FkOptions.Add(AddForeignKey(Property.Name,tName,tColumn,isNullable));
+                        }
+                    }
+
+                    object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
+
+                    if (UQ_attribute != null)
+                    {
+                        if (UQType.GetProperty("UniqueGroupId")?.GetValue(UQ_attribute, null) is int groupId)
+                        {
+                            UniqueOptions.Add(AddUniqueConstraint(Property.Name, groupId));
                         }
                     }
                 }
@@ -687,7 +731,7 @@ namespace BlackHole.Internal
                 Pkoption = $"{Pkoption.Remove(0, 1)}, ";
             }
 
-            string FkCommand = $"{alterTable}{Pkoption}{CreateForeignKeyConstraint(FkOptions,TableType.Name,string.Empty)}";
+            string FkCommand = $"{alterTable}{Pkoption}{CreateForeignKeyConstraint(FkOptions,TableType.Name,string.Empty)}{CreateUniqueConstraint(UniqueOptions,TableType.Name,string.Empty)}";
 
             if (FkCommand.Length > 1)
             {
@@ -695,7 +739,6 @@ namespace BlackHole.Internal
             }
 
             alterTable.Clear(); foreignKeys.Clear();
-
             closingCommand.Append(FkCommand);
             closingCommand.Append($"{TransferOldTableData(CommonColumns, Tablename, OldTablename)} DROP TABLE {OldTablename};");
             closingCommand.Append($"ALTER TABLE {Tablename} RENAME TO {OldTablename}; ALTER TABLE {OldTablename} RENAME TO {Tablename};");
@@ -711,6 +754,8 @@ namespace BlackHole.Internal
             PropertyInfo[] Properties = TableType.GetProperties();
             List<FKInfo> fkInfos = new();
             Type FkType = typeof(ForeignKey);
+            List<UniqueInfo> UniqueOptions = new();
+            Type UQType = typeof(Unique);
 
             foreach (PropertyInfo Property in Properties)
             {
@@ -728,11 +773,25 @@ namespace BlackHole.Internal
                             fkInfos.Add(AddForeignKey(Property.Name, tName, tColumn, isNullable));
                         }
                     }
+
+                    object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
+
+                    if (UQ_attribute != null)
+                    {
+                        if (UQType.GetProperty("UniqueGroupId")?.GetValue(UQ_attribute, null) is int groupId)
+                        {
+                            UniqueOptions.Add(AddUniqueConstraint(Property.Name, groupId));
+                        }
+                    }
                 }
             }
             if (fkInfos.Any())
             {
                 AfterMath.Add(CreateForeignKeyConstraint(fkInfos, TableType.Name, $" ALTER TABLE {TableSchema}{MyShit(Tablename)}"));
+            }
+            if (UniqueOptions.Any())
+            {
+                AfterMath.Add(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
             }
         }
 
@@ -740,6 +799,7 @@ namespace BlackHole.Internal
         {
             string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}' {TableSchemaCheck}";
             List<FKInfo> FkOptions = new();
+            List<UniqueInfo> UniqueOptions = new();
 
             if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
             {
@@ -782,17 +842,16 @@ namespace BlackHole.Internal
                 if (ColumnName == "Inactive")
                 {
                     inactiveColMissing = true;
-                    columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName));
+                    columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName, TableType.Name));
                     CustomTransaction.Add(columnCreator.ToString() + "NULL ");
                     CliConsoleLogs($"{columnCreator} NULL;");
                 }
                 else
                 {
                     PropertyInfo Property = Properties.First(x => x.Name == ColumnName);
-
                     object[]? attributes = Property.GetCustomAttributes(true);
-                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
-                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, false,FkOptions));
+                    columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, TableType.Name));
+                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, false, FkOptions, UniqueOptions));
                     CustomTransaction.Add(columnCreator.ToString());
                 }
                 columnCreator.Clear();
@@ -801,6 +860,11 @@ namespace BlackHole.Internal
             if (FkOptions.Any())
             {
                 AfterMath.Add(CreateForeignKeyConstraint(FkOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
+            }
+
+            if (UniqueOptions.Any())
+            {
+                AfterMath.Add(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
             }
 
             if (inactiveColMissing)
@@ -817,6 +881,7 @@ namespace BlackHole.Internal
             List<string> existingPKs = dbInfoReader.GetExistingPrimaryKeys(TableType.Name);
             bool canUpdatePKs = CompairPrimaryKeys(existingPKs, pkInformation.PKPropertyNames, TableType.Name);
             List<FKInfo> FkOptions = new();
+            List<UniqueInfo> UniqueOptions = new();
 
             string Tablename = MyShit(TableType.Name);
             string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}' {TableSchemaCheck}";
@@ -863,10 +928,9 @@ namespace BlackHole.Internal
             {
                 columnCreator.Append($"ALTER TABLE {TableSchema}{Tablename} ADD ");
                 PropertyInfo? Property = Properties.First(x => x.Name == ColumnName);
-                
                 object[]? attributes = Property.GetCustomAttributes(true);
-                columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName));
-                columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, pkInformation.PKPropertyNames.Contains(ColumnName),FkOptions));
+                columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, TableType.Name));
+                columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, pkInformation.PKPropertyNames.Contains(ColumnName),FkOptions, UniqueOptions));
                 CustomTransaction.Add(columnCreator.ToString());               
                 columnCreator.Clear();
             }
@@ -874,6 +938,11 @@ namespace BlackHole.Internal
             if (FkOptions.Any())
             {
                 AfterMath.Add(CreateForeignKeyConstraint(FkOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
+            }
+
+            if (UniqueOptions.Any())
+            {
+                AfterMath.Add(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
             }
 
             if (pkInformation.PKPropertyNames.Any() && PKsDropped)
@@ -977,7 +1046,7 @@ namespace BlackHole.Internal
 
         private void SetColumnToNotNull(Type PropType, string PropName, string TableName, TableParsingInfo ColumnInfo)
         {
-            string defaultValCommand = GetDefaultValue(PropType);
+            string defaultValCommand = GetDefaultValue(PropType, PropName, TableName);
             string updateTxt = $"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null";
             string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL";
 
@@ -1059,7 +1128,7 @@ namespace BlackHole.Internal
             }
         }
 
-        string AddColumnConstaints(object[] attributes, string TableName, string PropName, Type PropType, bool isOpenPk, List<FKInfo> fKInfos)
+        string AddColumnConstaints(object[] attributes, string TableName, string PropName, Type PropType, bool isOpenPk, List<FKInfo> fKInfos, List<UniqueInfo> uqInfos)
         {
             if(isOpenPk && !IsForcedUpdate)
             {
@@ -1127,12 +1196,12 @@ namespace BlackHole.Internal
                         $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
                 }
 
-                string defaultValCommand = GetDefaultValue(PropType);
+                string defaultValCommand = GetDefaultValue(PropType, PropName, TableName);
 
                 if (IsForcedUpdate)
                 {
                     AfterMath.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null ");
-                    AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName)} NOT NULL");
+                    AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NOT NULL");
                     return nullPhase;
                 }
                 else
@@ -1281,7 +1350,7 @@ namespace BlackHole.Internal
 
                 if (!wasNotNull && !firstTime)
                 {
-                    string defaultValCommand = GetDefaultValue(PropertyType);
+                    string defaultValCommand = GetDefaultValue(PropertyType, PropName, TableName);
 
                     if (IsForcedUpdate)
                     {
@@ -1325,6 +1394,15 @@ namespace BlackHole.Internal
             };
         }
 
+        UniqueInfo AddUniqueConstraint(string propName, int groupId)
+        {
+            return new UniqueInfo
+            {
+                PropertyName = propName,
+                GroupId = groupId
+            };
+        }
+
         string CreateForeignKeyConstraint(List<FKInfo> tableFKs, string TableName, string AlterCommand)
         {
             string result = string.Empty;
@@ -1340,6 +1418,46 @@ namespace BlackHole.Internal
                 }
             }
             return result;
+        }
+
+        string CreateUniqueConstraint(List<UniqueInfo> tableUQs, string TableName, string AlterCommand)
+        {
+            string result = string.Empty;
+            foreach (int columnsGroup in tableUQs.Select(x => x.GroupId).Distinct())
+            {
+                if (IsLite)
+                {
+                    result += $"{CreateUQConstraint(tableUQs.Where(x => x.GroupId == columnsGroup).ToList(),TableName,string.Empty)}, ";
+                }
+                else
+                {
+                    result += $"{CreateUQConstraint(tableUQs.Where(x => x.GroupId == columnsGroup).ToList(), TableName, AlterCommand)}; ";
+                }
+            }
+            return result;
+        }
+
+        string CreateUQConstraint(List<UniqueInfo> groupUQ, string TableName, string AlterTable)
+        {
+            string constraintBegin = "ADD CONSTRAINT";
+
+            if (IsLite)
+            {
+                constraintBegin = "CONSTRAINT";
+            }
+            int groupId = 0;
+            string uniqueColumns = string.Empty;
+
+            foreach(UniqueInfo Uq in groupUQ)
+            {
+                uniqueColumns += $",{MyShit(Uq.PropertyName)}";
+                groupId = Uq.GroupId;
+            }
+
+            uniqueColumns = uniqueColumns.Remove(0, 1);
+            string uniqueConstraint = $"{AlterTable} {constraintBegin} uc_{TableName}_{groupId} UNIQUE ({uniqueColumns}) ";
+            CliConsoleLogs($"{uniqueConstraint};");
+            return uniqueConstraint;
         }
 
         string CreateFkConstraint(List<FKInfo> commonFKs, string TableName,string ReferencedTable, string AlterCommand)
@@ -1443,7 +1561,7 @@ namespace BlackHole.Internal
             }
         } 
 
-        string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname)
+        string GetDatatypeCommand(Type PropertyType, object[] attributes, string Propertyname, string TableName)
         {
             string propTypeName = PropertyType.Name;
             string dataCommand = "";
@@ -1512,13 +1630,13 @@ namespace BlackHole.Internal
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[11]} ";
                     break;
                 default:
-                   throw ProtectDbAndThrow($"Unsupported property type {PropertyType.FullName}");
+                   throw ProtectDbAndThrow($"Unsupported property type '{PropertyType.FullName}' at Property '{Propertyname}' of Entity '{TableName}'");
             }
 
             return dataCommand;
         }
 
-        string GetDefaultValue(Type PropertyType)
+        string GetDefaultValue(Type PropertyType, string PropName, string TableName)
         {
             return PropertyType.Name switch
             {
@@ -1534,7 +1652,7 @@ namespace BlackHole.Internal
                 "Boolean" => "0",
                 "DateTime" => $"'{new DateTime(1970,1,1).ToString(DatabaseStatics.DbDateFormat)}'",
                 "Byte[]" => $"'{new byte[0]}'",
-                _ => throw ProtectDbAndThrow($"Unsupported property type {PropertyType.FullName}"),
+                _ => throw ProtectDbAndThrow($"Unsupported property type '{PropertyType.FullName}' at Property '{PropName}' of Entity '{TableName}'"),
             };
         }
 
@@ -1549,6 +1667,16 @@ namespace BlackHole.Internal
                     {
                         connection.JustExecute(command, null, transaction);
                     }
+                    connection.JustExecute("PRAGMA foreign_keys = off", null, transaction);
+                    foreach (string command in CustomTransaction)
+                    {
+                        connection.JustExecute(command, null, transaction);
+                    }
+                    foreach (string command in AfterMath)
+                    {
+                        connection.JustExecute(command, null, transaction);
+                    }
+                    connection.JustExecute("PRAGMA foreign_keys = on", null, transaction);
                     bool result = transaction.Commit();
                     transaction.Dispose();
                     return result;
@@ -1560,71 +1688,16 @@ namespace BlackHole.Internal
                 {
                     KickInTheTeeth.Append($"{command}; ");
                 }
-                KickInTheTeeth.Append(@"COMMIT END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH");
-                string commandTk = KickInTheTeeth.ToString();
-                return connection.JustExecute(KickInTheTeeth.ToString(), null);
-            }
-            return true;
-        }
-
-        internal bool ExecuteThatShit()
-        {
-            if (CustomTransaction.Any())
-            {
-                if (IsLite)
-                {
-                    BlackHoleTransaction transaction = new();
-                    connection.JustExecute("PRAGMA foreign_keys = off", null, transaction);
-                    foreach (string command in CreateTablesTransaction)
-                    {
-                        connection.JustExecute(command, null, transaction);
-                    }
-                    connection.JustExecute("PRAGMA foreign_keys = on", null, transaction);
-                    bool result = transaction.Commit();
-                    transaction.Dispose();
-                    return result;
-                }
-
-                StringBuilder KickInTheTeeth = new();
-                KickInTheTeeth.Append("BEGIN TRANSACTION BEGIN TRY ");
                 foreach (string command in CustomTransaction)
                 {
                     KickInTheTeeth.Append($"{command}; ");
                 }
-                KickInTheTeeth.Append(@"COMMIT END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH");
-                string commandTk = KickInTheTeeth.ToString();
-                return connection.JustExecute(KickInTheTeeth.ToString(), null);
-            }
-            return true;
-        }
-
-        internal bool ExecuteAfterMath()
-        {
-            if (AfterMath.Any())
-            {
-                if (IsLite)
-                {
-                    BlackHoleTransaction transaction = new();
-                    connection.JustExecute("PRAGMA foreign_keys = off", null, transaction);
-                    foreach (string command in CreateTablesTransaction)
-                    {
-                        connection.JustExecute(command, null, transaction);
-                    }
-                    connection.JustExecute("PRAGMA foreign_keys = on", null, transaction);
-                    bool result = transaction.Commit();
-                    transaction.Dispose();
-                    return result;
-                }
-
-                StringBuilder KickInTheTeeth = new();
-                KickInTheTeeth.Append("BEGIN TRANSACTION BEGIN TRY ");
                 foreach (string command in AfterMath)
                 {
                     KickInTheTeeth.Append($"{command}; ");
                 }
-                KickInTheTeeth.Append(@"COMMIT END TRY BEGIN CATCH ROLLBACK;
-                THROW;
-                END CATCH");
+                KickInTheTeeth.Append(@"COMMIT END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH");
+                string commandTk = KickInTheTeeth.ToString();
                 return connection.JustExecute(KickInTheTeeth.ToString(), null);
             }
             return true;
