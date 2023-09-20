@@ -66,8 +66,11 @@ namespace BlackHole.Logger
                     using (StreamWriter tw = new(pathFile, true))
                     {
                         tw.WriteLine($"Date and Time: {DateTime.Now.ToString("s").Replace(":", ".")}");
+                        tw.WriteLine("");
                         tw.WriteLine($"Command : {commandText}");
+                        tw.WriteLine("");
                         tw.WriteLine($"Error: {Message}");
+                        tw.WriteLine("");
                         tw.WriteLine($"Details: {Details}");
                     }
                 }

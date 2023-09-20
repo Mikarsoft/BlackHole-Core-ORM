@@ -500,7 +500,7 @@ namespace BlackHole.CoreSupport
             }
         }
 
-        private static string ExpressionTypeToSql(ExpressionType ExpType , bool IsReversed, bool IsNullValue)
+        private string ExpressionTypeToSql(ExpressionType ExpType , bool IsReversed, bool IsNullValue)
         {
             return ExpType switch
             {

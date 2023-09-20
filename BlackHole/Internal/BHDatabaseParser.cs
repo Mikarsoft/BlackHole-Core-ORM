@@ -452,7 +452,6 @@ namespace BlackHole.Internal
         internal string GetBHAttribute(TableParsingInfo columnInfo, string dotNetType)
         {
             string VarcharSize = string.Empty;
-            //string DefaultVal = DefaultValueCheck(columnInfo);
 
             if (dotNetType == "string")
             {

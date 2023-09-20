@@ -26,6 +26,10 @@ namespace BlackHole.Entities
         /// <param name="groupId"></param>
         public Unique(int groupId)
         {
+            if(groupId < 1)
+            {
+                groupId = 1;
+            }
             UniqueGroupId = groupId;
         }
     }

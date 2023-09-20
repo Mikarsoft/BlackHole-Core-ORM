@@ -310,6 +310,19 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
+        string[] IBHDatabaseSelector.GetSafeTransactionTry()
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => new string[] { "BEGIN TRANSACTION BEGIN TRY ", " COMMIT END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH" },
+                BlackHoleSqlTypes.MySql => new string[] { @"",
+                    @""},
+                BlackHoleSqlTypes.Postgres => new string[] { "do language plpgsql $$ begin ", " exception when others then raise notice 'Transaction rolled back'; " +
+                "raise EXCEPTION '% %', SQLERRM, SQLSTATE; end; $$"},
+                _ => new string[] { "BEGIN execute ", " END;" },
+            };
+        }
+
         string IBHDatabaseSelector.GetColumnModifyCommand()
         {
             if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)

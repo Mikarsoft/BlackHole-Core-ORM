@@ -54,6 +54,11 @@ namespace BlackHole.Configuration
                 }
             }
 
+            if (blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut < 60)
+            {
+                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut = 60;
+            }
+
             ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString,
                 blackHoleSettings.directorySettings.DataPath, blackHoleSettings.connectionConfig.TableSchema,
                 blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut,

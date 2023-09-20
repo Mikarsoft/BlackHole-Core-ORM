@@ -22,6 +22,7 @@ namespace BlackHole.Internal
         bool GetOpenPKConstraint();
         bool SetDbDateFormat(IExecutionProvider _executionProvider);
         string GetColumnModifyCommand();
+        string[] GetSafeTransactionTry();
 
         string TableSchemaCheck();
         string GetDatabaseSchema();
