@@ -104,15 +104,6 @@ namespace BlackHole.Internal
                     Thread.Sleep(2000);
                     throw ProtectDbAndThrow("Something went wrong with the Update of the Database.The Database is not changed. Please check the BlackHole logs to detect and fix the problem.");
                 }
-                CreateTablesTransaction.Clear();
-                CustomTransaction.Clear();
-                AfterMath.Clear();
-                DropTransaction.Clear();
-
-                if (IsTrashOracleProduct)
-                {
-
-                }
             }
             DatabaseStatics.AutoUpdate = false;
         }
@@ -1364,11 +1355,11 @@ namespace BlackHole.Internal
 
                 if (IsForcedUpdate)
                 {
-                    AfterMath.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null; ");
-                    AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NOT NULL;");
+                    AfterMath.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null");
+                    AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NOT NULL");
                     if (IsTrashOracleProduct)
                     {
-                        RevertShittyOracleAfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NULL;");
+                        RevertShittyOracleAfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NULL");
                     }
                     if (isUnique)
                     {
@@ -1848,6 +1839,17 @@ namespace BlackHole.Internal
             };
         }
 
+        internal void ClearCommands()
+        {
+            CreateTablesTransaction.Clear();
+            CustomTransaction.Clear();
+            AfterMath.Clear();
+            DropTransaction.Clear();
+            RevertShittyOracleTables.Clear();
+            RevertShittyOracleTransaction.Clear();
+            RevertShittyOracleAfterMath.Clear();
+        }
+
         internal bool ExecuteTableCreation()
         {
             List<string> AllCommands = new();
@@ -1897,7 +1899,7 @@ namespace BlackHole.Internal
                             break;
                         }
                     }
-
+                    UpdateCommands.Clear();
                     bool result = false;
 
                     if(failedIndex > 0)
@@ -1915,7 +1917,7 @@ namespace BlackHole.Internal
                         }
                         result = transaction.Commit();
                     }
-
+                    RevertChanges.Clear();
                     transaction.Dispose();
                     return result;
                 }
