@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 namespace BlackHole.Core
 {
     /// <summary>
-    /// Makes all the communication between the Datbase Table and The Specified Entity.
+    /// Makes all the communication between the Database Table and The Specified Entity.
     /// <para>For custom commands, use IBHConnection Interface</para>
     /// </summary>
     /// <typeparam name="T">BlackHoleEntity</typeparam>

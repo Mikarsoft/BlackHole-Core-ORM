@@ -42,7 +42,7 @@ namespace BlackHole.Internal
                 return 404;
             }
 
-            List<TableAspectsInfo> tableInfo = dbInfoReader.GetDatabaseInformation();
+            List<TableAspectsInfo> tableInfo = dbInfoReader.GetDatabaseInformation(0);
             BHParsingColumnScanner columnScanner = new BHParsingColumnScanner();
 
             DbParsingStates dbState = CheckCompatibility(tableInfo, columnScanner);

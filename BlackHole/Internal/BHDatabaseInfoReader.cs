@@ -167,6 +167,7 @@ namespace BlackHole.Internal
                     {
                         parsingLine.DeleteRule = foreignKey.on_delete;
                         parsingLine.ReferencedTable = foreignKey.table;
+                        parsingLine.ReferencedColumn = foreignKey.to;
                     }
                     parsingLiteData.Add(parsingLine);
                 }
