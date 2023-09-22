@@ -104,6 +104,7 @@ namespace BlackHole.Internal
                     Thread.Sleep(2000);
                     throw ProtectDbAndThrow("Something went wrong with the Update of the Database.The Database is not changed. Please check the BlackHole logs to detect and fix the problem.");
                 }
+                ClearCommands();
             }
             DatabaseStatics.AutoUpdate = false;
         }
@@ -1167,6 +1168,7 @@ namespace BlackHole.Internal
             if (IsTrashOracleProduct)
             {
                 RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL");
+                RevertShittyOracleTransaction.Add(string.Empty);
             }
         }
 
@@ -1360,6 +1362,8 @@ namespace BlackHole.Internal
                     if (IsTrashOracleProduct)
                     {
                         RevertShittyOracleAfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NULL");
+                        RevertShittyOracleAfterMath.Add(string.Empty);
+
                     }
                     if (isUnique)
                     {
@@ -1579,7 +1583,7 @@ namespace BlackHole.Internal
                 result.Add($"{CreateFkConstraint(tableFKs.Where(x => x.ReferencedTable == referencedTable).ToList(), TableName, referencedTable, AlterCommand)}");
                 if (IsTrashOracleProduct)
                 {
-                    RevertShittyOracleAfterMath.Add($"{AlterCommand} DROP CONSTRAINT uc_{TableName}_{referencedTable}");
+                    RevertShittyOracleAfterMath.Add($"{AlterCommand} DROP CONSTRAINT fk_{TableName}_{referencedTable}");
                 }
             }
             return result;
@@ -1891,8 +1895,8 @@ namespace BlackHole.Internal
 
                     for (int i = 0; i < UpdateCommands.Count; i++)
                     {
-                        bool failed = connection.JustExecute(AllCommands[i], null, transaction);
-                        if (failed)
+                        bool success = connection.JustExecute(AllCommands[i], null, transaction);
+                        if (!success)
                         {
                             failedIndex = i;
                             transaction.DoNotCommit();

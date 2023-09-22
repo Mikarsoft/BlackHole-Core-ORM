@@ -324,12 +324,8 @@ namespace BlackHole.Internal
             return DatabaseStatics.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => new string[] { "BEGIN TRANSACTION BEGIN TRY ", " COMMIT END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH" },
-                BlackHoleSqlTypes.MySql => new string[] { "DROP PROCEDURE IF EXISTS ExampleProc; CREATE PROCEDURE ExampleProc()  BEGIN " +
-                " DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK TO SAVEPOINT samplesavepoint;RESIGNAL; END; START TRANSACTION; SET autocommit=0; SAVEPOINT samplesavepoint; ",
-                    " COMMIT; END; CALL ExampleProc; DROP PROCEDURE ExampleProc;"},
-                BlackHoleSqlTypes.Postgres => new string[] { "do language plpgsql $$ begin ", " exception when others then raise notice 'Transaction rolled back'; " +
-                "raise EXCEPTION '% %', SQLERRM, SQLSTATE; end; $$"},
-                _ => new string[] { "DECLARE BEGIN SAVEPOINT S1; ", " EXCEPTION THEN ROLLBACK TO SAVEPOINT S1; END;" },
+                _ => new string[] { "do language plpgsql $$ begin ", " exception when others then raise notice 'Transaction rolled back'; " +
+                "raise EXCEPTION '% %', SQLERRM, SQLSTATE; end; $$"}
             };
         }
 
