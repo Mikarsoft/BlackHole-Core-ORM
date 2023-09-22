@@ -22,10 +22,16 @@ namespace BlackHole.Internal
         private string TableSchema { get; set; }
         internal BHDatabaseInfoReader dbInfoReader { get; set; }
         internal bool IsForcedUpdate { get; } 
+        internal bool IsTrashOracleProduct { get; set; }
         private string AlterColumn { get; }
         private List<string> CreateTablesTransaction { get; set; } = new();
         private List<string> CustomTransaction { get; set; } = new();
         private List<string> AfterMath { get; set; } = new();
+        private List<string> DropTransaction { get; set; } = new();
+        private List<string> RevertShittyOracleTables { get; set; } = new();
+        private List<string> RevertShittyOracleTransaction { get; set; } = new();
+        private List<string> RevertShittyOracleAfterMath { get; set; } = new();
+
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
@@ -33,6 +39,7 @@ namespace BlackHole.Internal
             IsForcedUpdate = DatabaseStatics.AutoUpdate && (DatabaseStatics.IsDevMove || CliCommand.ForceAction);
             dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
             AlterColumn = _multiDatabaseSelector.GetColumnModifyCommand();
+            IsTrashOracleProduct = _multiDatabaseSelector.IsFuckingShittyTrashOracleProduct();
 
             if (IsForcedUpdate)
             {
@@ -100,6 +107,12 @@ namespace BlackHole.Internal
                 CreateTablesTransaction.Clear();
                 CustomTransaction.Clear();
                 AfterMath.Clear();
+                DropTransaction.Clear();
+
+                if (IsTrashOracleProduct)
+                {
+
+                }
             }
             DatabaseStatics.AutoUpdate = false;
         }
@@ -149,6 +162,10 @@ namespace BlackHole.Internal
                 creationCommand = $"{creationCommand[..^2]}{Pkoption})";
                 CliConsoleLogs($"{creationCommand};");
                 CreateTablesTransaction.Add(creationCommand);
+                if (IsTrashOracleProduct)
+                {
+                    RevertShittyOracleTables.Add($"DROP TABLE {MyShit(TableType.Name)}");
+                }
                 return true;
             }
 
@@ -200,6 +217,10 @@ namespace BlackHole.Internal
                 creationCommand = $"{creationCommand[..^2]})";
                 CliConsoleLogs($"{creationCommand};");
                 CreateTablesTransaction.Add(creationCommand);
+                if (IsTrashOracleProduct)
+                {
+                    RevertShittyOracleTables.Add($"DROP TABLE {MyShit(TableType.Name)}");
+                }
                 return true;
             }
 
@@ -569,7 +590,7 @@ namespace BlackHole.Internal
                 }
             }
 
-            string FkCommand = $"{alterTable}{CreateForeignKeyConstraint(FkOptions, TableType.Name, string.Empty)}{CreateUniqueConstraint(UniqueOptions, TableType.Name, string.Empty)}";
+            string FkCommand = $"{alterTable}{CreateForeignKeyConstraintLite(FkOptions, TableType.Name)}{CreateUniqueConstraintLite(UniqueOptions, TableType.Name)}";
 
             if (FkCommand.Length > 1)
             {
@@ -777,7 +798,7 @@ namespace BlackHole.Internal
                 Pkoption = $"{Pkoption.Remove(0, 1)}, ";
             }
 
-            string FkCommand = $"{alterTable}{Pkoption}{CreateForeignKeyConstraint(FkOptions,TableType.Name,string.Empty)}{CreateUniqueConstraint(UniqueOptions,TableType.Name,string.Empty)}";
+            string FkCommand = $"{alterTable}{Pkoption}{CreateForeignKeyConstraintLite(FkOptions,TableType.Name)}{CreateUniqueConstraintLite(UniqueOptions,TableType.Name)}";
 
             if (FkCommand.Length > 1)
             {
@@ -851,11 +872,12 @@ namespace BlackHole.Internal
 
             if (fkInfos.Any())
             {
-                AfterMath.Add(CreateForeignKeyConstraint(fkInfos, TableType.Name, $" ALTER TABLE {TableSchema}{MyShit(Tablename)}"));
+                AfterMath.AddRange(CreateForeignKeyConstraint(fkInfos, TableType.Name, $" ALTER TABLE {TableSchema}{MyShit(Tablename)}"));
             }
+
             if (UniqueOptions.Any())
             {
-                AfterMath.Add(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
+                AfterMath.AddRange(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
             }
         }
 
@@ -907,8 +929,13 @@ namespace BlackHole.Internal
                 {
                     inactiveColMissing = true;
                     columnCreator.Append(GetDatatypeCommand(typeof(int), Array.Empty<object>(), ColumnName, TableType.Name));
-                    CustomTransaction.Add(columnCreator.ToString() + "NULL ");
+                    CustomTransaction.Add(columnCreator.ToString() + " NULL");
                     CliConsoleLogs($"{columnCreator} NULL;");
+
+                    if (IsTrashOracleProduct)
+                    {
+                        RevertShittyOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit("Inactive")}");
+                    }
                 }
                 else
                 {
@@ -917,22 +944,29 @@ namespace BlackHole.Internal
                     columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, TableType.Name));
                     columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, false, FkOptions, UniqueOptions));
                     CustomTransaction.Add(columnCreator.ToString());
+                    CliConsoleLogs($"{columnCreator};");
+
+                    if (IsTrashOracleProduct)
+                    {
+                        RevertShittyOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit(Property.Name)}");
+                    }
                 }
                 columnCreator.Clear();
             }
 
             if (FkOptions.Any())
             {
-                AfterMath.Add(CreateForeignKeyConstraint(FkOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
+                AfterMath.AddRange(CreateForeignKeyConstraint(FkOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
             }
+
             if (UniqueOptions.Any())
             {
-                AfterMath.Add(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
+                AfterMath.AddRange(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
             }
 
             if (inactiveColMissing)
             {
-                string updateInactiveCol = $"Update {TableSchema}{Tablename} set {MyShit("Inactive")} = 0 where {MyShit("Inactive")} is null;";
+                string updateInactiveCol = $"Update {TableSchema}{Tablename} set {MyShit("Inactive")} = 0 where {MyShit("Inactive")} is null";
                 AfterMath.Add(updateInactiveCol);
                 CliConsoleLogs($"{updateInactiveCol};");
             }
@@ -975,9 +1009,20 @@ namespace BlackHole.Internal
                 if (canUpdatePKs)
                 {
                     PKsDropped = true;
-                    string commandText = $"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT IF EXISTS PK_{TableType.Name} ";
+                    string commandText = $"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT IF EXISTS PK_{TableType.Name}";
                     CustomTransaction.Add(commandText);
                     CliConsoleLogs($"{commandText};");
+
+                    if (IsTrashOracleProduct)
+                    {
+                        string primaryKeys = string.Empty;
+                        foreach (string pkName in existingPKs)
+                        {
+                            primaryKeys += $",{MyShit(pkName)}";
+                        }
+                        string commandTxt = $"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})";
+                        RevertShittyOracleTransaction.Add(commandTxt);
+                    }
                 }
             }
 
@@ -994,17 +1039,23 @@ namespace BlackHole.Internal
                 object[]? attributes = Property.GetCustomAttributes(true);
                 columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, TableType.Name));
                 columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, pkInformation.PKPropertyNames.Contains(ColumnName),FkOptions, UniqueOptions));
-                CustomTransaction.Add(columnCreator.ToString());               
+                CustomTransaction.Add(columnCreator.ToString());
                 columnCreator.Clear();
+
+                if (IsTrashOracleProduct)
+                {
+                    RevertShittyOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit(Property.Name)}");
+                }
             }
 
             if (FkOptions.Any())
             {
-                AfterMath.Add(CreateForeignKeyConstraint(FkOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
+                AfterMath.AddRange(CreateForeignKeyConstraint(FkOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
             }
+
             if (UniqueOptions.Any())
             {
-                AfterMath.Add(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
+                AfterMath.AddRange(CreateUniqueConstraint(UniqueOptions, TableType.Name, $"ALTER TABLE {TableSchema}{MyShit(TableType.Name)}"));
             }
 
             if (pkInformation.PKPropertyNames.Any() && PKsDropped)
@@ -1017,6 +1068,11 @@ namespace BlackHole.Internal
                 string commandTxt = $"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})";
                 CustomTransaction.Add(commandTxt);
                 CliConsoleLogs($"{commandTxt};");
+
+                if (IsTrashOracleProduct)
+                {
+                    RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT IF EXISTS PK_{TableType.Name}");
+                }
             }
         }
 
@@ -1114,9 +1170,13 @@ namespace BlackHole.Internal
 
             CustomTransaction.Add(updateTxt);
             CustomTransaction.Add(alterTxt);
-
             CliConsoleLogs($"{updateTxt};");
             CliConsoleLogs($"{alterTxt};");
+
+            if (IsTrashOracleProduct)
+            {
+                RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL");
+            }
         }
 
         private void SetColumnToNull(string TableName, string PropName, TableParsingInfo ColumnInfo)
@@ -1124,6 +1184,11 @@ namespace BlackHole.Internal
             string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL";
             CustomTransaction.Add(alterTxt);
             CliConsoleLogs($"{alterTxt};");
+
+            if (IsTrashOracleProduct)
+            {
+                RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL");
+            }
         }
 
         private string GetSqlDataType(TableParsingInfo columnInfo)
@@ -1171,8 +1236,8 @@ namespace BlackHole.Internal
 
                     foreach(TableParsingInfo referenced in referencedAt)
                     {
-                        string dropConstraint = $"ALTER TABLE {TableSchema}{MyShit(referenced.TableName)} DROP CONSTRAINT IF EXISTS {referenced.ConstraintName};";
-                        AfterMath.Add(dropConstraint);
+                        string dropConstraint = $"ALTER TABLE {TableSchema}{MyShit(referenced.TableName)} DROP CONSTRAINT IF EXISTS {referenced.ConstraintName}";
+                        DropTransaction.Add(dropConstraint);
                         CliConsoleLogs($"{dropConstraint};");
                     }
 
@@ -1182,13 +1247,13 @@ namespace BlackHole.Internal
 
                     if(thisColumn != null)
                     {
-                        string dropColConstraint = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP CONSTRAINT IF EXISTS {thisColumn.ConstraintName};";
-                        AfterMath.Add(dropColConstraint);
+                        string dropColConstraint = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP CONSTRAINT IF EXISTS {thisColumn.ConstraintName}";
+                        DropTransaction.Add(dropColConstraint);
                         CliConsoleLogs($"{dropColConstraint};");
                     }
 
-                    string dropCommand = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)};";
-                    AfterMath.Add(dropCommand);
+                    string dropCommand = $"ALTER TABLE {TableSchema}{MyShit(TableName)} DROP COLUMN {MyShit(ColumnName)}";
+                    DropTransaction.Add(dropCommand);
                     CliConsoleLogs($"{dropCommand};");
                 }
             }
@@ -1301,6 +1366,10 @@ namespace BlackHole.Internal
                 {
                     AfterMath.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null; ");
                     AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NOT NULL;");
+                    if (IsTrashOracleProduct)
+                    {
+                        RevertShittyOracleAfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NULL;");
+                    }
                     if (isUnique)
                     {
                         uqInfos.Add(AddUniqueConstraint(PropName,uniqueGroupId));
@@ -1511,36 +1580,50 @@ namespace BlackHole.Internal
             };
         }
 
-        string CreateForeignKeyConstraint(List<FKInfo> tableFKs, string TableName, string AlterCommand)
+        List<string> CreateForeignKeyConstraint(List<FKInfo> tableFKs, string TableName, string AlterCommand)
         {
-            string result = string.Empty;
+            List<string> result = new();
             foreach(string referencedTable in tableFKs.Select(x => x.ReferencedTable).Distinct())
             {
-                if (IsLite)
+                result.Add($"{CreateFkConstraint(tableFKs.Where(x => x.ReferencedTable == referencedTable).ToList(), TableName, referencedTable, AlterCommand)}");
+                if (IsTrashOracleProduct)
                 {
-                    result += $"{CreateFkConstraint(tableFKs.Where(x=>x.ReferencedTable == referencedTable).ToList(),TableName, referencedTable, string.Empty)}, ";
-                }
-                else
-                {
-                    result += $"{CreateFkConstraint(tableFKs.Where(x => x.ReferencedTable == referencedTable).ToList(), TableName, referencedTable, AlterCommand)}; ";
+                    RevertShittyOracleAfterMath.Add($"{AlterCommand} DROP CONSTRAINT uc_{TableName}_{referencedTable}");
                 }
             }
             return result;
         }
 
-        string CreateUniqueConstraint(List<UniqueInfo> tableUQs, string TableName, string AlterCommand)
+        string CreateForeignKeyConstraintLite(List<FKInfo> tableFKs, string TableName)
+        {
+            string result = string.Empty;
+            foreach (string referencedTable in tableFKs.Select(x => x.ReferencedTable).Distinct())
+            {
+                result += $"{CreateFkConstraint(tableFKs.Where(x => x.ReferencedTable == referencedTable).ToList(), TableName, referencedTable, string.Empty)}, ";
+            }
+            return result;
+        }
+
+        List<string> CreateUniqueConstraint(List<UniqueInfo> tableUQs, string TableName, string AlterCommand)
+        {
+            List<string> result = new();
+            foreach (int columnsGroup in tableUQs.Select(x => x.GroupId).Distinct())
+            {
+                result.Add($"{CreateUQConstraint(tableUQs.Where(x => x.GroupId == columnsGroup).ToList(), TableName, AlterCommand)}");
+                if (IsTrashOracleProduct)
+                {
+                    RevertShittyOracleAfterMath.Add($"{AlterCommand} DROP CONSTRAINT uc_{TableName}_{columnsGroup}");
+                }
+            }
+            return result;
+        }
+
+        string CreateUniqueConstraintLite(List<UniqueInfo> tableUQs, string TableName)
         {
             string result = string.Empty;
             foreach (int columnsGroup in tableUQs.Select(x => x.GroupId).Distinct())
             {
-                if (IsLite)
-                {
-                    result += $"{CreateUQConstraint(tableUQs.Where(x => x.GroupId == columnsGroup).ToList(),TableName,string.Empty)}, ";
-                }
-                else
-                {
-                    result += $"{CreateUQConstraint(tableUQs.Where(x => x.GroupId == columnsGroup).ToList(), TableName, AlterCommand)}; ";
-                }
+                result += $"{CreateUQConstraint(tableUQs.Where(x => x.GroupId == columnsGroup).ToList(), TableName, string.Empty)}, ";
             }
             return result;
         }
@@ -1563,7 +1646,7 @@ namespace BlackHole.Internal
             }
 
             uniqueColumns = uniqueColumns.Remove(0, 1);
-            string uniqueConstraint = $"{AlterTable} {constraintBegin} uc_{TableName}_{groupId} UNIQUE ({uniqueColumns}) ";
+            string uniqueConstraint = $"{AlterTable} {constraintBegin} uc_{TableName}_{groupId} UNIQUE ({uniqueColumns})";
             CliConsoleLogs($"{uniqueConstraint};");
             return uniqueConstraint;
         }
@@ -1767,21 +1850,19 @@ namespace BlackHole.Internal
 
         internal bool ExecuteTableCreation()
         {
-            if (CreateTablesTransaction.Any())
+            List<string> AllCommands = new();
+            AllCommands.AddRange(CreateTablesTransaction);
+            AllCommands.AddRange(CustomTransaction);
+            AllCommands.AddRange(AfterMath);
+            AllCommands.AddRange(DropTransaction);
+
+            if (AllCommands.Any())
             {
                 if (IsLite)
                 {
                     BlackHoleTransaction transaction = new();
-                    foreach (string command in CreateTablesTransaction)
-                    {
-                        connection.JustExecute(command, null, transaction);
-                    }
                     connection.JustExecute("PRAGMA foreign_keys = off", null, transaction);
-                    foreach (string command in CustomTransaction)
-                    {
-                        connection.JustExecute(command, null, transaction);
-                    }
-                    foreach (string command in AfterMath)
+                    foreach (string command in AllCommands)
                     {
                         connection.JustExecute(command, null, transaction);
                     }
@@ -1791,23 +1872,64 @@ namespace BlackHole.Internal
                     return result;
                 }
 
+                if (IsTrashOracleProduct)
+                {
+                    List<string> UpdateCommands = new();
+                    UpdateCommands.AddRange(CreateTablesTransaction);
+                    UpdateCommands.AddRange(CustomTransaction);
+                    UpdateCommands.AddRange(AfterMath);
+
+                    List<string> RevertChanges = new();
+                    RevertChanges.AddRange(RevertShittyOracleTables);
+                    RevertChanges.AddRange(RevertShittyOracleTransaction);
+                    RevertChanges.AddRange(RevertShittyOracleAfterMath);
+
+                    BlackHoleTransaction transaction = new();
+                    int failedIndex = 0;
+
+                    for (int i = 0; i < UpdateCommands.Count; i++)
+                    {
+                        bool failed = connection.JustExecute(AllCommands[i], null, transaction);
+                        if (failed)
+                        {
+                            failedIndex = i;
+                            transaction.DoNotCommit();
+                            break;
+                        }
+                    }
+
+                    bool result = false;
+
+                    if(failedIndex > 0)
+                    {
+                        for(int i = 1; i < failedIndex + 1; i++)
+                        {
+                            connection.JustExecute(RevertChanges[failedIndex - i], null);
+                        }
+                    }
+                    else
+                    {
+                        foreach(string command in DropTransaction)
+                        {
+                            connection.JustExecute(command, null, transaction);
+                        }
+                        result = transaction.Commit();
+                    }
+
+                    transaction.Dispose();
+                    return result;
+                }
+
                 string[] safeTransaction = _multiDatabaseSelector.GetSafeTransactionTry();
                 StringBuilder KickInTheTeeth = new();
                 KickInTheTeeth.Append(safeTransaction[0]);
-                foreach (string command in CreateTablesTransaction)
+
+                foreach (string command in AllCommands)
                 {
-                    KickInTheTeeth.Append($"{command}; ");
+                    KickInTheTeeth.Append($"{command};");
                 }
-                foreach (string command in CustomTransaction)
-                {
-                    KickInTheTeeth.Append($"{command}; ");
-                }
-                foreach (string command in AfterMath)
-                {
-                    KickInTheTeeth.Append($"{command} ");
-                }
+
                 KickInTheTeeth.Append(safeTransaction[1]);
-                string commandTk = KickInTheTeeth.ToString();
                 return connection.JustExecute(KickInTheTeeth.ToString(), null);
             }
             return true;
