@@ -22,7 +22,7 @@ namespace BlackHole.Internal
             Type blazarTransient = typeof(BlackHoleTransient);
 
             var ServiceTypes = assembly.GetTypes().Where(t => t.BaseType == blazarScoped || t.BaseType == blazarSingleton || t.BaseType == blazarTransient)
-                .Select(s => new { Interface = s.GetInterface($"I{s.Name}"), Service = s })
+                .Select(s => new { Interface = s.GetInterfaces().FirstOrDefault(x=>s.Name.Contains(x.Name.Remove(0,1))), Service = s })
                 .Where(x => x.Service != null);
 
             foreach (var type in ServiceTypes)
@@ -81,7 +81,8 @@ namespace BlackHole.Internal
             Type blazarSingleton = typeof(BlackHoleSingleton);
             Type blazarTransient = typeof(BlackHoleTransient);
 
-            var ServiceTypes = blazarServices.Select(s => new { Interface = s.GetInterface($"I{s.Name}"), Service = s })
+            var ServiceTypes = blazarServices.Select(s => new { Interface = s.GetInterfaces()
+                .FirstOrDefault(x => s.Name.Contains(x.Name.Remove(0, 1))), Service = s })
                 .Where(x => x.Service != null);
 
             foreach (var type in ServiceTypes)
