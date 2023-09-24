@@ -23,7 +23,8 @@
         }
 
         /// <summary>
-        /// 
+        /// Specifies the Size of a Varchar column in the database
+        /// to the default size 255
         /// </summary>
         public VarCharSize()
         {

@@ -31,12 +31,12 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
     <NeutralLanguage>en</NeutralLanguage>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>6.1.0</AssemblyVersion>
-    <FileVersion>6.1.0</FileVersion>
+    <AssemblyVersion>6.1.1</AssemblyVersion>
+    <FileVersion>6.1.1</FileVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 	<PropertyGroup>
-		<Version>6.1.0</Version>
+		<Version>6.1.1</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>- Maximum Performance and Memory Optimization
 - Added fully customizable BHOpenEntity
