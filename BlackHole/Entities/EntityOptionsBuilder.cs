@@ -266,11 +266,11 @@ namespace BlackHole.Entities
         /// <summary>
         /// Binds a value Generator with the column and generated a new value on insert.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="tKey"></typeparam>
-        /// <param name="settings"></param>
-        /// <param name="primaryKey"></param>
-        /// <param name="valueGenerator"></param>
+        /// <typeparam name="T">Type of Entity</typeparam>
+        /// <typeparam name="tKey">Type of Property</typeparam>
+        /// <param name="settings">Entity Settings Object</param>
+        /// <param name="primaryKey">Property of the Entity</param>
+        /// <param name="valueGenerator">lass that inherits from IBHValueGenerator</param>
         /// <returns>Entity Settings Object</returns>
         public static EntitySettings<T> AutoGenerate<T, tKey>(this EntitySettings<T> settings, Expression<Func<T, tKey>> primaryKey, IBHValueGenerator<tKey> valueGenerator)
             where tKey : IComparable<tKey>
@@ -291,14 +291,15 @@ namespace BlackHole.Entities
         }
 
         /// <summary>
-        /// 
+        /// On Insert If the property's value is null or default then it
+        /// sets the specified value to the property.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="tKey"></typeparam>
-        /// <param name="settings"></param>
-        /// <param name="primaryKey"></param>
-        /// <param name="Value"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">Type of Entity</typeparam>
+        /// <typeparam name="tKey">Type of Property</typeparam>
+        /// <param name="settings">Entity Settings Object</param>
+        /// <param name="primaryKey">Property of the Entity</param>
+        /// <param name="Value">Specified default value</param>
+        /// <returns>Entity Settings Object</returns>
         public static EntitySettings<T> SetDefaultValue<T, tKey>(this EntitySettings<T> settings, Expression<Func<T, tKey>> primaryKey, tKey Value)
             where tKey : IComparable<tKey>
         {
