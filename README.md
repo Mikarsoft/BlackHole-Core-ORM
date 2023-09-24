@@ -21,17 +21,23 @@ Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/chann
 
 Latest Version : [6.1.0](https://www.nuget.org/packages/BlackHole.Core.ORM)
 
-<h4>Changes: v6.1.0 </h4>
+<h4>Changes: v6.1.1 v7.1.1 v8.1.1 </h4>
 
 - Maximum Performance and Memory Optimization
+- Added Database Protection on Failed Update. No changes are applied
+- User's Error detection and throw before the Update
+- No More Automatic update by default
+- Added AutomaticUpdate() Method in settings, to let the user decide when to use it
 - Added fully customizable BHOpenEntity
 - New Additional DataProvider for BHOpenEntity
 - Complete user Control of  BHOpenEntity's properties
-- Support for Composite PrimaryKeys in BHOpenEntities, with or without autoincrement
+- Support for Composite Primary Keys in BHOpenEntities, with or without autoincrement
+- Support for Composite Foreign Keys.
 - Value Generator Interface that Autogenerates a column's value on insert
 - Support For No PrimaryKey Table
-- New DefaultValue Attribute for the Columns
-- Added Option on Foreign Key Attribute to point to specific column
+- New SetDefaultValue Method for the BHOpenEntity's Columns
+- New 'Unique' Attribute for creating Unique Column groups
+- Added Overload on 'ForeignKey' Attribute to point to specific column
 - Reading Automatically the DateFormat of the Database.
 - Improved faster Logging.
 - Upgraded Database Parsing. It can Parse any Database using the new BHOpenEntities
