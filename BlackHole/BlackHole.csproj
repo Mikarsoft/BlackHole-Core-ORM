@@ -57,6 +57,7 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
 - Tracking and updating BHOpenEntity's values on the Insert methods</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Title>BlackHole.ORM</Title>
 	</PropertyGroup>
 	<ItemGroup>
 	  <None Remove="LICENSE.md" />
