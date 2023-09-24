@@ -360,6 +360,556 @@ namespace BlackHole.Core
             return true;
         }
 
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this int property, Func<TOther, int> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this decimal property, Func<TOther, decimal> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this short property, Func<TOther, short> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this long property, Func<TOther, long> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this double property, Func<TOther, double> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+
+        public static bool SqlGreaterThan<TOther>(this DateTime property, Func<TOther, DateTime> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this int property, Func<TOther, int> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this decimal property, Func<TOther, decimal> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this short property, Func<TOther, short> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this long property, Func<TOther, long> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this double property, Func<TOther, double> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this DateTime property, Func<TOther, DateTime> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this int property, Func<TOther, int> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this decimal property, Func<TOther, decimal> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this short property, Func<TOther, short> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this long property, Func<TOther, long> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this double property, Func<TOther, double> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlGreaterThan<TOther>(this DateTime property, Func<TOther, DateTime> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this int property, Func<TOther, int> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this decimal property, Func<TOther, decimal> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this short property, Func<TOther, short> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this long property, Func<TOther, long> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this double property, Func<TOther, double> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+
+        public static bool SqlLessThan<TOther>(this DateTime property, Func<TOther, DateTime> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this int property, Func<TOther, int> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this decimal property, Func<TOther, decimal> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this short property, Func<TOther, short> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this long property, Func<TOther, long> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this double property, Func<TOther, double> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this DateTime property, Func<TOther, DateTime> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this int property, Func<TOther, int> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this decimal property, Func<TOther, decimal> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this short property, Func<TOther, short> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this long property, Func<TOther, long> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this double property, Func<TOther, double> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlLessThan<TOther>(this DateTime property, Func<TOther, DateTime> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+
         /// <summary>
         /// Chaeck is the Current column's Date is more recent than the
         /// selected Date

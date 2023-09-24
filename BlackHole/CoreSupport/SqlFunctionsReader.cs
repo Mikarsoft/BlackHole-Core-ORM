@@ -80,6 +80,46 @@ namespace BlackHole.CoreSupport
                         }
                     }
                     break;
+                case "SqlGreaterThan":
+                    if (NumericMethodData.MethodArguments.Count == 2)
+                    {
+                        if (NumericMethodData.CompareProperty != null && NumericMethodData.CastedOn != null)
+                        {
+                            string? aTable = NumericMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            string? PropertyName = NumericMethodData.CompareProperty.Member?.Name;
+                            string[] compareProperty = NumericMethodData.CastedOn.ToString().Split(".");
+
+                            if (aTable != null && PropertyName != null && compareProperty.Length > 1)
+                            {
+                                ParamName = $"OtherId{Index}";
+                                Value = NumericMethodData.MethodArguments[1];
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {SchemaName}{aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} > {SelectFromOtherTable} ";
+                                WasTranslated = true;
+                            }
+                        }
+                    }
+                    break;
+                case "SqlLessThan":
+                    if (NumericMethodData.MethodArguments.Count == 2)
+                    {
+                        if (NumericMethodData.CompareProperty != null && NumericMethodData.CastedOn != null)
+                        {
+                            string? aTable = NumericMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            string? PropertyName = NumericMethodData.CompareProperty.Member?.Name;
+                            string[] compareProperty = NumericMethodData.CastedOn.ToString().Split(".");
+
+                            if (aTable != null && PropertyName != null && compareProperty.Length > 1)
+                            {
+                                ParamName = $"OtherId{Index}";
+                                Value = NumericMethodData.MethodArguments[1];
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {SchemaName}{aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} < {SelectFromOtherTable} ";
+                                WasTranslated = true;
+                            }
+                        }
+                    }
+                    break;
                 case "SqlAverage":
                     if(NumericMethodData.CompareProperty != null && NumericMethodData.CastedOn != null)
                     {
@@ -437,6 +477,46 @@ namespace BlackHole.CoreSupport
                                 Value = DateMethodData.MethodArguments[1];
                                 string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {SchemaName}{aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
                                 SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} = {SelectFromOtherTable} ";
+                                WasTranslated = true;
+                            }
+                        }
+                    }
+                    break;
+                case "SqlGreaterThan":
+                    if (DateMethodData.MethodArguments.Count == 2)
+                    {
+                        if (DateMethodData.CompareProperty != null && DateMethodData.CastedOn != null)
+                        {
+                            string? aTable = DateMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            string? PropertyName = DateMethodData.CompareProperty.Member?.Name;
+                            string[] compareProperty = DateMethodData.CastedOn.ToString().Split(".");
+
+                            if (aTable != null && PropertyName != null && compareProperty.Length > 1)
+                            {
+                                ParamName = $"OtherId{Index}";
+                                Value = DateMethodData.MethodArguments[1];
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {SchemaName}{aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} > {SelectFromOtherTable} ";
+                                WasTranslated = true;
+                            }
+                        }
+                    }
+                    break;
+                case "SqlLessThan":
+                    if (DateMethodData.MethodArguments.Count == 2)
+                    {
+                        if (DateMethodData.CompareProperty != null && DateMethodData.CastedOn != null)
+                        {
+                            string? aTable = DateMethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            string? PropertyName = DateMethodData.CompareProperty.Member?.Name;
+                            string[] compareProperty = DateMethodData.CastedOn.ToString().Split(".");
+
+                            if (aTable != null && PropertyName != null && compareProperty.Length > 1)
+                            {
+                                ParamName = $"OtherId{Index}";
+                                Value = DateMethodData.MethodArguments[1];
+                                string SelectFromOtherTable = $"( Select {PropertyName.SkipNameQuotes(SkipQuotes)} from {SchemaName}{aTable.SkipNameQuotes(SkipQuotes)} where {"Id".SkipNameQuotes(SkipQuotes)}= @{ParamName} )";
+                                SqlCommand = $" {Letter}{compareProperty[1].SkipNameQuotes(SkipQuotes)} < {SelectFromOtherTable} ";
                                 WasTranslated = true;
                             }
                         }
