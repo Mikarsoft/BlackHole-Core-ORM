@@ -355,7 +355,6 @@ namespace BlackHole.Core
         bool IBHOpenDataProvider<T>.InsertEntry(T entry)
         {
             CheckGenerateValue(entry);
-            CheckDefaultValue(entry, Tprops);
             if (_settings.HasAutoIncrement)
             {
                 object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry,Tprops));
@@ -369,7 +368,6 @@ namespace BlackHole.Core
         bool IBHOpenDataProvider<T>.InsertEntry(T entry, BHTransaction bhTransaction)
         {
             CheckGenerateValue(entry);
-            CheckDefaultValue(entry, Tprops);
             if (_settings.HasAutoIncrement)
             {
                 object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction.transaction);
@@ -383,7 +381,6 @@ namespace BlackHole.Core
         async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry)
         {
             CheckGenerateValue(entry);
-            CheckDefaultValue(entry, Tprops);
             if (_settings.HasAutoIncrement)
             {
                 object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops));
@@ -397,7 +394,6 @@ namespace BlackHole.Core
         async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
         {
             CheckGenerateValue(entry);
-            CheckDefaultValue(entry, Tprops);
             if (_settings.HasAutoIncrement)
             {
                 object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction.transaction);
@@ -535,7 +531,6 @@ namespace BlackHole.Core
             foreach (Dto entry in entries)
             {
                 CheckGenerateValue(entry);
-                CheckDefaultValue(entry, Tprops);
                 if (_settings.HasAutoIncrement)
                 {
                     object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction);
@@ -560,7 +555,6 @@ namespace BlackHole.Core
             foreach (Dto entry in entries)
             {
                 CheckGenerateValue(entry);
-                CheckDefaultValue(entry, Tprops);
                 if (_settings.HasAutoIncrement)
                 {
                     object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction);
@@ -591,7 +585,6 @@ namespace BlackHole.Core
             foreach (Dto entry in entries)
             {
                 CheckGenerateValue(entry);
-                CheckDefaultValue(entry, Tprops);
                 if (_settings.HasAutoIncrement)
                 {
                     object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction);
@@ -616,7 +609,6 @@ namespace BlackHole.Core
             foreach (Dto entry in entries)
             {
                 CheckGenerateValue(entry);
-                CheckDefaultValue(entry, Tprops);
                 if (_settings.HasAutoIncrement)
                 {
                     object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry,Tprops), bhTransaction);
@@ -678,21 +670,8 @@ namespace BlackHole.Core
             }
         }
 
-        private void CheckDefaultValue<Dto>(Dto entry , PropertyInfo[] DtoProps)
-        {
-            foreach(DefaultValueProperty defaultVal in _settings.DefaultValues)
-            {
-                PropertyInfo property = DtoProps.First(x => x.Name == defaultVal.PropertyName);
-                if(property.GetValue(entry) == default)
-                {
-                    property.SetValue(entry, defaultVal.ValueIfNull);
-                }
-            }
-        }
-
         private object? GetGeneratorsValue(object Generator)
         {
-            if (Generator is Func<object> fn) { return fn(); }
             return Generator.GetType().GetMethod("GenerateValue")?.Invoke(Generator, null);
         }
     }

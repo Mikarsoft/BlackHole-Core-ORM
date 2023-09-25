@@ -16,6 +16,44 @@ namespace BlackHole.Core
         /// <param name="property">Current Column</param>
         /// <param name="otherTypesProperty">Other Table's Column</param>
         /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlEqualTo<TOther>(this Guid property, Func<TOther, Guid> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlEqualTo<TOther>(this Guid property, Func<TOther, Guid> otherTypesProperty, string Id) where TOther : BlackHoleEntity<string>
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
+        public static bool SqlEqualTo<TOther>(this Guid property, Func<TOther, Guid> otherTypesProperty, int Id) where TOther : BlackHoleEntity<int>
+        {
+            return true;
+        }
+        /// <summary>
+        /// Compare a column of the current table to a column of another table in
+        /// the 'where' statement of the Data provider.
+        /// </summary>
+        /// <typeparam name="TOther">Other Table</typeparam>
+        /// <param name="property">Current Column</param>
+        /// <param name="otherTypesProperty">Other Table's Column</param>
+        /// <param name="Id">Id of the other Table's Line</param>
         public static bool SqlEqualTo<TOther>(this string property ,Func<TOther,string> otherTypesProperty, int Id ) where TOther: BlackHoleEntity<int>
         {
             return true;

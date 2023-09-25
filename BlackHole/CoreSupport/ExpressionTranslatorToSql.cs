@@ -90,16 +90,7 @@ namespace BlackHole.CoreSupport
                         {
                             if (expressionTree[currentIndx].operation?.Right is MemberExpression rightMember)
                             {
-                                string? typeName = rightMember.Member.ReflectedType?.FullName;
-
-                                if (typeName != null && (typeName == typeof(T).BaseType?.FullName || typeName == typeof(T).FullName))
-                                {
-                                    expressionTree[currentIndx].rightMember = rightMember;
-                                }
-                                else
-                                {
-                                    expressionTree[currentIndx].memberValue = Expression.Lambda(rightMember).Compile().DynamicInvoke();
-                                }
+                                expressionTree[currentIndx].InvokeOrTake<T>(rightMember, true);
                             }
 
                             if (expressionTree[currentIndx].operation?.Right is ConstantExpression rightConstant)
@@ -124,16 +115,7 @@ namespace BlackHole.CoreSupport
                         {
                             if (expressionTree[currentIndx].operation?.Left is MemberExpression leftMember)
                             {
-                                string? typeName = leftMember.Member.ReflectedType?.FullName;
-
-                                if (typeName != null && (typeName == typeof(T).BaseType?.FullName || typeName == typeof(T).FullName))
-                                {
-                                    expressionTree[currentIndx].leftMember = leftMember;
-                                }
-                                else
-                                {
-                                    expressionTree[currentIndx].memberValue = Expression.Lambda(leftMember).Compile().DynamicInvoke();
-                                }
+                                expressionTree[currentIndx].InvokeOrTake<T>(leftMember, false);
                             }
 
                             if (expressionTree[currentIndx].operation?.Left is ConstantExpression leftConstant)
@@ -370,6 +352,34 @@ namespace BlackHole.CoreSupport
             }
 
             return expressionTree.ExpressionTreeToSql(isMyShit, letter, DynamicParams, index);
+        }
+        
+        private static void InvokeOrTake<T>(this ExpressionsData thisBranch, MemberExpression memberExp, bool isRight)
+        {
+            string? typeName = memberExp.Member.ReflectedType?.FullName;
+
+            if (typeName != null && (typeName == typeof(T).BaseType?.FullName || typeName == typeof(T).FullName))
+            {
+                try
+                {
+                    thisBranch.memberValue = Expression.Lambda(memberExp).Compile().DynamicInvoke();
+                }
+                catch
+                {
+                    if (isRight)
+                    {
+                        thisBranch.rightMember = memberExp;
+                    }
+                    else
+                    {
+                        thisBranch.leftMember = memberExp;
+                    }
+                }
+            }
+            else
+            {
+                thisBranch.memberValue = Expression.Lambda(memberExp).Compile().DynamicInvoke();
+            }
         }
 
         internal static ColumnsAndParameters ExpressionTreeToSql(this List<ExpressionsData> data, bool isMyShit, string? letter, List<BlackHoleParameter>? parameters, int index)
