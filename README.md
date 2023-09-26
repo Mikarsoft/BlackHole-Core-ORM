@@ -6,7 +6,7 @@
 - Tables are based on the Entities.
 - Supports Autoincrement, Composite Primary Keys.
 - Has Value Generator Interface , to auto generate values on Insert.
-- Uses Property Attributes to declare, Foreign Keys , Unique constrainst and more.
+- Uses Property Attributes to declare, Foreign Keys , Unique constraints and more.
 - Direct Mapping Entities to DTO.
 - Methods for performing Joins on any table.
 - Interface for Default Data.
