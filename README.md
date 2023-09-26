@@ -19,9 +19,9 @@ Find Example Project here => [BlackHole Example](https://github.com/Mikarsoft/Bl
 Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/channel/UCSTW9V4wuY-nmLg0CRgL37w)
 
 
-Latest Version : [(6.1.1) (7.1.1) (8.1.1)](https://www.nuget.org/packages/BlackHole.Core.ORM)
+Latest Version : [(6.1.1) (7.1.1) (8.1.0-rc)](https://www.nuget.org/packages/BlackHole.Core.ORM)
 
-<h4>Changes: v6.1.1 v7.1.1 v8.1.1 </h4>
+<h4>Changes: v6.1.1 v7.1.1 v8.1.0-rc </h4>
 
 - Maximum Performance and Memory Optimization
 - Added Database Protection on Failed Update. No changes are applied
@@ -35,7 +35,6 @@ Latest Version : [(6.1.1) (7.1.1) (8.1.1)](https://www.nuget.org/packages/BlackH
 - Support for Composite Foreign Keys.
 - Value Generator Interface that Autogenerates a column's value on insert
 - Support For No PrimaryKey Table
-- New SetDefaultValue Method for the BHOpenEntity's Columns
 - New 'Unique' Attribute for creating Unique Column groups
 - Added Overload on 'ForeignKey' Attribute to point to specific column
 - Reading Automatically the DateFormat of the Database.
@@ -65,7 +64,7 @@ Latest Version : [(6.1.1) (7.1.1) (8.1.1)](https://www.nuget.org/packages/BlackH
 - Add properties on your Entities except the Id property that already exists in the BlackHoleEntity class.
 
 - Add Attributes to the properties of your Entities' 
-  '[ForeignKey(typeof(Entity), nullability)]' , '[NotNullable]', [DefaultValue(object)] and '[VarCharSize(int)]'
+  '[ForeignKey(typeof(Entity), nullability)]' , '[NotNullable]', [Unique(int)] and '[VarCharSize(int)]'
 * You can also use '[UseActivator]' Attribute on your BlackHoleEntity, to take advantage of the 'IsActive' column in case you need to keep the
 data after delete. (Namespace => using BlackHole.Entities)
 
