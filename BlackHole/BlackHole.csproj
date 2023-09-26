@@ -16,7 +16,7 @@
 - Tables are based on the Entities.
 - Supports Autoincrement, Composite Primary Keys.
 - Has Value Generator Interface , to auto generate values on Insert.
-- Uses Property Attributes to declare, Foreign Keys , Default Values and more.
+- Uses Property Attributes to declare, Foreign Keys , Unique constraints and more.
 - Direct Mapping Entities to DTO.
 - Methods for performing Joins on any table.
 - Interface for Default Data.
@@ -39,19 +39,23 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
 		<Version>6.1.1</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>- Maximum Performance and Memory Optimization
+- Added Database Protection on Failed Update. No changes are applied
+- User's Error detection and throw before the Update
+- No More Automatic update by default
+- Added AutomaticUpdate() Method in settings, to let the user decide when to use it
 - Added fully customizable BHOpenEntity
 - New Additional DataProvider for BHOpenEntity
-- Complete user Control of  BHOpenEntity's properties
-- Support for Composite PrimaryKeys in BHOpenEntities, with or without autoincrement
+- Complete user Control of BHOpenEntity's properties
+- Support for Composite Primary Keys in BHOpenEntities, with or without autoincrement
+- Support for Composite Foreign Keys.
 - Value Generator Interface that Autogenerates a column's value on insert
 - Support For No PrimaryKey Table
-- New DefaultValue Attribute for the Columns
-- Added Option on Foreign Key Attribute to point to specific column
+- New 'Unique' Attribute for creating Unique Column groups
+- Added Overload on 'ForeignKey' Attribute to point to specific column
 - Reading Automatically the DateFormat of the Database.
 - Improved faster Logging.
 - Upgraded Database Parsing. It can Parse any Database using the new BHOpenEntities
 - Added Initialization method that doesn't require Host. For Console and Desktop Apps
-- Added BlockAutoUpdate Option, to prevent automatic update on startup
 - Added Option for using DoubleQuotes on SqLite and SqlServer Naming
 - BlackHoleEntities and BHOpenEntities can work together on Joins methods
 - Tracking and updating BHOpenEntity's values on the Insert methods</PackageReleaseNotes>

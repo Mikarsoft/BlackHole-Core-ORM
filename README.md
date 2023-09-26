@@ -6,7 +6,7 @@
 - Tables are based on the Entities.
 - Supports Autoincrement, Composite Primary Keys.
 - Has Value Generator Interface , to auto generate values on Insert.
-- Uses Property Attributes to declare, Foreign Keys , Default Values and more.
+- Uses Property Attributes to declare, Foreign Keys , Unique constrainst and more.
 - Direct Mapping Entities to DTO.
 - Methods for performing Joins on any table.
 - Interface for Default Data.
@@ -18,10 +18,7 @@ Find Example Project here => [BlackHole Example](https://github.com/Mikarsoft/Bl
 
 Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/channel/UCSTW9V4wuY-nmLg0CRgL37w)
 
-
-Latest Version : [(6.1.1) (7.1.1) (8.1.0-rc)](https://www.nuget.org/packages/BlackHole.Core.ORM)
-
-<h4>Changes: v6.1.1 v7.1.1 v8.1.0-rc </h4>
+<h3> Changes: v8.1.0-rc Singularity Edition </h3>
 
 - Maximum Performance and Memory Optimization
 - Added Database Protection on Failed Update. No changes are applied
@@ -41,18 +38,17 @@ Latest Version : [(6.1.1) (7.1.1) (8.1.0-rc)](https://www.nuget.org/packages/Bla
 - Improved faster Logging.
 - Upgraded Database Parsing. It can Parse any Database using the new BHOpenEntities
 - Added Initialization method that doesn't require Host. For Console and Desktop Apps
-- Added BlockAutoUpdate Option, to prevent automatic update on startup
 - Added Option for using DoubleQuotes on SqLite and SqlServer Naming
 - BlackHoleEntities and BHOpenEntities can work together on Joins methods
 - Tracking and updating BHOpenEntity's values on the Insert methods
 
-<h2>Quick Start:</h2>
+<h3> Quick Start:</h3>
 
 - In Your project install Black.Hole.ORM from Nuget.org
 
 - In your Program.cs add (Namespace => using BlackHole.Configuration)
   Add the following line into your IServiceCollection =>
-    services.SuperNova(settings => settings.AddDatabase(connection => connection.UseSqlServer(connectionString)))
+    services.SuperNova(settings => settings.AutomaticUpdate().AddDatabase(connection => connection.UseSqlServer(connectionString)))
 
 - Create some Entities in any folder that Inherit from the class 'BlackHoleEntity<int>' for Entities that are using Integer as Id,
   or 'BlackHoleEntity<Guid>' for Entities that are using Guid as Id
@@ -77,6 +73,6 @@ data after delete. (Namespace => using BlackHole.Entities)
   Example: IBHDataProvider<Customer,Guid> _customerService; (Namespace => using BlackHole.Core)
   
  - Done! You are ready to use all the functionality of the Data Providers in your services.
- - Data Providers contain all the required methods to cimmunicate with the database.
+ - Data Providers contain all the required methods to communicate with the database.
 
 Visit [Mikarsoft Official Webpage](https://mikarsoft.com/) for more Information.
