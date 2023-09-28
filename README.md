@@ -18,7 +18,9 @@ Find Example Project here => [BlackHole Example](https://github.com/Mikarsoft/Bl
 
 Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/channel/UCSTW9V4wuY-nmLg0CRgL37w)
 
-<h3> Changes: v8.1.0-rc Singularity Edition </h3>
+Find Nuget Package Here => [versions (6.1.1 / 7.1.1 / 8.1.0-rc)](https://www.nuget.org/packages/BlackHole.Core.ORM/8.1.0-rc)
+
+<h3> Changes: v6.1.1 / v7.1.1 / v8.1.0-rc Singularity Edition </h3>
 
 - Maximum Performance and Memory Optimization
 - Added Database Protection on Failed Update. No changes are applied
