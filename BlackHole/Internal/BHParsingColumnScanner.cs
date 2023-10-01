@@ -1,5 +1,6 @@
 ﻿using BlackHole.Enums;
 using BlackHole.Statics;
+using System.Globalization;
 
 namespace BlackHole.Internal
 {
@@ -281,6 +282,7 @@ namespace BlackHole.Internal
                         break;
                     case "nvarchar":
                         scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "uniqueidentifier":
                         scanResult.PropertyNameForColumn = "Guid";
@@ -298,6 +300,7 @@ namespace BlackHole.Internal
                 {
                     case "bigint":
                         scanResult.PropertyNameForColumn = "long";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "varbinary":
                         scanResult.PropertyNameForColumn = "byte[]?";
@@ -307,7 +310,7 @@ namespace BlackHole.Internal
                         break;
                     case "char":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "date":
                         isDateTime = true;
@@ -320,49 +323,56 @@ namespace BlackHole.Internal
                         break;
                     case "decimal":
                         scanResult.PropertyNameForColumn = "decimal";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, true, false);
                         break;
                     case "float":
                         scanResult.PropertyNameForColumn = "double";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "binary":
                         scanResult.PropertyNameForColumn = "byte[]?";
                         break;
                     case "int":
                         scanResult.PropertyNameForColumn = "int";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "nchar":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "money":
                         scanResult.PropertyNameForColumn = "decimal";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, true, false);
                         break;
                     case "ntext":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "nvarchar":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "real":
                         scanResult.PropertyNameForColumn = "short";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "timestamp":
                         scanResult.PropertyNameForColumn = "byte[]?";
                         break;
                     case "smallint":
                         scanResult.PropertyNameForColumn = "short";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "smallmoney":
                         scanResult.PropertyNameForColumn = "decimal";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, true, false);
                         break;
                     case "variant":
                         scanResult.PropertyNameForColumn = "object?";
                         break;
                     case "text":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "time":
                         scanResult.PropertyNameForColumn = "TimeSpan";
@@ -375,11 +385,11 @@ namespace BlackHole.Internal
                         break;
                     case "varchar":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "xml":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     default:
                         scanResult.UnidentifiedColumn = true;
@@ -396,6 +406,7 @@ namespace BlackHole.Internal
                     {
                         scanResult.PropertyNameForColumn = "DateTime";
                     }
+                    scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, true, false, false);
                 }
             }
             return scanResult;
@@ -423,6 +434,7 @@ namespace BlackHole.Internal
                         break;
                     case "varchar":
                         scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "uuid":
                         scanResult.PropertyNameForColumn = "Guid";
@@ -443,7 +455,7 @@ namespace BlackHole.Internal
                         break;
                     case "varchar":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "bit":
                         scanResult.PropertyNameForColumn = "bool";
@@ -453,63 +465,75 @@ namespace BlackHole.Internal
                         break;
                     case "smallint":
                         scanResult.PropertyNameForColumn = "short";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "int2":
                         scanResult.PropertyNameForColumn = "short";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "int4":
                         scanResult.PropertyNameForColumn = "int";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "integer":
                         scanResult.PropertyNameForColumn = "int";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "bigint":
                         scanResult.PropertyNameForColumn= "long";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "int8":
                         scanResult.PropertyNameForColumn = "long";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "real":
                         scanResult.PropertyNameForColumn = "float";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, true);
                         break;
                     case "float4":
                         scanResult.PropertyNameForColumn = "float";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, true);
                         break;
                     case "double":
                         scanResult.PropertyNameForColumn = "double";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "float8":
                         scanResult.PropertyNameForColumn = "double";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "numeric":
                         scanResult.PropertyNameForColumn = "decimal";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, true, false);
                         break;
                     case "money":
                         scanResult.PropertyNameForColumn = "decimal";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, true, false);
                         break;
                     case "text":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "character":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "citext":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "json":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "jsonb":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "xml":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "uuid":
                         scanResult.PropertyNameForColumn = "Guid";
@@ -531,11 +555,11 @@ namespace BlackHole.Internal
                         break;
                     case "name":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "char":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     default:
                         scanResult.UnidentifiedColumn = true;
@@ -552,6 +576,7 @@ namespace BlackHole.Internal
                     {
                         scanResult.PropertyNameForColumn = "DateTime";
                     }
+                    scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, true, false, false);
                 }
             }
 
@@ -580,6 +605,7 @@ namespace BlackHole.Internal
                         else
                         {
                             scanResult.PropertyNameForColumn = "string";
+                            scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         }
                         break;
                     case "nvarchar2":
@@ -590,6 +616,7 @@ namespace BlackHole.Internal
                         else
                         {
                             scanResult.PropertyNameForColumn = "string";
+                            scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         }
                         break;
                     default:
@@ -602,12 +629,11 @@ namespace BlackHole.Internal
                 switch (tableColumnInfo.DataType.ToLower())
                 {
                     case "number":
-                        string dataType = GetNumericDataType(tableColumnInfo.NumPrecision);
-                        if(dataType == string.Empty)
+                        scanResult = GetNumericDataType(tableColumnInfo);
+                        if(scanResult.PropertyNameForColumn == string.Empty)
                         {
                             scanResult.UnidentifiedColumn = true;
                         }
-                        scanResult.PropertyNameForColumn = dataType;
                         break;
                     case "date":
                         if (tableColumnInfo.Nullable)
@@ -618,10 +644,11 @@ namespace BlackHole.Internal
                         {
                             scanResult.PropertyNameForColumn = "DateTime";
                         }
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, true, false, false);
                         break;
                     case "varchar2":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "blob":
                         scanResult.PropertyNameForColumn = "byte[]?";
@@ -637,31 +664,31 @@ namespace BlackHole.Internal
                         break;
                     case "char":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "nchar":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "nvarchar2":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "clob":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "nclob":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "rowid":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "urowid":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     default:
                         scanResult.UnidentifiedColumn = true;
@@ -678,7 +705,7 @@ namespace BlackHole.Internal
                     {
                         scanResult.PropertyNameForColumn = "DateTime";
                     }
-
+                    scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, true, false, false);
                     scanResult.UnidentifiedColumn = false;
                 }
 
@@ -700,44 +727,113 @@ namespace BlackHole.Internal
             return scanResult;
         }
 
-        private string GetNumericDataType(int NumPrecision)
+        internal string DefaultValueCheck(TableParsingInfo columnInfo, bool isString, bool isDate, bool isDecimal, bool isFloat)
         {
-            if(NumPrecision == 1)
+            if (!columnInfo.PrimaryKey && !string.IsNullOrEmpty(columnInfo.DefaultValue))
             {
-                return "bool";
+                string[] testValue = columnInfo.DefaultValue.Replace("(", "").Replace(")", "").Split("'");
+
+                if (testValue.Length > 2)
+                {
+                    string mainValue = testValue[1];
+
+                    if (isDate)
+                    {
+                        if (DateTime.TryParseExact(mainValue, DatabaseStatics.DbDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parseDt))
+                        {
+                            return $" = new DateTime({parseDt.Year},{parseDt.Month},{parseDt.Day});";
+                        }
+                    }
+
+                    if (isString)
+                    {
+                        return $@" = ""{mainValue}"";";
+                    }
+                }
+
+                if (testValue.Length > 0)
+                {
+                    string mainValue = testValue[0];
+
+                    if (Double.TryParse(mainValue, out double result))
+                    {
+                        string numberType = string.Empty;
+                        if (isDecimal)
+                        {
+                            numberType = "m";
+                        }
+
+                        if (isFloat)
+                        {
+                            numberType = "f";
+                        }
+
+                        return $" = {result}{numberType};";
+                    }
+                }
             }
 
-            if (NumPrecision > 18)
+            if (isString)
             {
-                return "float";
-            }
-
-            if (NumPrecision > 16)
-            {
-                return "double";
-            }
-
-            if(NumPrecision > 13)
-            {
-                return "long";
-            }
-
-            if (NumPrecision > 9)
-            {
-                return "decimal";
-            }
-
-            if (NumPrecision > 4)
-            {
-                return "int";
-            }
-
-            if(NumPrecision > 1)
-            {
-                return "short";
+                return " = string.Empty;";
             }
 
             return string.Empty;
+        }
+
+        private ColumnScanResult GetNumericDataType(TableParsingInfo columnInfo)
+        {
+            ColumnScanResult result = new();
+            if(columnInfo.NumPrecision == 1)
+            {
+                result.PropertyNameForColumn = "bool";
+                return result;
+            }
+
+            if (columnInfo.NumPrecision > 18)
+            {
+                result.PropertyNameForColumn = "float";
+                result.DefaultValue = DefaultValueCheck(columnInfo, false, false, false, true);
+                return result;
+            }
+
+            if (columnInfo.NumPrecision > 16)
+            {
+                result.PropertyNameForColumn = "double";
+                result.DefaultValue = DefaultValueCheck(columnInfo, false, false, false, false);
+                return result;
+            }
+
+            if (columnInfo.NumPrecision > 13)
+            {
+                result.PropertyNameForColumn = "long";
+                result.DefaultValue = DefaultValueCheck(columnInfo, false, false, false, false);
+                return result;
+            }
+
+            if (columnInfo.NumPrecision > 9)
+            {
+                result.PropertyNameForColumn = "decimal";
+                result.DefaultValue = DefaultValueCheck(columnInfo, false, false, true, false);
+                return result;
+            }
+
+            if (columnInfo.NumPrecision > 4)
+            {
+                result.PropertyNameForColumn = "int";
+                result.DefaultValue = DefaultValueCheck(columnInfo, false, false, false, false);
+                return result;
+            }
+
+            if (columnInfo.NumPrecision > 1)
+            {
+                result.PropertyNameForColumn = "short";
+                result.DefaultValue = DefaultValueCheck(columnInfo, false, false, false, false);
+                return result;
+            }
+
+            result.PropertyNameForColumn = string.Empty;
+            return result;
         }
 
         internal ColumnScanResult GetMySqlColumn(TableParsingInfo tableColumnInfo, bool isPrimaryKey)
@@ -762,6 +858,7 @@ namespace BlackHole.Internal
                         else
                         {
                             scanResult.PropertyNameForColumn = "string";
+                            scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         }
                         break;
                     default:
@@ -777,6 +874,7 @@ namespace BlackHole.Internal
                 {
                     case "bigint":
                         scanResult.PropertyNameForColumn = "long";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "bit":
                         scanResult.PropertyNameForColumn = "bool";
@@ -792,30 +890,35 @@ namespace BlackHole.Internal
                         break;
                     case "decimal":
                         scanResult.PropertyNameForColumn = "decimal";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, true, false);
                         break;
                     case "float":
                         scanResult.PropertyNameForColumn = "short";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "int":
                         scanResult.PropertyNameForColumn = "int";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "longtext":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "mediumint":
                         scanResult.PropertyNameForColumn = "int";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "mediumtext":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "smallint":
                         scanResult.PropertyNameForColumn = "short";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "text":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "time":
                         isDateTime = true;
@@ -828,7 +931,7 @@ namespace BlackHole.Internal
                         break;
                     case "tinytext":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;"; 
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "varbinary":
                         scanResult.PropertyNameForColumn = "byte[]?";
@@ -841,7 +944,7 @@ namespace BlackHole.Internal
                         else
                         {
                             scanResult.PropertyNameForColumn = "string";
-                            scanResult.DefaultValue = " = string.Empty;";
+                            scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         }
                         break;
                     default:
@@ -859,6 +962,7 @@ namespace BlackHole.Internal
                     {
                         scanResult.PropertyNameForColumn = "DateTime";
                     }
+                    scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, true, false, false);
                 }
             }
 
@@ -887,6 +991,7 @@ namespace BlackHole.Internal
                     else
                     {
                         scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                     }
 
                     scanResult.UnidentifiedColumn = false;
@@ -903,6 +1008,7 @@ namespace BlackHole.Internal
                     else
                     {
                         scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                     }
 
                     scanResult.UnidentifiedColumn = false;
@@ -919,6 +1025,7 @@ namespace BlackHole.Internal
                     else
                     {
                         scanResult.PropertyNameForColumn = "string";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                     }
 
                     scanResult.UnidentifiedColumn = false;
@@ -941,6 +1048,7 @@ namespace BlackHole.Internal
                         break;
                     case "integer":
                         scanResult.PropertyNameForColumn = "int";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "blob":
                         scanResult.PropertyNameForColumn = "byte[]?";
@@ -950,32 +1058,38 @@ namespace BlackHole.Internal
                         break;
                     case "varchar":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "text":
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                         break;
                     case "char":
                         scanResult.PropertyNameForColumn = "char";
                         break;
                     case "int2":
                         scanResult.PropertyNameForColumn = "short";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "bigint":
                         scanResult.PropertyNameForColumn = "long";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "decimal":
                         scanResult.PropertyNameForColumn = "decimal";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, true, false);
                         break;
                     case "real":
                         scanResult.PropertyNameForColumn = "double";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     case "float":
                         scanResult.PropertyNameForColumn = "float";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, true);
                         break;
                     case "numeric":
                         scanResult.PropertyNameForColumn = "double";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, false, false, false);
                         break;
                     default:
                         scanResult.UnidentifiedColumn = true;
@@ -993,7 +1107,7 @@ namespace BlackHole.Internal
                     else
                     {
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                     }
 
                     scanResult.UnidentifiedColumn = false;
@@ -1010,7 +1124,7 @@ namespace BlackHole.Internal
                     else
                     {
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                     }
 
                     scanResult.UnidentifiedColumn = false;
@@ -1027,7 +1141,7 @@ namespace BlackHole.Internal
                     else
                     {
                         scanResult.PropertyNameForColumn = "string";
-                        scanResult.DefaultValue = " = string.Empty;";
+                        scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, true, false, false, false);
                     }
 
                     scanResult.UnidentifiedColumn = false;
@@ -1043,6 +1157,7 @@ namespace BlackHole.Internal
                     {
                         scanResult.PropertyNameForColumn = "DateTime";
                     }
+                    scanResult.DefaultValue = DefaultValueCheck(tableColumnInfo, false, true, false, false);
                 }
             }
             return scanResult;

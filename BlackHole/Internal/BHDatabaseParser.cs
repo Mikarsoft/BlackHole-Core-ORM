@@ -234,7 +234,6 @@ namespace BlackHole.Internal
                             OtherPKs += $".CompositeKey(x => x.{columnInfo.ColumnName})";
                         }
                     }
-                    OtherPKs += DefaultValueCheck(columnInfo);
                 }
 
                 if (noPrimaryKey)
@@ -501,37 +500,6 @@ namespace BlackHole.Internal
                 return $"{VarcharSize}\n";
             }
 
-            return string.Empty;
-        }
-
-        internal string DefaultValueCheck(TableParsingInfo columnInfo)
-        {
-            if (!columnInfo.PrimaryKey && !string.IsNullOrEmpty(columnInfo.DefaultValue))
-            {
-                string[] testValue = columnInfo.DefaultValue.Replace("(", "").Replace(")", "").Split("'");
-                string Defval = $".SetDefaultValue(x => x.{columnInfo.ColumnName},";
-                if(testValue.Length > 2)
-                {
-                    string mainValue = testValue[1];
-
-                    if(DateTime.TryParseExact(mainValue, DatabaseStatics.DbDateFormat, CultureInfo.InvariantCulture,DateTimeStyles.None, out DateTime parseDt))
-                    {
-                        return $"{Defval} new DateTime({parseDt.Year},{parseDt.Month},{parseDt.Day}))";
-                    }
-
-                    return $@"{Defval}""{mainValue}"")";
-                }
-
-                if(testValue.Length > 0)
-                {
-                    string mainValue = testValue[0];
-
-                    if(Double.TryParse(mainValue, out double result))
-                    {
-                        return $"{Defval}{result})";
-                    }
-                }
-            }
             return string.Empty;
         }
 
