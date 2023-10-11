@@ -742,7 +742,7 @@ namespace BlackHole.Core
             string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
 
             data.Joins += $" {joinType} join {schemaName}{typeof(TOther).Name.SqlPropertyName(data.isMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SqlPropertyName(data.isMyShit)} = {parameter}.{propName.SqlPropertyName(data.isMyShit)}";
-            data.OccupiedDtoProps = data.OccupiedDtoProps.BindPropertiesToDtoExtension(typeof(Tsource), typeof(TOther), parameter, parameterOther);
+            data.OccupiedDtoProps = data.OccupiedDtoProps.BindPropertiesToDtoExtension(typeof(TOther), parameterOther);
             return data;
         }
 
@@ -758,15 +758,9 @@ namespace BlackHole.Core
             return schemaName;
         }
 
-        private static List<PropertyOccupation> BindPropertiesToDtoExtension(this List<PropertyOccupation> props, Type firstTable, Type secondTable, string? paramA, string? paramB)
+        private static List<PropertyOccupation> BindPropertiesToDtoExtension(this List<PropertyOccupation> props, Type secondTable, string? paramB)
         {
-            List<string> PropNames = new();
             List<string> OtherPropNames = new();
-
-            foreach (PropertyInfo prop in firstTable.GetProperties())
-            {
-                PropNames.Add(prop.Name);
-            }
 
             foreach (PropertyInfo otherProp in secondTable.GetProperties())
             {
@@ -775,19 +769,6 @@ namespace BlackHole.Core
 
             foreach (PropertyOccupation property in props)
             {
-                if (PropNames.Contains(property.PropName) && !property.Occupied)
-                {
-                    Type? TpropType = firstTable.GetProperty(property.PropName)?.PropertyType;
-
-                    if (TpropType == property.PropType)
-                    {
-                        property.Occupied = true;
-                        property.TableProperty = TpropType?.Name;
-                        property.TablePropertyType = TpropType;
-                        property.TableLetter = paramA;
-                    }
-                }
-
                 if (OtherPropNames.Contains(property.PropName) && !property.Occupied)
                 {
                     Type? TOtherPropType = secondTable.GetProperty(property.PropName)?.PropertyType;

@@ -250,7 +250,7 @@ namespace BlackHole.Core
         /// <param name="property">Current Column</param>
         /// <param name="otherTypesProperty">Other Table's Column</param>
         /// <param name="Id">Id of the other Table's Line</param>
-        public static bool SqlEqualTo<TOther>(this float property, Func<TOther, float> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<int>
+        public static bool SqlEqualTo<TOther>(this float property, Func<TOther, float> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
         {
             return true;
         }
@@ -564,7 +564,7 @@ namespace BlackHole.Core
         /// <param name="property">Current Column</param>
         /// <param name="otherTypesProperty">Other Table's Column</param>
         /// <param name="Id">Id of the other Table's Line</param>
-        public static bool SqlGreaterThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<int>
+        public static bool SqlGreaterThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
         {
             return true;
         }
@@ -838,7 +838,7 @@ namespace BlackHole.Core
         /// <param name="property">Current Column</param>
         /// <param name="otherTypesProperty">Other Table's Column</param>
         /// <param name="Id">Id of the other Table's Line</param>
-        public static bool SqlLessThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<int>
+        public static bool SqlLessThan<TOther>(this float property, Func<TOther, float> otherTypesProperty, Guid Id) where TOther : BlackHoleEntity<Guid>
         {
             return true;
         }
