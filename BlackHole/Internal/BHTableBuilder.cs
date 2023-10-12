@@ -1158,7 +1158,14 @@ namespace BlackHole.Internal
         {
             string defaultValCommand = GetDefaultValue(PropType, PropName, TableName);
             string updateTxt = $"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null";
-            string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL";
+            string setText = "SET";
+
+            if(DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
+            {
+                setText = GetSqlDataType(ColumnInfo);
+            }
+
+            string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {setText} NOT NULL";
 
             CustomTransaction.Add(updateTxt);
             CustomTransaction.Add(alterTxt);
@@ -1174,13 +1181,20 @@ namespace BlackHole.Internal
 
         private void SetColumnToNull(string TableName, string PropName, TableParsingInfo ColumnInfo)
         {
-            string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL";
+            string setText = "DROP NOT";
+
+            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
+            {
+                setText = GetSqlDataType(ColumnInfo);
+            }
+
+            string alterTxt = $"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {setText} NULL";
             CustomTransaction.Add(alterTxt);
             CliConsoleLogs($"{alterTxt};");
 
             if (IsTrashOracleProduct)
             {
-                RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NOT NULL");
+                RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {setText} NOT NULL");
             }
         }
 
@@ -1357,11 +1371,19 @@ namespace BlackHole.Internal
 
                 if (IsForcedUpdate)
                 {
+                    string setText = "SET";
+
+                    if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
+                    {
+                        setText = GetDatatypeCommand(PropType, attributes, PropName, TableName);
+                    }
+
                     AfterMath.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null");
-                    AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NOT NULL");
+                    AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {setText} NOT NULL");
+
                     if (IsTrashOracleProduct)
                     {
-                        RevertShittyOracleAfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {GetDatatypeCommand(PropType, attributes, PropName, TableName)} NULL");
+                        RevertShittyOracleAfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {setText} NULL");
                         RevertShittyOracleAfterMath.Add(string.Empty);
 
                     }
