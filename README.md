@@ -18,31 +18,14 @@ Find Example Project here => [BlackHole Example](https://github.com/Mikarsoft/Bl
 
 Find YouTube Tutorials here => [Mikarsoft YouTube](https://www.youtube.com/channel/UCSTW9V4wuY-nmLg0CRgL37w)
 
-Find Nuget Package Here => [versions (6.1.1 / 7.1.1 / 8.1.0-rc)](https://www.nuget.org/packages/BlackHole.Core.ORM/8.1.0-rc)
+Find Nuget Package Here => [versions (6.1.2 / 7.1.2 / 8.1.0-rc2)](https://www.nuget.org/packages/BlackHole.Core.ORM/8.1.0-rc2)
 
-<h3> Changes: v6.1.1 / v7.1.1 / v8.1.0-rc Singularity Edition </h3>
+<h3> Changes: v6.1.2 / v7.1.2 / v8.1.0-rc2 Singularity Edition </h3>
 
-- Maximum Performance and Memory Optimization
-- Added Database Protection on Failed Update. No changes are applied
-- User's Error detection and throw before the Update
-- No More Automatic update by default
-- Added AutomaticUpdate() Method in settings, to let the user decide when to use it
-- Added fully customizable BHOpenEntity
-- New Additional DataProvider for BHOpenEntity
-- Complete user Control of  BHOpenEntity's properties
-- Support for Composite Primary Keys in BHOpenEntities, with or without autoincrement
-- Support for Composite Foreign Keys.
-- Value Generator Interface that Autogenerates a column's value on insert
-- Support For No PrimaryKey Table
-- New 'Unique' Attribute for creating Unique Column groups
-- Added Overload on 'ForeignKey' Attribute to point to specific column
-- Reading Automatically the DateFormat of the Database.
-- Improved faster Logging.
-- Upgraded Database Parsing. It can Parse any Database using the new BHOpenEntities
-- Added Initialization method that doesn't require Host. For Console and Desktop Apps
-- Added Option for using DoubleQuotes on SqLite and SqlServer Naming
-- BlackHoleEntities and BHOpenEntities can work together on Joins methods
-- Tracking and updating BHOpenEntity's values on the Insert methods
+- Bugfix Postgres adding Not Nullable Column
+- Mandatory logging on Database Update
+- Added Parsing for Default Values
+- Minor optimization on Joins
 
 <h3> Quick Start:</h3>
 

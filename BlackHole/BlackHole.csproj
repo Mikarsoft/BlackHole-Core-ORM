@@ -31,34 +31,17 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
     <NeutralLanguage>en</NeutralLanguage>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>6.1.1</AssemblyVersion>
-    <FileVersion>6.1.1</FileVersion>
+    <AssemblyVersion>6.1.2</AssemblyVersion>
+    <FileVersion>6.1.2</FileVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 	<PropertyGroup>
-		<Version>6.1.1</Version>
+		<Version>6.1.2</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>- Maximum Performance and Memory Optimization
-- Added Database Protection on Failed Update. No changes are applied
-- User's Error detection and throw before the Update
-- No More Automatic update by default
-- Added AutomaticUpdate() Method in settings, to let the user decide when to use it
-- Added fully customizable BHOpenEntity
-- New Additional DataProvider for BHOpenEntity
-- Complete user Control of BHOpenEntity's properties
-- Support for Composite Primary Keys in BHOpenEntities, with or without autoincrement
-- Support for Composite Foreign Keys.
-- Value Generator Interface that Autogenerates a column's value on insert
-- Support For No PrimaryKey Table
-- New 'Unique' Attribute for creating Unique Column groups
-- Added Overload on 'ForeignKey' Attribute to point to specific column
-- Reading Automatically the DateFormat of the Database.
-- Improved faster Logging.
-- Upgraded Database Parsing. It can Parse any Database using the new BHOpenEntities
-- Added Initialization method that doesn't require Host. For Console and Desktop Apps
-- Added Option for using DoubleQuotes on SqLite and SqlServer Naming
-- BlackHoleEntities and BHOpenEntities can work together on Joins methods
-- Tracking and updating BHOpenEntity's values on the Insert methods</PackageReleaseNotes>
+		<PackageReleaseNotes>- Bugfix Postgres adding Not Nullable Column
+- Mandatory logging on Database Update
+- Added Parsing for Default Values
+- Minor optimization on Joins</PackageReleaseNotes>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Title>BlackHole.ORM</Title>
@@ -91,13 +74,13 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.21" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.24" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-    <PackageReference Include="MySql.Data" Version="8.0.29" />
-    <PackageReference Include="Npgsql" Version="6.0.9" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.110" />
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.4" />
+    <PackageReference Include="MySql.Data" Version="8.2.0" />
+    <PackageReference Include="Npgsql" Version="6.0.10" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.6" />
   </ItemGroup>
 
 </Project>
