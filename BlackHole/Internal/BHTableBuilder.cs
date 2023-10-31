@@ -1372,7 +1372,7 @@ namespace BlackHole.Internal
 
                 if (IsForcedUpdate)
                 {
-                    string setText = "SET";
+                    string setText = $"{MyShit(PropName)} SET";
 
                     if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
                     {
