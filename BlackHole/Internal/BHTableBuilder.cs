@@ -112,6 +112,7 @@ namespace BlackHole.Internal
         internal void CleanupConstraints()
         {
             DbConstraints.Clear();
+            DatabaseStatics.OnUpdateLogs = false;
         }
 
         bool CreateOpenTable(Type TableType)

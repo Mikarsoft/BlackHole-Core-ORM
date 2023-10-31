@@ -13,22 +13,14 @@ namespace BlackHole.Logger
         {
             try
             {
-                if (DatabaseStatics.UseLogging)
-                {
-                    LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
+                LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
 
-                    if (!Directory.Exists(LogsPath))
-                    {
-                        Directory.CreateDirectory(LogsPath);
-                    }
-
-                    CanWriteLogs = true;
-                }
-                else
+                if (!Directory.Exists(LogsPath))
                 {
-                    LogsPath = string.Empty;
-                    CanWriteLogs = false;
+                    Directory.CreateDirectory(LogsPath);
                 }
+
+                CanWriteLogs = DatabaseStatics.UseLogging;
             }
             catch
             {
@@ -56,7 +48,7 @@ namespace BlackHole.Logger
 
         internal static void CreateErrorLogs(this string commandText, string Area, string Message, string Details)
         {
-            if (CanWriteLogs)
+            if (CanWriteLogs || DatabaseStatics.OnUpdateLogs)
             {
                 try
                 {
