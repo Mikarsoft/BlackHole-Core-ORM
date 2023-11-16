@@ -21,6 +21,23 @@ namespace BlackHole.Core
         List<T> GetAllEntries();
 
         /// <summary>
+        /// Gets all the entries of the specific Table order by keys
+        /// and returns a List of Entities 
+        /// </summary>
+        /// <param name="orderBy">Order by</param>
+        /// <returns>All Active Entities of the Table</returns>
+        List<T> GetAllEntries(BlackHoleOrderBy<T> orderBy);
+
+        /// <summary>
+        /// Gets all the entries of the specific Table order by keys
+        /// and returns a List of Entities
+        /// </summary>
+        /// <param name="orderBy">Order by</param>
+        /// <param name="limit">Limit lines</param>
+        /// <returns></returns>
+        List<T> GetAllEntries(BlackHoleOrderBy<T> orderBy, int limit);
+
+        /// <summary>
         /// <b>Transaction.</b> Gets all the entries of the specific Table
         /// and returns a List of Entities
         /// </summary>

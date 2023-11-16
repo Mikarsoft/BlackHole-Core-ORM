@@ -72,6 +72,24 @@ namespace BlackHole.Core
             return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null);
         }
 
+        List<T> IBHDataProvider<T, G>.GetAllEntries(BlackHoleOrderBy<T> orderBy)
+        {
+            if (WithActivator)
+            {
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null);
+            }
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null);
+        }
+
+        List<T> IBHDataProvider<T, G>.GetAllEntries(BlackHoleOrderBy<T> orderBy, int limit)
+        {
+            if (WithActivator)
+            {
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null);
+            }
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null);
+        }
+
         List<T> IBHDataProvider<T, G>.GetAllEntries(BHTransaction bhTransaction)
         {
             if (WithActivator)
