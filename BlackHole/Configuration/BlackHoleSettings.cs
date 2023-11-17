@@ -18,6 +18,12 @@ namespace BlackHole.Configuration
         public ConnectionSettings connectionConfig { get; set; } = new ConnectionSettings();
 
         /// <summary>
+        /// connection settings for multiple databases
+        /// </summary>
+        public List<ConnectionSettings> connectionsConfig { get; set; } = new List<ConnectionSettings>();
+
+
+        /// <summary>
         /// put BlackHole into developer mode
         /// </summary>
         public bool isInDevMode { get; set; } = false;
@@ -35,6 +41,27 @@ namespace BlackHole.Configuration
         public DataPathSettings AddDatabase(Action<ConnectionSettings> connectionSettings)
         {
             connectionSettings.Invoke(connectionConfig);
+            return directorySettings;
+        }
+
+        /// <summary>
+        /// Add the configuration for a database.
+        /// </summary>
+        /// <param name="connectionSettings">connection settings</param>
+        /// <returns>DataPath Settings to add more settings</returns>
+        public DataPathSettings AddDatabases(Action<List<Action<ConnectionSettings>>> connectionSettings)
+        {
+            List<Action<ConnectionSettings>> list = new();
+
+            connectionSettings.Invoke(list);
+
+            foreach(Action<ConnectionSettings> settings in list)
+            {
+                ConnectionSettings dbSettings = new();
+                settings.Invoke(dbSettings);
+                connectionsConfig.Add(dbSettings);
+            }
+
             return directorySettings;
         }
 
