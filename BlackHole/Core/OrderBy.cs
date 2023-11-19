@@ -1,4 +1,5 @@
 ﻿using BlackHole.Identifiers;
+using System.Linq.Expressions;
 
 namespace BlackHole.Core
 {
@@ -13,8 +14,9 @@ namespace BlackHole.Core
         /// <typeparam name="T"></typeparam>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static BlackHoleOrderBy<T> Ascending<T>(Func<T, object?> action) where T : IBHEntityIdentifier
+        public static BlackHoleOrderBy<T> Ascending<T>(Expression<Func<T, object?>> action) where T : IBHEntityIdentifier
         {
+            BinaryExpression? currentOperation = action.Body as BinaryExpression;
             return new();
         }
 
@@ -60,7 +62,7 @@ namespace BlackHole.Core
         /// <returns></returns>
         public static BlackHoleLimiter<T> TakeAll<T>(this BlackHoleOrderBy<T> orderBy)
         {
-            return new();
+            return new(orderBy, 0, 0);
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace BlackHole.Core
         /// <returns></returns>
         public static BlackHoleLimiter<T> Take<T>(this BlackHoleOrderBy<T> orderBy, int rowsLimit)
         {
-            return new();
+            return new(orderBy, 0, rowsLimit);
         }
 
         /// <summary>
@@ -85,7 +87,7 @@ namespace BlackHole.Core
         /// <returns></returns>
         public static BlackHoleLimiter<T> TakeRange<T>(this BlackHoleOrderBy<T> orderBy, int fromRow, int toRow)
         {
-            return new();
+            return new(orderBy , fromRow, toRow);
         }
     }
 }

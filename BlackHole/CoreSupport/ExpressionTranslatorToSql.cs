@@ -1,4 +1,5 @@
-﻿using BlackHole.Entities;
+﻿using BlackHole.Core;
+using BlackHole.Entities;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -726,6 +727,11 @@ namespace BlackHole.CoreSupport
             {
                 colsAndParams.Parameters.Add(new BlackHoleParameter { Name = prop.Name, Value = prop.GetValue(item) });
             }
+        }
+
+        internal static string[] LimiterToSql<T>(this BlackHoleLimiter<T> limiterConfig)
+        {
+            return new string[2];
         }
     }
 }
