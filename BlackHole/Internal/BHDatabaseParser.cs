@@ -189,7 +189,7 @@ namespace BlackHole.Internal
                 string ClassName = tableAspectInf.TableName.Replace("-", "_");
                 string EntityScript = $" using System;\n using BlackHole.Entities;\n\n namespace {applicationName}.BHEntities \n";
                 string PropertiesScript = string.Empty;
-                string PKOptionsScript = $"\n\n\t\t public EntitySettings<{ClassName}> EntityOptions(EntityOptionsBuilder<{ClassName}> builder)\n";
+                string PKOptionsScript = $"\n\n\t\t public override EntitySettings<{ClassName}> EntityOptions(EntityOptionsBuilder<{ClassName}> builder)\n";
                 PKOptionsScript += "\t\t {\n";
                 PKOptionsScript += "\t\t\t return builder";
                 EntityScript += " { \n";

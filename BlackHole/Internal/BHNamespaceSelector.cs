@@ -34,7 +34,7 @@ namespace BlackHole.Internal
 
         internal List<Type> GetOpenAllBHEntities(Assembly ass)
         {
-            return ass.GetTypes().Where(x => x.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(BHOpenEntity<>))).ToList();
+            return ass.GetTypes().Where(x => x.BaseType != null && x.BaseType.GetGenericTypeDefinition() == typeof(BHOpenEntity<>)).ToList();
         }
 
         internal List<Type> GetOpenBHEntitiesInNamespaces(List<string> nameSpaces, Assembly ass)
@@ -43,7 +43,7 @@ namespace BlackHole.Internal
             foreach (string nameSpace in nameSpaces)
             {
                 types.AddRange(ass.GetTypes().Where(t => string.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
-                && t.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == typeof(BHOpenEntity<>))).ToList());
+                && t.BaseType != null && t.BaseType.GetGenericTypeDefinition() == typeof(BHOpenEntity<>)).ToList());
             }
             return types;
         }
