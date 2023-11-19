@@ -14,10 +14,22 @@ namespace BlackHole.Core
         /// <typeparam name="T"></typeparam>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static BlackHoleOrderBy<T> Ascending<T>(Expression<Func<T, object?>> action) where T : IBHEntityIdentifier
+        public static BlackHoleOrderBy<T> Ascending<T>(this Expression<Func<T, object?>> action) where T:IBHEntityIdentifier
         {
-            BinaryExpression? currentOperation = action.Body as BinaryExpression;
-            return new();
+            if(action.Body is MemberExpression mExp)
+            {
+                return new BlackHoleOrderBy<T>(mExp.Member.Name, "asc", false);
+            }
+
+            if(action.Body is UnaryExpression uExp)
+            {
+                if(uExp.Operand is MemberExpression mExp2)
+                {
+                    return new BlackHoleOrderBy<T>(mExp2.Member.Name, "asc", false);
+                }
+            }
+
+            return new("", "", true);
         }
 
         /// <summary>
@@ -26,9 +38,22 @@ namespace BlackHole.Core
         /// <typeparam name="T"></typeparam>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static BlackHoleOrderBy<T> Descending<T>(Func<T, object?> action) where T : IBHEntityIdentifier
+        public static BlackHoleOrderBy<T> Descending<T>(Expression<Func<T, object?>> action) where T : IBHEntityIdentifier
         {
-            return new();
+            if (action.Body is MemberExpression mExp)
+            {
+                return new BlackHoleOrderBy<T>(mExp.Member.Name, "asc", false);
+            }
+
+            if (action.Body is UnaryExpression uExp)
+            {
+                if (uExp.Operand is MemberExpression mExp2)
+                {
+                    return new BlackHoleOrderBy<T>(mExp2.Member.Name, "asc", false);
+                }
+            }
+
+            return new("", "", true);
         }
 
         /// <summary>
@@ -38,9 +63,25 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static BlackHoleOrderBy<T> ThenByAscending<T>(this BlackHoleOrderBy<T> orderBy, Func<T, object?> action) where T : IBHEntityIdentifier
+        public static BlackHoleOrderBy<T> ThenByAscending<T>(this BlackHoleOrderBy<T> orderBy, Expression<Func<T, object?>> action) where T : IBHEntityIdentifier
         {
-            return new();
+            if (action.Body is MemberExpression mExp)
+            {
+                orderBy.AddPair(mExp.Member.Name, "asc");
+                return orderBy;
+            }
+
+            if (action.Body is UnaryExpression uExp)
+            {
+                if (uExp.Operand is MemberExpression mExp2)
+                {
+                    orderBy.AddPair(mExp2.Member.Name, "asc");
+                    return orderBy;
+                }
+            }
+
+            orderBy.LockedByError = true;
+            return orderBy;
         }
 
         /// <summary>
@@ -50,9 +91,25 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="action"></param>
         /// <returns></returns>
-        public static BlackHoleOrderBy<T> ThenByDescending<T>(this BlackHoleOrderBy<T> orderBy, Func<T, object?> action) where T : IBHEntityIdentifier
+        public static BlackHoleOrderBy<T> ThenByDescending<T>(this BlackHoleOrderBy<T> orderBy, Expression<Func<T, object?>> action) where T : IBHEntityIdentifier
         {
-            return new();
+            if (action.Body is MemberExpression mExp)
+            {
+                orderBy.AddPair(mExp.Member.Name, "asc");
+                return orderBy;
+            }
+
+            if (action.Body is UnaryExpression uExp)
+            {
+                if (uExp.Operand is MemberExpression mExp2)
+                {
+                    orderBy.AddPair(mExp2.Member.Name, "asc");
+                    return orderBy;
+                }
+            }
+
+            orderBy.LockedByError = true;
+            return orderBy;
         }
 
         /// <summary>

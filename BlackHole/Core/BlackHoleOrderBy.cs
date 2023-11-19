@@ -8,9 +8,20 @@ namespace BlackHole.Core
     public class BlackHoleOrderBy<T>
     {
         internal List<OrderByPair> OrderProperties {  get; set; }
-        internal BlackHoleOrderBy()
+        internal bool LockedByError { get; set; }
+        internal BlackHoleOrderBy(string propertyName, string orientation, bool lockedByError)
         {
-            OrderProperties = new();
+            OrderProperties = new()
+            {
+                new OrderByPair { Oriantation = orientation, PropertyName = propertyName }
+            };
+
+            LockedByError = lockedByError;
+        }
+
+        internal void AddPair(string propertyName, string orientation)
+        {
+            OrderProperties.Add(new OrderByPair { Oriantation=orientation, PropertyName = propertyName });
         }
     }
 
