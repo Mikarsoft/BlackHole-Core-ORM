@@ -49,6 +49,17 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionSettings">connection settings</param>
         /// <returns>DataPath Settings to add more settings</returns>
+        public DataPathSettings AddMultiSchemaDatabase(Action<ConnectionSettings> connectionSettings)
+        {
+            connectionSettings.Invoke(connectionConfig);
+            return directorySettings;
+        }
+
+        /// <summary>
+        /// Add the configuration for a database.
+        /// </summary>
+        /// <param name="connectionSettings">connection settings</param>
+        /// <returns>DataPath Settings to add more settings</returns>
         public DataPathSettings AddDatabases(Action<List<Action<ConnectionSettings>>> connectionSettings)
         {
             List<Action<ConnectionSettings>> list = new();

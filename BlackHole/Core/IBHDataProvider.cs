@@ -13,6 +13,45 @@ namespace BlackHole.Core
     /// <typeparam name="G">The type of Entity's Id</typeparam>
     public interface IBHDataProvider<T, G> where T : BlackHoleEntity<G>
     {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        bool Any(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        bool Any(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        int Count();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        int CountWhere(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        int Count(BHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        int CountWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+
         /// <summary>
         /// Gets all the entries of the specific Table
         /// and returns a List of Entities
@@ -26,16 +65,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="orderBy">Order by</param>
         /// <returns>All Active Entities of the Table</returns>
-        List<T> GetAllEntries(BlackHoleOrderBy<T> orderBy);
-
-        /// <summary>
-        /// Gets all the entries of the specific Table order by keys
-        /// and returns a List of Entities
-        /// </summary>
-        /// <param name="orderBy">Order by</param>
-        /// <param name="limit">Limit lines</param>
-        /// <returns></returns>
-        List<T> GetAllEntries(BlackHoleOrderBy<T> orderBy, int limit);
+        List<T> GetAllEntries(BlackHoleLimiter<T> orderBy);
 
         /// <summary>
         /// <b>Transaction.</b> Gets all the entries of the specific Table
@@ -43,6 +73,13 @@ namespace BlackHole.Core
         /// </summary>
         /// <returns>All Active Entities of the Table</returns>
         List<T> GetAllEntries(BHTransaction transaction);
+
+        /// <summary>
+        /// <b>Transaction.</b> Gets all the entries of the specific Table
+        /// and returns a List of Entities
+        /// </summary>
+        /// <returns>All Active Entities of the Table</returns>
+        List<T> GetAllEntries(BlackHoleLimiter<T> orderBy, BHTransaction transaction);
 
         /// <summary>
         /// Selects only the columns of the specified Dto that exist on the Table
@@ -65,6 +102,26 @@ namespace BlackHole.Core
         List<Dto> GetAllEntries<Dto>(BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
+        /// Selects only the columns of the specified Dto that exist on the Table
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <returns>All Active Entities of the Table mapped to DTO</returns>
+        List<Dto> GetAllEntries<Dto>(BlackHoleLimiter<T> orderBy) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// <b>Transaction.</b> Selects only the columns of the specified Dto that exist on the Table
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <returns>All Active Entities of the Table mapped to DTO</returns>
+        List<Dto> GetAllEntries<Dto>(BlackHoleLimiter<T> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
         /// In case you are using the 'UseActivator' Attribute on the Entity
         /// this method will return a List of the Inactive Entries
         /// in this Table
@@ -79,6 +136,22 @@ namespace BlackHole.Core
         /// </summary>
         /// <returns>All Incative Entities of the Table</returns>
         List<T> GetAllInactiveEntries(BHTransaction transaction);
+
+        /// <summary>
+        /// In case you are using the 'UseActivator' Attribute on the Entity
+        /// this method will return a List of the Inactive Entries
+        /// in this Table
+        /// </summary>
+        /// <returns>All Incative Entities of the Table</returns>
+        List<T> GetAllInactiveEntries(BlackHoleLimiter<T> orderBy);
+
+        /// <summary>
+        /// <b>Transaction.</b> In case you are using the 'UseActivator' Attribute on the Entity
+        /// this method will return an IList of the Inactive Entries
+        /// in this Table
+        /// </summary>
+        /// <returns>All Incative Entities of the Table</returns>
+        List<T> GetAllInactiveEntries(BlackHoleLimiter<T> orderBy, BHTransaction transaction);
 
         /// <summary>
         /// Returns the Entity from this Table that has the
@@ -203,6 +276,48 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of DTOs</returns>
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Entries that match the filters
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <returns>List of Entities</returns>
+        List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy);
+
+        /// <summary>
+        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Entries that match the filters
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>List of Entities</returns>
+        List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction);
+
+        /// <summary>
+        /// Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Columns that match with the filters
+        /// and the Dto properties
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <returns>List of DTOs</returns>
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Columns that match with the filters
+        /// and the Dto properties
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>List of DTOs</returns>
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// Inserts the Entity into the table, generates a new Id 
@@ -487,6 +602,46 @@ namespace BlackHole.Core
         bool DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<int> CountAsync();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<int> CountWhereAsync(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<int> CountAsync(BHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<int> CountWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+
+        /// <summary>
         /// <b>Asyncronous.</b> Gets all the entries of the specific Table
         /// and returns a List of Entities
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
@@ -540,6 +695,61 @@ namespace BlackHole.Core
         /// </summary>
         /// <returns>All Incative Entities of the Table</returns>
         Task<List<T>> GetAllInactiveEntriesAsync(BHTransaction transaction);
+
+        /// <summary>
+        /// <b>Asyncronous.</b> Gets all the entries of the specific Table
+        /// and returns a List of Entities
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <returns>All Active Entities of the Table</returns>
+        Task<List<T>> GetAllEntriesAsync(BlackHoleLimiter<T> orderBy);
+
+        /// <summary>
+        /// <b>Transaction.</b><b>Asyncronous.</b> Gets all the entries of the specific Table
+        /// and returns a List of Entities
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <returns>All Active Entities of the Table</returns>
+        Task<List<T>> GetAllEntriesAsync(BlackHoleLimiter<T> orderBy, BHTransaction transaction);
+
+        /// <summary>
+        /// <b>Asyncronous.</b> Selects only the columns of the specified Dto that exist on the Table
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data transfer Object</typeparam>
+        /// <returns>All Active Entities of the Table mapped to DTO</returns>
+        Task<List<Dto>> GetAllEntriesAsync<Dto>(BlackHoleLimiter<T> orderBy) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// <b>Transaction.</b><b>Asyncronous.</b> Selects only the columns of the specified Dto that exist on the Table
+        /// and returns a List of the Dto.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data transfer Object</typeparam>
+        /// <returns>All Active Entities of the Table mapped to DTO</returns>
+        Task<List<Dto>> GetAllEntriesAsync<Dto>(BlackHoleLimiter<T> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// <b>Asyncronous.</b> In case you are using the 'UseActivator' Attribute on the Entity
+        /// this method will return a List of the Inactive Entries
+        /// in this Table
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <returns>All Incative Entities of the Table</returns>
+        Task<List<T>> GetAllInactiveEntriesAsync(BlackHoleLimiter<T> orderBy);
+
+        /// <summary>
+        /// <b>Transaction.</b><b>Asyncronous.</b> In case you are using the 'UseActivator' Attribute on the Entity
+        /// this method will return an IList of the Inactive Entries
+        /// in this Table
+        /// </summary>
+        /// <returns>All Incative Entities of the Table</returns>
+        Task<List<T>> GetAllInactiveEntriesAsync(BlackHoleLimiter<T> orderBy, BHTransaction transaction);
 
         /// <summary>
         /// <b>Asyncronous.</b> Returns the Entity from this Table that has the
@@ -676,6 +886,52 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of DTOs</returns>
         Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Entries that match the filters
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <returns>List of Entities</returns>
+        Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy);
+
+        /// <summary>
+        /// <b>Transaction.</b><b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Entries that match the filters
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>List of Entities</returns>
+        Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction);
+
+        /// <summary>
+        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Columns that match with the filters
+        /// and the Dto properties 
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <returns>List of DTOs</returns>
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
+        /// Entries of the table and returns all Columns that match with the filters
+        /// and the Dto properties 
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>List of DTOs</returns>
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// <b>Asyncronous.</b> Inserts the Entity into the table, generates a new Id 
@@ -1021,6 +1277,23 @@ namespace BlackHole.Core
         List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
+        /// Finds the active entries of the database table that
+        /// match with the Lambda Expression filters and returns their Ids
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <returns>List of Entry Ids</returns>
+        List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy);
+
+        /// <summary>
+        /// <b>Transaction.</b> Finds the active entries of the database table that
+        /// match with the Lambda Expression filters and returns their Ids
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>List of Entry Ids</returns>
+        List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction);
+
+        /// <summary>
         /// <b>Asyncronous.</b> Finds the active entries of the database table that
         /// match with the Lambda Expression filters and returns the Id
         /// of the first entry
@@ -1059,6 +1332,25 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of Entry Ids</returns>
         Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+
+        /// <summary>
+        /// <b>Asyncronous.</b> Finds the active entries of the database table that
+        /// match with the Lambda Expression filters and returns their Ids
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <returns>List of Entry Ids</returns>
+        Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy);
+
+        /// <summary>
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the active entries of the database table that
+        /// match with the Lambda Expression filters and returns their Ids
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>List of Entry Ids</returns>
+        Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction);
 
         /// <summary>
         /// Starts a Joins sequence, with the first one as 'Inner Join' that can be continued with 

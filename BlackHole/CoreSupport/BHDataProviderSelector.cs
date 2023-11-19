@@ -37,6 +37,18 @@ namespace BlackHole.CoreSupport
             return new string[2];
         }
 
+        internal static string[] GetLimiter(this int rowsCount)
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => new string[] { $" TOP {rowsCount} ", "" },
+                BlackHoleSqlTypes.MySql => new string[] { "", $" limit {rowsCount} " },
+                BlackHoleSqlTypes.Postgres => new string[] { "", $" limit {rowsCount} " },
+                BlackHoleSqlTypes.SqlLite => new string[] { "", $" limit {rowsCount} " },
+                _ => new string[] { "", $" and rownum <= {rowsCount} " },
+            };
+        }
+
         internal static bool CheckActivator(this Type entity)
         {
             return entity.GetCustomAttributes(true).Any(x => x.GetType() == typeof(UseActivator));

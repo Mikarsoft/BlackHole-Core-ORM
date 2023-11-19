@@ -1,4 +1,6 @@
-﻿
+﻿using BlackHole.Core;
+using BlackHole.Entities;
+
 namespace BlackHole.Services
 {
     /// <summary>
@@ -6,6 +8,11 @@ namespace BlackHole.Services
     /// </summary>
     public class BHDataInitializer
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        internal BHDataInitializer() { }
+
         internal List<InitialCommandsAndParameters> commandsAndParameters { get; set; } = new List<InitialCommandsAndParameters>();
 
         /// <summary>
@@ -17,6 +24,11 @@ namespace BlackHole.Services
         public void ExecuteCommand(string commandText)
         {
             commandsAndParameters.Add(new InitialCommandsAndParameters { commandText = commandText});
+        }
+
+        public IBHDataProvider<T,G> GetProvider<T,G>() where T : BlackHoleEntity<G>
+        {
+            return new BHDataProvider<T, G>();
         }
 
         /// <summary>
