@@ -1,8 +1,10 @@
-﻿using BlackHole.DataProviders;
+﻿using BlackHole.Core;
+using BlackHole.DataProviders;
 using BlackHole.Entities;
 using BlackHole.Enums;
 using BlackHole.ExecutionProviders;
 using BlackHole.Statics;
+using System.Text;
 
 namespace BlackHole.CoreSupport
 {
@@ -73,6 +75,41 @@ namespace BlackHole.CoreSupport
                 return $"{DatabaseStatics.DatabaseSchema}.";
             }
             return string.Empty;
+        }
+
+        internal static string OrderByToSql<T>(this BHOrderBy<T> orderByConfig, bool isMyShit)
+        {
+            if (orderByConfig.orderBy.LockedByError)
+            {
+                return string.Empty;
+            }
+
+            StringBuilder orderby = new();
+            orderby.Append(" order by ");
+
+            foreach (OrderByPair pair in orderByConfig.orderBy.OrderProperties)
+            {
+                orderby.Append($"{pair.PropertyName.SkipNameQuotes(isMyShit)} {pair.Oriantation} ");
+            }
+
+            if (orderByConfig.orderBy.TakeSpecificRange)
+            {
+                orderby.Append(orderByConfig.orderBy.RowsLimiter());
+            }
+
+            return orderby.ToString();
+        }
+
+        internal static string RowsLimiter<T>(this BlackHoleOrderBy<T> limiter)
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => $"OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
+                BlackHoleSqlTypes.MySql => $"LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
+                BlackHoleSqlTypes.Postgres => $"LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
+                BlackHoleSqlTypes.Oracle => $"OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
+                _ => $"LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}"
+            };
         }
 
         private static BlackHoleIdTypes GetIdType(Type type)

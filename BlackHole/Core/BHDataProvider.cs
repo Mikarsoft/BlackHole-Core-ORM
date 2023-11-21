@@ -129,27 +129,39 @@ namespace BlackHole.Core
             return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable}", null, bhTransaction.transaction);
         }
 
-        List<T> IBHDataProvider<T, G>.GetAllEntries(BlackHoleLimiter<T> orderBy)
+        List<T> IBHDataProvider<T, G>.GetAllEntries(Action<BHOrderBy<T>> orderBy)
         {
+            BHOrderBy<T> orderClass = new();
+            orderBy.Invoke(orderClass);
+
             if (WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null);
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
             }
             return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null);
         }
 
-        List<T> IBHDataProvider<T, G>.GetAllEntries(BlackHoleLimiter<T> orderBy, BHTransaction transaction)
+        List<T> IBHDataProvider<T, G>.GetAllEntries(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
         {
+            BHOrderBy<T> orderClass = new();
+            orderBy.Invoke(orderClass);
+
             throw new NotImplementedException();
         }
 
-        List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(BlackHoleLimiter<T> orderBy) where Dto : class
+        List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>>  orderBy) where Dto : class
         {
+            BHOrderBy<T> orderClass = new();
+            orderBy.Invoke(orderClass);
+
             throw new NotImplementedException();
         }
 
-        List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(BlackHoleLimiter<T> orderBy, BHTransaction transaction) where Dto : class
+        List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : class
         {
+            BHOrderBy<T> orderClass = new();
+            orderBy.Invoke(orderClass);
+
             throw new NotImplementedException();
         }
 
@@ -171,13 +183,19 @@ namespace BlackHole.Core
             return new List<T>();
         }
 
-        List<T> IBHDataProvider<T, G>.GetAllInactiveEntries(BlackHoleLimiter<T> orderBy)
+        List<T> IBHDataProvider<T, G>.GetAllInactiveEntries(Action<BHOrderBy<T>>  orderBy)
         {
+            BHOrderBy<T> orderClass = new();
+            orderBy.Invoke(orderClass);
+
             throw new NotImplementedException();
         }
 
-        List<T> IBHDataProvider<T, G>.GetAllInactiveEntries(BlackHoleLimiter<T> orderBy, BHTransaction transaction)
+        List<T> IBHDataProvider<T, G>.GetAllInactiveEntries(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
         {
+            BHOrderBy<T> orderClass = new();
+            orderBy.Invoke(orderClass);
+
             throw new NotImplementedException();
         }
 
@@ -309,22 +327,22 @@ namespace BlackHole.Core
             return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
-        List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy)
+        List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy)
         {
             throw new NotImplementedException();
         }
 
-        List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction)
+        List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy) where Dto : class
+        List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction) where Dto : class
+        List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
@@ -592,22 +610,22 @@ namespace BlackHole.Core
             return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable}", null, bhTransaction.transaction);
         }
 
-        async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync(BlackHoleLimiter<T> orderBy)
+        async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync(Action<BHOrderBy<T>>  orderBy)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync(BlackHoleLimiter<T> orderBy, BHTransaction transaction)
+        async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(BlackHoleLimiter<T> orderBy) where Dto : class
+        async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>>  orderBy) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(BlackHoleLimiter<T> orderBy, BHTransaction transaction) where Dto : class
+        async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
@@ -630,12 +648,12 @@ namespace BlackHole.Core
             return new List<T>();
         }
 
-        public Task<List<T>> GetAllInactiveEntriesAsync(BlackHoleLimiter<T> orderBy)
+        public Task<List<T>> GetAllInactiveEntriesAsync(Action<BHOrderBy<T>>  orderBy)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync(BlackHoleLimiter<T> orderBy, BHTransaction transaction)
+        async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
@@ -768,22 +786,22 @@ namespace BlackHole.Core
             return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
-        async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy)
+        async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction)
+        async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy) where Dto : class
+        async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction) where Dto : class
+        async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
@@ -1025,22 +1043,22 @@ namespace BlackHole.Core
             return await GetIdsFromPredicateAsync(predicate, bhTransaction);
         }
 
-        List<G> IBHDataProvider<T, G>.GetIdsWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy)
+        List<G> IBHDataProvider<T, G>.GetIdsWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy)
         {
             throw new NotImplementedException();
         }
 
-        List<G> IBHDataProvider<T, G>.GetIdsWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction)
+        List<G> IBHDataProvider<T, G>.GetIdsWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<G>> IBHDataProvider<T, G>.GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy)
+        async Task<List<G>> IBHDataProvider<T, G>.GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<G>> IBHDataProvider<T, G>.GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BlackHoleLimiter<T> orderBy, BHTransaction transaction)
+        async Task<List<G>> IBHDataProvider<T, G>.GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }

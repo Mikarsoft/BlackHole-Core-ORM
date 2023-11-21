@@ -4,7 +4,6 @@ using BlackHole.Statics;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
-using BlackHole.Logger;
 using BlackHole.CoreSupport;
 using BlackHole.ExecutionProviders;
 using BlackHole.Identifiers;
@@ -190,7 +189,7 @@ namespace BlackHole.Core
             MemberExpression? memberOther = otherkey.Body as MemberExpression;
             string? propNameOther = memberOther?.Member.Name;
 
-            data.Joins += $" and {secondLetter}.{propNameOther.SqlPropertyName(data.isMyShit)} = {firstLetter}.{propName.SqlPropertyName(data.isMyShit)}";
+            data.Joins += $" and {secondLetter}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {firstLetter}.{propName.SkipNameQuotes(data.isMyShit)}";
             return data;
         }
 
@@ -221,7 +220,7 @@ namespace BlackHole.Core
             MemberExpression? memberOther = otherkey.Body as MemberExpression;
             string? propNameOther = memberOther?.Member.Name;
 
-            data.Joins += $" or {secondLetter}.{propNameOther.SqlPropertyName(data.isMyShit)} = {firstLetter}.{propName.SqlPropertyName(data.isMyShit)}";
+            data.Joins += $" or {secondLetter}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {firstLetter}.{propName.SkipNameQuotes(data.isMyShit)}";
             return data;
         }
 
@@ -445,7 +444,7 @@ namespace BlackHole.Core
         /// <returns>The index of this Joins Data in the Stored Views List</returns>
         public static int StoreAsView<Dto>(this JoinsData<Dto> data) where Dto : IBHDtoIdentifier
         {
-            JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
+            JoinsData? existingJoin = BlackHoleViews.Stored.FirstOrDefault(x => x.DtoType == typeof(Dto));
 
             if (existingJoin != null)
             {
@@ -479,7 +478,7 @@ namespace BlackHole.Core
                 data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                 TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                 string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
                 return connection.Query<Dto>(commandText, data.DynamicParams);
             }
             return new List<Dto>();
@@ -493,7 +492,7 @@ namespace BlackHole.Core
                 data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                 TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                 string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
                 return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
             }
             return new List<Dto>();
@@ -507,7 +506,7 @@ namespace BlackHole.Core
                 data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                 TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                 string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
                 return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
             }
 
@@ -522,7 +521,7 @@ namespace BlackHole.Core
                 data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
                 TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
                 string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
                 return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
             }
             return new List<Dto>();
@@ -540,7 +539,7 @@ namespace BlackHole.Core
             data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
             TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
             string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
             return connection.Query<Dto>(commandText, data.DynamicParams);
         }
 
@@ -557,7 +556,7 @@ namespace BlackHole.Core
             data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
             TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
             string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
             return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
         }
 
@@ -574,7 +573,7 @@ namespace BlackHole.Core
             data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
             TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
             string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
             return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
         }
 
@@ -592,7 +591,132 @@ namespace BlackHole.Core
             data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
             TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
             string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
-            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SqlPropertyName(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
+        }
+
+        internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy) where Dto : IBHDtoIdentifier
+        {
+            if (data.DtoType == typeof(Dto))
+            {
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                return connection.Query<Dto>(commandText, data.DynamicParams);
+            }
+            return new List<Dto>();
+        }
+
+        internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
+        {
+            if (data.DtoType == typeof(Dto))
+            {
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
+            }
+            return new List<Dto>();
+        }
+
+        internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy) where Dto : IBHDtoIdentifier
+        {
+            if (data.DtoType == typeof(Dto))
+            {
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
+            }
+
+            return new List<Dto>();
+        }
+
+        internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
+        {
+            if (data.DtoType == typeof(Dto))
+            {
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+                return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
+            }
+            return new List<Dto>();
+        }
+
+        /// <summary>
+        /// Executes the Joins Data and returns the result
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
+        public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data, Action<BHOrderBy<Dto>> orderBy) where Dto : IBHDtoIdentifier
+        {
+            IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+            data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+            TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+            string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            return connection.Query<Dto>(commandText, data.DynamicParams);
+        }
+
+        /// <summary>
+        /// <b>Transaction</b>. Executes the Joins Data and returns the result
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <param name="bHTransaction">Transaction object</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
+        public static List<Dto> ExecuteQuery<Dto>(this JoinsData<Dto> data, Action<BHOrderBy<Dto>> orderBy, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
+        {
+            IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+            data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+            TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+            string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            return connection.Query<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
+        }
+
+        /// <summary>
+        /// <b>Asyncronous</b>. Executes the Joins Data and returns the result
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
+        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data, Action<BHOrderBy<Dto>> orderBy) where Dto : IBHDtoIdentifier
+        {
+            IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+            data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+            TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+            string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
+            return await connection.QueryAsync<Dto>(commandText, data.DynamicParams);
+        }
+
+        /// <summary>
+        /// <b>Transaction.</b> <b>Asyncronous.</b> Executes the Joins Data and returns the result
+        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="data">Joins Data</param>
+        /// <param name="bHTransaction">Transaction object</param>
+        /// <returns>The Entries of the Joins mapped into DTO</returns>
+        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData<Dto> data, Action<BHOrderBy<Dto>> orderBy, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
+        {
+            IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+            data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+            TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+            string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+            string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates}";
             return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
         }
 
@@ -620,7 +744,7 @@ namespace BlackHole.Core
                         anD = "and";
                     }
 
-                    command += $" {anD} {table.Letter}.{inactiveColumn.SqlPropertyName(isMyShit)} = 0 ";
+                    command += $" {anD} {table.Letter}.{inactiveColumn.SkipNameQuotes(isMyShit)} = 0 ";
                 }
             }
 
@@ -635,9 +759,9 @@ namespace BlackHole.Core
             {
                 sqlCommand += prop.WithCast switch
                 {
-                    1 => $" {prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropName.SqlPropertyName(isMyShit)},",
-                    2 => $" cast({prop.TableLetter}.{prop.TableProperty.SqlPropertyName(isMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SqlPropertyName(isMyShit)},",
-                    _ => $" {prop.TableLetter}.{prop.PropName.SqlPropertyName(isMyShit)},",
+                    1 => $" {prop.TableLetter}.{prop.TableProperty.SkipNameQuotes(isMyShit)} as {prop.PropName.SkipNameQuotes(isMyShit)},",
+                    2 => $" cast({prop.TableLetter}.{prop.TableProperty.SkipNameQuotes(isMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SkipNameQuotes(isMyShit)},",
+                    _ => $" {prop.TableLetter}.{prop.PropName.SkipNameQuotes(isMyShit)},",
                 };
             }
 
@@ -741,7 +865,7 @@ namespace BlackHole.Core
 
             string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
 
-            data.Joins += $" {joinType} join {schemaName}{typeof(TOther).Name.SqlPropertyName(data.isMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SqlPropertyName(data.isMyShit)} = {parameter}.{propName.SqlPropertyName(data.isMyShit)}";
+            data.Joins += $" {joinType} join {schemaName}{typeof(TOther).Name.SkipNameQuotes(data.isMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {parameter}.{propName.SkipNameQuotes(data.isMyShit)}";
             data.OccupiedDtoProps = data.OccupiedDtoProps.BindPropertiesToDtoExtension(typeof(TOther), parameterOther);
             return data;
         }
@@ -784,18 +908,6 @@ namespace BlackHole.Core
             }
 
             return props;
-        }
-
-        private static string SqlPropertyName(this string? propName, bool isMyShit)
-        {
-            string result = propName ?? string.Empty;
-
-            if (!isMyShit)
-            {
-                result = $@"""{propName}""";
-            }
-
-            return result;
         }
 
         private static int AllowCast(this Type firstType, Type secondType)
