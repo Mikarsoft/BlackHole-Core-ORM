@@ -85,30 +85,30 @@ namespace BlackHole.CoreSupport
             }
 
             StringBuilder orderby = new();
-            orderby.Append(" order by ");
+            string limiter = string.Empty;
 
             foreach (OrderByPair pair in orderByConfig.orderBy.OrderProperties)
             {
-                orderby.Append($"{pair.PropertyName.SkipNameQuotes(isMyShit)} {pair.Oriantation} ");
+                orderby.Append($", {pair.PropertyName.SkipNameQuotes(isMyShit)} {pair.Oriantation}");
             }
 
             if (orderByConfig.orderBy.TakeSpecificRange)
             {
-                orderby.Append(orderByConfig.orderBy.RowsLimiter());
+                limiter = orderByConfig.orderBy.RowsLimiter();
             }
 
-            return orderby.ToString();
+            return $"order by{orderby.ToString().Remove(0,1)}{limiter}";
         }
 
         internal static string RowsLimiter<T>(this BlackHoleOrderBy<T> limiter)
         {
             return DatabaseStatics.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => $"OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
-                BlackHoleSqlTypes.MySql => $"LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
-                BlackHoleSqlTypes.Postgres => $"LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
-                BlackHoleSqlTypes.Oracle => $"OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
-                _ => $"LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}"
+                BlackHoleSqlTypes.SqlServer => $" OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
+                BlackHoleSqlTypes.MySql => $" LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
+                BlackHoleSqlTypes.Postgres => $" LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
+                BlackHoleSqlTypes.Oracle => $" OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
+                _ => $" LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}"
             };
         }
 

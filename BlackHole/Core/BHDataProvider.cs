@@ -133,12 +133,11 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-
             if (WithActivator)
             {
                 return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null);
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllEntries(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
@@ -285,6 +284,26 @@ namespace BlackHole.Core
                 return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
             }
             return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+        }
+
+        public T? GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T? GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BlackHoleDto<G>
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>
+        {
+            throw new NotImplementedException();
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
@@ -744,6 +763,26 @@ namespace BlackHole.Core
                 return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
             }
             return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+        }
+
+        public Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BlackHoleDto<G>
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>
+        {
+            throw new NotImplementedException();
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
