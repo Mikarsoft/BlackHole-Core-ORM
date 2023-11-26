@@ -634,17 +634,17 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
+        async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync(Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>>  orderBy) where Dto : class
+        async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : class
+        async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
@@ -825,22 +825,22 @@ namespace BlackHole.Core
             return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
-        async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy)
+        async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
+        async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy) where Dto : class
+        async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : class
         {
             throw new NotImplementedException();
         }
 
-        async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : class
+        async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : class
         {
             throw new NotImplementedException();
         }
