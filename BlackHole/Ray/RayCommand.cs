@@ -6,17 +6,10 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Intrinsics.Arm;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BlackHole.Ray
 {
-    [
-        DefaultEvent("RecordsAffected"),
-        ToolboxItem(true),
-        Designer("Microsoft.VSDesigner.Data.VS.RayCommandDesigner, " + AssemblyRef.MicrosoftVSDesigner)
-        ]
+    [DefaultEvent("RecordsAffected"),ToolboxItem(true)]
     public sealed class RayCommand : DbCommand, ICloneable
     {
         private static int _objectTypeCount; // Bid counter

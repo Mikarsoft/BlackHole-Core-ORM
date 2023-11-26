@@ -1,7 +1,6 @@
 ﻿using System.Data.Common;
 using System.Diagnostics;
 using System.Collections.Specialized;
-
 using System.Runtime.Versioning;
 
 
@@ -36,7 +35,7 @@ namespace BlackHole.Ray
 
         override protected DbConnectionOptions CreateConnectionOptions(string connectionString, DbConnectionOptions previous)
         {
-            Debug.Assert(!ADP.IsEmpty(connectionString), "empty connectionString");
+            Debug.Assert(!string.IsNullOrEmpty(connectionString), "empty connectionString");
             RayConnectionString result = new RayConnectionString(connectionString, (null != previous));
             return result;
         }
@@ -103,7 +102,7 @@ namespace BlackHole.Ray
                 // If there is an XML file get it
                 if (values != null)
                 {
-                    XMLStream = ADP.GetXmlStreamFromValues(values, metaDataXML);
+                    //XMLStream = ADP.GetXmlStreamFromValues(values, metaDataXML);
                 }
             }
 

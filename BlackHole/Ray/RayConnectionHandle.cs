@@ -10,6 +10,7 @@ using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using BlackHole.RayCore;
 
 namespace BlackHole.Ray
 {

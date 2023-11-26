@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace BlackHole.Ray
 {
-    sealed internal class CNativeBuffer : System.Data.ProviderBase.DbBuffer
+    sealed internal class CNativeBuffer : DbBuffer
     {
 
         internal CNativeBuffer(int initialSize) : base(initialSize)

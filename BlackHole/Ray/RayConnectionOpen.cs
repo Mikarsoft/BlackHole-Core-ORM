@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BlackHole.Ray
 {
@@ -56,7 +52,7 @@ namespace BlackHole.Ray
             }
         }
 
-        override protected void Activate(SysTx.Transaction transaction)
+        override protected void Activate(System.Transactions.Transaction transaction)
         {
             RayConnection.ExecutePermission.Demand();
         }
@@ -86,8 +82,10 @@ namespace BlackHole.Ray
             NotifyWeakReference(RayReferenceCollection.Closing);
         }
 
-        override public void EnlistTransaction(SysTx.Transaction transaction)
+        override public void EnlistTransaction(System.Transactions.Transaction transaction)
         {
             OuterConnection.Open_EnlistTransaction(transaction);
         }
+
     }
+}

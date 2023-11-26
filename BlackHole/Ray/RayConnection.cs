@@ -4,7 +4,6 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Globalization;
-using System.Security.Permissions;
 using System.Text;
 using SysTx = System.Transactions;
 

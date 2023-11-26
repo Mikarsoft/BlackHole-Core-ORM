@@ -19,6 +19,7 @@ namespace BlackHole.Ray
     using System.Threading;
     using System.Runtime.Versioning;
     using System.Runtime.Intrinsics.Arm;
+    using BlackHole.RayCore;
 
     [Serializable] // Serializable so SqlDependencyProcessDispatcher can marshall cross domain to SqlDependency.
     sealed internal class DbConnectionPoolIdentity

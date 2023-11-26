@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Versioning;
+using BlackHole.RayCore;
 
 namespace BlackHole.Ray
 {

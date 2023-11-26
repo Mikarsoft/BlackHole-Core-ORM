@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using System.Data.ProviderBase;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.ConstrainedExecution;
@@ -272,7 +271,7 @@ namespace BlackHole.Ray
 
         override public void EnlistTransaction(SysTx.Transaction transaction)
         {
-            CONNECTIONOBJECTNAME.ExecutePermission.Demand();
+            ExecutePermission.Demand();
 
             Bid.Trace("<prov.DbConnectionHelper.EnlistTransaction|RES|TRAN> %d#, Connection enlisting in a transaction.\n", ObjectID);
 
@@ -297,7 +296,7 @@ namespace BlackHole.Ray
                 // Allow enlisting in a different transaction if the enlisted transaction has completed.
                 if (enlistedTransaction.TransactionInformation.Status == SysTx.TransactionStatus.Active)
                 {
-                    throw ADP.TransactionPresent();
+                    //throw ADP.TransactionPresent();
                 }
             }
             RepairInnerConnection();
