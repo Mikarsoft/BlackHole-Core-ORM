@@ -2,7 +2,7 @@
 {
     internal class RayStatementHandle : RayHandle
     {
-        public RayStatementHandle(bool ownsHandle) : base(Ray64.SQL_HANDLE.STMT, ownsHandle)
+        public RayStatementHandle(RayConnectionHandle connectionHandle) : base(Ray64.SQL_HANDLE.STMT, connectionHandle)
         {
         }
 

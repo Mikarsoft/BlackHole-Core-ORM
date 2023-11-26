@@ -11,6 +11,7 @@ namespace BlackHole.RayCore
         private DbCache? dataCache;
         private bool _noMoreResults;
         private RayCMDWrapper _cmdWrapper;
+        private RayCommand command;
 
 
         public override object this[int ordinal] => throw new NotImplementedException();
@@ -52,16 +53,38 @@ namespace BlackHole.RayCore
             }
         }
 
-        internal Ray64.RetCode FieldCountNoThrow(out Int16 cColsAffected)
+        internal bool IsCancelingCommand
+        {
+            get
+            {
+                if (command != null)
+                {
+                    return command.Canceling;
+                }
+                return false;
+            }
+        }
+
+        internal bool IsBehavior(CommandBehavior behavior)
+        {
+            return IsCommandBehavior(behavior);
+        }
+
+        private bool IsCommandBehavior(CommandBehavior condition)
+        {
+            return (condition == (condition & _commandBehavior));
+        }
+
+        internal Ray64.RetCode FieldCountNoThrow(out short cColsAffected)
         {
             if (IsCancelingCommand)
             {
                 cColsAffected = 0;
-                return Ray32.RetCode.ERROR;
+                return Ray64.RetCode.ERROR;
             }
 
-            Ray32.RetCode retcode = StatementHandler.NumberOfResultColumns(out cColsAffected);
-            if (retcode == Ray32.RetCode.SUCCESS)
+            Ray64.RetCode retcode = StatementHandler.NumberOfResultColumns(out cColsAffected);
+            if (retcode == Ray64.RetCode.SUCCESS)
             {
                 _hiddenColumns = 0;
                 if (IsCommandBehavior(CommandBehavior.KeyInfo))

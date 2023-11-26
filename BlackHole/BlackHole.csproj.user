@@ -2,6 +2,9 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <ItemGroup>
+    <Compile Update="RayCore\RayCommand.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="RayCore\RayConnection.cs">
       <SubType>Component</SubType>
     </Compile>

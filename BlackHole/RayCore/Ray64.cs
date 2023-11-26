@@ -636,9 +636,9 @@ namespace BlackHole.RayCore
             Debug.Assert(retcode != Ray64.RetCode.INVALID_HANDLE, "retcode must never be Ray32.RetCode.INVALID_HANDLE");
             if (RetCode.SUCCESS != retcode)
             {
-                Int32 NativeError;
-                Int16 iRec = 0;
-                Int16 cchActual = 0;
+                int NativeError;
+                short iRec = 0;
+                short cchActual = 0;
 
                 StringBuilder message = new StringBuilder(1024);
                 string sqlState;
@@ -648,11 +648,11 @@ namespace BlackHole.RayCore
 
                     ++iRec;
 
-                    retcode = (RetCode)hrHandle.GetDiagnosticRecord(iRec, out sqlState, message, out NativeError, out cchActual);
+                    retcode = hrHandle.GetDiagnosticRecord(iRec, out sqlState, message, out NativeError, out cchActual);
                     if ((RetCode.SUCCESS_WITH_INFO == retcode) && (message.Capacity - 1 < cchActual))
                     {
                         message.Capacity = cchActual + 1;
-                        retcode = (RetCode)hrHandle.GetDiagnosticRecord(iRec, out sqlState, message, out NativeError, out cchActual);
+                        retcode = hrHandle.GetDiagnosticRecord(iRec, out sqlState, message, out NativeError, out cchActual);
                     }
 
                     //Note: SUCCESS_WITH_INFO from SQLGetDiagRec would be because

@@ -1,7 +1,7 @@
-﻿
-using BlackHole.Ray;
+﻿using BlackHole.Ray;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security;
@@ -11,7 +11,7 @@ namespace BlackHole.RayCore
     internal static class RBid
     {
         private static ApiGroup modFlags;
-        private const string dllName = "System.Data.dll";
+        private const string dllName = ExternDll.SNI;
 
         internal enum ApiGroup : uint
         {
@@ -187,7 +187,7 @@ namespace BlackHole.RayCore
                 {
                     length = (UInt16)buff.Length;
                 }
-                NativeMethods.TraceBin(modID, UIntPtr.Zero, (UIntPtr)Bid.ModeFlags.Blob,
+                NativeMethods.TraceBin(modID, UIntPtr.Zero, (UIntPtr)RBid.ModeFlags.Blob,
                                         "<Trace|BLOB> %p %u\n", buff, length);
             }
         }
@@ -201,9 +201,28 @@ namespace BlackHole.RayCore
                 {
                     length = (UInt16)buff.Length;
                 }
-                NativeMethods.TraceBin(modID, UIntPtr.Zero, (UIntPtr)Bid.ModeFlags.Blob,
+                NativeMethods.TraceBin(modID, UIntPtr.Zero, (UIntPtr)RBid.ModeFlags.Blob,
                                         "<Trace|BLOB> %p %u\n", buff, length);
             }
+        }
+
+        [BidMethod]
+        internal static void TraceSqlReturn(
+    string fmtPrintfW,
+    [BidArgumentType(typeof(Int32))] Ray64.RetCode a1)
+        {
+            if (((Ray64.RetCode.SUCCESS != a1) || (modFlags & ApiGroup.StatusOk) != 0) && (modFlags & ApiGroup.Trace) != 0 && modID != NoData)
+                NativeMethods.Trace(modID, UIntPtr.Zero, UIntPtr.Zero, fmtPrintfW, (int)(short)a1);
+        }
+
+        [BidMethod]
+        internal static void TraceSqlReturn(
+    string fmtPrintfW,
+    [BidArgumentType(typeof(Int32))] Ray64.RetCode a1,
+    string a2)
+        {
+            if (((Ray64.RetCode.SUCCESS != a1) || (modFlags & ApiGroup.StatusOk) != 0) && (modFlags & ApiGroup.Trace) != 0 && modID != NoData)
+                NativeMethods.Trace(modID, UIntPtr.Zero, UIntPtr.Zero, fmtPrintfW, (int)(short)a1, a2);
         }
 
         internal static ApiGroup SetApiGroupBits(ApiGroup mask, ApiGroup bits)
@@ -269,9 +288,9 @@ namespace BlackHole.RayCore
         private class BindingCookie
         {
             internal IntPtr _data;
-            internal BindingCookie() { _data = (IntPtr)(-1); }
+            internal BindingCookie() { _data = new IntPtr(-1); }
 
-            internal void Invalidate() { _data = (IntPtr)(-1); }
+            internal void Invalidate() { _data = new IntPtr(-1); }
         };
 
         private static BindingCookie cookieObject = new();
@@ -433,7 +452,7 @@ namespace BlackHole.RayCore
                     AddMetaText(((BidMetaTextAttribute)obj).MetaText);
                 }
 
-                Bid.Trace("<ds.Bid|Info> VersionSafeName='%ls'\n", friendlyName);
+                RBid.Trace("<ds.Bid|Info> VersionSafeName='%ls'\n", friendlyName);
             }
         } // initEntryPoint
 
@@ -598,6 +617,20 @@ namespace BlackHole.RayCore
             get { return _identity; }
         }
         string _identity;
+    }
+
+    [AttributeUsage(AttributeTargets.Module, AllowMultiple = true)]
+    internal sealed class BidMetaTextAttribute : Attribute
+    {
+        internal BidMetaTextAttribute(string str)
+        {
+            _metaText = str;
+        }
+        internal string MetaText
+        {
+            get { return _metaText; }
+        }
+        string _metaText;
     }
 
     [System.Diagnostics.Conditional("CODE_ANALYSIS")]

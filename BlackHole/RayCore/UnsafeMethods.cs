@@ -77,7 +77,7 @@ namespace BlackHole.RayCore
             /*SQLHSTMT*/RayStatementHandle StatementHandle,
             /*SQLUSMALLINT*/short ColumnNumber,
             /*SQLUSMALLINT*/short FieldIdentifier,
-            /*SQLPOINTER*/CNativeBuffer CharacterAttribute,
+            /*SQLPOINTER*/RayNativeBuffer CharacterAttribute,
             /*SQLSMALLINT*/short BufferLength,
             /*SQLSMALLINT* */out short StringLength,
             /*SQLPOINTER*/out IntPtr NumericAttribute);
@@ -185,7 +185,7 @@ namespace BlackHole.RayCore
             /*SQLHSTMT*/RayStatementHandle StatementHandle,
             /*SQLUSMALLINT*/ushort ColumnNumber,
             /*SQLSMALLINT*/Ray64.SQL_C TargetType,
-            /*SQLPOINTER*/CNativeBuffer TargetValue,
+            /*SQLPOINTER*/RayNativeBuffer TargetValue,
             /*SQLLEN*/IntPtr BufferLength, // sql.h differs from MSDN
             /*SQLLEN* */out IntPtr StrLen_or_Ind);
 
@@ -195,7 +195,7 @@ namespace BlackHole.RayCore
             /*SQLHSTMT*/RayDescriptorHandle StatementHandle,
             /*SQLUSMALLINT*/short RecNumber,
             /*SQLUSMALLINT*/Ray64.SQL_DESC FieldIdentifier,
-            /*SQLPOINTER*/CNativeBuffer ValuePointer,
+            /*SQLPOINTER*/RayNativeBuffer ValuePointer,
             /*SQLINTEGER*/int BufferLength,
             /*SQLINTEGER* */out int StringLength);
 

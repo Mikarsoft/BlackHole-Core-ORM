@@ -1,5 +1,4 @@
-﻿
-using BlackHole.Ray;
+﻿using BlackHole.Ray;
 
 namespace BlackHole.RayCore
 {
@@ -24,6 +23,14 @@ namespace BlackHole.RayCore
         internal RayCMDWrapper(RayConnection connection)
         {
             _connection = connection;
+        }
+
+        internal RayConnection Connection
+        {
+            get
+            {
+                return _connection;
+            }
         }
 
         internal RayStatementHandle StatementHandle
