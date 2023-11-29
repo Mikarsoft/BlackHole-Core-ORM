@@ -22,7 +22,7 @@ namespace BlackHole.Configuration
         /// <param name="services">IServiceCollection</param>
         /// <param name="settings">Black Hole Settings Class</param>
         /// <returns>IService Collection with BlackHole Services added</returns>
-        public static IServiceCollection SuperNova(this IServiceCollection services, Action<BlackHoleSettings> settings)
+        public static IServiceCollection SuperNova(this IServiceCollection services,Action<BlackHoleSettings> settings)
         {
             Assembly assembly = Assembly.GetCallingAssembly();
             BlackHoleSettings blackHoleSettings = new();

@@ -1,7 +1,7 @@
 ﻿
 namespace BlackHole.Ray
 {
-    internal enum IsolationLevel
+    internal enum RayIsolationLevel
     { // MDAC 74269
 
         Unspecified = unchecked((int)0xffffffff),

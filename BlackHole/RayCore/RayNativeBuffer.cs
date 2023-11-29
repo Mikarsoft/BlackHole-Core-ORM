@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using BlackHole.Ray;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -19,7 +20,6 @@ namespace BlackHole.RayCore
                 int flags = ((zeroBuffer) ? LMEM_ZEROINIT : LMEM_FIXED);
 
                 _bufferLength = initialSize;
-                RuntimeHelpers.PrepareConstrainedRegions();
                 try { }
                 finally
                 {
@@ -70,16 +70,16 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, 2);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
 
-            string value = null;
+            string value = string.Empty;
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
+
             try
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 int length = UnsafeNativeMethods.lstrlenW(ptr);
                 Validate(offset, (2 * (length + 1)));
                 value = Marshal.PtrToStringUni(ptr, length);
@@ -95,20 +95,19 @@ namespace BlackHole.RayCore
             return value;
         }
 
-        internal String PtrToStringUni(int offset, int length)
+        internal string PtrToStringUni(int offset, int length)
         {
             offset += BaseOffset;
             Validate(offset, 2 * length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
 
-            string value = null;
+            string value = string.Empty;
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 value = Marshal.PtrToStringUni(ptr, length);
             }
             finally
@@ -129,7 +128,6 @@ namespace BlackHole.RayCore
 
             byte value;
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
                 DangerousAddRef(ref mustRelease);
@@ -157,17 +155,17 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
             Debug.Assert(null != destination, "null destination");
             Debug.Assert(startIndex + length <= destination.Length, "destination too small");
 
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
+
             try
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.Copy(ptr, destination, startIndex, length);
             }
             finally
@@ -180,7 +178,7 @@ namespace BlackHole.RayCore
             return destination;
         }
 
-        internal Char ReadChar(int offset)
+        internal char ReadChar(int offset)
         {
             short value = ReadInt16(offset);
             return unchecked((char)value);
@@ -190,17 +188,16 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, 2 * length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
             Debug.Assert(null != destination, "null destination");
             Debug.Assert(startIndex + length <= destination.Length, "destination too small");
 
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.Copy(ptr, destination, startIndex, length);
             }
             finally
@@ -219,7 +216,7 @@ namespace BlackHole.RayCore
             return BitConverter.Int64BitsToDouble(value);
         }
 
-        internal Int16 ReadInt16(int offset)
+        internal short ReadInt16(int offset)
         {
             offset += BaseOffset;
             ValidateCheck(offset, 2);
@@ -227,7 +224,6 @@ namespace BlackHole.RayCore
 
             short value;
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
                 DangerousAddRef(ref mustRelease);
@@ -249,17 +245,16 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, 2 * length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
             Debug.Assert(null != destination, "null destination");
             Debug.Assert(startIndex + length <= destination.Length, "destination too small");
 
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.Copy(ptr, destination, startIndex, length);
             }
             finally
@@ -271,7 +266,7 @@ namespace BlackHole.RayCore
             }
         }
 
-        internal Int32 ReadInt32(int offset)
+        internal int ReadInt32(int offset)
         {
             offset += BaseOffset;
             ValidateCheck(offset, 4);
@@ -279,7 +274,6 @@ namespace BlackHole.RayCore
 
             int value;
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
                 DangerousAddRef(ref mustRelease);
@@ -301,17 +295,16 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, 4 * length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
             Debug.Assert(null != destination, "null destination");
             Debug.Assert(startIndex + length <= destination.Length, "destination too small");
 
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.Copy(ptr, destination, startIndex, length);
             }
             finally
@@ -323,7 +316,7 @@ namespace BlackHole.RayCore
             }
         }
 
-        internal Int64 ReadInt64(int offset)
+        internal long ReadInt64(int offset)
         {
             offset += BaseOffset;
             ValidateCheck(offset, 8);
@@ -331,7 +324,7 @@ namespace BlackHole.RayCore
 
             long value;
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
+
             try
             {
                 DangerousAddRef(ref mustRelease);
@@ -353,11 +346,10 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             ValidateCheck(offset, IntPtr.Size);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
 
             IntPtr value;
             bool mustRelease = false;
-            RuntimeHelpers.PrepareConstrainedRegions();
             try
             {
                 DangerousAddRef(ref mustRelease);
@@ -377,7 +369,7 @@ namespace BlackHole.RayCore
 
         internal unsafe Single ReadSingle(int offset)
         {
-            Int32 value = ReadInt32(offset);
+            int value = ReadInt32(offset);
             return *(Single*)&value;
         }
 
@@ -398,14 +390,14 @@ namespace BlackHole.RayCore
             Debug.Assert(null != structure, "null structure");
             offset += BaseOffset;
             ValidateCheck(offset, Marshal.SizeOf(structure.GetType()));
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
 
             bool mustRelease = false;
             try
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.StructureToPtr(structure, ptr, false/*fDeleteOld*/);
             }
             finally
@@ -444,7 +436,7 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
             Debug.Assert(null != source, "null source");
             Debug.Assert(startIndex + length <= source.Length, "source too small");
 
@@ -453,7 +445,7 @@ namespace BlackHole.RayCore
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.Copy(source, startIndex, ptr, length);
             }
             finally
@@ -469,7 +461,7 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, 2 * length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
             Debug.Assert(null != source, "null source");
             Debug.Assert(startIndex + length <= source.Length, "source too small");
 
@@ -478,7 +470,7 @@ namespace BlackHole.RayCore
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.Copy(source, startIndex, ptr, length);
             }
             finally
@@ -522,7 +514,7 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, 2 * length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
             Debug.Assert(null != source, "null source");
             Debug.Assert(startIndex + length <= source.Length, "source too small");
 
@@ -531,7 +523,7 @@ namespace BlackHole.RayCore
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.Copy(source, startIndex, ptr, length);
             }
             finally
@@ -570,7 +562,7 @@ namespace BlackHole.RayCore
         {
             offset += BaseOffset;
             Validate(offset, 4 * length);
-            Debug.Assert(0 == offset % ADP.PtrSize, "invalid alignment");
+            Debug.Assert(0 == offset % IntPtr.Size, "invalid alignment");
             Debug.Assert(null != source, "null source");
             Debug.Assert(startIndex + length <= source.Length, "source too small");
 
@@ -579,7 +571,7 @@ namespace BlackHole.RayCore
             {
                 DangerousAddRef(ref mustRelease);
 
-                IntPtr ptr = ADP.IntPtrOffset(DangerousGetHandle(), offset);
+                IntPtr ptr = RS.IntPtrOffset(DangerousGetHandle(), offset);
                 Marshal.Copy(source, startIndex, ptr, length);
             }
             finally
@@ -757,7 +749,7 @@ namespace BlackHole.RayCore
             buffer[2] = BitConverter.ToInt32(bits, 12);     // high
             if (0 != BitConverter.ToInt32(bits, 16))
             {
-                throw ADP.NumericToDecimalOverflow();
+                throw RS.NumericToDecimalOverflow();
             }
             return new Decimal(buffer);
         }
@@ -788,7 +780,7 @@ namespace BlackHole.RayCore
         {
             if ((offset < 0) || (count < 0) || (Length < checked(offset + count)))
             {
-                throw ADP.InternalError(ADP.InternalErrorCode.InvalidBuffer);
+                throw RS.InternalError(RS.InternalErrorCode.InvalidBuffer);
             }
         }
     }

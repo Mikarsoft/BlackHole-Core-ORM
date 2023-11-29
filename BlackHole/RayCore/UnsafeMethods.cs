@@ -442,5 +442,9 @@ namespace BlackHole.RayCore
             [In, MarshalAs(UnmanagedType.LPWStr)]
             /*SQLCHAR* */string TableType,
             /*SQLSMALLINT*/short NameLen4);
+
+        [DllImport(ExternDll.Kernel32, CharSet = CharSet.Unicode)]
+        [ResourceExposure(ResourceScope.None)]
+        internal static extern int lstrlenW(IntPtr ptr);
     }
 }

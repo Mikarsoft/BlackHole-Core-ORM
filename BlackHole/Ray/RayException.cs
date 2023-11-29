@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using System.Text;
 using System.Data.Common;
+using BlackHole.RayCore;
 
 namespace BlackHole.Ray
 {

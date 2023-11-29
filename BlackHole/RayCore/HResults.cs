@@ -1,5 +1,4 @@
-﻿
-namespace BlackHole.Ray
+﻿namespace BlackHole.RayCore
 {
     internal static class HResults
     {

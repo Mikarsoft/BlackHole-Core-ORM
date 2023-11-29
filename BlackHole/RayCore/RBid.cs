@@ -222,7 +222,7 @@ namespace BlackHole.RayCore
     string a2)
         {
             if (((Ray64.RetCode.SUCCESS != a1) || (modFlags & ApiGroup.StatusOk) != 0) && (modFlags & ApiGroup.Trace) != 0 && modID != NoData)
-                NativeMethods.Trace(modID, UIntPtr.Zero, UIntPtr.Zero, fmtPrintfW, (int)(short)a1, a2);
+                NativeMethods.Trace(modID, UIntPtr.Zero, UIntPtr.Zero, fmtPrintfW, (int)a1, a2);
         }
 
         internal static ApiGroup SetApiGroupBits(ApiGroup mask, ApiGroup bits)
@@ -541,6 +541,16 @@ namespace BlackHole.RayCore
             EntryPoint = "DllBidTraceCW")]
             extern
             internal static void Trace(IntPtr hID, UIntPtr src, UIntPtr info, string fmtPrintfW, string a1);
+
+            [ResourceExposure(ResourceScope.None)]
+            [DllImport(dllName, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "DllBidTraceCW")]
+            extern
+            internal static void Trace(IntPtr hID, UIntPtr src, UIntPtr info, string fmtPrintfW, System.Int32 a1);
+
+            [ResourceExposure(ResourceScope.None)]
+            [DllImport(dllName, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "DllBidTraceCW")]
+            extern
+            internal static void Trace(IntPtr hID, UIntPtr src, UIntPtr info, string fmtPrintfW, System.Int32 a1, System.String a2);
 
             [ResourceExposure(ResourceScope.None)]
             [DllImport(dllName, EntryPoint = "DllBidScopeLeave")]

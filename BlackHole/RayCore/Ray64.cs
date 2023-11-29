@@ -450,7 +450,7 @@ namespace BlackHole.RayCore
             VARBINARY = -3,                     //SQL_VARBINARY
             LONGVARBINARY = -4,                     //SQL_LONGVARBINARY
 
-            //          DATE            =   9,                      //SQL_DATE
+            DATE            =   9,                      //SQL_DATE
             TYPE_DATE = SQL_C.TYPE_DATE,        //SQL_TYPE_DATE
             TYPE_TIME = SQL_C.TYPE_TIME,        //SQL_TYPE_TIME
             TIMESTAMP = SQL_C.TIMESTAMP,        //SQL_TIMESTAMP

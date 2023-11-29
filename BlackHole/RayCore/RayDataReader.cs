@@ -259,10 +259,5 @@ namespace BlackHole.RayCore
         {
 
         }
-
-        internal bool IsBehavior(CommandBehavior behavior)
-        {
-            return (behavior == (behavior & _commandBehavior));
-        }
     }
 }

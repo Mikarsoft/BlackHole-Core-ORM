@@ -1,5 +1,4 @@
 ﻿
-
 namespace BlackHole.RayCore
 {
     internal static class ExternDll
