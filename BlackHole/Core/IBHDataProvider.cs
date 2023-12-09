@@ -19,6 +19,20 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
+        bool Any();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        bool Any(BHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         bool Any(Expression<Func<T, bool>> predicate);
 
         /// <summary>
@@ -642,6 +656,22 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
         bool DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<bool> AnyAsync();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<bool> AnyAsync(BHTransaction transaction);
 
         /// <summary>
         /// 

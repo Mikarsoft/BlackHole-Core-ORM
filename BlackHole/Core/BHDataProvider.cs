@@ -63,34 +63,86 @@ namespace BlackHole.Core
             }
         }
 
-        bool IBHDataProvider<T, G>.Any(Expression<Func<T, bool>> predicate)
+        bool IBHDataProvider<T, G>.Any()
         {
-            throw new NotImplementedException();
+            string[] oneRow = 1.GetLimiter();
+            if (WithActivator)
+            {
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {oneRow[1]}", null) != null;
+            }
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null) != null;
         }
 
-        bool IBHDataProvider<T, G>.Any(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        bool IBHDataProvider<T, G>.Any(BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            string[] oneRow = 1.GetLimiter();
+            if (WithActivator)
+            {
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {oneRow[1]}", null, bhTransaction.transaction) != null;
+            }
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null, bhTransaction.transaction) != null;
+        }
+
+        bool IBHDataProvider<T, G>.Any(Expression<Func<T, bool>> predicate)
+        {
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            string[] oneRow = 1.GetLimiter();
+            if (WithActivator)
+            {
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
+            }
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
+        }
+
+        bool IBHDataProvider<T, G>.Any(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
+        {
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            string[] oneRow = 1.GetLimiter();
+            if (WithActivator)
+            {
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction) != null;
+            }
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction) != null;
         }
 
         int IBHDataProvider<T, G>.Count()
         {
-            throw new NotImplementedException();
+            if (WithActivator)
+            {
+                return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0", null);
+            }
+            return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable}", null);
         }
 
         int IBHDataProvider<T, G>.CountWhere(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+
+            if (WithActivator)
+            {
+                return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+            }
+            return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
-        int IBHDataProvider<T, G>.Count(BHTransaction transaction)
+        int IBHDataProvider<T, G>.Count(BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            if (WithActivator)
+            {
+                return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
+            }
+            return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable}", null, bhTransaction.transaction);
         }
 
-        int IBHDataProvider<T, G>.CountWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        int IBHDataProvider<T, G>.CountWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            throw new NotImplementedException();
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+
+            if (WithActivator)
+            {
+                return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            }
+            return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllEntries()
@@ -140,28 +192,37 @@ namespace BlackHole.Core
             return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
         }
 
-        List<T> IBHDataProvider<T, G>.GetAllEntries(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction)
+        List<T> IBHDataProvider<T, G>.GetAllEntries(Action<BHOrderBy<T>>  orderBy, BHTransaction bhTransaction)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-
-            throw new NotImplementedException();
+            if (WithActivator)
+            {
+                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            }
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>>  orderBy) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-
-            throw new NotImplementedException();
+            if (WithActivator)
+            {
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
+            }
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null);
         }
 
-        List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : class
+        List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>>  orderBy, BHTransaction bhTransaction) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-
-            throw new NotImplementedException();
+            if (WithActivator)
+            {
+                return _dataProvider.Query<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            }
+            return _dataProvider.Query<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllInactiveEntries()
@@ -561,6 +622,15 @@ namespace BlackHole.Core
                 return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive}=1 where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
             }
             return _dataProvider.JustExecute($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+        }
+        public Task<bool> AnyAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> AnyAsync(BHTransaction transaction)
+        {
+            throw new NotImplementedException();
         }
 
         async Task<bool> IBHDataProvider<T, G>.AnyAsync(Expression<Func<T, bool>> predicate)
