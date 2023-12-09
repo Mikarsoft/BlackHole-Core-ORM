@@ -1395,23 +1395,6 @@ namespace BlackHole.Core
         List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
-        /// Finds the active entries of the database table that
-        /// match with the Lambda Expression filters and returns their Ids
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>List of Entry Ids</returns>
-        List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy);
-
-        /// <summary>
-        /// <b>Transaction.</b> Finds the active entries of the database table that
-        /// match with the Lambda Expression filters and returns their Ids
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of Entry Ids</returns>
-        List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction);
-
-        /// <summary>
         /// <b>Asyncronous.</b> Finds the active entries of the database table that
         /// match with the Lambda Expression filters and returns the Id
         /// of the first entry
@@ -1450,25 +1433,6 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of Entry Ids</returns>
         Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
-
-        /// <summary>
-        /// <b>Asyncronous.</b> Finds the active entries of the database table that
-        /// match with the Lambda Expression filters and returns their Ids
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>List of Entry Ids</returns>
-        Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy);
-
-        /// <summary>
-        /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the active entries of the database table that
-        /// match with the Lambda Expression filters and returns their Ids
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of Entry Ids</returns>
-        Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction);
 
         /// <summary>
         /// Starts a Joins sequence, with the first one as 'Inner Join' that can be continued with 

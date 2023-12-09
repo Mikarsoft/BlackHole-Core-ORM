@@ -97,7 +97,7 @@ namespace BlackHole.Internal
                 BlackHoleSqlTypes.SqlServer => $"{GetMyShit(columName)} INT IDENTITY(1,1) NOT NULL ,",
                 BlackHoleSqlTypes.MySql => $"{GetMyShit(columName)} int AUTO_INCREMENT NOT NULL ,",
                 BlackHoleSqlTypes.Postgres => $"{GetMyShit(columName)} SERIAL ,",
-                BlackHoleSqlTypes.SqlLite => $"{GetMyShit(columName)} INTEGER default (last_insert_rowid() + 1) NOT NULL ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetMyShit(columName)} INTEGER AUTOINCREMENT ,",
                 _ => $"{GetMyShit(columName)} NUMBER(8,0) GENERATED ALWAYS AS IDENTITY ,",
             };
         }
