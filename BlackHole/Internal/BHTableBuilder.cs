@@ -22,15 +22,17 @@ namespace BlackHole.Internal
         private string TableSchema { get; set; }
         internal BHDatabaseInfoReader dbInfoReader { get; set; }
         internal bool IsForcedUpdate { get; } 
-        internal bool IsTrashOracleProduct { get; set; }
+        internal bool IsOracleProduct { get; set; }
         private string AlterColumn { get; }
+        private bool IsSqlServer { get; set; }
+        private List<string> SQLServerNotNullColumns { get; set; } = new();
         private List<string> CreateTablesTransaction { get; set; } = new();
         private List<string> CustomTransaction { get; set; } = new();
         private List<string> AfterMath { get; set; } = new();
         private List<string> DropTransaction { get; set; } = new();
-        private List<string> RevertShittyOracleTables { get; set; } = new();
-        private List<string> RevertShittyOracleTransaction { get; set; } = new();
-        private List<string> RevertShittyOracleAfterMath { get; set; } = new();
+        private List<string> RevertOracleTables { get; set; } = new();
+        private List<string> RevertOracleTransaction { get; set; } = new();
+        private List<string> RevertOracleAfterMath { get; set; } = new();
 
         internal BHTableBuilder()
         {
@@ -39,7 +41,9 @@ namespace BlackHole.Internal
             IsForcedUpdate = DatabaseStatics.AutoUpdate && (DatabaseStatics.IsDevMove || CliCommand.ForceAction);
             dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
             AlterColumn = _multiDatabaseSelector.GetColumnModifyCommand();
-            IsTrashOracleProduct = _multiDatabaseSelector.IsFuckingShittyTrashOracleProduct();
+            IsOracleProduct = _multiDatabaseSelector.IsUsingOracleProduct();
+
+            IsSqlServer = DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer;
 
             if (IsForcedUpdate)
             {
@@ -155,9 +159,9 @@ namespace BlackHole.Internal
                 creationCommand = $"{creationCommand[..^2]}{Pkoption})";
                 CliConsoleLogs($"{creationCommand};");
                 CreateTablesTransaction.Add(creationCommand);
-                if (IsTrashOracleProduct)
+                if (IsOracleProduct)
                 {
-                    RevertShittyOracleTables.Add($"DROP TABLE {MyShit(TableType.Name)}");
+                    RevertOracleTables.Add($"DROP TABLE {MyShit(TableType.Name)}");
                 }
                 return true;
             }
@@ -210,9 +214,9 @@ namespace BlackHole.Internal
                 creationCommand = $"{creationCommand[..^2]})";
                 CliConsoleLogs($"{creationCommand};");
                 CreateTablesTransaction.Add(creationCommand);
-                if (IsTrashOracleProduct)
+                if (IsOracleProduct)
                 {
-                    RevertShittyOracleTables.Add($"DROP TABLE {MyShit(TableType.Name)}");
+                    RevertOracleTables.Add($"DROP TABLE {MyShit(TableType.Name)}");
                 }
                 return true;
             }
@@ -925,9 +929,9 @@ namespace BlackHole.Internal
                     CustomTransaction.Add(columnCreator.ToString() + " NULL");
                     CliConsoleLogs($"{columnCreator} NULL;");
 
-                    if (IsTrashOracleProduct)
+                    if (IsOracleProduct)
                     {
-                        RevertShittyOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit("Inactive")}");
+                        RevertOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit("Inactive")}");
                     }
                 }
                 else
@@ -939,9 +943,9 @@ namespace BlackHole.Internal
                     CustomTransaction.Add(columnCreator.ToString());
                     CliConsoleLogs($"{columnCreator};");
 
-                    if (IsTrashOracleProduct)
+                    if (IsOracleProduct)
                     {
-                        RevertShittyOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit(Property.Name)}");
+                        RevertOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit(Property.Name)}");
                     }
                 }
                 columnCreator.Clear();
@@ -1006,7 +1010,7 @@ namespace BlackHole.Internal
                     CustomTransaction.Add(commandText);
                     CliConsoleLogs($"{commandText};");
 
-                    if (IsTrashOracleProduct)
+                    if (IsOracleProduct)
                     {
                         string primaryKeys = string.Empty;
                         foreach (string pkName in existingPKs)
@@ -1014,7 +1018,7 @@ namespace BlackHole.Internal
                             primaryKeys += $",{MyShit(pkName)}";
                         }
                         string commandTxt = $"ALTER TABLE {TableSchema}{Tablename} ADD CONSTRAINT PK_{TableType.Name} PRIMARY KEY ({primaryKeys.Remove(0, 1)})";
-                        RevertShittyOracleTransaction.Add(commandTxt);
+                        RevertOracleTransaction.Add(commandTxt);
                     }
                 }
             }
@@ -1035,9 +1039,9 @@ namespace BlackHole.Internal
                 CustomTransaction.Add(columnCreator.ToString());
                 columnCreator.Clear();
 
-                if (IsTrashOracleProduct)
+                if (IsOracleProduct)
                 {
-                    RevertShittyOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit(Property.Name)}");
+                    RevertOracleTransaction.Add($"ALTER TABLE {MyShit(TableType.Name)} DROP COLUMN {MyShit(Property.Name)}");
                 }
             }
 
@@ -1062,9 +1066,9 @@ namespace BlackHole.Internal
                 CustomTransaction.Add(commandTxt);
                 CliConsoleLogs($"{commandTxt};");
 
-                if (IsTrashOracleProduct)
+                if (IsOracleProduct)
                 {
-                    RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT IF EXISTS PK_{TableType.Name}");
+                    RevertOracleTransaction.Add($"ALTER TABLE {TableSchema}{Tablename} DROP CONSTRAINT IF EXISTS PK_{TableType.Name}");
                 }
             }
         }
@@ -1173,10 +1177,10 @@ namespace BlackHole.Internal
             CliConsoleLogs($"{updateTxt};");
             CliConsoleLogs($"{alterTxt};");
 
-            if (IsTrashOracleProduct)
+            if (IsOracleProduct)
             {
-                RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL");
-                RevertShittyOracleTransaction.Add(string.Empty);
+                RevertOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {GetSqlDataType(ColumnInfo)} NULL");
+                RevertOracleTransaction.Add(string.Empty);
             }
         }
 
@@ -1193,9 +1197,9 @@ namespace BlackHole.Internal
             CustomTransaction.Add(alterTxt);
             CliConsoleLogs($"{alterTxt};");
 
-            if (IsTrashOracleProduct)
+            if (IsOracleProduct)
             {
-                RevertShittyOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {setText} NOT NULL");
+                RevertOracleTransaction.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {MyShit(PropName)} {setText} NOT NULL");
             }
         }
 
@@ -1379,19 +1383,28 @@ namespace BlackHole.Internal
                         setText = GetDatatypeCommand(PropType, attributes, PropName, TableName);
                     }
 
-                    AfterMath.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null");
-                    AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {setText} NOT NULL");
-
-                    if (IsTrashOracleProduct)
+                    if (IsSqlServer && !isUnique)
                     {
-                        RevertShittyOracleAfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {setText} NULL");
-                        RevertShittyOracleAfterMath.Add(string.Empty);
-
+                        SQLServerNotNullColumns.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null");
+                        SQLServerNotNullColumns.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {setText} NOT NULL");
                     }
+                    else
+                    {
+                        AfterMath.Add($"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null");
+                        AfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {setText} NOT NULL");
+                    }
+
+                    if (IsOracleProduct)
+                    {
+                        RevertOracleAfterMath.Add($"ALTER TABLE {TableSchema}{MyShit(TableName)} {AlterColumn} {setText} NULL");
+                        RevertOracleAfterMath.Add(string.Empty);
+                    }
+
                     if (isUnique)
                     {
                         uqInfos.Add(AddUniqueConstraint(PropName,uniqueGroupId));
                     }
+
                     return nullPhase;
                 }
                 else
@@ -1604,9 +1617,9 @@ namespace BlackHole.Internal
             foreach(string referencedTable in tableFKs.Select(x => x.ReferencedTable).Distinct())
             {
                 result.Add($"{CreateFkConstraint(tableFKs.Where(x => x.ReferencedTable == referencedTable).ToList(), TableName, referencedTable, AlterCommand)}");
-                if (IsTrashOracleProduct)
+                if (IsOracleProduct)
                 {
-                    RevertShittyOracleAfterMath.Add($"{AlterCommand} DROP CONSTRAINT fk_{TableName}_{referencedTable}");
+                    RevertOracleAfterMath.Add($"{AlterCommand} DROP CONSTRAINT fk_{TableName}_{referencedTable}");
                 }
             }
             return result;
@@ -1628,9 +1641,9 @@ namespace BlackHole.Internal
             foreach (int columnsGroup in tableUQs.Select(x => x.GroupId).Distinct())
             {
                 result.Add($"{CreateUQConstraint(tableUQs.Where(x => x.GroupId == columnsGroup).ToList(), TableName, AlterCommand)}");
-                if (IsTrashOracleProduct)
+                if (IsOracleProduct)
                 {
-                    RevertShittyOracleAfterMath.Add($"{AlterCommand} DROP CONSTRAINT uc_{TableName}_{columnsGroup}");
+                    RevertOracleAfterMath.Add($"{AlterCommand} DROP CONSTRAINT uc_{TableName}_{columnsGroup}");
                 }
             }
             return result;
@@ -1872,9 +1885,9 @@ namespace BlackHole.Internal
             CustomTransaction.Clear();
             AfterMath.Clear();
             DropTransaction.Clear();
-            RevertShittyOracleTables.Clear();
-            RevertShittyOracleTransaction.Clear();
-            RevertShittyOracleAfterMath.Clear();
+            RevertOracleTables.Clear();
+            RevertOracleTransaction.Clear();
+            RevertOracleAfterMath.Clear();
         }
 
         internal bool ExecuteTableCreation()
@@ -1901,7 +1914,7 @@ namespace BlackHole.Internal
                     return result;
                 }
 
-                if (IsTrashOracleProduct)
+                if (IsOracleProduct)
                 {
                     List<string> UpdateCommands = new();
                     UpdateCommands.AddRange(CreateTablesTransaction);
@@ -1909,9 +1922,9 @@ namespace BlackHole.Internal
                     UpdateCommands.AddRange(AfterMath);
 
                     List<string> RevertChanges = new();
-                    RevertChanges.AddRange(RevertShittyOracleTables);
-                    RevertChanges.AddRange(RevertShittyOracleTransaction);
-                    RevertChanges.AddRange(RevertShittyOracleAfterMath);
+                    RevertChanges.AddRange(RevertOracleTables);
+                    RevertChanges.AddRange(RevertOracleTransaction);
+                    RevertChanges.AddRange(RevertOracleAfterMath);
 
                     BlackHoleTransaction transaction = new();
                     int failedIndex = 0;
@@ -1959,7 +1972,23 @@ namespace BlackHole.Internal
                 }
 
                 KickInTheTeeth.Append(safeTransaction[1]);
-                return connection.JustExecute(KickInTheTeeth.ToString(), null);
+                bool itWorked = connection.JustExecute(KickInTheTeeth.ToString(), null);
+
+                if(IsSqlServer && itWorked && SQLServerNotNullColumns.Any())
+                {
+                    KickInTheTeeth.Clear();
+                    KickInTheTeeth.Append(safeTransaction[0]);
+
+                    foreach(string command in SQLServerNotNullColumns)
+                    {
+                        KickInTheTeeth.Append($"{command};");
+                    }
+
+                    KickInTheTeeth.Append(safeTransaction[1]);
+                    connection.JustExecute(KickInTheTeeth.ToString(), null);
+                }
+
+                return itWorked;
             }
             return true;
         }

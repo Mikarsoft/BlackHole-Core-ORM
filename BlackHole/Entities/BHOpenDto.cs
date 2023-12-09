@@ -6,7 +6,7 @@ namespace BlackHole.Entities
     /// Is Required to use Mapping on DTO, Views and Joins Functionality and 
     /// selecting specific columns of BHOpenEntities.
     /// </summary>
-    public interface BHOpenDto : IBHDtoIdentifier
+    public abstract class BHOpenDto : IBHDtoIdentifier
     {
     }
 }

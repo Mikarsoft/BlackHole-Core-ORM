@@ -23,7 +23,7 @@ namespace BlackHole.Internal
         bool SetDbDateFormat(IExecutionProvider _executionProvider);
         string GetColumnModifyCommand();
         string[] GetSafeTransactionTry();
-        bool IsFuckingShittyTrashOracleProduct();
+        bool IsUsingOracleProduct();
 
         string TableSchemaCheck();
         string GetDatabaseSchema();

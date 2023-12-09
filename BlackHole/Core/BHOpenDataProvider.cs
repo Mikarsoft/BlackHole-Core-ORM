@@ -92,6 +92,46 @@ namespace BlackHole.Core
             }
         }
 
+        public bool Any()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Any(BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Any(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Any(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Count()
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountWhere(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Count(BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
         bool IBHOpenDataProvider<T>.DeleteAllEntries()
         {
             return _executionProvider.JustExecute($"delete from {ThisTable}", null);
@@ -332,6 +372,66 @@ namespace BlackHole.Core
             return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
 
+        public List<T> GetAllEntries(Action<BHOrderBy<T>> orderBy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<T> GetAllEntries(Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Dto> GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Dto> GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public T? GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T? GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
         bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries)
         {
             return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
@@ -376,6 +476,106 @@ namespace BlackHole.Core
                 return true;
             }
             return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry, Tprops), bhTransaction.transaction);
+        }
+
+        public Task<bool> AnyAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> AnyAsync(BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> CountAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> CountWhereAsync(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> CountAsync(BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<int> CountWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<T>> GetAllEntriesAsync(Action<BHOrderBy<T>> orderBy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<T>> GetAllEntriesAsync(Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Dto>> GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Dto>> GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BHOpenDto
+        {
+            throw new NotImplementedException();
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry)

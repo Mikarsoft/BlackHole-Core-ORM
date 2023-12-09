@@ -310,7 +310,7 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
-        bool IBHDatabaseSelector.IsFuckingShittyTrashOracleProduct()
+        bool IBHDatabaseSelector.IsUsingOracleProduct()
         {
             if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
             {
