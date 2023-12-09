@@ -198,7 +198,7 @@ namespace BlackHole.Core
             {
                 return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>>  orderBy) where Dto : class
@@ -209,7 +209,7 @@ namespace BlackHole.Core
             {
                 return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
             }
-            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>>  orderBy, BHTransaction bhTransaction) where Dto : class
@@ -220,7 +220,7 @@ namespace BlackHole.Core
             {
                 return _dataProvider.Query<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
             }
-            return _dataProvider.Query<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return _dataProvider.Query<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllInactiveEntries()
@@ -823,7 +823,7 @@ namespace BlackHole.Core
             {
                 return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>>  orderBy) where Dto : class
@@ -834,7 +834,7 @@ namespace BlackHole.Core
             {
                 return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null);
+            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>>  orderBy, BHTransaction bhTransaction) where Dto : class
@@ -845,7 +845,7 @@ namespace BlackHole.Core
             {
                 return await _dataProvider.QueryAsync<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} where 1=1 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync()

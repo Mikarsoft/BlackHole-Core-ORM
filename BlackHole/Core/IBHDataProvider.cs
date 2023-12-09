@@ -17,14 +17,13 @@ namespace BlackHole.Core
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="predicate"></param>
         /// <returns></returns>
         bool Any();
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         bool Any(BHTransaction transaction);
 
@@ -39,6 +38,7 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
         /// <returns></returns>
         bool Any(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
@@ -250,45 +250,39 @@ namespace BlackHole.Core
         Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
-        /// Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns the first one that matches the filters
+        /// 
         /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>Entity</returns>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         T? GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy);
 
         /// <summary>
-        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns the first one that matches the filters
+        /// 
         /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Entity</returns>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         T? GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
 
         /// <summary>
-        /// Generates an Sql command using the Lambda Expression and the Dto properties that match
-        /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
-        /// filters
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// 
         /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>Data Transfer Object</returns>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BlackHoleDto<G>;
 
         /// <summary>
-        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
-        /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
-        /// filters
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// 
         /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Data Transfer Object</returns>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
@@ -334,45 +328,39 @@ namespace BlackHole.Core
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
-        /// Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Entries that match the filters
+        /// 
         /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>List of Entities</returns>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy);
 
         /// <summary>
-        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Entries that match the filters
+        /// 
         /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of Entities</returns>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction);
 
         /// <summary>
-        /// Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Columns that match with the filters
-        /// and the Dto properties
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// 
         /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>List of DTOs</returns>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy) where Dto : BlackHoleDto<G>;
 
         /// <summary>
-        /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Columns that match with the filters
-        /// and the Dto properties
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// 
         /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of DTOs</returns>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
@@ -660,15 +648,12 @@ namespace BlackHole.Core
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
         /// <returns></returns>
         Task<bool> AnyAsync();
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
         Task<bool> AnyAsync(BHTransaction transaction);
@@ -677,7 +662,6 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
         /// <returns></returns>
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
 
@@ -914,49 +898,39 @@ namespace BlackHole.Core
         Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
-        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns the first one that matches the filters
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// 
         /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>Entity</returns>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy);
 
         /// <summary>
-        /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns the first one that matches the filters
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// 
         /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Entity</returns>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
 
         /// <summary>
-        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
-        /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
-        /// filters
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// 
         /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>Data Transfer Object</returns>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BlackHoleDto<G>;
 
         /// <summary>
-        /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
-        /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
-        /// filters
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// 
         /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Data Transfer Object</returns>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
@@ -1006,49 +980,39 @@ namespace BlackHole.Core
         Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
-        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Entries that match the filters
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// 
         /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>List of Entities</returns>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy);
 
-        /// <summary>
-        /// <b>Transaction.</b><b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Entries that match the filters
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of Entities</returns>
+         /// <summary>
+         /// 
+         /// </summary>
+         /// <param name="predicate"></param>
+         /// <param name="orderBy"></param>
+         /// <param name="transaction"></param>
+         /// <returns></returns>
         Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction);
 
         /// <summary>
-        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Columns that match with the filters
-        /// and the Dto properties 
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
+        /// 
         /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <returns>List of DTOs</returns>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <returns></returns>
         Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy) where Dto : BlackHoleDto<G>;
 
-        /// <summary>
-        /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Columns that match with the filters
-        /// and the Dto properties 
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of DTOs</returns>
+         /// <summary>
+         /// 
+         /// </summary>
+         /// <typeparam name="Dto"></typeparam>
+         /// <param name="predicate"></param>
+         /// <param name="orderBy"></param>
+         /// <param name="transaction"></param>
+         /// <returns></returns>
         Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>

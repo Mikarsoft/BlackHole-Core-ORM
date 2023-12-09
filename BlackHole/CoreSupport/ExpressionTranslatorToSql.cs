@@ -629,7 +629,7 @@ namespace BlackHole.CoreSupport
                 firstJoin.HelperIndex++;
             }
 
-            bool isOpen = typeof(TOther).GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(BHOpenEntity<>));
+            bool isOpen = typeof(TOther).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
             firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther, IsOpenEntity = isOpen });
             firstJoin.Letters.Add(parameterOther);
 
