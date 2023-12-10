@@ -165,6 +165,7 @@ namespace BlackHole.Core
         #endregion
 
         // SYNC METHODS
+
         #region Helper Methods
         private bool InsertMany<Dto>(List<Dto> entries, string textCommand)
         {
