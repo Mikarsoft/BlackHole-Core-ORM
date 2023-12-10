@@ -13,9 +13,8 @@ namespace BlackHole.Core
     /// <typeparam name="G">The type of Entity's Id</typeparam>
     public interface IBHDataProvider<T, G> where T : BlackHoleEntity<G>
     {
-        #region Syncronous
-
         #region Support Methods
+
         /// <summary>
         /// 
         /// </summary>
@@ -25,24 +24,9 @@ namespace BlackHole.Core
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        bool Any(BHTransaction transaction);
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
         bool Any(Expression<Func<T, bool>> predicate);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        bool Any(Expression<Func<T, bool>> predicate, BHTransaction transaction);
 
         /// <summary>
         /// 
@@ -62,6 +46,21 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
+        bool Any(BHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        bool Any(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         int Count(BHTransaction transaction);
 
         /// <summary>
@@ -75,9 +74,6 @@ namespace BlackHole.Core
 
         #region Select Methods
 
-        #region Select Normal
-
-        #region Select Normal Instant
         /// <summary>
         /// Gets all the entries of the specific Table
         /// and returns a List of Entities
@@ -161,9 +157,6 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>List of DTOs</returns>
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BlackHoleDto<G>;
-        #endregion
-
-        #region Select Normal With Transaction
 
         /// <summary>
         /// <b>Transaction.</b> Gets all the entries of the specific Table
@@ -254,13 +247,7 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of DTOs</returns>
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
-        #endregion
 
-        #endregion
-
-        #region Select With OrderBy
-
-        #region Select With OrderBy Instant
         /// <summary>
         /// Gets all the entries of the specific Table order by keys
         /// and returns a List of Entities 
@@ -320,9 +307,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <returns></returns>
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BlackHoleDto<G>;
-        #endregion
 
-        #region Select With OrderBy Transaction
         /// <summary>
         /// <b>Transaction.</b> Gets all the entries of the specific Table
         /// and returns a List of Entities
@@ -387,10 +372,6 @@ namespace BlackHole.Core
         List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
         #endregion
 
-        #endregion
-
-        #endregion
-
         #region Insert Methods
         /// <summary>
         /// Inserts the Entity into the table, generates a new Id 
@@ -431,7 +412,6 @@ namespace BlackHole.Core
 
         #region Update Methods
 
-        #region Update Instant
         /// <summary>
         /// Finds the entry in the table that has
         /// the same Id with the input's Entity and updates all
@@ -502,9 +482,7 @@ namespace BlackHole.Core
         /// <param name="entry">Columns Object</param>
         /// <returns>Success</returns>
         bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class;
-        #endregion
 
-        #region Update With Transaction
         /// <summary>
         /// <b>Transaction.</b> Finds the entry in the table that has
         /// the same Id with the input's Entity and updates all
@@ -581,7 +559,6 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
         bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class;
-        #endregion
 
         #endregion
 
@@ -694,9 +671,7 @@ namespace BlackHole.Core
 
         #endregion
 
-        #endregion
 
-        #region Asyncronous
         /// <summary>
         /// 
         /// </summary>
@@ -1448,7 +1423,6 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of Entry Ids</returns>
         Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
-        #endregion
 
         #region Joins
         /// <summary>
