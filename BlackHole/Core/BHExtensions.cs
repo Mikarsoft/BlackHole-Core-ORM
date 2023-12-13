@@ -53,11 +53,6 @@ namespace BlackHole.Core
             return newJoin.CreateJoin(key, otherkey, "right");
         }
 
-        public static PreJoin<TSource,TOther> InnerJoin<TSource, TOther, Dto>(this JoinsData<Dto> data)
-        {
-            return new PreJoin<TSource, TOther>();
-        }
-
         /// <summary>
         /// Performs a Left Join between the First and the Second specified Entities. 
         /// <para><b>Important</b> => For safety reasons, The first Entity must have been used 
@@ -279,6 +274,68 @@ namespace BlackHole.Core
             }
 
             return data;
+        }
+
+        internal static void CastColumn<Tsource>(this JoinsData data, LambdaExpression predicate, LambdaExpression castOnDto)
+        {
+            if (!data.Ignore)
+            {
+                Type propertyType = predicate.Body.Type;
+                MemberExpression? member = predicate.Body as MemberExpression;
+                string? propName = member?.Member.Name;
+
+                Type dtoPropType = castOnDto.Body.Type;
+                MemberExpression? memberOther = castOnDto.Body as MemberExpression;
+                string? propNameOther = memberOther?.Member.Name;
+                int allow = propertyType.AllowCast(dtoPropType);
+
+                if (allow != 0)
+                {
+                    var oDp = data.OccupiedDtoProps.Where(x => x.PropName == propNameOther).First();
+                    int index = data.OccupiedDtoProps.IndexOf(oDp);
+                    data.OccupiedDtoProps[index].Occupied = true;
+                    data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.Where(x => x.Table == typeof(Tsource)).First().Letter;
+                    data.OccupiedDtoProps[index].TableProperty = propName;
+                    data.OccupiedDtoProps[index].TablePropertyType = propertyType;
+                    data.OccupiedDtoProps[index].WithCast = allow;
+                }
+            }
+        }
+
+        internal static void Additional<Tsource, TOther>(this JoinsData data, LambdaExpression key, LambdaExpression otherKey, string additionalType)
+        {
+            if (!data.Ignore)
+            {
+                string? firstLetter = data.TablesToLetters.Where(t => t.Table == typeof(Tsource)).First().Letter;
+                string? secondLetter = data.TablesToLetters.Where(t => t.Table == typeof(TOther)).First().Letter;
+
+                MemberExpression? member = key.Body as MemberExpression;
+                string? propName = member?.Member.Name;
+                MemberExpression? memberOther = otherKey.Body as MemberExpression;
+                string? propNameOther = memberOther?.Member.Name;
+
+                data.Joins += $" {additionalType} {secondLetter}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {firstLetter}.{propName.SkipNameQuotes(data.isMyShit)}";
+            }
+        }
+
+        internal static void WhereJoin<Tsource>(this JoinsData data, Expression<Func<Tsource, bool>> predicate)
+        {
+            if (!data.Ignore)
+            {
+                string? letter = data.TablesToLetters.Where(x => x.Table == typeof(Tsource)).First().Letter;
+                ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<Tsource>(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
+                data.DynamicParams = colsAndParams.Parameters;
+                data.ParamsCount = colsAndParams.Count;
+
+                if (data.WherePredicates == string.Empty)
+                {
+                    data.WherePredicates = $" where {colsAndParams.Columns}";
+                }
+                else
+                {
+                    data.WherePredicates += $" and {colsAndParams.Columns}";
+                }
+            }
         }
 
         /// <summary>
@@ -601,6 +658,88 @@ namespace BlackHole.Core
             return await connection.QueryAsync<Dto>(commandText, data.DynamicParams, bHTransaction.transaction);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static List<Dto> ExecuteQuery<Dto>(this JoinComplete<Dto> data) where Dto: IBHDtoIdentifier
+        {
+            if(data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
+            {
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                return connection.Query<Dto>(command.Columns, command.Parameters);
+            }
+            return new List<Dto>();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinComplete<Dto> data) where Dto : IBHDtoIdentifier
+        {
+            if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
+            {
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters);
+            }
+            return new List<Dto>();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="data"></param>
+        /// <param name="bHTransaction"></param>
+        /// <returns></returns>
+        public static List<Dto> ExecuteQuery<Dto>(this JoinComplete<Dto> data, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
+        {
+            if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
+            {
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                return connection.Query<Dto>(command.Columns, command.Parameters, bHTransaction.transaction);
+            }
+            return new List<Dto>();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="data"></param>
+        /// <param name=""></param>
+        /// <param name="bHTransaction"></param>
+        /// <returns></returns>
+        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinComplete<Dto> data, BHTransaction bHTransaction) where Dto : IBHDtoIdentifier
+        {
+            if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
+            {
+                IExecutionProvider connection = DatabaseStatics.DatabaseType.GetConnectionExtension();
+                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, bHTransaction.transaction);
+            }
+            return new List<Dto>();
+        }
+
+        internal static ColumnsAndParameters? TranslateJoin<Dto>(this JoinsData data) where Dto : IBHDtoIdentifier
+        {
+            if (data.DtoType == typeof(Dto))
+            {
+                BHOrderBy<Dto> orderClass = new();
+                orderBy.Invoke(orderClass);
+                data.WherePredicates = data.TablesToLetters.RejectInactiveEntities(data.WherePredicates, data.isMyShit);
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string commandText = $"{data.OccupiedDtoProps.BuildCommand(data.isMyShit)} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
+                return new ColumnsAndParameters { Columns = commandText, Parameters = data.DynamicParams };
+            }
+            return null;
+        }
+
         internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy) where Dto : IBHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
@@ -893,6 +1032,8 @@ namespace BlackHole.Core
                 _ => new OracleExecutionProvider(DatabaseStatics.ConnectionString),
             };
         }
+
+      
 
         private static JoinsData<Dto, Tsource, TOther> CreateJoin<Dto, Tsource, TOther>(this JoinsData<Dto, Tsource, TOther> data, LambdaExpression key, LambdaExpression otherKey, string joinType)
         {

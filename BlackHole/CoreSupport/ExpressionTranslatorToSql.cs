@@ -1,8 +1,7 @@
-﻿using BlackHole.Core;
-using BlackHole.Entities;
+﻿using BlackHole.Entities;
+using BlackHole.Statics;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 namespace BlackHole.CoreSupport
 {
@@ -638,6 +637,100 @@ namespace BlackHole.CoreSupport
             return firstJoin;
         }
 
+        internal static void CreateJoin<Dto, Tsource, TOther>(this JoinsData data, LambdaExpression key, LambdaExpression otherKey, string joinType, bool first)
+        {
+            string? parameter = string.Empty;
+
+            TableLetters? firstType = data.TablesToLetters.Where(x => x.Table == typeof(Tsource)).FirstOrDefault();
+
+            if (firstType == null)
+            {
+                data.Ignore = true;
+            }
+            else
+            {
+                parameter = firstType.Letter;
+            }
+
+            if (!data.Ignore)
+            {
+                MemberExpression? member = key.Body as MemberExpression;
+                string? propName = member?.Member.Name;
+                string? parameterOther = otherKey.Parameters[0].Name;
+                MemberExpression? memberOther = otherKey.Body as MemberExpression;
+                string? propNameOther = memberOther?.Member.Name;
+
+                TableLetters? secondTable = data.TablesToLetters.FirstOrDefault(x => x.Table == typeof(TOther));
+
+                if (secondTable == null)
+                {
+                    bool letterExists = data.Letters.Contains(parameterOther);
+
+                    if (letterExists)
+                    {
+                        parameterOther += data.HelperIndex.ToString();
+                        data.HelperIndex++;
+                    }
+
+                    data.Letters.Add(parameterOther);
+
+                    bool isOpen = typeof(TOther).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
+                    data.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther, IsOpenEntity = isOpen });
+                }
+                else
+                {
+                    parameterOther = secondTable.Letter;
+                }
+
+                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+
+                data.Joins += $" {joinType} join {schemaName}{typeof(TOther).Name.SkipNameQuotes(data.isMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {parameter}.{propName.SkipNameQuotes(data.isMyShit)}";
+                data.OccupiedDtoProps = data.OccupiedDtoProps.BindPropertiesToDtoExtension(typeof(TOther), parameterOther);
+            }
+        }
+
+        internal static void InitializeOccupiedProperties(this JoinsData data)
+        {
+            foreach(PropertyInfo dtoProperty in data.DtoType.GetProperties())
+            {
+                data.OccupiedDtoProps.Add(new PropertyOccupation
+                {
+                    PropName = dtoProperty.Name,
+                    PropType = dtoProperty.PropertyType,
+                    Occupied = false,
+                    WithCast = 0
+                });
+            }
+        }
+
+        private static List<PropertyOccupation> BindPropertiesToDtoExtension(this List<PropertyOccupation> props, Type secondTable, string? paramB)
+        {
+            List<string> OtherPropNames = new();
+
+            foreach (PropertyInfo otherProp in secondTable.GetProperties())
+            {
+                OtherPropNames.Add(otherProp.Name);
+            }
+
+            foreach (PropertyOccupation property in props)
+            {
+                if (OtherPropNames.Contains(property.PropName) && !property.Occupied)
+                {
+                    Type? TOtherPropType = secondTable.GetProperty(property.PropName)?.PropertyType;
+
+                    if (TOtherPropType == property.PropType)
+                    {
+                        property.Occupied = true;
+                        property.TableProperty = TOtherPropType?.Name;
+                        property.TablePropertyType = TOtherPropType;
+                        property.TableLetter = paramB;
+                    }
+                }
+            }
+
+            return props;
+        }
+
         private static List<PropertyOccupation> BindPropertiesToDto<T>( this List<string> Columns, Type otherTable, Type dto, string? paramA, string? paramB)
         {
             List<PropertyOccupation> result = new();
@@ -728,6 +821,18 @@ namespace BlackHole.CoreSupport
             {
                 colsAndParams.Parameters.Add(new BlackHoleParameter { Name = prop.Name, Value = prop.GetValue(item) });
             }
+        }
+
+        private static string GetSchema(this string StaticSchema)
+        {
+            string schemaName = string.Empty;
+
+            if (StaticSchema != string.Empty)
+            {
+                schemaName = $"{StaticSchema}.";
+            }
+
+            return schemaName;
         }
     }
 }

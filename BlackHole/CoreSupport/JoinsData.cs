@@ -23,7 +23,12 @@ namespace BlackHole.CoreSupport
 
     internal class JoinsData
     {
-        internal Type? DtoType { get; set; }
+        internal JoinsData(Type dtoType)
+        {
+            DtoType = dtoType;
+        }
+
+        internal Type DtoType { get; set; }
         internal Type? BaseTable { get; set; }
         internal List<PropertyOccupation> OccupiedDtoProps { get; set; } = new List<PropertyOccupation>();
         internal List<TableLetters> TablesToLetters { get; set; } = new List<TableLetters>();
@@ -35,6 +40,7 @@ namespace BlackHole.CoreSupport
         internal bool isMyShit { get; set; }
         internal bool Ignore { get; set; }
         internal int ParamsCount { get; set; }
+        internal string OrderByOptions { get; set; } = string.Empty;
     }
 
     /// <summary>
