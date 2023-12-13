@@ -6,7 +6,7 @@ namespace BlackHole.Configuration
     /// <summary>
     /// 
     /// </summary>
-    public class MultiConnectionSettings
+    internal class MultiConnectionSettings
     {
         internal string ConnectionString { get; set; } = string.Empty;
         internal string TableSchema { get; set; } = string.Empty;

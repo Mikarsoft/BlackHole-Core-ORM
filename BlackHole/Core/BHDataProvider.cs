@@ -1621,6 +1621,11 @@ namespace BlackHole.Core
         {
             return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "right", ThisSchema, IsMyShit, false);
         }
+
+        public JoinsProcess<Dto> InnertestJoin<Dto>()
+        {
+            return new JoinsProcess<Dto>();
+        }
         #endregion
     }
 }

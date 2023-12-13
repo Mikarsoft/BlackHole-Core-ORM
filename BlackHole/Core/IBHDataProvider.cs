@@ -1525,5 +1525,7 @@ namespace BlackHole.Core
         JoinsData<Dto, T, TOther> RightJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
            where Dto : IBHDtoIdentifier where TOther : IBHEntityIdentifier where Tkey : IComparable;
         #endregion
+
+        JoinsProcess<Dto> InnertestJoin<Dto>();
     }
 }

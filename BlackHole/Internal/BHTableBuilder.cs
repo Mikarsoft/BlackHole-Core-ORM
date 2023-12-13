@@ -1850,6 +1850,10 @@ namespace BlackHole.Internal
                 case "DateTime":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[10]} ";
                     break;
+                case "DateTimeOffset":
+                    break;
+                case "TimeSpan":
+                    break;
                 case "Byte[]":
                     dataCommand = $"{MyShit(Propertyname)} {SqlDatatypes[11]} ";
                     break;

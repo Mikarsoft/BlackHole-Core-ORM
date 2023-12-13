@@ -209,13 +209,13 @@ namespace BlackHole.Internal
             switch (DatabaseStatics.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    SqlDatatypes = new[] { "nvarchar", "char", "smallint", "int", "bigint", "decimal", "smallmoney", "float", "uniqueidentifier", "bit", "datetime", "varbinary" };
+                    SqlDatatypes = new[] { "nvarchar", "char", "smallint", "int", "bigint", "decimal", "smallmoney", "float", "uniqueidentifier", "bit", "datetime", "datetimeoffset", "time", "varbinary" };
                     break;
                 case BlackHoleSqlTypes.MySql:
                     SqlDatatypes = new[] { "varchar", "char","smallint", "int", "bigint", "decimal", "float", "double", "varchar(36)", "bit", "datetime", "varbinary" };
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    SqlDatatypes = new[] { "varchar", "char", "int2", "int4", "int8", "numeric", "float4", "float8", "uuid", "bool", "timestamp", "bytea" };
+                    SqlDatatypes = new[] { "varchar", "char", "int2", "int4", "int8", "numeric", "float4", "float8", "uuid", "bool", "timestamp", "timestamptz", "time", "bytea" };
                     break;
                 case BlackHoleSqlTypes.SqlLite:
                     SqlDatatypes = new[] { "varchar", "char", "int2", "integer", "bigint", "decimal", "float", "numeric", "varchar(36)", "boolean", "datetime", "blob" };

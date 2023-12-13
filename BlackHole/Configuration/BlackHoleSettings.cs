@@ -17,10 +17,13 @@ namespace BlackHole.Configuration
         /// </summary>
         public ConnectionSettings connectionConfig { get; set; } = new ConnectionSettings();
 
+        // MULTIPLE DATABASES , WORK IN PROGRESS
+
         /// <summary>
         /// connection settings for multiple databases
         /// </summary>
-        public List<ConnectionSettings> connectionsConfig { get; set; } = new List<ConnectionSettings>();
+        internal List<ConnectionSettings> connectionsConfig { get; set; } = new List<ConnectionSettings>();
+        // MULTIPLE DATABASES , WORK IN PROGRESS
 
 
         /// <summary>
@@ -55,12 +58,15 @@ namespace BlackHole.Configuration
             return directorySettings;
         }
 
+        
+        // MULTIPLE DATABASES , WORK IN PROGRESS
+
         /// <summary>
         /// Add the configuration for a database.
         /// </summary>
         /// <param name="connectionSettings">connection settings</param>
         /// <returns>DataPath Settings to add more settings</returns>
-        public DataPathSettings AddDatabases(Action<List<Action<ConnectionSettings>>> connectionSettings)
+        internal DataPathSettings AddDatabases(Action<List<Action<ConnectionSettings>>> connectionSettings)
         {
             List<Action<ConnectionSettings>> list = new();
 
@@ -75,6 +81,8 @@ namespace BlackHole.Configuration
 
             return directorySettings;
         }
+        // MULTIPLE DATABASES , WORK IN PROGRESS
+
 
         /// <summary>
         /// <para>If this is set to TRUE, then all the changes to the Entities 

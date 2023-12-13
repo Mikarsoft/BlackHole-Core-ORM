@@ -32,7 +32,7 @@ namespace BlackHole.Core
         /// <param name="otherkey">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> RightJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
+            Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
             where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
@@ -53,6 +53,11 @@ namespace BlackHole.Core
             return newJoin.CreateJoin(key, otherkey, "right");
         }
 
+        public static PreJoin<TSource,TOther> InnerJoin<TSource, TOther, Dto>(this JoinsData<Dto> data)
+        {
+            return new PreJoin<TSource, TOther>();
+        }
+
         /// <summary>
         /// Performs a Left Join between the First and the Second specified Entities. 
         /// <para><b>Important</b> => For safety reasons, The first Entity must have been used 
@@ -68,7 +73,7 @@ namespace BlackHole.Core
         /// <param name="otherkey">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> LeftJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
+            Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
             where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
@@ -104,7 +109,7 @@ namespace BlackHole.Core
         /// <param name="otherkey">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> OuterJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
+            Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
             where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
@@ -140,8 +145,8 @@ namespace BlackHole.Core
         /// <param name="otherkey">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> InnerJoinOn<Tsource, TOther, Tkey, Dto>(this JoinsData<Dto> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey)
-            where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Tkey : IComparable where Dto : IBHDtoIdentifier
+            Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+            where TOther : IBHEntityIdentifier where Tsource : IBHEntityIdentifier where Dto : IBHDtoIdentifier
         {
             JoinsData<Dto, Tsource, TOther> newJoin = new()
             {
@@ -175,7 +180,7 @@ namespace BlackHole.Core
         /// <param name="otherkey">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> And<Dto, Tsource, TOther, Tkey>(this JoinsData<Dto, Tsource, TOther> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey) where Tkey : IComparable
+            Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey) where Tkey : IComparable
         {
             if (data.Ignore)
             {
@@ -206,7 +211,7 @@ namespace BlackHole.Core
         /// <param name="otherkey">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> Or<Dto, Tsource, TOther, Tkey>(this JoinsData<Dto, Tsource, TOther> data,
-            Expression<Func<Tsource, Tkey>> key, Expression<Func<TOther, Tkey>> otherkey) where Tkey : IComparable
+            Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey) where Tkey : IComparable
         {
             if (data.Ignore)
             {
@@ -246,7 +251,7 @@ namespace BlackHole.Core
         /// <param name="castOnDto">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> CastColumnOfSecondAs<Dto, Tsource, TOther, Tkey, TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
-            Expression<Func<TOther, Tkey>> predicate, Expression<Func<Dto, TotherKey>> castOnDto)
+            Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TotherKey?>> castOnDto)
         {
             if (data.Ignore)
             {
@@ -297,7 +302,7 @@ namespace BlackHole.Core
         /// <param name="castOnDto">Second Table Joint Column</param>
         /// <returns>The Calculated Data of this Join</returns>
         public static JoinsData<Dto, Tsource, TOther> CastColumnOfFirstAs<Dto, Tsource, TOther, Tkey, TotherKey>(this JoinsData<Dto, Tsource, TOther> data,
-            Expression<Func<Tsource, Tkey>> predicate, Expression<Func<Dto, TotherKey>> castOnDto)
+            Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TotherKey?>> castOnDto)
         {
             if (data.Ignore)
             {
