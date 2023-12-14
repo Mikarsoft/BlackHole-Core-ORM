@@ -45,9 +45,9 @@ namespace BlackHole.Core
 
             Type EntityType = typeof(T);
 
-            _executionProvider = BHDataProviderSelector.GetExecutionProvider();
+            _executionProvider = BHCore.GetExecutionProvider();
             IsMyShit = _executionProvider.SkipQuotes();
-            ThisSchema = BHDataProviderSelector.GetDatabaseSchema();
+            ThisSchema = BHCore.GetDatabaseSchema();
             ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";
 
             if (_settings.HasAutoIncrement)
@@ -72,7 +72,7 @@ namespace BlackHole.Core
                         }
                         else
                         {
-                            ReturningCase = _settings.GetReturningPrimaryKey(prop.Name, property, ThisTable);
+                            ReturningCase = _settings.GetReturningPrimaryKey(property, ThisTable);
                         }
                     }
                     else
@@ -1079,32 +1079,5 @@ namespace BlackHole.Core
             return await _executionProvider.JustExecuteAsync($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
         }
         #endregion
-
-        // JOINS
-
-        #region Joins Methods
-
-        JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-        {
-            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "inner", ThisSchema, IsMyShit, true);
-        }
-
-        JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.LeftJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-        {
-            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "left", ThisSchema, IsMyShit, true);
-        }
-
-        JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.OuterJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-        {
-            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "full outer", ThisSchema, IsMyShit, true);
-        }
-
-        JoinsData<Dto, T, TOther> IBHOpenDataProvider<T>.RightJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-        {
-            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "right", ThisSchema, IsMyShit, true);
-        }
-
-        #endregion
-
     }
 }

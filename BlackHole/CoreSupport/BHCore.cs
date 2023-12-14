@@ -1,12 +1,107 @@
-﻿using BlackHole.Entities;
+﻿using BlackHole.Core;
+using BlackHole.DataProviders;
+using BlackHole.Entities;
+using BlackHole.Enums;
+using BlackHole.ExecutionProviders;
+using BlackHole.Identifiers;
 using BlackHole.Statics;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 
 namespace BlackHole.CoreSupport
 {
-    internal static class ExpressionTranslatorToSql
+    internal static class BHCore
     {
+        private static IExecutionProvider? ExecProvider { get; set; }
+
+        internal static IDataProvider GetDataProvider(this Type IdType, string tableName)
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType), tableName, DatabaseStatics.IsQuotedDatabase),
+                BlackHoleSqlTypes.MySql => new MySqlDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType), tableName),
+                BlackHoleSqlTypes.Postgres => new PostgresDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType), tableName),
+                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType), tableName, DatabaseStatics.IsQuotedDatabase),
+                _ => new OracleDataProvider(DatabaseStatics.ConnectionString, GetIdType(IdType), tableName),
+            };
+        }
+
+        internal static IExecutionProvider GetExecutionProvider()
+        {
+            if(ExecProvider == null)
+            {
+                ExecProvider = DatabaseStatics.DatabaseType switch
+                {
+                    BlackHoleSqlTypes.SqlServer => new SqlServerExecutionProvider(DatabaseStatics.ConnectionString, DatabaseStatics.IsQuotedDatabase),
+                    BlackHoleSqlTypes.MySql => new MySqlExecutionProvider(DatabaseStatics.ConnectionString),
+                    BlackHoleSqlTypes.Postgres => new PostgresExecutionProvider(DatabaseStatics.ConnectionString),
+                    BlackHoleSqlTypes.SqlLite => new SqLiteExecutionProvider(DatabaseStatics.ConnectionString, DatabaseStatics.IsQuotedDatabase),
+                    _ => new OracleExecutionProvider(DatabaseStatics.ConnectionString),
+                };
+            }
+
+            return ExecProvider;
+        }
+
+        internal static string[] GetReturningPrimaryKey<T>(this EntitySettings<T> pkOptions, string MainColumn, string Tablename)
+        {
+            if (pkOptions.HasAutoIncrement)
+            {
+                return DatabaseStatics.DatabaseType switch
+                {
+                    BlackHoleSqlTypes.SqlServer => new string[] { $"output Inserted.{MainColumn}", "" },
+                    BlackHoleSqlTypes.MySql => new string[] { "", ";SELECT LAST_INSERT_ID();" },
+                    BlackHoleSqlTypes.Postgres => new string[] { "", $"returning {Tablename}.{MainColumn}" },
+                    BlackHoleSqlTypes.SqlLite => new string[] { "", $"returning {MainColumn}" },
+                    _ => new string[] { "", $"returning {MainColumn} into :OracleReturningValue" },
+                };
+            }
+
+            return new string[2];
+        }
+
+        internal static string[] GetLimiter(this int rowsCount)
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => new string[] { $" TOP {rowsCount} ", "" },
+                BlackHoleSqlTypes.MySql => new string[] { "", $" limit {rowsCount} " },
+                BlackHoleSqlTypes.Postgres => new string[] { "", $" limit {rowsCount} " },
+                BlackHoleSqlTypes.SqlLite => new string[] { "", $" limit {rowsCount} " },
+                _ => new string[] { "", $" and rownum <= {rowsCount} " },
+            };
+        }
+
+        internal static bool CheckActivator(this Type entity)
+        {
+            return entity.GetCustomAttributes(true).Any(x => x.GetType() == typeof(UseActivator));
+        }
+
+        internal static string GetDatabaseSchema()
+        {
+            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            {
+                return $"{DatabaseStatics.DatabaseSchema}.";
+            }
+            return string.Empty;
+        }
+
+        private static BlackHoleIdTypes GetIdType(Type type)
+        {
+            if (type == typeof(int))
+            {
+                return BlackHoleIdTypes.IntId;
+            }
+
+            if (type == typeof(Guid))
+            {
+                return BlackHoleIdTypes.GuidId;
+            }
+
+            return BlackHoleIdTypes.StringId;
+        }
+
         internal static ColumnsAndParameters SplitMembers<T>(this Expression expression, bool isMyShit, string? letter, List<BlackHoleParameter>? DynamicParams, int index)
         {
             List<ExpressionsData> expressionTree = new();
@@ -637,11 +732,25 @@ namespace BlackHole.CoreSupport
             return firstJoin;
         }
 
-        internal static void CreateJoin<Dto, Tsource, TOther>(this JoinsData data, LambdaExpression key, LambdaExpression otherKey, string joinType, bool first)
+        internal static void CreateJoin<Dto, TSource, TOther>(this JoinsData data, LambdaExpression key, LambdaExpression otherKey, string joinType, bool first)
         {
+            if (first)
+            {
+                string? parameterOne = key.Parameters[0].Name;
+
+                data.isMyShit = true;
+                data.BaseTable = typeof(TSource);
+                data.Ignore = false;
+                bool OpenEntity = typeof(TSource).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
+
+                data.TablesToLetters.Add(new TableLetters { Table = typeof(TSource), Letter = parameterOne, IsOpenEntity = OpenEntity });
+                data.Letters.Add(parameterOne);
+                data.BindPropertiesToDtoExtension(typeof(TSource), parameterOne);
+            }
+
             string? parameter = string.Empty;
 
-            TableLetters? firstType = data.TablesToLetters.Where(x => x.Table == typeof(Tsource)).FirstOrDefault();
+            TableLetters? firstType = data.TablesToLetters.Where(x => x.Table == typeof(TSource)).FirstOrDefault();
 
             if (firstType == null)
             {
@@ -656,6 +765,7 @@ namespace BlackHole.CoreSupport
             {
                 MemberExpression? member = key.Body as MemberExpression;
                 string? propName = member?.Member.Name;
+
                 string? parameterOther = otherKey.Parameters[0].Name;
                 MemberExpression? memberOther = otherKey.Body as MemberExpression;
                 string? propNameOther = memberOther?.Member.Name;
@@ -664,9 +774,7 @@ namespace BlackHole.CoreSupport
 
                 if (secondTable == null)
                 {
-                    bool letterExists = data.Letters.Contains(parameterOther);
-
-                    if (letterExists)
+                    if (data.Letters.Contains(parameterOther))
                     {
                         parameterOther += data.HelperIndex.ToString();
                         data.HelperIndex++;
@@ -682,10 +790,10 @@ namespace BlackHole.CoreSupport
                     parameterOther = secondTable.Letter;
                 }
 
-                string schemaName = DatabaseStatics.DatabaseSchema.GetSchema();
+                string schemaName = GetDatabaseSchema();
 
                 data.Joins += $" {joinType} join {schemaName}{typeof(TOther).Name.SkipNameQuotes(data.isMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {parameter}.{propName.SkipNameQuotes(data.isMyShit)}";
-                data.OccupiedDtoProps = data.OccupiedDtoProps.BindPropertiesToDtoExtension(typeof(TOther), parameterOther);
+                data.BindPropertiesToDtoExtension(typeof(TOther), parameterOther);
             }
         }
 
@@ -703,32 +811,320 @@ namespace BlackHole.CoreSupport
             }
         }
 
-        private static List<PropertyOccupation> BindPropertiesToDtoExtension(this List<PropertyOccupation> props, Type secondTable, string? paramB)
+        private static void BindPropertiesToDtoExtension(this JoinsData data, Type secondTable, string? paramB)
         {
-            List<string> OtherPropNames = new();
+            List<string> OtherPropNames = secondTable.GetProperties().Select(x=>x.Name).ToList();
 
-            foreach (PropertyInfo otherProp in secondTable.GetProperties())
+            for(int i = 0 ; i < data.OccupiedDtoProps.Count; i++)
             {
-                OtherPropNames.Add(otherProp.Name);
-            }
+                PropertyOccupation property = data.OccupiedDtoProps[i];
 
-            foreach (PropertyOccupation property in props)
-            {
                 if (OtherPropNames.Contains(property.PropName) && !property.Occupied)
                 {
                     Type? TOtherPropType = secondTable.GetProperty(property.PropName)?.PropertyType;
 
                     if (TOtherPropType == property.PropType)
                     {
-                        property.Occupied = true;
-                        property.TableProperty = TOtherPropType?.Name;
-                        property.TablePropertyType = TOtherPropType;
-                        property.TableLetter = paramB;
+                        data.OccupiedDtoProps[i].Occupied = true;
+                        data.OccupiedDtoProps[i].TableProperty = TOtherPropType?.Name;
+                        data.OccupiedDtoProps[i].TablePropertyType = TOtherPropType;
+                        data.OccupiedDtoProps[i].TableLetter = paramB;
                     }
                 }
             }
+        }
 
-            return props;
+        internal static void CastColumn<TSource>(this JoinsData data, LambdaExpression predicate, LambdaExpression castOnDto)
+        {
+            if (!data.Ignore)
+            {
+                Type propertyType = predicate.Body.Type;
+                MemberExpression? member = predicate.Body as MemberExpression;
+                string? propName = member?.Member.Name;
+
+                Type dtoPropType = castOnDto.Body.Type;
+                MemberExpression? memberOther = castOnDto.Body as MemberExpression;
+                string? propNameOther = memberOther?.Member.Name;
+                int allow = propertyType.AllowCast(dtoPropType);
+
+                if (allow != 0)
+                {
+                    var oDp = data.OccupiedDtoProps.Where(x => x.PropName == propNameOther).First();
+                    int index = data.OccupiedDtoProps.IndexOf(oDp);
+                    data.OccupiedDtoProps[index].Occupied = true;
+                    data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.Where(x => x.Table == typeof(TSource)).First().Letter;
+                    data.OccupiedDtoProps[index].TableProperty = propName;
+                    data.OccupiedDtoProps[index].TablePropertyType = propertyType;
+                    data.OccupiedDtoProps[index].WithCast = allow;
+                }
+            }
+        }
+
+        internal static void Additional<TSource, TOther>(this JoinsData data, LambdaExpression key, LambdaExpression otherKey, string additionalType)
+        {
+            if (!data.Ignore)
+            {
+                string? firstLetter = data.TablesToLetters.Where(t => t.Table == typeof(TSource)).First().Letter;
+                string? secondLetter = data.TablesToLetters.Where(t => t.Table == typeof(TOther)).First().Letter;
+
+                MemberExpression? member = key.Body as MemberExpression;
+                string? propName = member?.Member.Name;
+                MemberExpression? memberOther = otherKey.Body as MemberExpression;
+                string? propNameOther = memberOther?.Member.Name;
+
+                data.Joins += $" {additionalType} {secondLetter}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {firstLetter}.{propName.SkipNameQuotes(data.isMyShit)}";
+            }
+        }
+
+        internal static void WhereJoin<TSource>(this JoinsData data, Expression<Func<TSource, bool>> predicate)
+        {
+            if (!data.Ignore)
+            {
+                string? letter = data.TablesToLetters.Where(x => x.Table == typeof(TSource)).First().Letter;
+                ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TSource>(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
+                data.DynamicParams = colsAndParams.Parameters;
+                data.ParamsCount = colsAndParams.Count;
+
+                if (data.WherePredicates == string.Empty)
+                {
+                    data.WherePredicates = $" where {colsAndParams.Columns}";
+                }
+                else
+                {
+                    data.WherePredicates += $" and {colsAndParams.Columns}";
+                }
+            }
+        }
+
+        internal static ColumnsAndParameters? TranslateJoin<Dto>(this JoinsData data) where Dto : IBHDtoIdentifier
+        {
+            if (data.DtoType == typeof(Dto))
+            {
+                data.RejectInactiveEntities();
+                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                string schemaName = GetDatabaseSchema();
+                string commandText = $"{data.BuildCommand()} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
+                return new ColumnsAndParameters { Columns = commandText, Parameters = data.DynamicParams };
+            }
+            return null;
+        }
+
+        internal static string OrderByToSql<T>(this BHOrderBy<T> orderByConfig, bool isMyShit)
+        {
+            if (orderByConfig.orderBy.LockedByError)
+            {
+                return string.Empty;
+            }
+
+            StringBuilder orderby = new();
+            string limiter = string.Empty;
+
+            foreach (OrderByPair pair in orderByConfig.orderBy.OrderProperties)
+            {
+                orderby.Append($", {pair.PropertyName.SkipNameQuotes(isMyShit)} {pair.Oriantation}");
+            }
+
+            if (orderByConfig.orderBy.TakeSpecificRange)
+            {
+                limiter = orderByConfig.orderBy.RowsLimiter();
+            }
+
+            return $"order by{orderby.ToString().Remove(0, 1)}{limiter}";
+        }
+
+        internal static void OrderByToSqlJoins<T>(this JoinsData data, BHOrderBy<T> orderByConfig)
+        {
+            if (orderByConfig.orderBy.LockedByError)
+            {
+                data.OrderByOptions = string.Empty;
+            }
+            else
+            {
+                StringBuilder orderby = new();
+                string limiter = string.Empty;
+                int counter = 0;
+
+                foreach (OrderByPair pair in orderByConfig.orderBy.OrderProperties)
+                {
+                    if (data.OccupiedDtoProps.FirstOrDefault(x => x.PropName == pair.PropertyName) is PropertyOccupation occupation)
+                    {
+                        counter++;
+                        orderby.Append($", {occupation.TableLetter}.{occupation.TableProperty.SkipNameQuotes(data.isMyShit)} {pair.Oriantation}");
+                    }
+                }
+
+                if (orderByConfig.orderBy.TakeSpecificRange)
+                {
+                    limiter = orderByConfig.orderBy.RowsLimiter();
+                }
+
+                if (counter > 0)
+                {
+                    data.OrderByOptions = $"order by{orderby.ToString().Remove(0, 1)}{limiter}";
+                }
+            }
+        }
+
+        private static string RowsLimiter<T>(this BlackHoleOrderBy<T> limiter)
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => $" OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
+                BlackHoleSqlTypes.MySql => $" LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
+                BlackHoleSqlTypes.Postgres => $" LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
+                BlackHoleSqlTypes.Oracle => $" OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
+                _ => $" LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}"
+            };
+        }
+
+        private static void RejectInactiveEntities(this JoinsData data)
+        {
+            string command = string.Empty;
+            string inactiveColumn = "Inactive";
+            string anD = "and";
+
+            if (data.WherePredicates == string.Empty)
+            {
+                anD = "where";
+            }
+
+            foreach (TableLetters table in data.TablesToLetters)
+            {
+                if (!table.IsOpenEntity)
+                {
+                    if (command != string.Empty)
+                    {
+                        anD = "and";
+                    }
+
+                    command += $" {anD} {table.Letter}.{inactiveColumn.SkipNameQuotes(data.isMyShit)} = 0 ";
+                }
+            }
+
+            data.WherePredicates += command;
+        }
+
+        private static string BuildCommand(this JoinsData data)
+        {
+            string sqlCommand = "select ";
+
+            foreach (PropertyOccupation prop in data.OccupiedDtoProps.Where(x => x.Occupied))
+            {
+                sqlCommand += prop.WithCast switch
+                {
+                    1 => $" {prop.TableLetter}.{prop.TableProperty.SkipNameQuotes(data.isMyShit)} as {prop.PropName.SkipNameQuotes(data.isMyShit)},",
+                    2 => $" cast({prop.TableLetter}.{prop.TableProperty.SkipNameQuotes(data.isMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SkipNameQuotes(data.isMyShit)},",
+                    _ => $" {prop.TableLetter}.{prop.PropName.SkipNameQuotes(data.isMyShit)},",
+                };
+            }
+
+            return sqlCommand[..^1];
+        }
+
+        private static string SqlTypeFromType(this Type? type)
+        {
+            string[] SqlDatatypes = DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => new[] { "nvarchar(4000)", "int", "bigint", "decimal", "float" },
+                BlackHoleSqlTypes.MySql => new[] { "char(2000)", "int", "bigint", "dec", "double" },
+                BlackHoleSqlTypes.Postgres => new[] { "varchar(4000)", "integer", "bigint", "numeric(10,5)", "numeric" },
+                BlackHoleSqlTypes.SqlLite => new[] { "varchar(4000)", "integer", "bigint", "decimal(10,5)", "numeric" },
+                _ => new[] { "varchar2(4000)", "Number(8,0)", "Number(16,0)", "Number(19,0)", "Number" },
+            };
+
+            string result = SqlDatatypes[0];
+            string? TypeName = type?.Name;
+
+            if (type != null && !string.IsNullOrEmpty(TypeName))
+            {
+                if (TypeName.Contains("Nullable"))
+                {
+                    if (type?.GenericTypeArguments != null && type?.GenericTypeArguments.Length > 0)
+                    {
+                        TypeName = type.GenericTypeArguments[0].Name;
+                    }
+                }
+
+                result = TypeName switch
+                {
+                    "Int32" => SqlDatatypes[1],
+                    "Int64" => SqlDatatypes[2],
+                    "Decimal" => SqlDatatypes[3],
+                    "Double" => SqlDatatypes[4],
+                    _ => SqlDatatypes[0],
+                };
+            }
+
+            return result;
+        }
+
+        private static int AllowCast(this Type firstType, Type secondType)
+        {
+            int allow = 2;
+            string typeTotype = firstType.Name + secondType.Name;
+
+            if (firstType == typeof(Guid))
+            {
+                BlackHoleSqlTypes sqlType = DatabaseStatics.DatabaseType;
+                if (sqlType != BlackHoleSqlTypes.Postgres && sqlType != BlackHoleSqlTypes.SqlServer)
+                {
+                    allow = 1;
+                }
+            }
+
+            if (firstType.Name != secondType.Name)
+            {
+                switch (typeTotype)
+                {
+                    case "Int16Int32":
+                        break;
+                    case "Int16String":
+                        break;
+                    case "Int16Int64":
+                        break;
+                    case "Int32String":
+                        break;
+                    case "Int32Int64":
+                        break;
+                    case "Int64String":
+                        break;
+                    case "DecimalString":
+                        break;
+                    case "DecimalDouble":
+                        break;
+                    case "SingleString":
+                        break;
+                    case "SingleDouble":
+                        break;
+                    case "SingleDecimal":
+                        break;
+                    case "DoubleString":
+                        break;
+                    case "Int32Decimal":
+                        break;
+                    case "GuidString":
+                        break;
+                    case "Int32Double":
+                        break;
+                    case "BooleanString":
+                        break;
+                    case "BooleanInt32":
+                        break;
+                    case "Byte[]String":
+                        break;
+                    case "DateTimeString":
+                        break;
+                    default:
+                        allow = 0;
+                        break;
+                }
+            }
+            else
+            {
+                allow = 1;
+            }
+
+            return allow;
         }
 
         private static List<PropertyOccupation> BindPropertiesToDto<T>( this List<string> Columns, Type otherTable, Type dto, string? paramA, string? paramB)
@@ -821,18 +1217,6 @@ namespace BlackHole.CoreSupport
             {
                 colsAndParams.Parameters.Add(new BlackHoleParameter { Name = prop.Name, Value = prop.GetValue(item) });
             }
-        }
-
-        private static string GetSchema(this string StaticSchema)
-        {
-            string schemaName = string.Empty;
-
-            if (StaticSchema != string.Empty)
-            {
-                schemaName = $"{StaticSchema}.";
-            }
-
-            return schemaName;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace BlackHole.Core
             WithActivator = EntityType.CheckActivator();
             _dataProvider = typeof(G).GetDataProvider(EntityType.Name);
             IsMyShit = _dataProvider.SkipQuotes();
-            ThisSchema = BHDataProviderSelector.GetDatabaseSchema();
+            ThisSchema = BHCore.GetDatabaseSchema();
             ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";
             ThisId = MyShit("Id");
             ThisInactive = MyShit("Inactive");
@@ -1596,35 +1596,6 @@ namespace BlackHole.Core
                 return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
             }
             return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
-        }
-        #endregion
-
-        // JOINS
-
-        #region Joins Methods
-        JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.InnerJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-        {
-            return Columns.CreateFirstJoin<T,TOther, Dto>(key, otherKey, "inner",ThisSchema,IsMyShit, false);
-        }
-
-        JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.OuterJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-        {
-            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "full outer", ThisSchema, IsMyShit, false);
-        }
-
-        JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.LeftJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-        {
-            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "left", ThisSchema, IsMyShit, false);
-        }
-
-        JoinsData<Dto, T, TOther> IBHDataProvider<T, G>.RightJoin<TOther, Tkey, Dto>(Expression<Func<T, Tkey>> key, Expression<Func<TOther, Tkey>> otherKey)
-        {
-            return Columns.CreateFirstJoin<T, TOther, Dto>(key, otherKey, "right", ThisSchema, IsMyShit, false);
-        }
-
-        public JoinsProcess<Dto> InnertestJoin<Dto>()
-        {
-            return new JoinsProcess<Dto>();
         }
         #endregion
     }

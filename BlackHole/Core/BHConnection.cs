@@ -25,7 +25,7 @@ namespace BlackHole.Core
         /// </summary>
         public BHConnection()
         {
-            _executionProvider = BHDataProviderSelector.GetExecutionProvider();
+            _executionProvider = BHCore.GetExecutionProvider();
         }
 
         /// <summary>
