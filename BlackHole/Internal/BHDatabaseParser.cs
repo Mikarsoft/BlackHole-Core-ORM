@@ -1,13 +1,12 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Enums;
 using BlackHole.Statics;
-using System.Globalization;
 
 namespace BlackHole.Internal
 {
     internal class BHDatabaseParser
     {
-        private readonly IExecutionProvider connection;
+        private readonly IDataProvider connection;
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
         internal BHSqlExportWriter sqlWriter { get; set; }
         internal List<string> IgnoredTables { get; set; } = new List<string>();

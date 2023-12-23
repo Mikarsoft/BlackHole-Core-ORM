@@ -1,7 +1,6 @@
 ﻿
 namespace BlackHole.CoreSupport
 {
-
     internal class JoinsData
     {
         internal JoinsData(Type dtoType)

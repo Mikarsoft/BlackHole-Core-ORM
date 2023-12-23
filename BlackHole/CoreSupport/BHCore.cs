@@ -2,9 +2,14 @@
 using BlackHole.DataProviders;
 using BlackHole.Entities;
 using BlackHole.Enums;
-using BlackHole.ExecutionProviders;
 using BlackHole.Identifiers;
 using BlackHole.Statics;
+using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
+using MySql.Data.MySqlClient;
+using Npgsql;
+using Oracle.ManagedDataAccess.Client;
+using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -13,7 +18,7 @@ namespace BlackHole.CoreSupport
 {
     internal static class BHCore
     {
-        private static IExecutionProvider? ExecProvider { get; set; }
+        private static IDataProvider? ExecProvider { get; set; }
 
         internal static IDataProvider GetDataProvider(this Type IdType, string tableName)
         {
@@ -27,17 +32,29 @@ namespace BlackHole.CoreSupport
             };
         }
 
-        internal static IExecutionProvider GetExecutionProvider()
+        internal static IDbConnection GetConnection()
+        {
+            return DatabaseStatics.DatabaseType switch
+            {
+                BlackHoleSqlTypes.SqlServer => new SqlConnection(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.MySql => new MySqlConnection(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.Postgres => new NpgsqlConnection(DatabaseStatics.ConnectionString),
+                BlackHoleSqlTypes.SqlLite => new SqliteConnection(DatabaseStatics.ConnectionString),
+                _ => new OracleConnection(DatabaseStatics.ConnectionString),
+            };
+        }
+
+        internal static IDataProvider GetDataProvider()
         {
             if(ExecProvider == null)
             {
-                ExecProvider = DatabaseStatics.DatabaseType switch
+                return DatabaseStatics.DatabaseType switch
                 {
-                    BlackHoleSqlTypes.SqlServer => new SqlServerExecutionProvider(DatabaseStatics.ConnectionString, DatabaseStatics.IsQuotedDatabase),
-                    BlackHoleSqlTypes.MySql => new MySqlExecutionProvider(DatabaseStatics.ConnectionString),
-                    BlackHoleSqlTypes.Postgres => new PostgresExecutionProvider(DatabaseStatics.ConnectionString),
-                    BlackHoleSqlTypes.SqlLite => new SqLiteExecutionProvider(DatabaseStatics.ConnectionString, DatabaseStatics.IsQuotedDatabase),
-                    _ => new OracleExecutionProvider(DatabaseStatics.ConnectionString),
+                    BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(DatabaseStatics.ConnectionString, DatabaseStatics.IsQuotedDatabase),
+                    BlackHoleSqlTypes.MySql => new MySqlDataProvider(DatabaseStatics.ConnectionString),
+                    BlackHoleSqlTypes.Postgres => new PostgresDataProvider(DatabaseStatics.ConnectionString),
+                    BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(DatabaseStatics.ConnectionString, DatabaseStatics.IsQuotedDatabase),
+                    _ => new OracleDataProvider(DatabaseStatics.ConnectionString),
                 };
             }
 
@@ -696,40 +713,6 @@ namespace BlackHole.CoreSupport
             }
 
             return new ColumnAndParameter { Column = column, ParamName = parameter, Value = value};
-        }
-
-        internal static JoinsData<Dto, T, TOther> CreateFirstJoin<T, TOther, Dto>(this List<string> Columns,LambdaExpression key, LambdaExpression otherKey, string joinType, string tableSchema, bool IsMyShit, bool OpenEntity)
-        {
-            string? parameter = key.Parameters[0].Name;
-            MemberExpression? member = key.Body as MemberExpression;
-            string? propName = member?.Member.Name;
-            string? parameterOther = otherKey.Parameters[0].Name;
-            MemberExpression? memberOther = otherKey.Body as MemberExpression;
-            string? propNameOther = memberOther?.Member.Name;
-
-            JoinsData<Dto, T, TOther> firstJoin = new()
-            {
-                isMyShit = IsMyShit,
-                BaseTable = typeof(T),
-                Ignore = false
-            };
-
-            firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(T), Letter = parameter, IsOpenEntity = OpenEntity });
-            firstJoin.Letters.Add(parameter);
-
-            if (parameterOther == parameter)
-            {
-                parameterOther += firstJoin.HelperIndex.ToString();
-                firstJoin.HelperIndex++;
-            }
-
-            bool isOpen = typeof(TOther).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
-            firstJoin.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther, IsOpenEntity = isOpen });
-            firstJoin.Letters.Add(parameterOther);
-
-            firstJoin.Joins = $" {joinType} join {tableSchema}{typeof(TOther).Name.SkipNameQuotes(IsMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SkipNameQuotes(IsMyShit)} = {parameter}.{propName.SkipNameQuotes(IsMyShit)}";
-            firstJoin.OccupiedDtoProps = Columns.BindPropertiesToDto<T>(typeof(TOther), typeof(Dto), parameter, parameterOther);
-            return firstJoin;
         }
 
         internal static void CreateJoin<Dto, TSource, TOther>(this JoinsData data, LambdaExpression key, LambdaExpression otherKey, string joinType, bool first)

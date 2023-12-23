@@ -1,6 +1,6 @@
 ﻿using BlackHole.CoreSupport;
+using BlackHole.DataProviders;
 using BlackHole.Enums;
-using BlackHole.ExecutionProviders;
 using BlackHole.Statics;
 
 namespace BlackHole.Internal
@@ -8,15 +8,15 @@ namespace BlackHole.Internal
     internal class BHDatabaseSelector : IBHDatabaseSelector
     {
 
-        IExecutionProvider IBHDatabaseSelector.GetExecutionProvider(string connectionString)
+        IDataProvider IBHDatabaseSelector.GetExecutionProvider(string connectionString)
         {
             return DatabaseStatics.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => new SqlServerExecutionProvider(connectionString, DatabaseStatics.IsQuotedDatabase),
-                BlackHoleSqlTypes.MySql => new MySqlExecutionProvider(connectionString),
-                BlackHoleSqlTypes.Postgres => new PostgresExecutionProvider(connectionString),
-                BlackHoleSqlTypes.SqlLite => new SqLiteExecutionProvider(connectionString, DatabaseStatics.IsQuotedDatabase),
-                _ => new OracleExecutionProvider(connectionString),
+                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(connectionString, DatabaseStatics.IsQuotedDatabase),
+                BlackHoleSqlTypes.MySql => new MySqlDataProvider(connectionString),
+                BlackHoleSqlTypes.Postgres => new PostgresDataProvider(connectionString),
+                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(connectionString, DatabaseStatics.IsQuotedDatabase),
+                _ => new OracleDataProvider(connectionString),
             };
         }
 
@@ -148,7 +148,7 @@ namespace BlackHole.Internal
             };
         }
 
-        bool IBHDatabaseSelector.SetDbDateFormat(IExecutionProvider _executionProvider)
+        bool IBHDatabaseSelector.SetDbDateFormat(IDataProvider _executionProvider)
         {
             string getDateCommand = DatabaseStatics.DatabaseType switch
             {

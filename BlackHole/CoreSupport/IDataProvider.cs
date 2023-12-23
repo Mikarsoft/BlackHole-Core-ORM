@@ -14,6 +14,18 @@ namespace BlackHole.CoreSupport
         List<G?> MultiInsertScalar<T, G>(string commandStart, string commandEnd, List<T> entries, BlackHoleTransaction bhTransaction);
         Task<List<G?>> MultiInsertScalarAsync<T, G>(string commandStart, string commandEnd, List<T> entries, BlackHoleTransaction bhTransaction);
 
+        G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters);
+        G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
+
+        Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters);
+        Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
+
+        object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters);
+        object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
+
+        Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters);
+        Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bHTransaction);
+
         bool ExecuteEntry<T>(string commandText, T entry);
         bool ExecuteEntry<T>(string commandText, T entry, BlackHoleTransaction bhTransaction);
 

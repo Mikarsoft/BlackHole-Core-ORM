@@ -9,7 +9,7 @@ namespace BlackHole.Internal
     internal class BHDatabaseBuilder
     {
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
-        private readonly IExecutionProvider connection;
+        private readonly IDataProvider connection;
         private bool ExistingDb { get; set; } = false;
         private string SchemaCreationCommand { get; set; } = string.Empty;
         private string DbSchema { get; set; }

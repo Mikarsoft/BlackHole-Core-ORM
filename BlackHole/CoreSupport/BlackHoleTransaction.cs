@@ -1,5 +1,4 @@
-﻿using BlackHole.ConnectionProvider;
-using System.Data;
+﻿using System.Data;
 
 namespace BlackHole.CoreSupport
 {
@@ -22,8 +21,7 @@ namespace BlackHole.CoreSupport
 
         internal BlackHoleTransaction()
         {
-            ConnectionBuilder connectionBuilder = new();
-            connection = connectionBuilder.GetConnection();
+            connection = BHCore.GetConnection();
             connection.Open();
             _transaction = connection.BeginTransaction();
         }

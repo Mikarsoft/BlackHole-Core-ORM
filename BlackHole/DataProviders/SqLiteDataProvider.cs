@@ -35,6 +35,15 @@ namespace BlackHole.DataProviders
                 useGenerator = false;
             }
         }
+
+        internal SqLiteDataProvider(string connectionString, bool forceQuotes)
+        {
+            _connectionString = connectionString;
+            TableName = string.Empty;
+            ForceQuotes = forceQuotes;
+            if (ForceQuotes) { PK = @"""Id"""; insertedOutput = @"returning ""Id"""; }
+            useGenerator = false;
+        }
         #endregion
 
         #region Internal Processes
@@ -373,6 +382,186 @@ namespace BlackHole.DataProviders
             }
         }
 
+        public G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                G? Id = default;
+                using (SqliteConnection connection = new(_connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand Command = new(commandText, connection);
+                    ArrayToParameters(parameters, Command.Parameters);
+                    object? Result = Command.ExecuteScalar();
+                    connection.Close();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
+                    }
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Scalar", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
+                SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
+                SqliteCommand Command = new(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
+                object? Result = Command.ExecuteScalar();
+
+                if (Result != null)
+                {
+                    return (G?)Convert.ChangeType(Result, typeof(G));
+                }
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Scalar", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                G? Id = default;
+                using (SqliteConnection connection = new(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    SqliteCommand Command = new(commandText, connection);
+                    ArrayToParameters(parameters, Command.Parameters);
+                    object? Result = await Command.ExecuteScalarAsync();
+                    await connection.CloseAsync();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
+                    }
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
+                SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
+                SqliteCommand Command = new(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
+                object? Result = await Command.ExecuteScalarAsync();
+
+                if (Result != null)
+                {
+                    return (G?)Convert.ChangeType(Result, typeof(G));
+                }
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                object? Id = default;
+                using (SqliteConnection connection = new(_connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand Command = new(commandText, connection);
+                    ArrayToParameters(parameters, Command.Parameters);
+                    Id = Command.ExecuteScalar();
+                    connection.Close();
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
+                SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
+                SqliteCommand Command = new(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
+                return Command.ExecuteScalar();
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public async Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                object? Id = default;
+                using (SqliteConnection connection = new(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    SqliteCommand Command = new(commandText, connection);
+                    ArrayToParameters(parameters, Command.Parameters);
+                    Id = await Command.ExecuteScalarAsync();
+                    await connection.CloseAsync();
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public async Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                SqliteConnection? connection = bhTransaction.connection as SqliteConnection;
+                SqliteTransaction? transaction = bhTransaction._transaction as SqliteTransaction;
+                SqliteCommand Command = new(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
+                return await Command.ExecuteScalarAsync();
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
         {
             try
@@ -452,7 +641,6 @@ namespace BlackHole.DataProviders
                 return false;
             }
         }
-
 
         public T? QueryFirst<T>(string commandText, List<BlackHoleParameter>? parameters)
         {

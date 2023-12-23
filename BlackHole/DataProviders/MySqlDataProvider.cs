@@ -32,6 +32,13 @@ namespace BlackHole.DataProviders
                 useGenerator = false;
             }
         }
+
+        internal MySqlDataProvider(string connectionString)
+        {
+            useGenerator = false;
+            TableName = string.Empty;
+            _connectionString = connectionString; 
+        }
         #endregion
 
         #region Internal Processes
@@ -373,6 +380,187 @@ namespace BlackHole.DataProviders
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
+        }
+
+        public G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                G? Id = default;
+                using (MySqlConnection connection = new(_connectionString))
+                {
+                    connection.Open();
+                    MySqlCommand Command = new(commandText, connection);
+                    ArrayToParameters(parameters, Command.Parameters);
+                    object? Result = Command.ExecuteScalar();
+                    connection.Close();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
+                    }
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Scalar", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
+                MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
+                MySqlCommand Command = new(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
+                object? Result = Command.ExecuteScalar();
+
+                if (Result != null)
+                {
+                    return (G?)Convert.ChangeType(Result, typeof(G));
+                }
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Scalar", ex.Message, ex.ToString()));
+            }
+
+            return default;
+        }
+
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                G? Id = default;
+                using (MySqlConnection connection = new(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    MySqlCommand Command = new(commandText, connection);
+                    ArrayToParameters(parameters, Command.Parameters);
+                    object? Result = await Command.ExecuteScalarAsync();
+                    await connection.CloseAsync();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Convert.ChangeType(Result, typeof(G));
+                    }
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
+                MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
+                MySqlCommand Command = new(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
+                object? Result = await Command.ExecuteScalarAsync();
+
+                if (Result != null)
+                {
+                    return (G?)Convert.ChangeType(Result, typeof(G));
+                }
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                object? Id = default;
+                using (MySqlConnection connection = new(_connectionString))
+                {
+                    connection.Open();
+                    MySqlCommand Command = new(commandText, connection);
+                    ArrayToParameters(parameters, Command.Parameters);
+                    Id = Command.ExecuteScalar();
+                    connection.Close();
+                }
+                return IntOrLong(Id);
+            }
+            catch (Exception ex)
+            {
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
+                MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
+                MySqlCommand Command = new(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
+                return IntOrLong(Command.ExecuteScalar());
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public async Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                object? Id = default;
+                using (MySqlConnection connection = new(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    MySqlCommand Command = new(commandText, connection);
+                    ArrayToParameters(parameters, Command.Parameters);
+                    Id = await Command.ExecuteScalarAsync();
+                    await connection.CloseAsync();
+                }
+                return IntOrLong(Id);
+            }
+            catch (Exception ex)
+            {
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public async Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                MySqlConnection? connection = bhTransaction.connection as MySqlConnection;
+                MySqlTransaction? transaction = bhTransaction._transaction as MySqlTransaction;
+                MySqlCommand Command = new(commandText, connection, transaction);
+                ArrayToParameters(parameters, Command.Parameters);
+                return IntOrLong(await Command.ExecuteScalarAsync());
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
+            }
+            return default;
         }
 
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
@@ -916,6 +1104,24 @@ namespace BlackHole.DataProviders
             }
 
             return (G?)value;
+        }
+
+        private object? IntOrLong(object? scalarResult)
+        {
+            object? result = null;
+            try
+            {
+                result = Convert.ToInt32(scalarResult);
+                return result;
+            }
+            catch { }
+
+            try
+            {
+                result = Convert.ToInt64(scalarResult);
+                return result;
+            }
+            catch { return 0; }
         }
         #endregion
     }

@@ -11,7 +11,7 @@ namespace BlackHole.Internal
     internal class BHTableBuilder
     {
         private readonly IBHDatabaseSelector _multiDatabaseSelector;
-        private readonly IExecutionProvider connection;
+        private readonly IDataProvider connection;
         private BHSqlExportWriter SqlWriter { get; set; }
         private List<TableParsingInfo> DbConstraints { get; set; } = new();
         private readonly string[] SqlDatatypes;
@@ -37,7 +37,7 @@ namespace BlackHole.Internal
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
-            connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
+            connection = _multiDatabaseSelector.GetDataProvider(DatabaseStatics.ConnectionString);
             IsForcedUpdate = DatabaseStatics.AutoUpdate && (DatabaseStatics.IsDevMove || CliCommand.ForceAction);
             dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
             AlterColumn = _multiDatabaseSelector.GetColumnModifyCommand();
@@ -492,11 +492,7 @@ namespace BlackHole.Internal
                     }
                     else
                     {
-                        object? NN_attribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-                        if (NN_attribute != null)
-                        {
-                            nullability = false;
-                        }
+                        nullability = CheckNullability(Property.PropertyType);
                     }
 
                     object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -543,11 +539,7 @@ namespace BlackHole.Internal
                         }
                         else
                         {
-                            object? NN_attribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-                            if (NN_attribute != null)
-                            {
-                                nullability = false;
-                            }
+                            nullability = CheckNullability(Property.PropertyType);
                         }
 
                         object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -764,11 +756,7 @@ namespace BlackHole.Internal
                     }
                     else
                     {
-                        object? NN_attribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-                        if (NN_attribute != null)
-                        {
-                            nullability = false;
-                        }
+                        nullability = CheckNullability(Property.PropertyType);
                     }
 
                     object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -841,11 +829,7 @@ namespace BlackHole.Internal
                     }
                     else
                     {
-                        object? NN_attribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-                        if(NN_attribute != null)
-                        {
-                            nullability = false;
-                        }
+                        nullability = CheckNullability(Property.PropertyType);
                     }
 
                     object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -1579,6 +1563,18 @@ namespace BlackHole.Internal
             }
 
             return "NULL, ";
+        }
+
+        bool CheckNullability(Type PropertyType)
+        {
+            if (PropertyType.Name.Contains("Nullable"))
+            {
+                if (PropertyType.GenericTypeArguments != null && PropertyType.GenericTypeArguments.Length > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         bool HasLitePkChanged(int pk, bool isOpenPk)

@@ -11,7 +11,7 @@ namespace BlackHole.Core
     /// </summary>
     /// <typeparam name="T">BlackHoleEntity</typeparam>
     /// <typeparam name="G">The type of Entity's Id</typeparam>
-    public class BHDataProvider<T, G> : IBHDataProvider<T, G> where T : BlackHoleEntity<G>
+    public class BHDataProvider<T, G> : IBHDataProvider<T, G> where T : BlackHoleEntity<G> where G :IComparable<G>
     {
         #region Ctor
         private bool WithActivator { get; }
@@ -65,6 +65,24 @@ namespace BlackHole.Core
         #endregion
 
         #region Common Helper Methods
+
+        private bool SetIds(List<T> entities, List<G?> Ids)
+        {
+            if (Ids.Any() && Ids.Count == entities.Count)
+            {
+                for(int i = 0; i < Ids.Count; i++)
+                {
+                    if(!entities[i].SetId(Ids[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
 
         private string MyShit(string? propName)
         {
@@ -644,31 +662,34 @@ namespace BlackHole.Core
 
         #region Insert Methods
 
-        G? IBHDataProvider<T, G>.InsertEntry(T entry)
+        bool IBHDataProvider<T, G>.InsertEntry(T entry)
         {
-            return _dataProvider.InsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry);
+            G? id = _dataProvider.InsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry);
+            return entry.SetId(id);
         }
 
-        List<G?> IBHDataProvider<T, G>.InsertEntries(List<T> entries)
+        bool IBHDataProvider<T, G>.InsertEntries(List<T> entries)
         {
             List<G?> Ids = new();
             using(BlackHoleTransaction bhTransaction = new())
             {
                 Ids = _dataProvider.MultiInsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction);
             }
-            return Ids;
+            return SetIds(entries, Ids);
         }
 
         // WITH TRANSACTION
 
-        G? IBHDataProvider<T, G>.InsertEntry(T entry, BHTransaction bhTransaction)
+        bool IBHDataProvider<T, G>.InsertEntry(T entry, BHTransaction bhTransaction)
         {
-            return _dataProvider.InsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames}, {ThisInactive}", $"values ({PropertyParams}, 0", entry, bhTransaction.transaction);
+            G? id = _dataProvider.InsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames}, {ThisInactive}", $"values ({PropertyParams}, 0", entry, bhTransaction.transaction);
+            return entry.SetId(id);
         }
 
-        List<G?> IBHDataProvider<T, G>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
+        bool IBHDataProvider<T, G>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
         {
-            return _dataProvider.MultiInsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction.transaction);
+            List<G?> Ids = _dataProvider.MultiInsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction.transaction);
+            return SetIds(entries, Ids);
         }
         #endregion
 
@@ -1391,30 +1412,33 @@ namespace BlackHole.Core
 
         #region Insert Methods Async
 
-        async Task<G?> IBHDataProvider<T, G>.InsertEntryAsync(T entry)
+        async Task<bool> IBHDataProvider<T, G>.InsertEntryAsync(T entry)
         {
-            return await _dataProvider.InsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry);
+            G? Id  = await _dataProvider.InsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry);
+            return entry.SetId(Id);
         }
 
-        async Task<List<G?>> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries)
+        async Task<bool> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries)
         {
             List<G?> Ids = new();
             using(BlackHoleTransaction bhTransaction = new())
             {
                 Ids = await _dataProvider.MultiInsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction);
             }
-            return Ids;
+            return SetIds(entries, Ids);
         }
         // WITH TRANSACTION
 
-        async Task<G?> IBHDataProvider<T, G>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
         {
-            return await _dataProvider.InsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry, bhTransaction.transaction);
+            G? Id = await _dataProvider.InsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry, bhTransaction.transaction);
+            return entry.SetId(Id);
         }
 
-        async Task<List<G?>> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
+        async Task<bool> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
         {
-            return await _dataProvider.MultiInsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction.transaction);
+            List<G?> Ids = await _dataProvider.MultiInsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction.transaction);
+            return SetIds(entries, Ids);
         }
         #endregion
 

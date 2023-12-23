@@ -20,7 +20,7 @@ namespace BlackHole.Internal
         int GetSqlTypeId();
         bool GetMyShit();
         bool GetOpenPKConstraint();
-        bool SetDbDateFormat(IExecutionProvider _executionProvider);
+        bool SetDbDateFormat(IDataProvider _executionProvider);
         string GetColumnModifyCommand();
         string[] GetSafeTransactionTry();
         bool IsUsingOracleProduct();
@@ -30,6 +30,6 @@ namespace BlackHole.Internal
         string GetDatabaseSchemaFk();
         string GetOwnerName();
 
-        IExecutionProvider GetExecutionProvider(string connectionString);
+        IDataProvider GetExecutionProvider(string connectionString);
     }
 }

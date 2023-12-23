@@ -32,6 +32,13 @@ namespace BlackHole.DataProviders
                 useGenerator = false;
             }
         }
+
+        internal OracleDataProvider(string connectionString)
+        {
+            _connectionString = connectionString;
+            TableName = string.Empty;
+            useGenerator = false;
+        }
         #endregion
 
         #region Internal Processes
@@ -400,6 +407,238 @@ namespace BlackHole.DataProviders
                 await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"InsertAsync_{TableName}", ex.Message, ex.ToString()));
                 return false;
             }
+        }
+
+        public G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                G? Id = default;
+                using (OracleConnection connection = new(_connectionString))
+                {
+                    connection.Open();
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
+                    ArrayToParameters(parameters, Command.Parameters);
+                    object? Result = Command.ExecuteScalar();
+                    connection.Close();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Scalar", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public G? ExecuteScalar<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    BindByName = true,
+                    Transaction = transaction
+                };
+                ArrayToParameters(parameters, Command.Parameters);
+                object? Result = Command.ExecuteScalar();
+
+                if (Result != null)
+                {
+                    return (G?)Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Scalar", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                G? Id = default;
+                using (OracleConnection connection = new(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
+                    ArrayToParameters(parameters, Command.Parameters);
+                    object? Result = await Command.ExecuteScalarAsync();
+                    await connection.CloseAsync();
+
+                    if (Result != null)
+                    {
+                        Id = (G?)Result;
+                    }
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"ScalarAsync", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
+                ArrayToParameters(parameters, Command.Parameters);
+                object? Result = await Command.ExecuteScalarAsync();
+
+                if (Result != null)
+                {
+                    return (G?)Result;
+                }
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ScalarAsync", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                object? Id = default;
+                using (OracleConnection connection = new(_connectionString))
+                {
+                    connection.Open();
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
+                    ArrayToParameters(parameters, Command.Parameters);
+                    Command.Parameters.Add(new OracleParameter("OracleReturningValue", 1));
+                    Command.ExecuteScalar();
+                    int paramIndex = Command.Parameters.IndexOf("OracleReturningValue");
+                    if (paramIndex > -1)
+                    {
+                        Id = Command.Parameters[paramIndex].Value;
+                    }
+                    connection.Close();
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public object? ExecuteRawScalar(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    BindByName = true,
+                    Transaction = transaction
+                };
+                ArrayToParameters(parameters, Command.Parameters);
+                Command.Parameters.Add(new OracleParameter("OracleReturningValue", 1));
+                Command.ExecuteScalar();
+                int paramIndex = Command.Parameters.IndexOf("OracleReturningValue");
+                if (paramIndex > -1)
+                {
+                    return (int)Command.Parameters[paramIndex].Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"RawScalar", ex.Message, ex.ToString()));
+            }
+            return default;
+        }
+
+        public async Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters)
+        {
+            try
+            {
+                object? Id = default;
+                using (OracleConnection connection = new(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                    {
+                        BindByName = true
+                    };
+                    ArrayToParameters(parameters, Command.Parameters);
+                    Command.Parameters.Add(new OracleParameter("OracleReturningValue", 1));
+                    await Command.ExecuteScalarAsync();
+                    int paramIndex = Command.Parameters.IndexOf("OracleReturningValue");
+                    if (paramIndex > -1)
+                    {
+                        Id = (int)Command.Parameters[paramIndex].Value;
+                    }
+                    await connection.CloseAsync();
+                }
+                return Id;
+            }
+            catch (Exception ex)
+            {
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs($"RawScalarAsync", ex.Message, ex.ToString()));
+                return default;
+            }
+        }
+
+        public async Task<object?> ExecuteRawScalarAsync(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)
+        {
+            try
+            {
+                OracleConnection? connection = bhTransaction.connection as OracleConnection;
+                OracleTransaction? transaction = bhTransaction._transaction as OracleTransaction;
+                OracleCommand Command = new(commandText.Replace("@", ":"), connection)
+                {
+                    Transaction = transaction,
+                    BindByName = true
+                };
+                ArrayToParameters(parameters, Command.Parameters);
+                Command.Parameters.Add(new OracleParameter("OracleReturningValue", 1));
+                await Command.ExecuteScalarAsync();
+                int paramIndex = Command.Parameters.IndexOf("OracleReturningValue");
+                if (paramIndex > -1)
+                {
+                    return (int)Command.Parameters[paramIndex].Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                bhTransaction.hasError = true;
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
+            }
+            return default;
         }
 
         public bool JustExecute(string commandText, List<BlackHoleParameter>? parameters, BlackHoleTransaction bhTransaction)

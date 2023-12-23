@@ -1,9 +1,11 @@
-﻿
-using BlackHole.Identifiers;
+﻿using BlackHole.Identifiers;
 
 namespace BlackHole.Core
 {
-    public static class BHContext
+    /// <summary>
+    /// 
+    /// </summary>
+    public class BHContext
     {
         /// <summary>
         /// 
@@ -11,7 +13,7 @@ namespace BlackHole.Core
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="G"></typeparam>
         /// <returns></returns>
-        public static bool Provider<T>(this T entity) where T : IBHEntityIdentifier
+        public bool Provider<T>() where T : IBHEntityIdentifier
         {
             return true;
         }

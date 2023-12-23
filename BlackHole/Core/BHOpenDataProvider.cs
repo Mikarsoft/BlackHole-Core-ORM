@@ -27,7 +27,7 @@ namespace BlackHole.Core
         private bool IsMyShit { get; }
         private PropertyInfo[] Tprops { get; set; }
         private string[] ReturningCase { get; set; } = new string[2];
-        private readonly IExecutionProvider _executionProvider;
+        private readonly IDataProvider _executionProvider;
 
         /// <summary>
         /// Create a Data Provider that Automatically Communicates with the Database Using the BHOpenEntity, that you pass in.
@@ -45,7 +45,7 @@ namespace BlackHole.Core
 
             Type EntityType = typeof(T);
 
-            _executionProvider = BHCore.GetExecutionProvider();
+            _executionProvider = BHCore.GetDataProvider();
             IsMyShit = _executionProvider.SkipQuotes();
             ThisSchema = BHCore.GetDatabaseSchema();
             ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";

@@ -1,6 +1,5 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Entities;
-using BlackHole.Identifiers;
 using System.Linq.Expressions;
 
 namespace BlackHole.Core
@@ -11,7 +10,7 @@ namespace BlackHole.Core
     /// </summary>
     /// <typeparam name="T">BlackHoleEntity</typeparam>
     /// <typeparam name="G">The type of Entity's Id</typeparam>
-    public interface IBHDataProvider<T, G> where T : BlackHoleEntity<G>
+    public interface IBHDataProvider<T, G> where T : BlackHoleEntity<G> where G : IComparable<G>
     {
         // SYNC METHODS
 
@@ -426,7 +425,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <returns>Id of the Entity</returns>
-        G? InsertEntry(T entry);
+        bool InsertEntry(T entry);
 
         /// <summary>
         /// Inserts a list of Entities into the table, generates a new Id of each one
@@ -434,7 +433,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="entries">Entities</param>
         /// <returns>Ids of the Entities</returns>
-        List<G?> InsertEntries(List<T> entries);
+        bool InsertEntries(List<T> entries);
 
         // WITH TRANSACTION
 
@@ -445,7 +444,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Id of the Entity</returns>
-        G? InsertEntry(T entry, BHTransaction transaction);
+        bool InsertEntry(T entry, BHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Inserts a list of Entities into the table, generates a new Id of each one
@@ -454,7 +453,7 @@ namespace BlackHole.Core
         /// <param name="entries">Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Ids of the Entities</returns>
-        List<G?> InsertEntries(List<T> entries, BHTransaction transaction);
+        bool InsertEntries(List<T> entries, BHTransaction transaction);
 
 
         #endregion
@@ -1155,7 +1154,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="entry">Entity</param>
         /// <returns>Id of the Entity</returns>
-        Task<G?> InsertEntryAsync(T entry);
+        Task<bool> InsertEntryAsync(T entry);
 
         /// <summary>
         /// <b>Asyncronous.</b> Inserts a list of Entities into the table, generates a new Id of each one
@@ -1164,7 +1163,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="entries">List of Entities</param>
         /// <returns>Ids of the Entities</returns>
-        Task<List<G?>> InsertEntriesAsync(List<T> entries);
+        Task<bool> InsertEntriesAsync(List<T> entries);
 
         // WITH TRANSACTION
 
@@ -1176,7 +1175,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Id of the Entity</returns>
-        Task<G?> InsertEntryAsync(T entry, BHTransaction transaction);
+        Task<bool> InsertEntryAsync(T entry, BHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Inserts a list of Entities into the table, generates a new Id of each one
@@ -1185,7 +1184,7 @@ namespace BlackHole.Core
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Ids of the Entities</returns>
-        Task<List<G?>> InsertEntriesAsync(List<T> entries, BHTransaction transaction);
+        Task<bool> InsertEntriesAsync(List<T> entries, BHTransaction transaction);
         #endregion
 
         #region Update Methods Async
