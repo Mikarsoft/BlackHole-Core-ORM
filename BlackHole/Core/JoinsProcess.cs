@@ -300,6 +300,10 @@ namespace BlackHole.Core
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="Dto"></typeparam>
     public class JoinComplete<Dto>
     {
         internal JoinsData Data { get; set; }

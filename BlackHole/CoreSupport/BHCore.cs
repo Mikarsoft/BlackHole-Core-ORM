@@ -849,10 +849,10 @@ namespace BlackHole.CoreSupport
 
                 if (allow != 0)
                 {
-                    var oDp = data.OccupiedDtoProps.Where(x => x.PropName == propNameOther).First();
+                    var oDp = data.OccupiedDtoProps.First(x => x.PropName == propNameOther);
                     int index = data.OccupiedDtoProps.IndexOf(oDp);
                     data.OccupiedDtoProps[index].Occupied = true;
-                    data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.Where(x => x.Table == typeof(TSource)).First().Letter;
+                    data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.First(x => x.Table == typeof(TSource)).Letter;
                     data.OccupiedDtoProps[index].TableProperty = propName;
                     data.OccupiedDtoProps[index].TablePropertyType = propertyType;
                     data.OccupiedDtoProps[index].WithCast = allow;
@@ -864,8 +864,8 @@ namespace BlackHole.CoreSupport
         {
             if (!data.Ignore)
             {
-                string? firstLetter = data.TablesToLetters.Where(t => t.Table == typeof(TSource)).First().Letter;
-                string? secondLetter = data.TablesToLetters.Where(t => t.Table == typeof(TOther)).First().Letter;
+                string? firstLetter = data.TablesToLetters.First(t => t.Table == typeof(TSource)).Letter;
+                string? secondLetter = data.TablesToLetters.First(t => t.Table == typeof(TOther)).Letter;
 
                 MemberExpression? member = key.Body as MemberExpression;
                 string? propName = member?.Member.Name;
@@ -880,7 +880,7 @@ namespace BlackHole.CoreSupport
         {
             if (!data.Ignore)
             {
-                string? letter = data.TablesToLetters.Where(x => x.Table == typeof(TSource)).First().Letter;
+                string? letter = data.TablesToLetters.First(x => x.Table == typeof(TSource)).Letter;
                 ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TSource>(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
                 data.DynamicParams = colsAndParams.Parameters;
                 data.ParamsCount = colsAndParams.Count;
@@ -901,7 +901,7 @@ namespace BlackHole.CoreSupport
             if (data.DtoType == typeof(Dto))
             {
                 data.RejectInactiveEntities();
-                TableLetters? tL = data.TablesToLetters.Where(x => x.Table == data.BaseTable).FirstOrDefault();
+                TableLetters? tL = data.TablesToLetters.FirstOrDefault(x => x.Table == data.BaseTable);
                 string schemaName = GetDatabaseSchema();
                 string commandText = $"{data.BuildCommand()} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
                 return new ColumnsAndParameters { Columns = commandText, Parameters = data.DynamicParams };

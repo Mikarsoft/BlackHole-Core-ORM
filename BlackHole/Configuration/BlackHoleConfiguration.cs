@@ -144,7 +144,7 @@ namespace BlackHole.Configuration
             {
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
                 services.AddScoped(typeof(IBHOpenDataProvider<>), typeof(BHOpenDataProvider<>));
-                services.AddScoped(typeof(IBHViewStorage), typeof(BHViewStorage));
+                services.AddScoped(typeof(IBHViews), typeof(BHViews));
                 services.AddScoped(typeof(IBHConnection), typeof(BHConnection));
                 services.AddServicesAndTables(additionalSettings, callingAssembly, databaseBuilder);
             }
