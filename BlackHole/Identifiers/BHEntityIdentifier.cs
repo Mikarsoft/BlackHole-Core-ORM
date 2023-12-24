@@ -3,7 +3,8 @@
     /// <summary>
     /// Identifier for Black Hole Entities.
     /// </summary>
-    public interface IBHEntityIdentifier
+    public abstract class BHEntityIdentifier
     {
+        internal BHEntityIdentifier() { }
     }
 }

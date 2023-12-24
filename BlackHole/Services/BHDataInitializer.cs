@@ -26,7 +26,13 @@ namespace BlackHole.Services
             commandsAndParameters.Add(new InitialCommandsAndParameters { commandText = commandText});
         }
 
-        public IBHDataProvider<T,G> GetProvider<T,G>() where T : BlackHoleEntity<G>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="G"></typeparam>
+        /// <returns></returns>
+        public IBHDataProvider<T,G> GetProvider<T,G>() where T : BlackHoleEntity<G> where G:IComparable<G>
         {
             return new BHDataProvider<T, G>();
         }

@@ -5,10 +5,10 @@ using BlackHole.Statics;
 
 namespace BlackHole.Internal
 {
-    internal class BHDatabaseSelector : IBHDatabaseSelector
+    internal class BHDatabaseSelector
     {
 
-        IDataProvider IBHDatabaseSelector.GetExecutionProvider(string connectionString)
+        internal IDataProvider GetExecutionProvider(string connectionString)
         {
             return DatabaseStatics.DatabaseType switch
             {
@@ -20,7 +20,7 @@ namespace BlackHole.Internal
             };
         }
 
-        bool IBHDatabaseSelector.IsLite()
+        internal bool IsLite()
         {
             bool lite = false;
 
@@ -32,7 +32,7 @@ namespace BlackHole.Internal
             return lite;
         }
 
-        string IBHDatabaseSelector.GetPrimaryKeyCommand()
+        internal string GetPrimaryKeyCommand()
         {
             return DatabaseStatics.DatabaseType switch
             {
@@ -44,7 +44,7 @@ namespace BlackHole.Internal
             };
         }
 
-        string IBHDatabaseSelector.GetStringPrimaryKeyCommand()
+        internal string GetStringPrimaryKeyCommand()
         {
             return DatabaseStatics.DatabaseType switch
             {
@@ -56,7 +56,7 @@ namespace BlackHole.Internal
             };
         }
 
-        string IBHDatabaseSelector.GetGuidPrimaryKeyCommand()
+        internal string GetGuidPrimaryKeyCommand()
         {
             return DatabaseStatics.DatabaseType switch
             {
@@ -68,7 +68,7 @@ namespace BlackHole.Internal
             };
         }
 
-        string IBHDatabaseSelector.GetCompositePrimaryKeyCommand(Type propType, string columName)
+        internal string GetCompositePrimaryKeyCommand(Type propType, string columName)
         {
             if(propType == typeof(Guid))
             {
@@ -102,17 +102,17 @@ namespace BlackHole.Internal
             };
         }
 
-        bool IBHDatabaseSelector.GetMyShit()
+        internal bool GetMyShit()
         {
             return SkipQuotes();
         }
 
-        string IBHDatabaseSelector.GetServerConnection()
+        internal string GetServerConnection()
         {
             return DatabaseStatics.ServerConnection;
         }
 
-        int IBHDatabaseSelector.GetSqlTypeId()
+        internal int GetSqlTypeId()
         {
             int sqlTypeId = 0;
             switch (DatabaseStatics.DatabaseType)
@@ -136,7 +136,7 @@ namespace BlackHole.Internal
             return sqlTypeId;
         }
 
-        bool IBHDatabaseSelector.GetOpenPKConstraint()
+        internal bool GetOpenPKConstraint()
         {
             return DatabaseStatics.DatabaseType switch
             {
@@ -148,7 +148,7 @@ namespace BlackHole.Internal
             };
         }
 
-        bool IBHDatabaseSelector.SetDbDateFormat(IDataProvider _executionProvider)
+        internal bool SetDbDateFormat(IDataProvider _executionProvider)
         {
             string getDateCommand = DatabaseStatics.DatabaseType switch
             {
@@ -203,7 +203,7 @@ namespace BlackHole.Internal
             return result.Remove(0,1);
         }
 
-        string[] IBHDatabaseSelector.SqlDatatypesTranslation()
+        internal string[] SqlDatatypesTranslation()
         {
             string[] SqlDatatypes = new string[12];
             switch (DatabaseStatics.DatabaseType)
@@ -227,7 +227,7 @@ namespace BlackHole.Internal
             return SqlDatatypes;
         }
 
-        string IBHDatabaseSelector.TableSchemaCheck()
+        internal string TableSchemaCheck()
         {
             if (DatabaseStatics.DatabaseSchema != string.Empty)
             {
@@ -237,7 +237,7 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
-        string IBHDatabaseSelector.GetDatabaseSchema()
+        internal string GetDatabaseSchema()
         {
             if (DatabaseStatics.DatabaseSchema != string.Empty)
             {
@@ -246,7 +246,7 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
-        string IBHDatabaseSelector.GetDatabaseSchemaFk()
+        internal string GetDatabaseSchemaFk()
         {
             if (DatabaseStatics.DatabaseSchema != string.Empty)
             {
@@ -255,7 +255,7 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
-        string IBHDatabaseSelector.GetDatabaseName()
+        internal string GetDatabaseName()
         {
             if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite)
             {
@@ -293,7 +293,7 @@ namespace BlackHole.Internal
             return propName;
         }
 
-        string IBHDatabaseSelector.GetOwnerName()
+        internal string GetOwnerName()
         {
             if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite && DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Oracle)
             {
@@ -310,7 +310,7 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
-        bool IBHDatabaseSelector.IsUsingOracleProduct()
+        internal bool IsUsingOracleProduct()
         {
             if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
             {
@@ -319,7 +319,7 @@ namespace BlackHole.Internal
             return false;
         }
 
-        string[] IBHDatabaseSelector.GetSafeTransactionTry()
+        internal string[] GetSafeTransactionTry()
         {
             return DatabaseStatics.DatabaseType switch
             {
@@ -329,7 +329,7 @@ namespace BlackHole.Internal
             };
         }
 
-        string IBHDatabaseSelector.GetColumnModifyCommand()
+        internal string GetColumnModifyCommand()
         {
             if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
             {

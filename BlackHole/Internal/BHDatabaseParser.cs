@@ -7,7 +7,7 @@ namespace BlackHole.Internal
     internal class BHDatabaseParser
     {
         private readonly IDataProvider connection;
-        private readonly IBHDatabaseSelector _multiDatabaseSelector;
+        private readonly BHDatabaseSelector _multiDatabaseSelector;
         internal BHSqlExportWriter sqlWriter { get; set; }
         internal List<string> IgnoredTables { get; set; } = new List<string>();
         internal List<string> WarningsList { get; set; } = new List<string>();

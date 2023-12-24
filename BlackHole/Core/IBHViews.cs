@@ -15,7 +15,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        List<Dto> ExecuteView<Dto>() where Dto : IBHDtoIdentifier;
+        List<Dto> ExecuteView<Dto>() where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// <b>Transaction.</b> Executes the stored view that has the inserted DTO as
@@ -24,7 +24,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        List<Dto> ExecuteView<Dto>(BHTransaction transaction) where Dto : IBHDtoIdentifier;
+        List<Dto> ExecuteView<Dto>(BHTransaction transaction) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// <b>Asyncronous.</b> Executes the stored view that has the inserted DTO as
@@ -34,7 +34,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        Task<List<Dto>> ExecuteViewAsync<Dto>() where Dto : IBHDtoIdentifier;
+        Task<List<Dto>> ExecuteViewAsync<Dto>() where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// <b>Asyncronous.</b> <b>Transaction.</b> Executes the stored view that has the inserted DTO as
@@ -44,7 +44,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        Task<List<Dto>> ExecuteViewAsync<Dto>(BHTransaction transaction) where Dto : IBHDtoIdentifier;
+        Task<List<Dto>> ExecuteViewAsync<Dto>(BHTransaction transaction) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// Executes the stored view that has the inserted DTO as
@@ -53,7 +53,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        List<Dto> ExecuteView<Dto>(Action<BHOrderBy<Dto>> orderBy) where Dto : IBHDtoIdentifier;
+        List<Dto> ExecuteView<Dto>(Action<BHOrderBy<Dto>> orderBy) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// <b>Transaction.</b> Executes the stored view that has the inserted DTO as
@@ -62,7 +62,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        List<Dto> ExecuteView<Dto>(Action<BHOrderBy<Dto>> orderBy, BHTransaction transaction) where Dto : IBHDtoIdentifier;
+        List<Dto> ExecuteView<Dto>(Action<BHOrderBy<Dto>> orderBy, BHTransaction transaction) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// <b>Asyncronous.</b> Executes the stored view that has the inserted DTO as
@@ -72,7 +72,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        Task<List<Dto>> ExecuteViewAsync<Dto>(Action<BHOrderBy<Dto>> orderBy) where Dto : IBHDtoIdentifier;
+        Task<List<Dto>> ExecuteViewAsync<Dto>(Action<BHOrderBy<Dto>> orderBy) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// <b>Asyncronous.</b> <b>Transaction.</b> Executes the stored view that has the inserted DTO as
@@ -82,7 +82,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        Task<List<Dto>> ExecuteViewAsync<Dto>(Action<BHOrderBy<Dto>> orderBy,BHTransaction transaction) where Dto : IBHDtoIdentifier;
+        Task<List<Dto>> ExecuteViewAsync<Dto>(Action<BHOrderBy<Dto>> orderBy,BHTransaction transaction) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// 

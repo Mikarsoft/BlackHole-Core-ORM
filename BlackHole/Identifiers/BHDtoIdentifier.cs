@@ -4,7 +4,8 @@ namespace BlackHole.Identifiers
     /// <summary>
     /// Identifier for BlackHole DTOs
     /// </summary>
-    public interface IBHDtoIdentifier
+    public abstract class BHDtoIdentifier
     {
+        internal BHDtoIdentifier() { }
     }
 }

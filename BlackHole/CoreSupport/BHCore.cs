@@ -879,7 +879,7 @@ namespace BlackHole.CoreSupport
             }
         }
 
-        internal static ColumnsAndParameters? TranslateJoin<Dto>(this JoinsData data) where Dto : IBHDtoIdentifier
+        internal static ColumnsAndParameters? TranslateJoin<Dto>(this JoinsData data) where Dto : BHDtoIdentifier
         {
             if (data.DtoType == typeof(Dto))
             {

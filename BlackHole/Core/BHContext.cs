@@ -13,7 +13,7 @@ namespace BlackHole.Core
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="G"></typeparam>
         /// <returns></returns>
-        public bool Provider<T>() where T : IBHEntityIdentifier
+        public bool Provider<T>() where T : BHEntityIdentifier
         {
             return true;
         }

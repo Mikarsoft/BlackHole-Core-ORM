@@ -6,7 +6,7 @@ namespace BlackHole.Entities
     /// Is Required to use Mapping on DTO, Views and Joins Functionality
     /// </summary>
     /// <typeparam name="G"></typeparam>
-    public abstract class BlackHoleDto<G> : IBHDtoIdentifier
+    public abstract class BlackHoleDto<G> : BHDtoIdentifier
     {
         /// <summary>
         /// The Primary Key of the DTO

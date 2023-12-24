@@ -7,9 +7,9 @@ namespace BlackHole.Internal
     internal class BHDatabaseInfoReader
     {
         private readonly IDataProvider connection;
-        private readonly IBHDatabaseSelector _multiDatabaseSelector;
+        private readonly BHDatabaseSelector _multiDatabaseSelector;
 
-        internal BHDatabaseInfoReader(IDataProvider _connection , IBHDatabaseSelector databaseSelector)
+        internal BHDatabaseInfoReader(IDataProvider _connection , BHDatabaseSelector databaseSelector)
         {
             connection = _connection;
             _multiDatabaseSelector = databaseSelector;

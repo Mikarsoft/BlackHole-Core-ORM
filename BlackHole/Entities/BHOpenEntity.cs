@@ -6,7 +6,7 @@ namespace BlackHole.Entities
     /// Flexible Black Hole Entity with more options. The table in database is based on this.
     /// <para>It is Suggested for more advanced developers.</para>
     /// </summary>
-    public abstract class BHOpenEntity<Self> : IBHEntityIdentifier where Self : BHOpenEntity<Self>
+    public abstract class BHOpenEntity<Self> : BHEntityIdentifier where Self : BHOpenEntity<Self>
     {
         /// <summary>
         /// Configuration method for the BHOpenEntity.

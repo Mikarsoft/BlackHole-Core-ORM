@@ -8,7 +8,7 @@ namespace BlackHole.Entities
     /// Black Hole Entity. The table in database is based on this
     /// </summary>
     /// <typeparam name="G"></typeparam>
-    public abstract class BlackHoleEntity<G> : IBHEntityIdentifier where G : IComparable<G>
+    public abstract class BlackHoleEntity<G> : BHEntityIdentifier where G : IComparable<G>
     {
         /// <summary>
         /// The Primary Key of the Entity

@@ -10,7 +10,7 @@ namespace BlackHole.Internal
 {
     internal class BHTableBuilder
     {
-        private readonly IBHDatabaseSelector _multiDatabaseSelector;
+        private readonly BHDatabaseSelector _multiDatabaseSelector;
         private readonly IDataProvider connection;
         private BHSqlExportWriter SqlWriter { get; set; }
         private List<TableParsingInfo> DbConstraints { get; set; } = new();
@@ -37,7 +37,7 @@ namespace BlackHole.Internal
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
-            connection = _multiDatabaseSelector.GetDataProvider(DatabaseStatics.ConnectionString);
+            connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
             IsForcedUpdate = DatabaseStatics.AutoUpdate && (DatabaseStatics.IsDevMove || CliCommand.ForceAction);
             dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
             AlterColumn = _multiDatabaseSelector.GetColumnModifyCommand();
@@ -141,7 +141,7 @@ namespace BlackHole.Internal
                         if (Property.Name != pkInformation.MainPrimaryKey)
                         {
                             tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
-                            tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
+                            tableCreator.Append(GetSqlColumn(Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name,TableType.Name));
                         }
                         else
                         {
@@ -151,7 +151,7 @@ namespace BlackHole.Internal
                     else
                     {
                         tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
-                        tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name));
+                        tableCreator.Append(GetSqlColumn(Property.PropertyType, pkSettings.Contains(Property.Name), Property.Name, TableType.Name));
                     }
                 }
 
@@ -189,7 +189,7 @@ namespace BlackHole.Internal
                     {
                         tableCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, Property.Name, TableType.Name));
 
-                        tableCreator.Append(GetSqlColumn(attributes, Property.PropertyType, false,Property.Name,TableType.Name));
+                        tableCreator.Append(GetSqlColumn(Property.PropertyType, false,Property.Name,TableType.Name));
                     }
                     else
                     {
@@ -479,20 +479,13 @@ namespace BlackHole.Internal
                 if (attributes.Length > 0)
                 {
                     object? FK_attribute = attributes.FirstOrDefault(x => x.GetType() == FkType);
-                    bool nullability = true;
+                    bool nullability = CheckNullability(Property.PropertyType);
+
                     if (FK_attribute != null)
                     {
                         var tName = FkType.GetProperty("TableName")?.GetValue(FK_attribute, null);
                         var tColumn = FkType.GetProperty("Column")?.GetValue(FK_attribute, null);
-                        if (FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
-                        {
-                            nullability = isNullable;
-                            FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, isNullable));
-                        }
-                    }
-                    else
-                    {
-                        nullability = CheckNullability(Property.PropertyType);
+                        FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, nullability));
                     }
 
                     object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -526,20 +519,13 @@ namespace BlackHole.Internal
                     if (attributes.Length > 0)
                     {
                         object? FK_attribute = attributes.FirstOrDefault(x => x.GetType() == FkType);
-                        bool nullability = true;
+                        bool nullability = CheckNullability(Property.PropertyType);
+
                         if (FK_attribute != null)
                         {
                             var tName = FkType.GetProperty("TableName")?.GetValue(FK_attribute, null);
                             var tColumn = FkType.GetProperty("Column")?.GetValue(FK_attribute, null);
-                            if (FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
-                            {
-                                nullability = isNullable;
-                                FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, isNullable));
-                            }
-                        }
-                        else
-                        {
-                            nullability = CheckNullability(Property.PropertyType);
+                            FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, nullability));
                         }
 
                         object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -632,10 +618,12 @@ namespace BlackHole.Internal
             }
 
             List<string> ColumnsToDrop = ColumnNames.Except(NewColumnNames).ToList();
+
             if (ColumnsToDrop.Any() && !IsForcedUpdate)
             {
                 throw ProtectDbAndThrow($"Error at Table '{TableType.Name}' on Dropping Columns. You CAN ONLY Drop Columns of a Table in Developer Mode, or by using the CLI 'update' command with the '--force' argument => 'bhl update --force'");
             }
+
             List<string> ColumnsToAdd = NewColumnNames.Except(ColumnNames).ToList();
             List<string> CommonColumns = ColumnNames.Intersect(NewColumnNames).ToList();
 
@@ -674,25 +662,13 @@ namespace BlackHole.Internal
                 if (attributes.Length > 0)
                 {
                     object? FK_attribute = attributes.FirstOrDefault(x => x.GetType() == FkType);
-                    bool nullability = true;
+                    bool nullability = CheckNullability(Property.PropertyType);
 
                     if (FK_attribute != null)
                     {
                         var tName = FkType.GetProperty("TableName")?.GetValue(FK_attribute, null);
                         var tColumn = FkType.GetProperty("Column")?.GetValue(FK_attribute, null);
-                        if(FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
-                        {
-                            nullability = isNullable;
-                            FkOptions.Add(AddForeignKey(Property.Name,tName,tColumn,isNullable));
-                        }
-                    }
-                    else
-                    {
-                        object? NN_attribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-                        if (NN_attribute != null)
-                        {
-                            nullability = false;
-                        }
+                        FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, nullability));
                     }
 
                     object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -743,20 +719,13 @@ namespace BlackHole.Internal
                 if (attributes.Length > 0)
                 {
                     object? FK_attribute = attributes.FirstOrDefault(x => x.GetType() == FkType);
-                    bool nullability = true;
+                    bool nullability = CheckNullability(Property.PropertyType);
+
                     if (FK_attribute != null)
                     {
                         var tName = FkType.GetProperty("TableName")?.GetValue(FK_attribute, null);
                         var tColumn = FkType.GetProperty("Column")?.GetValue(FK_attribute, null);
-                        if(FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
-                        {
-                            nullability = isNullable;
-                            FkOptions.Add(AddForeignKey(Property.Name,tName,tColumn,isNullable));
-                        }
-                    }
-                    else
-                    {
-                        nullability = CheckNullability(Property.PropertyType);
+                        FkOptions.Add(AddForeignKey(Property.Name, tName, tColumn, nullability));
                     }
 
                     object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -812,24 +781,17 @@ namespace BlackHole.Internal
             foreach (PropertyInfo Property in Properties)
             {
                 object[] attributes = Property.GetCustomAttributes(true);
+
                 if (attributes.Length > 0)
                 {
                     object? FK_attribute = attributes.SingleOrDefault(x => x.GetType() == FkType);
-                    bool nullability = true;
+                    bool nullability = CheckNullability(Property.PropertyType);
 
                     if (FK_attribute != null)
                     {
                         var tName = FkType.GetProperty("TableName")?.GetValue(FK_attribute, null);
                         var tColumn = FkType.GetProperty("Column")?.GetValue(FK_attribute, null);
-                        if (FkType.GetProperty("Nullability")?.GetValue(FK_attribute, null) is bool isNullable)
-                        {
-                            nullability = isNullable;
-                            fkInfos.Add(AddForeignKey(Property.Name, tName, tColumn, isNullable));
-                        }
-                    }
-                    else
-                    {
-                        nullability = CheckNullability(Property.PropertyType);
+                        fkInfos.Add(AddForeignKey(Property.Name, tName, tColumn, nullability));
                     }
 
                     object? UQ_attribute = attributes.FirstOrDefault(x => x.GetType() == UQType);
@@ -923,7 +885,7 @@ namespace BlackHole.Internal
                     PropertyInfo Property = Properties.First(x => x.Name == ColumnName);
                     object[]? attributes = Property.GetCustomAttributes(true);
                     columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, TableType.Name));
-                    columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, false, FkOptions, UniqueOptions));
+                    columnCreator.Append(AddColumnConstraints(attributes, TableType.Name, Property.Name, Property.PropertyType, false, FkOptions, UniqueOptions));
                     CustomTransaction.Add(columnCreator.ToString());
                     CliConsoleLogs($"{columnCreator};");
 
@@ -1019,7 +981,7 @@ namespace BlackHole.Internal
                 PropertyInfo? Property = Properties.First(x => x.Name == ColumnName);
                 object[]? attributes = Property.GetCustomAttributes(true);
                 columnCreator.Append(GetDatatypeCommand(Property.PropertyType, attributes, ColumnName, TableType.Name));
-                columnCreator.Append(AddColumnConstaints(attributes, TableType.Name, Property.Name, Property.PropertyType, pkInformation.PKPropertyNames.Contains(ColumnName),FkOptions, UniqueOptions));
+                columnCreator.Append(AddColumnConstraints(attributes, TableType.Name, Property.Name, Property.PropertyType, pkInformation.PKPropertyNames.Contains(ColumnName),FkOptions, UniqueOptions));
                 CustomTransaction.Add(columnCreator.ToString());
                 columnCreator.Clear();
 
@@ -1089,48 +1051,9 @@ namespace BlackHole.Internal
 
         private void NullabilityUpdateCheck(PropertyInfo newColumn,TableParsingInfo existingColumn, string TableName)
         {
-            bool isNullable = existingColumn.Nullable;
-            bool mandatoryNull = false;
+            bool mandatoryNull = CheckNullability(newColumn.PropertyType);
 
-            object[] bhAttributes = newColumn.GetCustomAttributes(true);
-
-            if (newColumn.PropertyType.Name.Contains("Nullable"))
-            {
-                if (newColumn.PropertyType.GenericTypeArguments != null && newColumn.PropertyType.GenericTypeArguments.Length > 0)
-                {
-                    mandatoryNull = true;
-                }
-            }
-
-            object? fkAttribute = bhAttributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
-            if(fkAttribute != null)
-            {
-                object? nullability = typeof(ForeignKey).GetProperty("Nullability")?.GetValue(fkAttribute, null);
-                if(nullability is bool nullableCol)
-                {
-                    isNullable = nullableCol;
-                }
-
-                if (mandatoryNull && !isNullable)
-                {
-                    throw ProtectDbAndThrow($"Nullable Property '{newColumn.Name}' of Entity '{TableName}' CAN NOT become a NOT NULL column in the Database." +
-                    $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove the (?) from the Property's Type.");
-                }
-            }
-
-            object? notNullableAtr = bhAttributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-            if (notNullableAtr != null)
-            {
-                isNullable = false;
-
-                if (mandatoryNull)
-                {
-                    throw ProtectDbAndThrow($"Nullable Property '{newColumn.Name}' of Entity '{TableName}' CAN NOT become a NOT NULL column in the Database." +
-                    $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove the (?) from the Property's Type.");
-                }
-            }
-
-            if (isNullable != existingColumn.Nullable)
+            if (mandatoryNull != existingColumn.Nullable)
             {
                 if (existingColumn.Nullable)
                 {
@@ -1262,7 +1185,7 @@ namespace BlackHole.Internal
             }
         }
 
-        string AddColumnConstaints(object[] attributes, string TableName, string PropName, Type PropType, bool isOpenPk, List<FKInfo> fKInfos, List<UniqueInfo> uqInfos)
+        string AddColumnConstraints(object[] attributes, string TableName, string PropName, Type PropType, bool isOpenPk, List<FKInfo> fKInfo, List<UniqueInfo> uqInfo)
         {
             if(isOpenPk && !IsForcedUpdate)
             {
@@ -1270,19 +1193,10 @@ namespace BlackHole.Internal
                     "'DeveloperMode' or the 'update' CLI command with '--force' argument");
             }
 
-            bool isNullable = true;
-            bool mandatoryNull = false;
+            bool mandatoryNull = CheckNullability(PropType);
             bool isUnique = false;
             int uniqueGroupId = 0;
-            string constraintsCommand = "NULL";
-
-            if (PropType.Name.Contains("Nullable"))
-            {
-                if (PropType.GenericTypeArguments != null && PropType.GenericTypeArguments.Length > 0)
-                {
-                    mandatoryNull = true;
-                }
-            }
+            string constraintsCommand = mandatoryNull ? "NULL " : "NOT NULL ";
 
             object? ucAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(Unique));
 
@@ -1310,52 +1224,30 @@ namespace BlackHole.Internal
                 var tName = fkAttributeType.GetProperty("TableName")?.GetValue(fkAttribute, null);
                 var tColumn = fkAttributeType.GetProperty("Column")?.GetValue(fkAttribute, null);
 
-                if (fkAttributeType.GetProperty("Nullability")?.GetValue(fkAttribute, null) is bool Nullability)
-                {
-                    isNullable = Nullability;
-                }
-
-                if (mandatoryNull && !isNullable)
-                {
-                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a NOT NULL column in the Database." +
-                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove the (?) from the Property's Type.");
-                }
-
-                if (isOpenPk && isNullable)
+                if (isOpenPk && mandatoryNull)
                 {
                     throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it CAN NOT be NULLABLE." +
-                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
+                        $"Please change the Nullability on the Property.");
                 }
 
-                if(isUnique && isNullable)
+                if(isUnique && mandatoryNull)
                 {
                     throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked with UNIQUE CONSTRAINT and it CAN NOT be NULLABLE." +
-                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
+                        $"Please change the Nullability on the Property or Remove Property from the Primary Keys.");
                 }
 
-                if (!isNullable)
+                if (!mandatoryNull)
                 {
-                    throw ProtectDbAndThrow("CAN NOT Add a 'NOT NULLABLE' Foreign Key on an Existing Table. Please Change the Nullability on the " +
-                        $"'[ForeignKey]' Attribute on the Property '{PropName}' of the Entity '{TableName}'.");
+                    throw ProtectDbAndThrow("CAN NOT Add a 'NOT NULLABLE' Foreign Key on an Existing Table. Please Change the Nullability of " +
+                        $"the Property '{PropName}' on the Entity '{TableName}'.");
                 }
 
-                fKInfos.Add(AddForeignKey(PropName,tName,tColumn,isNullable));
-                return $"{constraintsCommand} ";
+                fKInfo.Add(AddForeignKey(PropName,tName,tColumn,mandatoryNull));
+                return constraintsCommand;
             }
 
-            object? nnAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-
-            if (nnAttribute != null)
+            if (!mandatoryNull)
             {
-                isNullable = false;
-                string nullPhase = "NULL ";
-
-                if (mandatoryNull)
-                {
-                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a 'NOT NULL' column in the Database." +
-                        $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
-                }
-
                 string defaultValCommand = GetDefaultValue(PropType, PropName, TableName);
 
                 if (IsForcedUpdate)
@@ -1386,10 +1278,10 @@ namespace BlackHole.Internal
 
                     if (isUnique)
                     {
-                        uqInfos.Add(AddUniqueConstraint(PropName,uniqueGroupId));
+                        uqInfo.Add(AddUniqueConstraint(PropName,uniqueGroupId));
                     }
 
-                    return nullPhase;
+                    return constraintsCommand;
                 }
                 else
                 {
@@ -1400,79 +1292,28 @@ namespace BlackHole.Internal
 
             if (isOpenPk)
             {
-                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it Requires the '[NotNullable]' Attribute.");
+                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it Requires to be NOT NULLABLE.");
             }
 
             if (isUnique)
             {
-                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked with UNIQUE CONSTRAINT and it Requires the '[NotNullable]' Attribute.");
+                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked with UNIQUE CONSTRAINT and it Requires to be NOT NULLABLE.");
             }
 
             return constraintsCommand;
         }
 
-        string GetSqlColumn(object[] attributes, Type PropertyType, bool isOpenPk, string PropName, string TableName)
+        string GetSqlColumn(Type PropertyType, bool isOpenPk, string PropName, string TableName)
         {
-            bool mandatoryNull = false;
-            bool isNullable = true;
-            string nullPhase = "NULL, ";
+            bool mandatoryNull = CheckNullability(PropertyType);
+            string nullPhase = mandatoryNull ? "NULL, ": "NOT NULL, ";
 
-            if (PropertyType.Name.Contains("Nullable"))
+            if (isOpenPk && mandatoryNull)
             {
-                if (PropertyType.GenericTypeArguments != null && PropertyType.GenericTypeArguments.Length > 0)
-                {
-                    mandatoryNull = true;
-                }
+                throw ProtectDbAndThrow($"Error at Property '{PropName}' of Entity '{TableName}'. A Nullable Property CAN NOT be marked as PRIMARY KEY");
             }
 
-            object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
-
-            if (fkAttribute != null)
-            {
-                if(typeof(ForeignKey).GetProperty("Nullability")?.GetValue(fkAttribute, null) is bool Nullability)
-                {
-                    isNullable = Nullability;
-                }
-
-                nullPhase = isNullable ? "NULL, " : "NOT NULL, ";
-
-                if (mandatoryNull && !isNullable)
-                {
-                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a NOT NULL column in the Database." +
-                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove the (?) from the Property's Type.");
-                }
-
-                if (isOpenPk && isNullable)
-                {
-                    throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it CAN NOT be NULLABLE." +
-                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
-                }
-
-                return nullPhase;
-            }
-
-            object? nnAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-
-            if (nnAttribute != null)
-            {
-                isNullable = false;
-                nullPhase = "NOT NULL, ";
-
-                if (mandatoryNull)
-                {
-                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a 'NOT NULL' column in the Database." +
-                        $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
-                }
-
-                return nullPhase;
-            }
-
-            if (isOpenPk)
-            {
-                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it Requires the '[NotNullable]' Attribute.");
-            }
-
-            return "NULL, ";
+            return nullPhase;
         }
 
         private string SQLiteColumn(object[] attributes, bool firstTime, Type PropertyType, bool isOpenPk, string PropName, string TableName, bool wasNotNull, bool hasPkChanged)
@@ -1483,17 +1324,9 @@ namespace BlackHole.Internal
                     "'DeveloperMode' or the 'update' CLI command with '--force' argument");
             }
 
-            bool mandatoryNull = false;
+            bool mandatoryNull = CheckNullability(PropertyType);
             bool isNullable = true;
             string nullPhase = "NULL, ";
-
-            if (PropertyType.Name.Contains("Nullable"))
-            {
-                if (PropertyType.GenericTypeArguments != null && PropertyType.GenericTypeArguments.Length > 0)
-                {
-                    mandatoryNull = true;
-                }
-            }
 
             object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
 
@@ -1527,9 +1360,7 @@ namespace BlackHole.Internal
                 return nullPhase;
             }
 
-            object? nnAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(NotNullable));
-
-            if (nnAttribute != null)
+            if (!mandatoryNull)
             {
                 isNullable = false;
                 nullPhase = "NOT NULL, ";
