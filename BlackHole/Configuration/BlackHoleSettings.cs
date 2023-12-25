@@ -15,7 +15,7 @@ namespace BlackHole.Configuration
         /// <summary>
         /// connection settings for the database
         /// </summary>
-        public ConnectionSettings connectionConfig { get; set; } = new ConnectionSettings();
+        internal ConnectionSettings connectionConfig { get; set; } = new ConnectionSettings();
 
         // MULTIPLE DATABASES , WORK IN PROGRESS
 
@@ -29,12 +29,12 @@ namespace BlackHole.Configuration
         /// <summary>
         /// put BlackHole into developer mode
         /// </summary>
-        public bool isInDevMode { get; set; } = false;
+        internal bool isInDevMode { get; set; } = false;
 
         /// <summary>
         /// blocks automatic update of the database
         /// </summary>
-        public bool AutoUpdate { get; set; } = false;
+        internal bool AutoUpdate { get; set; } = false;
 
         /// <summary>
         /// Add the configuration for a database.
@@ -66,7 +66,7 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionSettings">connection settings</param>
         /// <returns>DataPath Settings to add more settings</returns>
-        internal DataPathSettings AddDatabases(Action<List<Action<ConnectionSettings>>> connectionSettings)
+        public DataPathSettings AddMultipleDatabases(Action<List<Action<ConnectionSettings>>> connectionSettings)
         {
             List<Action<ConnectionSettings>> list = new();
 
