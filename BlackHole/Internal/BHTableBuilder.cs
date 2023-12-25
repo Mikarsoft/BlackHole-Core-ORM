@@ -1295,11 +1295,6 @@ namespace BlackHole.Internal
                 throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it Requires to be NOT NULLABLE.");
             }
 
-            if (isUnique)
-            {
-                throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked with UNIQUE CONSTRAINT and it Requires to be NOT NULLABLE.");
-            }
-
             return constraintsCommand;
         }
 
@@ -1325,33 +1320,19 @@ namespace BlackHole.Internal
             }
 
             bool mandatoryNull = CheckNullability(PropertyType);
-            bool isNullable = true;
-            string nullPhase = "NULL, ";
+            string nullPhase = mandatoryNull ? "NULL, ": "NOT NULL, ";
 
             object? fkAttribute = attributes.FirstOrDefault(x => x.GetType() == typeof(ForeignKey));
 
             if (fkAttribute != null)
             {
-                if (typeof(ForeignKey).GetProperty("Nullability")?.GetValue(fkAttribute, null) is bool Nullability)
-                {
-                    isNullable = Nullability;
-                }
-
-                nullPhase = isNullable ? "NULL, " : "NOT NULL, ";
-
-                if (mandatoryNull && !isNullable)
-                {
-                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a NOT NULL column in the Database." +
-                        $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove the (?) from the Property's Type.");
-                }
-
-                if (isOpenPk && isNullable)
+                if (isOpenPk && mandatoryNull)
                 {
                     throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it CAN NOT be NULLABLE." +
                         $"Please change the Nullability on the '[ForeignKey]' Attribute or Remove Property from the Primary Keys.");
                 }
 
-                if(!wasNotNull && !firstTime && !isNullable)
+                if(!wasNotNull && !firstTime && !mandatoryNull)
                 {
                     throw ProtectDbAndThrow("CAN NOT Add a 'NOT NULLABLE' Foreign Key on an Existing Table. Please Change the Nullability on the " +
                         $"'[ForeignKey]' Attribute on the Property '{PropName}' of the Entity '{TableName}'.");
@@ -1362,15 +1343,6 @@ namespace BlackHole.Internal
 
             if (!mandatoryNull)
             {
-                isNullable = false;
-                nullPhase = "NOT NULL, ";
-
-                if (mandatoryNull)
-                {
-                    throw ProtectDbAndThrow($"Nullable Property '{PropName}' of Entity '{TableName}' CAN NOT become a 'NOT NULL' column in the Database." +
-                        $"Please remove the (?) from the Property's Type or Remove the [NotNullable] Attribute.");
-                }
-
                 if (!wasNotNull && !firstTime)
                 {
                     string defaultValCommand = GetDefaultValue(PropertyType, PropName, TableName);
@@ -1385,6 +1357,7 @@ namespace BlackHole.Internal
                             $"to be added as 'NOT NULLABLE' Column on an Existing Table. The default value of it, will be {defaultValCommand}.");
                     }
                 }
+
                 return nullPhase;
             }
 
@@ -1393,7 +1366,7 @@ namespace BlackHole.Internal
                 throw ProtectDbAndThrow($"Property '{PropName}' of Entity '{TableName}' is marked as a PRIMARY KEY and it Requires the '[NotNullable]' Attribute.");
             }
 
-            return "NULL, ";
+            return nullPhase;
         }
 
         bool CheckNullability(Type PropertyType)
