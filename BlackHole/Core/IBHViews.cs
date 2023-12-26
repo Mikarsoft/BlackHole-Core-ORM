@@ -90,6 +90,5 @@ namespace BlackHole.Core
         /// <typeparam name="Dto"></typeparam>
         /// <returns></returns>
         JoinsProcess<Dto> StartJoinUsing<Dto>();
-
     }
 }

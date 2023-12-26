@@ -1,9 +1,9 @@
-﻿namespace BlackHole.Settings
+﻿namespace BlackHole.PreLoads
 {
     /// <summary>
     /// 
     /// </summary>
-    public abstract class BHSettings
+    public abstract class BHPreLoad
     {
 
         /// <summary>
@@ -22,7 +22,7 @@
         /// 
         /// </summary>
         /// <returns></returns>
-        public abstract BHStoredViews StoredViews(StoredViewsBuilder storedViewsBuilder);
+        public abstract void StoredViews(StoredViewsBuilder storedViewsBuilder);
 
         /// <summary>
         /// 
