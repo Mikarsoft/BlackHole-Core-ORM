@@ -14,9 +14,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace BlackHole.CoreSupport
+namespace BlackHole.Engine
 {
-    internal static class BHCore
+    internal static class BlackHoleEngine
     {
         private static IDataProvider? ExecProvider { get; set; }
 
@@ -135,14 +135,14 @@ namespace BlackHole.CoreSupport
 
                 expressionTree.Add(new ExpressionsData()
                 {
-                    operation = currentOperation,
-                    leftMethodMember = methodCallOperation,
-                    leftMember = currentOperation?.Left as MemberExpression,
-                    rightMember = currentOperation?.Right as MemberExpression,
-                    expressionType = currentOperation != null ? currentOperation.NodeType : ExpressionType.Default,
-                    rightChecked = false,
-                    leftChecked = false,
-                    memberValue = null
+                    Operation = currentOperation,
+                    LeftMethodMember = methodCallOperation,
+                    LeftMember = currentOperation?.Left as MemberExpression,
+                    RightMember = currentOperation?.Right as MemberExpression,
+                    OperationType = currentOperation != null ? currentOperation.NodeType : ExpressionType.Default,
+                    RightChecked = false,
+                    LeftChecked = false,
+                    MemberValue = null
                 });
             }
 
@@ -150,45 +150,45 @@ namespace BlackHole.CoreSupport
             {
                 bool addTotree = false;
 
-                if (expressionTree[currentIndx].operation != null)
+                if (expressionTree[currentIndx].Operation != null)
                 {
-                    if (expressionTree[currentIndx].expressionType == ExpressionType.AndAlso || expressionTree[currentIndx].expressionType == ExpressionType.OrElse)
+                    if (expressionTree[currentIndx].OperationType == ExpressionType.AndAlso || expressionTree[currentIndx].OperationType == ExpressionType.OrElse)
                     {
 
-                        BinaryExpression? leftOperation = expressionTree[currentIndx].operation?.Left as BinaryExpression;
-                        BinaryExpression? rightOperation = expressionTree[currentIndx].operation?.Right as BinaryExpression;
-                        MethodCallExpression? leftCallOperation = expressionTree[currentIndx].operation?.Left as MethodCallExpression;
-                        MethodCallExpression? rightCallOperation = expressionTree[currentIndx].operation?.Right as MethodCallExpression;
+                        BinaryExpression? leftOperation = expressionTree[currentIndx].Operation?.Left as BinaryExpression;
+                        BinaryExpression? rightOperation = expressionTree[currentIndx].Operation?.Right as BinaryExpression;
+                        MethodCallExpression? leftCallOperation = expressionTree[currentIndx].Operation?.Left as MethodCallExpression;
+                        MethodCallExpression? rightCallOperation = expressionTree[currentIndx].Operation?.Right as MethodCallExpression;
 
-                        if (!expressionTree[currentIndx].leftChecked && (leftOperation != null || leftCallOperation != null))
+                        if (!expressionTree[currentIndx].LeftChecked && (leftOperation != null || leftCallOperation != null))
                         {
                             expressionTree.Add(new ExpressionsData()
                             {
-                                operation = leftOperation,
-                                leftMethodMember = leftCallOperation,
-                                expressionType = leftOperation != null ? leftOperation.NodeType : ExpressionType.Default,
-                                rightChecked = false,
-                                leftChecked = false,
-                                memberValue = null,
-                                parentIndex = currentIndx
+                                Operation = leftOperation,
+                                LeftMethodMember = leftCallOperation,
+                                OperationType = leftOperation != null ? leftOperation.NodeType : ExpressionType.Default,
+                                RightChecked = false,
+                                LeftChecked = false,
+                                MemberValue = null,
+                                ParentIndex = currentIndx
                             });
-                            expressionTree[currentIndx].leftChecked = true;
+                            expressionTree[currentIndx].LeftChecked = true;
                             addTotree = true;
                         }
 
-                        if (!expressionTree[currentIndx].rightChecked && (rightOperation != null || rightCallOperation != null))
+                        if (!expressionTree[currentIndx].RightChecked && (rightOperation != null || rightCallOperation != null))
                         {
                             expressionTree.Add(new ExpressionsData()
                             {
-                                operation = rightOperation,
-                                rightMethodMember = rightCallOperation,
-                                expressionType = rightOperation != null ? rightOperation.NodeType : ExpressionType.Default,
-                                rightChecked = false,
-                                leftChecked = false,
-                                memberValue = null,
-                                parentIndex = currentIndx
+                                Operation = rightOperation,
+                                RightMethodMember = rightCallOperation,
+                                OperationType = rightOperation != null ? rightOperation.NodeType : ExpressionType.Default,
+                                RightChecked = false,
+                                LeftChecked = false,
+                                MemberValue = null,
+                                ParentIndex = currentIndx
                             });
-                            expressionTree[currentIndx].rightChecked = true;
+                            expressionTree[currentIndx].RightChecked = true;
                             addTotree = true;
                         }
 
@@ -199,62 +199,62 @@ namespace BlackHole.CoreSupport
                     }
                     else
                     {
-                        if (!expressionTree[currentIndx].rightChecked)
+                        if (!expressionTree[currentIndx].RightChecked)
                         {
-                            if (expressionTree[currentIndx].operation?.Right is MemberExpression rightMember)
+                            if (expressionTree[currentIndx].Operation?.Right is MemberExpression rightMember)
                             {
                                 expressionTree[currentIndx].InvokeOrTake<T>(rightMember, true);
                             }
 
-                            if (expressionTree[currentIndx].operation?.Right is ConstantExpression rightConstant)
+                            if (expressionTree[currentIndx].Operation?.Right is ConstantExpression rightConstant)
                             {
-                                expressionTree[currentIndx].memberValue = rightConstant?.Value;
+                                expressionTree[currentIndx].MemberValue = rightConstant?.Value;
                             }
 
-                            if (expressionTree[currentIndx].operation?.Right is BinaryExpression rightBinary)
+                            if (expressionTree[currentIndx].Operation?.Right is BinaryExpression rightBinary)
                             {
-                                expressionTree[currentIndx].memberValue = Expression.Lambda(rightBinary).Compile().DynamicInvoke();
+                                expressionTree[currentIndx].MemberValue = Expression.Lambda(rightBinary).Compile().DynamicInvoke();
                             }
 
-                            if (expressionTree[currentIndx].operation?.Right is MethodCallExpression rightmethodMember)
+                            if (expressionTree[currentIndx].Operation?.Right is MethodCallExpression rightMethodMember)
                             {
-                                expressionTree[currentIndx].rightMethodMember = rightmethodMember;
+                                expressionTree[currentIndx].RightMethodMember = rightMethodMember;
                             }
 
-                            expressionTree[currentIndx].rightChecked = true;
+                            expressionTree[currentIndx].RightChecked = true;
                         }
 
-                        if (!expressionTree[currentIndx].leftChecked)
+                        if (!expressionTree[currentIndx].LeftChecked)
                         {
-                            if (expressionTree[currentIndx].operation?.Left is MemberExpression leftMember)
+                            if (expressionTree[currentIndx].Operation?.Left is MemberExpression leftMember)
                             {
                                 expressionTree[currentIndx].InvokeOrTake<T>(leftMember, false);
                             }
 
-                            if (expressionTree[currentIndx].operation?.Left is ConstantExpression leftConstant)
+                            if (expressionTree[currentIndx].Operation?.Left is ConstantExpression leftConstant)
                             {
-                                expressionTree[currentIndx].memberValue = leftConstant?.Value;
+                                expressionTree[currentIndx].MemberValue = leftConstant?.Value;
                             }
 
-                            if (expressionTree[currentIndx].operation?.Left is BinaryExpression leftBinary)
+                            if (expressionTree[currentIndx].Operation?.Left is BinaryExpression leftBinary)
                             {
-                                expressionTree[currentIndx].memberValue = Expression.Lambda(leftBinary).Compile().DynamicInvoke();
+                                expressionTree[currentIndx].MemberValue = Expression.Lambda(leftBinary).Compile().DynamicInvoke();
                             }
 
-                            if (expressionTree[currentIndx].operation?.Left is MethodCallExpression leftmethodMember)
+                            if (expressionTree[currentIndx].Operation?.Left is MethodCallExpression leftmethodMember)
                             {
-                                expressionTree[currentIndx].leftMethodMember = leftmethodMember;
+                                expressionTree[currentIndx].LeftMethodMember = leftmethodMember;
                             }
 
-                            expressionTree[currentIndx].leftChecked = true;
+                            expressionTree[currentIndx].LeftChecked = true;
                         }
                     }
                 }
 
-                if (expressionTree[currentIndx].methodData.Count == 0)
+                if (expressionTree[currentIndx].MethodData.Count == 0)
                 {
-                    MethodCallExpression? leftMethodMember = expressionTree[currentIndx].leftMethodMember;
-                    MethodCallExpression? rightMethodMember = expressionTree[currentIndx].rightMethodMember;
+                    MethodCallExpression? leftMethodMember = expressionTree[currentIndx].LeftMethodMember;
+                    MethodCallExpression? rightMethodMember = expressionTree[currentIndx].RightMethodMember;
 
                     if (leftMethodMember != null)
                     {
@@ -268,7 +268,7 @@ namespace BlackHole.CoreSupport
                             cleanOfMembers = false;
                         }
 
-                        if (!expressionTree[currentIndx].methodChecked)
+                        if (!expressionTree[currentIndx].MethodChecked)
                         {
                             List<object?> MethodArguments = new();
                             object?[] parameters = new object[arguments.Count];
@@ -325,7 +325,7 @@ namespace BlackHole.CoreSupport
 
                                 if(arguments[i] is LambdaExpression argLambda)
                                 {
-                                    expressionTree[currentIndx].rightMember = argLambda.Body as MemberExpression;
+                                    expressionTree[currentIndx].RightMember = argLambda.Body as MemberExpression;
                                 }
                             }
 
@@ -334,19 +334,19 @@ namespace BlackHole.CoreSupport
                                 if (obj != null)
                                 {
                                     object? skata = obj.Type != typeof(string) ? Activator.CreateInstance(obj.Type, null) : string.Empty;
-                                    expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
+                                    expressionTree[currentIndx].MemberValue = func.Invoke(skata, parameters);
                                 }
                             }
                             else
                             {
-                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData 
+                                expressionTree[currentIndx].MethodData.Add(new MethodExpressionData 
                                 { 
                                     MethodName = func.Name, 
                                     MethodArguments = MethodArguments,
                                     CastedOn = obj ,
-                                    ComparedValue = expressionTree[currentIndx].memberValue,
-                                    CompareProperty = expressionTree[currentIndx].rightMember,
-                                    OperatorType = expressionTree[currentIndx].expressionType,
+                                    ComparedValue = expressionTree[currentIndx].MemberValue,
+                                    CompareProperty = expressionTree[currentIndx].RightMember,
+                                    OperatorType = expressionTree[currentIndx].OperationType,
                                     ReverseOperator = true,
                                     TableName = typeof(T).Name
                                 });
@@ -366,7 +366,7 @@ namespace BlackHole.CoreSupport
                             cleanOfMembers = false;
                         }
 
-                        if (!expressionTree[currentIndx].methodChecked)
+                        if (!expressionTree[currentIndx].MethodChecked)
                         {
                             List<object?> MethodArguments = new();
                             object?[] parameters = new object[arguments.Count];
@@ -423,7 +423,7 @@ namespace BlackHole.CoreSupport
 
                                 if (arguments[i] is LambdaExpression argLambda)
                                 {
-                                    expressionTree[currentIndx].leftMember = argLambda.Body as MemberExpression;
+                                    expressionTree[currentIndx].LeftMember = argLambda.Body as MemberExpression;
                                 }
                             }
 
@@ -432,19 +432,19 @@ namespace BlackHole.CoreSupport
                                 if (obj != null)
                                 {
                                     object? skata = obj.Type != typeof(string) ? Activator.CreateInstance(obj.Type, null) : string.Empty;
-                                    expressionTree[currentIndx].memberValue = func.Invoke(skata, parameters);
+                                    expressionTree[currentIndx].MemberValue = func.Invoke(skata, parameters);
                                 }
                             }
                             else
                             {
-                                expressionTree[currentIndx].methodData.Add(new MethodExpressionData
+                                expressionTree[currentIndx].MethodData.Add(new MethodExpressionData
                                 {
                                     MethodName = func.Name,
                                     MethodArguments = MethodArguments,
                                     CastedOn = obj,
-                                    ComparedValue = expressionTree[currentIndx].memberValue,
-                                    CompareProperty = expressionTree[currentIndx].leftMember,
-                                    OperatorType = expressionTree[currentIndx].expressionType,
+                                    ComparedValue = expressionTree[currentIndx].MemberValue,
+                                    CompareProperty = expressionTree[currentIndx].LeftMember,
+                                    OperatorType = expressionTree[currentIndx].OperationType,
                                     ReverseOperator = false,
                                     TableName = typeof(T).Name
                                 });
@@ -475,48 +475,45 @@ namespace BlackHole.CoreSupport
             {
                 try
                 {
-                    thisBranch.memberValue = Expression.Lambda(memberExp).Compile().DynamicInvoke();
+                    thisBranch.MemberValue = Expression.Lambda(memberExp).Compile().DynamicInvoke();
                 }
                 catch
                 {
                     if (isRight)
                     {
-                        thisBranch.rightMember = memberExp;
+                        thisBranch.RightMember = memberExp;
                     }
                     else
                     {
-                        thisBranch.leftMember = memberExp;
+                        thisBranch.LeftMember = memberExp;
                     }
                 }
             }
             else
             {
-                thisBranch.memberValue = Expression.Lambda(memberExp).Compile().DynamicInvoke();
+                thisBranch.MemberValue = Expression.Lambda(memberExp).Compile().DynamicInvoke();
             }
         }
 
         internal static ColumnsAndParameters ExpressionTreeToSql(this List<ExpressionsData> data, bool isMyShit, string? letter, List<BlackHoleParameter>? parameters, int index)
         {
-            if(parameters == null)
-            {
-                parameters = new List<BlackHoleParameter>();
-            }
+            parameters ??= new List<BlackHoleParameter>();
 
-            List<ExpressionsData> children = data.Where(x => x.memberValue != null || x.methodData.Count > 0).ToList();
+            List<ExpressionsData> children = data.Where(x => x.MemberValue != null || x.MethodData.Count > 0).ToList();
             string[] translations = new string[children.Count];
 
             foreach (ExpressionsData child in children)
             {
-                ExpressionsData parent = data[child.parentIndex];
+                ExpressionsData parent = data[child.ParentIndex];
 
-                if (child.methodData.Count > 0)
+                if (child.MethodData.Count > 0)
                 {
-                    if(child.memberValue != null && child.methodData[0].ComparedValue == null  && child.methodData[0].CompareProperty == null)
+                    if(child.MemberValue != null && child.MethodData[0].ComparedValue == null  && child.MethodData[0].CompareProperty == null)
                     {
-                        child.methodData[0].ComparedValue = child.memberValue;
+                        child.MethodData[0].ComparedValue = child.MemberValue;
                     }
 
-                    SqlFunctionsReader sqlFunctionResult = new(child.methodData[0], index, letter, isMyShit);
+                    SqlFunctionsReader sqlFunctionResult = new(child.MethodData[0], index, letter, isMyShit);
 
                     if (sqlFunctionResult.ParamName != string.Empty)
                     {
@@ -524,20 +521,20 @@ namespace BlackHole.CoreSupport
                         index++;
                     }
 
-                    if(parent.sqlCommand == string.Empty)
+                    if(parent.SqlCommand == string.Empty)
                     {
-                        parent.sqlCommand = $"{sqlFunctionResult.SqlCommand}";
+                        parent.SqlCommand = $"{sqlFunctionResult.SqlCommand}";
                     }
                     else
                     {
-                        parent.sqlCommand += $" and {sqlFunctionResult.SqlCommand}";
+                        parent.SqlCommand += $" and {sqlFunctionResult.SqlCommand}";
                     }
 
-                    parent.leftChecked = false;
+                    parent.LeftChecked = false;
                 }
                 else
                 {
-                    if (parent.leftChecked)
+                    if (parent.LeftChecked)
                     {
                         ColumnAndParameter childParams = child.TranslateExpression(index, isMyShit, letter);
 
@@ -546,9 +543,9 @@ namespace BlackHole.CoreSupport
                             parameters.Add(new BlackHoleParameter { Name = childParams.ParamName, Value = childParams.Value });
                         }
 
-                        parent.sqlCommand = $"{childParams.Column}";
+                        parent.SqlCommand = $"{childParams.Column}";
 
-                        parent.leftChecked = false;
+                        parent.LeftChecked = false;
                         index++;
                     }
                     else
@@ -569,13 +566,13 @@ namespace BlackHole.CoreSupport
                             parameters.Add(new BlackHoleParameter { Name = childCols.ParamName, Value = childCols.Value });
                         }
 
-                        parent.sqlCommand = $"({parent.sqlCommand} {parentCols.Column} {childCols.Column})";
+                        parent.SqlCommand = $"({parent.SqlCommand} {parentCols.Column} {childCols.Column})";
                         index++;
                     }
                 }
             }
 
-            List<ExpressionsData> parents = data.Where(x => x.memberValue == null && x.methodData.Count == 0 && x.expressionType != ExpressionType.Default).ToList();
+            List<ExpressionsData> parents = data.Where(x => x.MemberValue == null && x.MethodData.Count == 0 && x.OperationType != ExpressionType.Default).ToList();
 
             if (parents.Count > 1)
             {
@@ -584,12 +581,12 @@ namespace BlackHole.CoreSupport
 
                 for (int i = 0; i < parentsCount; i++)
                 {
-                    ExpressionsData parent = data[parents[parentsCount - 1 - i].parentIndex];
+                    ExpressionsData parent = data[parents[parentsCount - 1 - i].ParentIndex];
 
-                    if (parent.leftChecked)
+                    if (parent.LeftChecked)
                     {
-                        parent.sqlCommand = parents[parentsCount - 1 - i].sqlCommand;
-                        parent.leftChecked = false;
+                        parent.SqlCommand = parents[parentsCount - 1 - i].SqlCommand;
+                        parent.LeftChecked = false;
                     }
                     else
                     {
@@ -600,14 +597,78 @@ namespace BlackHole.CoreSupport
                             parameters.Add(new BlackHoleParameter { Name = parentParams.ParamName, Value = parentParams.Value });
                         }
 
-                        parent.sqlCommand = $"({parent.sqlCommand} {parentParams.Column} {parents[parentsCount - 1 - i].sqlCommand})";
+                        parent.SqlCommand = $"({parent.SqlCommand} {parentParams.Column} {parents[parentsCount - 1 - i].SqlCommand})";
 
                         index++;
                     }
                 }
             }
 
-            return new ColumnsAndParameters { Columns = data[0].sqlCommand, Parameters = parameters, Count = index};
+            return new ColumnsAndParameters { Columns = data[0].SqlCommand, Parameters = parameters, Count = index};
+        }
+
+        private static SqlFunctionResult SqlFunctionRead(this MethodExpressionData methodData, int index, string? letter, bool isMyShit)
+        {
+            SqlFunctionResult result = methodData.TranslateBHMethods(index, letter, isMyShit, "");
+            return result;
+        }
+
+        private static SqlFunctionResult TranslateBHMethods(this MethodExpressionData NumericMethodData, int index, string? letter, bool isMyShit, string schemaName)
+        {
+            SqlFunctionResult result = new();
+
+            switch (NumericMethodData.MethodName)
+            {
+                case "SqlEqualTo":
+
+                    break;
+                case "SqlGreaterThan":
+
+                    break;
+                case "SqlLessThan":
+
+                    break;
+                case "SqlAverage":
+
+                    break;
+                case "SqlAbsolut":
+
+                    break;
+                case "SqlRound":
+
+                    break;
+                case "SqlMax":
+
+                    break;
+                case "SqlMin":
+
+                    break;
+                case "SqlPlus":
+
+                    break;
+                case "SqlMinus":
+                   
+                    break;
+                default:
+                    break;
+            }
+            return result;
+        }
+
+      
+
+        private static string ExpressionTypeToSql(this ExpressionType ExpType, bool IsReversed, bool IsNullValue)
+        {
+            return ExpType switch
+            {
+                ExpressionType.Equal => IsNullValue ? "is" : "=",
+                ExpressionType.NotEqual => IsNullValue ? "is not" : "!=",
+                ExpressionType.GreaterThan => IsReversed ? "<" : ">",
+                ExpressionType.LessThan => IsReversed ? ">" : "<",
+                ExpressionType.GreaterThanOrEqual => IsReversed ? "<=" : ">=",
+                ExpressionType.LessThanOrEqual => IsReversed ? ">=" : "<=",
+                _ => string.Empty,
+            };
         }
 
         private static ColumnAndParameter TranslateExpression(this ExpressionsData expression, int index, bool isMyShit, string? letter)
@@ -619,7 +680,7 @@ namespace BlackHole.CoreSupport
             string subLetter = letter != string.Empty ? $"{letter}." : string.Empty;
             string sqlOperator = "=";
 
-            switch (expression.expressionType)
+            switch (expression.OperationType)
             {
                 case ExpressionType.AndAlso:
                     column = " and ";
@@ -628,8 +689,8 @@ namespace BlackHole.CoreSupport
                     column = " or ";
                     break;
                 case ExpressionType.Equal:
-                    value = expression?.memberValue;
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
+                    value = expression?.MemberValue;
+                    variable = expression?.LeftMember != null ? expression?.LeftMember.ToString().Split(".") : expression?.RightMember?.ToString().Split(".");
                     column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} = @{variable?[1]}{index}";
                     if (value == null)
                     {
@@ -638,68 +699,68 @@ namespace BlackHole.CoreSupport
                     parameter = $"{variable?[1]}{index}";
                     break;
                 case ExpressionType.GreaterThanOrEqual:
-                    if(expression?.leftMember != null)
+                    if(expression?.LeftMember != null)
                     {
-                        variable = expression?.leftMember.ToString().Split(".");
+                        variable = expression?.LeftMember.ToString().Split(".");
                         sqlOperator = ">=";
                     }
                     else
                     {
-                        variable = expression?.rightMember?.ToString().Split(".");
+                        variable = expression?.RightMember?.ToString().Split(".");
                         sqlOperator = "<=";
                     }
                     column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} {sqlOperator} @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
+                    value = expression?.MemberValue;
                     break;
                 case ExpressionType.LessThanOrEqual:
-                    if (expression?.leftMember != null)
+                    if (expression?.LeftMember != null)
                     {
-                        variable = expression?.leftMember.ToString().Split(".");
+                        variable = expression?.LeftMember.ToString().Split(".");
                         sqlOperator = "<=";
                     }
                     else
                     {
-                        variable = expression?.rightMember?.ToString().Split(".");
+                        variable = expression?.RightMember?.ToString().Split(".");
                         sqlOperator = ">=";
                     }
                     column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} {sqlOperator} @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
+                    value = expression?.MemberValue;
                     break;
                 case ExpressionType.LessThan:
-                    if (expression?.leftMember != null)
+                    if (expression?.LeftMember != null)
                     {
-                        variable = expression?.leftMember.ToString().Split(".");
+                        variable = expression?.LeftMember.ToString().Split(".");
                         sqlOperator = "<";
                     }
                     else
                     {
-                        variable = expression?.rightMember?.ToString().Split(".");
+                        variable = expression?.RightMember?.ToString().Split(".");
                         sqlOperator = ">";
                     }
                     column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} {sqlOperator} @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
+                    value = expression?.MemberValue;
                     break;
                 case ExpressionType.GreaterThan:
-                    if (expression?.leftMember != null)
+                    if (expression?.LeftMember != null)
                     {
-                        variable = expression?.leftMember.ToString().Split(".");
+                        variable = expression?.LeftMember.ToString().Split(".");
                         sqlOperator = ">";
                     }
                     else
                     {
-                        variable = expression?.rightMember?.ToString().Split(".");
+                        variable = expression?.RightMember?.ToString().Split(".");
                         sqlOperator = "<";
                     }
                     column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} {sqlOperator} @{variable?[1]}{index}";
                     parameter = $"{variable?[1]}{index}";
-                    value = expression?.memberValue;
+                    value = expression?.MemberValue;
                     break;
                 case ExpressionType.NotEqual:
-                    value = expression?.memberValue;
-                    variable = expression?.leftMember != null ? expression?.leftMember.ToString().Split(".") : expression?.rightMember?.ToString().Split(".");
+                    value = expression?.MemberValue;
+                    variable = expression?.LeftMember != null ? expression?.LeftMember.ToString().Split(".") : expression?.RightMember?.ToString().Split(".");
                     column = $"{subLetter}{variable?[1].SkipNameQuotes(isMyShit)} != @{variable?[1]}{index}";
                     if (value == null)
                     {
@@ -721,7 +782,7 @@ namespace BlackHole.CoreSupport
             {
                 string? parameterOne = key.Parameters[0].Name;
 
-                data.isMyShit = true;
+                data.IsMyShit = true;
                 data.BaseTable = typeof(TSource);
                 data.Ignore = false;
                 bool OpenEntity = typeof(TSource).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
@@ -775,7 +836,7 @@ namespace BlackHole.CoreSupport
 
                 string schemaName = GetDatabaseSchema();
 
-                data.Joins += $" {joinType} join {schemaName}{typeof(TOther).Name.SkipNameQuotes(data.isMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {parameter}.{propName.SkipNameQuotes(data.isMyShit)}";
+                data.Joins += $" {joinType} join {schemaName}{typeof(TOther).Name.SkipNameQuotes(data.IsMyShit)} {parameterOther} on {parameterOther}.{propNameOther.SkipNameQuotes(data.IsMyShit)} = {parameter}.{propName.SkipNameQuotes(data.IsMyShit)}";
                 data.BindPropertiesToDtoExtension(typeof(TOther), parameterOther);
             }
         }
@@ -794,9 +855,9 @@ namespace BlackHole.CoreSupport
             }
         }
 
-        private static void BindPropertiesToDtoExtension(this JoinsData data, Type secondTable, string? paramB)
+        private static void BindPropertiesToDtoExtension(this JoinsData data, Type tableType, string? paramB)
         {
-            List<string> OtherPropNames = secondTable.GetProperties().Select(x=>x.Name).ToList();
+            List<string> OtherPropNames = tableType.GetProperties().Select(x => x.Name).ToList();
 
             for(int i = 0 ; i < data.OccupiedDtoProps.Count; i++)
             {
@@ -804,7 +865,7 @@ namespace BlackHole.CoreSupport
 
                 if (OtherPropNames.Contains(property.PropName) && !property.Occupied)
                 {
-                    Type? TOtherPropType = secondTable.GetProperty(property.PropName)?.PropertyType;
+                    Type? TOtherPropType = tableType.GetProperty(property.PropName)?.PropertyType;
 
                     if (TOtherPropType == property.PropType)
                     {
@@ -855,7 +916,7 @@ namespace BlackHole.CoreSupport
                 MemberExpression? memberOther = otherKey.Body as MemberExpression;
                 string? propNameOther = memberOther?.Member.Name;
 
-                data.Joins += $" {additionalType} {secondLetter}.{propNameOther.SkipNameQuotes(data.isMyShit)} = {firstLetter}.{propName.SkipNameQuotes(data.isMyShit)}";
+                data.Joins += $" {additionalType} {secondLetter}.{propNameOther.SkipNameQuotes(data.IsMyShit)} = {firstLetter}.{propName.SkipNameQuotes(data.IsMyShit)}";
             }
         }
 
@@ -864,7 +925,7 @@ namespace BlackHole.CoreSupport
             if (!data.Ignore)
             {
                 string? letter = data.TablesToLetters.First(x => x.Table == typeof(TSource)).Letter;
-                ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TSource>(data.isMyShit, letter, data.DynamicParams, data.ParamsCount);
+                ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TSource>(data.IsMyShit, letter, data.DynamicParams, data.ParamsCount);
                 data.DynamicParams = colsAndParams.Parameters;
                 data.ParamsCount = colsAndParams.Count;
 
@@ -886,7 +947,7 @@ namespace BlackHole.CoreSupport
                 data.RejectInactiveEntities();
                 TableLetters? tL = data.TablesToLetters.FirstOrDefault(x => x.Table == data.BaseTable);
                 string schemaName = GetDatabaseSchema();
-                string commandText = $"{data.BuildCommand()} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.isMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
+                string commandText = $"{data.BuildCommand()} from {schemaName}{tL?.Table?.Name.SkipNameQuotes(data.IsMyShit)} {tL?.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
                 return new ColumnsAndParameters { Columns = commandText, Parameters = data.DynamicParams };
             }
             return null;
@@ -894,7 +955,7 @@ namespace BlackHole.CoreSupport
 
         internal static string OrderByToSql<T>(this BHOrderBy<T> orderByConfig, bool isMyShit)
         {
-            if (orderByConfig.orderBy.LockedByError)
+            if (orderByConfig.OrderBy.LockedByError)
             {
                 return string.Empty;
             }
@@ -902,14 +963,14 @@ namespace BlackHole.CoreSupport
             StringBuilder orderby = new();
             string limiter = string.Empty;
 
-            foreach (OrderByPair pair in orderByConfig.orderBy.OrderProperties)
+            foreach (OrderByPair pair in orderByConfig.OrderBy.OrderProperties)
             {
-                orderby.Append($", {pair.PropertyName.SkipNameQuotes(isMyShit)} {pair.Oriantation}");
+                orderby.Append($", {pair.PropertyName.SkipNameQuotes(isMyShit)} {pair.Orientation}");
             }
 
-            if (orderByConfig.orderBy.TakeSpecificRange)
+            if (orderByConfig.OrderBy.TakeSpecificRange)
             {
-                limiter = orderByConfig.orderBy.RowsLimiter();
+                limiter = orderByConfig.OrderBy.RowsLimiter();
             }
 
             return $"order by{orderby.ToString().Remove(0, 1)}{limiter}";
@@ -917,7 +978,7 @@ namespace BlackHole.CoreSupport
 
         internal static void OrderByToSqlJoins<T>(this JoinsData data, BHOrderBy<T> orderByConfig)
         {
-            if (orderByConfig.orderBy.LockedByError)
+            if (orderByConfig.OrderBy.LockedByError)
             {
                 data.OrderByOptions = string.Empty;
             }
@@ -927,18 +988,18 @@ namespace BlackHole.CoreSupport
                 string limiter = string.Empty;
                 int counter = 0;
 
-                foreach (OrderByPair pair in orderByConfig.orderBy.OrderProperties)
+                foreach (OrderByPair pair in orderByConfig.OrderBy.OrderProperties)
                 {
                     if (data.OccupiedDtoProps.FirstOrDefault(x => x.PropName == pair.PropertyName) is PropertyOccupation occupation)
                     {
                         counter++;
-                        orderby.Append($", {occupation.TableLetter}.{occupation.TableProperty.SkipNameQuotes(data.isMyShit)} {pair.Oriantation}");
+                        orderby.Append($", {occupation.TableLetter}.{occupation.TableProperty.SkipNameQuotes(data.IsMyShit)} {pair.Orientation}");
                     }
                 }
 
-                if (orderByConfig.orderBy.TakeSpecificRange)
+                if (orderByConfig.OrderBy.TakeSpecificRange)
                 {
-                    limiter = orderByConfig.orderBy.RowsLimiter();
+                    limiter = orderByConfig.OrderBy.RowsLimiter();
                 }
 
                 if (counter > 0)
@@ -980,7 +1041,7 @@ namespace BlackHole.CoreSupport
                         anD = "and";
                     }
 
-                    command += $" {anD} {table.Letter}.{inactiveColumn.SkipNameQuotes(data.isMyShit)} = 0 ";
+                    command += $" {anD} {table.Letter}.{inactiveColumn.SkipNameQuotes(data.IsMyShit)} = 0 ";
                 }
             }
 
@@ -995,9 +1056,9 @@ namespace BlackHole.CoreSupport
             {
                 sqlCommand += prop.WithCast switch
                 {
-                    1 => $" {prop.TableLetter}.{prop.TableProperty.SkipNameQuotes(data.isMyShit)} as {prop.PropName.SkipNameQuotes(data.isMyShit)},",
-                    2 => $" cast({prop.TableLetter}.{prop.TableProperty.SkipNameQuotes(data.isMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SkipNameQuotes(data.isMyShit)},",
-                    _ => $" {prop.TableLetter}.{prop.PropName.SkipNameQuotes(data.isMyShit)},",
+                    1 => $" {prop.TableLetter}.{prop.TableProperty.SkipNameQuotes(data.IsMyShit)} as {prop.PropName.SkipNameQuotes(data.IsMyShit)},",
+                    2 => $" cast({prop.TableLetter}.{prop.TableProperty.SkipNameQuotes(data.IsMyShit)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.SkipNameQuotes(data.IsMyShit)},",
+                    _ => $" {prop.TableLetter}.{prop.PropName.SkipNameQuotes(data.IsMyShit)},",
                 };
             }
 
@@ -1043,64 +1104,45 @@ namespace BlackHole.CoreSupport
 
         private static int AllowCast(this Type firstType, Type secondType)
         {
-            int allow = 2;
-            string typeTotype = firstType.Name + secondType.Name;
+            int allow;
+            int defAllow = 2;
+
+            string typeToType = firstType.Name + secondType.Name;
 
             if (firstType == typeof(Guid))
             {
                 BlackHoleSqlTypes sqlType = DatabaseStatics.DatabaseType;
                 if (sqlType != BlackHoleSqlTypes.Postgres && sqlType != BlackHoleSqlTypes.SqlServer)
                 {
-                    allow = 1;
+                    defAllow = 1;
                 }
             }
 
             if (firstType.Name != secondType.Name)
             {
-                switch (typeTotype)
+                allow = typeToType switch
                 {
-                    case "Int16Int32":
-                        break;
-                    case "Int16String":
-                        break;
-                    case "Int16Int64":
-                        break;
-                    case "Int32String":
-                        break;
-                    case "Int32Int64":
-                        break;
-                    case "Int64String":
-                        break;
-                    case "DecimalString":
-                        break;
-                    case "DecimalDouble":
-                        break;
-                    case "SingleString":
-                        break;
-                    case "SingleDouble":
-                        break;
-                    case "SingleDecimal":
-                        break;
-                    case "DoubleString":
-                        break;
-                    case "Int32Decimal":
-                        break;
-                    case "GuidString":
-                        break;
-                    case "Int32Double":
-                        break;
-                    case "BooleanString":
-                        break;
-                    case "BooleanInt32":
-                        break;
-                    case "Byte[]String":
-                        break;
-                    case "DateTimeString":
-                        break;
-                    default:
-                        allow = 0;
-                        break;
-                }
+                    "Int16Int32" or
+                    "Int16String" or
+                    "Int16Int64" or
+                    "Int32String" or
+                    "Int32Int64" or
+                    "Int64String" or
+                    "DecimalString" or
+                    "DecimalDouble" or
+                    "SingleString" or
+                    "SingleDouble" or
+                    "SingleDecimal" or
+                    "DoubleString" or
+                    "Int32Decimal" or
+                    "GuidString" or
+                    "Int32Double" or
+                    "BooleanString" or
+                    "BooleanInt32" or
+                    "Byte[]String" or
+                    "DateTimeString" => defAllow,
+                    _ => 0,
+                };
             }
             else
             {
@@ -1108,75 +1150,6 @@ namespace BlackHole.CoreSupport
             }
 
             return allow;
-        }
-
-        private static List<PropertyOccupation> BindPropertiesToDto<T>( this List<string> Columns, Type otherTable, Type dto, string? paramA, string? paramB)
-        {
-            List<PropertyOccupation> result = new();
-            List<string> OtherPropNames = new();
-
-            foreach (PropertyInfo otherProp in otherTable.GetProperties())
-            {
-                OtherPropNames.Add(otherProp.Name);
-            }
-
-            foreach (PropertyInfo property in dto.GetProperties())
-            {
-                PropertyOccupation occupation = new();
-
-                if (Columns.Contains(property.Name))
-                {
-                    Type? TpropType = typeof(T).GetProperty(property.Name)?.PropertyType;
-
-                    if (TpropType == property.PropertyType)
-                    {
-                        occupation = new PropertyOccupation
-                        {
-                            PropName = property.Name,
-                            PropType = property.PropertyType,
-                            Occupied = true,
-                            TableLetter = paramA,
-                            TableProperty = property.Name,
-                            TablePropertyType = TpropType,
-                            WithCast = 0
-                        };
-                    }
-                }
-
-                if (OtherPropNames.Contains(property.Name) && !occupation.Occupied)
-                {
-                    Type? TOtherPropType = otherTable.GetProperty(property.Name)?.PropertyType;
-
-                    if (TOtherPropType == property.PropertyType)
-                    {
-                        occupation = new PropertyOccupation
-                        {
-                            PropName = property.Name,
-                            PropType = property.PropertyType,
-                            Occupied = true,
-                            TableLetter = paramB,
-                            TableProperty = property.Name,
-                            TablePropertyType = TOtherPropType,
-                            WithCast = 0
-                        };
-                    }
-                }
-
-                if (!occupation.Occupied)
-                {
-                    occupation = new PropertyOccupation
-                    {
-                        PropName = property.Name,
-                        PropType = property.PropertyType,
-                        Occupied = false,
-                        WithCast = 0
-                    };
-                }
-
-                result.Add(occupation);
-            }
-
-            return result;
         }
 
         internal static string SkipNameQuotes(this string? propName, bool isMyShit)

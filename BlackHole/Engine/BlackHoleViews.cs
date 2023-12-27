@@ -1,6 +1,4 @@
-﻿using BlackHole.CoreSupport;
-
-namespace BlackHole.Core
+﻿namespace BlackHole.Engine
 {
     internal static class BlackHoleViews
     {

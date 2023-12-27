@@ -8,7 +8,7 @@ namespace BlackHole.Internal
     {
         internal List<Type> GetInitialData(Assembly ass)
         {
-            Type type = typeof(IBHInitialData);
+            Type type = ass.GetType(); //typeof(IBHInitialData);
             return ass.GetTypes().Where(p => type.IsAssignableFrom(p)).ToList();
         }
 

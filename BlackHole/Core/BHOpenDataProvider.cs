@@ -1,6 +1,5 @@
 ﻿using BlackHole.CoreSupport;
 using BlackHole.Entities;
-using BlackHole.Identifiers;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -8,7 +7,7 @@ using System.Text;
 namespace BlackHole.Core
 {
     /// <summary>
-    /// Makes all the communication between the Datbase Table and The Specified Entity.
+    /// Makes all the communication between the Database Table and The Specified Entity.
     /// <para>For custom commands, use IBHConnection Interface</para>
     /// </summary>
     /// <typeparam name="T">BHOpenEntity</typeparam>
@@ -45,9 +44,9 @@ namespace BlackHole.Core
 
             Type EntityType = typeof(T);
 
-            _executionProvider = BHCore.GetDataProvider();
+            _executionProvider = BlackHoleEngine.GetDataProvider();
             IsMyShit = _executionProvider.SkipQuotes();
-            ThisSchema = BHCore.GetDatabaseSchema();
+            ThisSchema = BlackHoleEngine.GetDatabaseSchema();
             ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";
 
             if (_settings.HasAutoIncrement)
@@ -408,7 +407,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             return _executionProvider.QueryFirst<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
         }
@@ -422,7 +421,7 @@ namespace BlackHole.Core
             }
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
         }
@@ -473,7 +472,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             return _executionProvider.QueryFirst<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
         }
@@ -487,7 +486,7 @@ namespace BlackHole.Core
             }
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
         }
@@ -866,7 +865,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             return await _executionProvider.QueryFirstAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
         }
@@ -880,7 +879,7 @@ namespace BlackHole.Core
             }
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
         }
@@ -931,7 +930,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             return await _executionProvider.QueryFirstAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
         }
@@ -945,7 +944,7 @@ namespace BlackHole.Core
             }
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
         }

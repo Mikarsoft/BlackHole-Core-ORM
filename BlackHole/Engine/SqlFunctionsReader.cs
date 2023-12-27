@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using BlackHole.Logger;
 
-namespace BlackHole.CoreSupport
+namespace BlackHole.Engine
 {
     internal class SqlFunctionsReader
     {

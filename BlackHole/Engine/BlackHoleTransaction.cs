@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace BlackHole.CoreSupport
+namespace BlackHole.Engine
 {
     /// <summary>
     /// Transaction Object
@@ -15,22 +15,22 @@ namespace BlackHole.CoreSupport
         /// Generic transaction
         /// </summary>
         public IDbTransaction _transaction;
-        private bool commited = false;
+        private bool committed = false;
         internal bool hasError = false;
         private bool pendingRollback = false;
 
         internal BlackHoleTransaction()
         {
-            connection = BHCore.GetConnection();
+            connection = BlackHoleEngine.GetConnection();
             connection.Open();
             _transaction = connection.BeginTransaction();
         }
 
         internal bool Commit()
         {
-            if (!commited)
+            if (!committed)
             {
-                commited = true;
+                committed = true;
 
                 if (hasError)
                 {
@@ -39,16 +39,16 @@ namespace BlackHole.CoreSupport
                 }
 
                 _transaction.Commit();
-                return commited;
+                return committed;
             }
             return false;
         }
 
         internal bool DoNotCommit()
         {
-            if (!commited)
+            if (!committed)
             {
-                commited = true;
+                committed = true;
                 pendingRollback = true;
                 return true;
             }
@@ -58,7 +58,7 @@ namespace BlackHole.CoreSupport
 
         internal bool RollBack()
         {
-            if (!commited || pendingRollback)
+            if (!committed || pendingRollback)
             {
                 _transaction.Rollback();
                 hasError = false;
@@ -69,11 +69,11 @@ namespace BlackHole.CoreSupport
         }
 
         /// <summary>
-        /// Commit uncommited transaction. Dispose the connection and the transaction
+        /// Commit uncommitted transaction. Dispose the connection and the transaction
         /// </summary>
         public void Dispose()
         {
-            if (!commited)
+            if (!committed)
             {
                 if (hasError)
                 {

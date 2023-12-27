@@ -1,13 +1,13 @@
 ﻿using BlackHole.Entities;
 using System.Reflection;
 using System.Linq.Expressions;
-using BlackHole.CoreSupport;
+using BlackHole.Engine;
 using System.Text;
 
 namespace BlackHole.Core
 {
     /// <summary>
-    /// Makes all the communication between the Datbase Table and The Specified Entity
+    /// Makes all the communication between the Database Table and The Specified Entity
     /// </summary>
     /// <typeparam name="T">BlackHoleEntity</typeparam>
     /// <typeparam name="G">The type of Entity's Id</typeparam>
@@ -36,7 +36,7 @@ namespace BlackHole.Core
             WithActivator = EntityType.CheckActivator();
             _dataProvider = typeof(G).GetDataProvider(EntityType.Name);
             IsMyShit = _dataProvider.SkipQuotes();
-            ThisSchema = BHCore.GetDatabaseSchema();
+            ThisSchema = BlackHoleEngine.GetDatabaseSchema();
             ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";
             ThisId = MyShit("Id");
             ThisInactive = MyShit("Inactive");
@@ -528,7 +528,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             if (WithActivator)
             {
@@ -541,7 +541,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             if (WithActivator)
             {
@@ -613,7 +613,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             if (WithActivator)
             {
@@ -626,7 +626,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             if (WithActivator)
             {
@@ -1276,7 +1276,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             if (WithActivator)
             {
@@ -1289,7 +1289,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             if (WithActivator)
             {
@@ -1362,7 +1362,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             if (WithActivator)
             {
@@ -1375,7 +1375,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            orderClass.orderBy.TakeWithOffset(0, 1);
+            orderClass.OrderBy.TakeWithOffset(0, 1);
             ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
             if (WithActivator)
             {

@@ -1,4 +1,4 @@
-﻿using BlackHole.CoreSupport;
+﻿using BlackHole.Engine;
 using System.Linq.Expressions;
 
 namespace BlackHole.Core
@@ -7,19 +7,19 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    public class JoinsProcess<Dto>
+    public class BHJoinsProcess<Dto>
     {
         internal JoinsData Data { get; set; }
         internal bool IsFirst {  get; set; }
 
-        internal JoinsProcess()
+        internal BHJoinsProcess()
         {
             Data = new JoinsData(typeof(Dto));
             Data.InitializeOccupiedProperties();
             IsFirst = true;
         }
 
-        internal JoinsProcess(JoinsData data)
+        internal BHJoinsProcess(JoinsData data)
         {
             Data = data;
             IsFirst = false;
@@ -200,9 +200,9 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public JoinsProcess<Dto> Then()
+        public BHJoinsProcess<Dto> Then()
         {
-            return new JoinsProcess<Dto>(Data);
+            return new BHJoinsProcess<Dto>(Data);
         }
 
         /// <summary>
@@ -285,9 +285,9 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public JoinsProcess<Dto> Then()
+        public BHJoinsProcess<Dto> Then()
         {
-            return new JoinsProcess<Dto>(Data);
+            return new BHJoinsProcess<Dto>(Data);
         }
 
         /// <summary>

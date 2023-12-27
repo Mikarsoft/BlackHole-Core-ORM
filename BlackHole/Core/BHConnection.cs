@@ -1,4 +1,4 @@
-﻿using BlackHole.CoreSupport;
+﻿using BlackHole.Engine;
 using System.Reflection;
 
 namespace BlackHole.Core
@@ -25,7 +25,7 @@ namespace BlackHole.Core
         /// </summary>
         public BHConnection()
         {
-            _executionProvider = BHCore.GetDataProvider();
+            _executionProvider = BlackHoleEngine.GetDataProvider();
         }
 
         /// <summary>

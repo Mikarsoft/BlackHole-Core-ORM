@@ -2,6 +2,21 @@
 
 namespace BlackHole.Statics
 {
+    /// <summary>
+    /// A place to store the Cli Command info for execution
+    /// </summary>
+    public static class CliCommand
+    {
+        /// <summary>
+        /// The main Cli Command
+        /// </summary>
+        public static string? BHRun { get; set; }
+        internal static bool ExportSql { get; set; }
+        internal static bool ForceAction { get; set; }
+        internal static bool CliExecution { get; set; }
+        internal static string ProjectPath { get; set; } = string.Empty;
+    }
+
     internal static class DatabaseStatics
     {
         internal static string ConnectionString { get; set; } = string.Empty;
@@ -20,5 +35,14 @@ namespace BlackHole.Statics
         internal static bool IsQuotedDatabase { get; set; } = false;
         internal static bool InitializeData { get; set; } = false;
         internal static string DbDateFormat { get; set; } = "yyyy-MM-dd";
+    }
+
+    internal static class WormHoleData
+    {
+        internal static string[]? ConnectionStrings { get; set; }
+        internal static string[]? DbSchemas { get; set; }
+        internal static Type[]? Entities { get; set; }
+        internal static int[]? Databases { get; set; }
+        internal static int[][,]? EntitiesMap { get; set; }
     }
 }

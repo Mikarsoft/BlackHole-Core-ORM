@@ -1,5 +1,5 @@
 ﻿
-namespace BlackHole.CoreSupport
+namespace BlackHole.Engine
 {
     internal interface IDataProvider
     {

@@ -1,4 +1,4 @@
-﻿using BlackHole.CoreSupport;
+﻿using BlackHole.Engine;
 
 namespace BlackHole.Core
 {
@@ -119,9 +119,9 @@ namespace BlackHole.Core
             return result;
         }
 
-        JoinsProcess<Dto> IBHViews.StartJoinUsing<Dto>()
+        BHJoinsProcess<Dto> IBHViews.StartJoinUsing<Dto>()
         {
-            return new JoinsProcess<Dto>();
+            return new BHJoinsProcess<Dto>();
         }
     }
 }
