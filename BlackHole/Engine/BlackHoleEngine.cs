@@ -3,6 +3,7 @@ using BlackHole.DataProviders;
 using BlackHole.Entities;
 using BlackHole.Enums;
 using BlackHole.Identifiers;
+using BlackHole.Logger;
 using BlackHole.Statics;
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.Sqlite;
@@ -513,7 +514,7 @@ namespace BlackHole.Engine
                         child.MethodData[0].ComparedValue = child.MemberValue;
                     }
 
-                    SqlFunctionsReader sqlFunctionResult = new(child.MethodData[0], index, letter, isMyShit);
+                    SqlFunctionResult sqlFunctionResult = child.MethodData[0].TranslateBHMethod(index, letter, isMyShit, string.Empty);
 
                     if (sqlFunctionResult.ParamName != string.Empty)
                     {
@@ -607,55 +608,287 @@ namespace BlackHole.Engine
             return new ColumnsAndParameters { Columns = data[0].SqlCommand, Parameters = parameters, Count = index};
         }
 
-        private static SqlFunctionResult SqlFunctionRead(this MethodExpressionData methodData, int index, string? letter, bool isMyShit)
-        {
-            SqlFunctionResult result = methodData.TranslateBHMethods(index, letter, isMyShit, "");
-            return result;
-        }
-
-        private static SqlFunctionResult TranslateBHMethods(this MethodExpressionData NumericMethodData, int index, string? letter, bool isMyShit, string schemaName)
+        private static SqlFunctionResult TranslateBHMethod(this MethodExpressionData MethodData, int index, string? letter, bool isMyShit, string schemaName)
         {
             SqlFunctionResult result = new();
 
-            switch (NumericMethodData.MethodName)
+            if(MethodData.CastedOn != null)
             {
-                case "SqlEqualTo":
+                int methodType = 2;
 
-                    break;
-                case "SqlGreaterThan":
+                if (MethodData.CastedOn.Type == typeof(string))
+                {
+                    methodType = 0;
+                }
+                else if (MethodData.CastedOn.Type == typeof(DateTime))
+                {
+                    methodType = 1;
+                }
 
-                    break;
-                case "SqlLessThan":
+                string[] compareProperty = MethodData.CastedOn.ToString().Split(".");
 
-                    break;
-                case "SqlAverage":
+                if(compareProperty.Length > 1)
+                {
+                    string selectCommand;
+                    string operationType;
 
-                    break;
-                case "SqlAbsolut":
+                    switch (MethodData.MethodName)
+                    {
+                        case "SqlMax":
+                            selectCommand = $"( Select MAX({compareProperty[1].SkipNameQuotes(isMyShit)}) from {schemaName}{MethodData.TableName.SkipNameQuotes(isMyShit)} )";
+                            result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
+                            result.WasTranslated = true;
+                            return result;
+                        case "SqlMin":
+                            selectCommand = $"( Select MIN({compareProperty[1].SkipNameQuotes(isMyShit)}) from {schemaName}{MethodData.TableName.SkipNameQuotes(isMyShit)} )";
+                            result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
+                            result.WasTranslated = true;
+                            return result;
+                    }
 
-                    break;
-                case "SqlRound":
+                    if(methodType == 0)
+                    {
+                        if(MethodData.ComparedValue != null)
+                        {
+                            if (MethodData.MethodArguments.Count == 1 && MethodData.MethodName == "Contains")
+                            {
+                                result.ParamName = $"{compareProperty[1]}{index}";
+                                result.Value = $"%{MethodData.MethodArguments[0]}%";
+                                result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} Like @{result.ParamName}";
+                                result.WasTranslated = true;
+                                return result;
+                            }
 
-                    break;
-                case "SqlMax":
+                            if (MethodData.MethodArguments.Count == 2)
+                            {
+                                switch (MethodData.MethodName)
+                                {
+                                    case "Replace":
+                                        object? first = MethodData.MethodArguments[0];
+                                        object? second = MethodData.MethodArguments[1];
+                                        operationType = ExpressionTypeToSql(MethodData.OperatorType, MethodData.ReverseOperator, false);
+                                        result.ParamName = $"{compareProperty[1]}{index}";
+                                        result.Value = MethodData.ComparedValue;
+                                        result.SqlCommand = $" REPLACE({letter}{compareProperty[1].SkipNameQuotes(isMyShit)},'{first}','{second}') {operationType} @{result.ParamName} ";
+                                        result.WasTranslated = true;
+                                        return result;
+                                    case "SqlLike":
+                                        result.ParamName = $"{compareProperty[1]}{index}";
+                                        result.Value = MethodData.MethodArguments[1];
+                                        result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} Like @{result.ParamName}";
+                                        result.WasTranslated = true;
+                                        return result;
+                                }
+                            }
 
-                    break;
-                case "SqlMin":
+                            switch (MethodData.MethodName)
+                            {
+                                case "ToUpper":
+                                    operationType = ExpressionTypeToSql(MethodData.OperatorType, MethodData.ReverseOperator, false);
+                                    result.ParamName = $"{compareProperty[1]}{index}";
+                                    result.Value = MethodData.ComparedValue;
+                                    result.SqlCommand = $" UPPER({letter}{compareProperty[1].SkipNameQuotes(isMyShit)}) {operationType} @{result.ParamName} ";
+                                    result.WasTranslated = true;
+                                    return result;
+                                case "ToLower":
+                                    operationType = ExpressionTypeToSql(MethodData.OperatorType, MethodData.ReverseOperator, false);
+                                    result.ParamName = $"{compareProperty[1]}{index}";
+                                    result.Value = MethodData.ComparedValue;
+                                    result.SqlCommand = $" LOWER({letter}{compareProperty[1].SkipNameQuotes(isMyShit)}) {operationType} @{result.ParamName} ";
+                                    result.WasTranslated = true;
+                                    return result;
+                                case "SqlLength":
+                                    operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                    result.ParamName = $"{compareProperty[1]}{index}";
+                                    result.Value = MethodData.ComparedValue;
+                                    result.SqlCommand = $" LENGTH({letter}{compareProperty[1].SkipNameQuotes(isMyShit)}) {operationType} @{result.ParamName} ";
+                                    result.WasTranslated = true;
+                                    return result;
+                            }
+                        }
+                    }
 
-                    break;
-                case "SqlPlus":
+                    if(methodType == 1 && MethodData.MethodArguments.Count == 2)
+                    {
+                        switch (MethodData.MethodName)
+                        {
+                            case "SqlDateAfter":
+                                result.ParamName = $"DateProp{index}";
+                                result.Value = MethodData.MethodArguments[1];
+                                result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} >= @{result.ParamName} ";
+                                result.WasTranslated = true;
+                                return result;
+                            case "SqlDateBefore":
+                                result.ParamName = $"DateProp{index}";
+                                result.Value = MethodData.MethodArguments[1];
+                                result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} < @{result.ParamName} ";
+                                result.WasTranslated = true;
+                                return result;
+                        }
+                    }
 
-                    break;
-                case "SqlMinus":
-                   
-                    break;
-                default:
-                    break;
+                    if(methodType == 2)
+                    {
+                        string decimalPoints = string.Empty;
+                        PropertyInfo? thePlusValue = null;
+
+                        if (MethodData.MethodArguments.Count > 1)
+                        {
+                            decimalPoints = $",{MethodData.MethodArguments[1]}";
+                            thePlusValue = MethodData.MethodArguments[1] as PropertyInfo;
+                        }
+
+                        if (MethodData.ComparedValue != null)
+                        {
+                            switch (MethodData.MethodName)
+                            {
+                                case "SqlAbsolut":
+                                    operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                    result.ParamName = $"{compareProperty[1]}{index}";
+                                    result.Value = MethodData.ComparedValue;
+                                    result.SqlCommand = $" ABS({letter}{compareProperty[1].SkipNameQuotes(isMyShit)}) {operationType} @{result.ParamName} ";
+                                    result.WasTranslated = true;
+                                    return result;
+                                case "SqlRound":
+                                    operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                    result.ParamName = $"{compareProperty[1]}{index}";
+                                    result.Value = MethodData.ComparedValue;
+                                    result.SqlCommand = $" ROUND({letter}{compareProperty[1].SkipNameQuotes(isMyShit)}{decimalPoints}) {operationType} @{result.ParamName} ";
+                                    result.WasTranslated = true;
+                                    return result;
+                                case "SqlPlus":
+                                    operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                    if (thePlusValue != null)
+                                    {
+                                        result.ParamName = $"{compareProperty[1]}{index}";
+                                        result.Value = MethodData.ComparedValue;
+                                        result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} + {letter}{thePlusValue.Name.SkipNameQuotes(isMyShit)}) {operationType} @{result.ParamName} ";
+                                    }
+                                    else
+                                    {
+                                        result.ParamName = $"{compareProperty[1]}{index}";
+                                        result.Value = MethodData.ComparedValue;
+                                        result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} + {MethodData.MethodArguments[1]}) {operationType} @{result.ParamName} ";
+                                    }
+                                    result.WasTranslated = true;
+                                    return result;
+                                case "SqlMinus":
+                                    operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                    if (thePlusValue != null)
+                                    {
+                                        result.ParamName = $"{compareProperty[1]}{index}";
+                                        result.Value = MethodData.ComparedValue;
+                                        result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} - {letter}{thePlusValue.Name.SkipNameQuotes(isMyShit)}) {operationType} @{result.ParamName} ";
+                                    }
+                                    else
+                                    {
+                                        result.ParamName = $"{compareProperty[1]}{index}";
+                                        result.Value = MethodData.ComparedValue;
+                                        result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} - {MethodData.MethodArguments[1]}) {operationType} @{result.ParamName} ";
+                                    }
+                                    result.WasTranslated = true;
+                                    break;
+                            }
+                        }
+
+                        if(MethodData.CompareProperty != null)
+                        {
+                            string[] otherPropName = MethodData.CompareProperty.ToString().Split(".");
+
+                            if(otherPropName.Length > 1)
+                            {
+                                switch (MethodData.MethodName)
+                                {
+                                    case "SqlAverage":
+                                        operationType = ExpressionTypeToSql(MethodData.OperatorType, MethodData.ReverseOperator, false);
+                                        string SelectAverage = $"( Select AVG({compareProperty[1].SkipNameQuotes(isMyShit)}) from {schemaName}{MethodData.TableName.SkipNameQuotes(isMyShit)} )";
+                                        result.SqlCommand = $" {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} {operationType} {SelectAverage} ";
+                                        result.WasTranslated = true;
+                                        return result;
+                                    case "SqlAbsolut":
+                                        operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                        result.SqlCommand = $" ABS({letter}{compareProperty[1].SkipNameQuotes(isMyShit)}) {operationType} {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} ";
+                                        result.WasTranslated = true;
+                                        return result;
+                                    case "SqlRound":
+                                        operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                        result.SqlCommand = $" ROUND({letter}{compareProperty[1].SkipNameQuotes(isMyShit)}{decimalPoints}) {operationType} {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} ";
+                                        result.WasTranslated = true;
+                                        break;
+                                    case "SqlPlus":
+                                        operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                        if (thePlusValue != null)
+                                        {
+                                            result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} + {letter}{thePlusValue.Name.SkipNameQuotes(isMyShit)}) {operationType} {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} ";
+                                        }
+                                        else
+                                        {
+                                            result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} + {MethodData.MethodArguments[1]}) {operationType} {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} ";
+                                        }
+                                        result.WasTranslated = true;
+                                        return result;
+                                    case "SqlMinus":
+                                        operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
+                                        if (thePlusValue != null)
+                                        {
+                                            result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} - {letter}{thePlusValue.Name.SkipNameQuotes(isMyShit)}) {operationType} {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} ";
+                                        }
+                                        else
+                                        {
+                                            result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} - {MethodData.MethodArguments[1]}) {operationType} {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} ";
+                                        }
+                                        result.WasTranslated = true;
+                                        break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (MethodData.MethodArguments.Count == 2 && MethodData.CompareProperty != null)
+                    {
+                        string? aTable = MethodData.CompareProperty.Member?.ReflectedType?.Name;
+                        string? PropertyName = MethodData.CompareProperty.Member?.Name;
+
+                        if (aTable != null && PropertyName != null)
+                        {
+                            switch (MethodData.MethodName)
+                            {
+                                case "SqlEqualTo":
+                                    result.ParamName = $"OtherId{index}";
+                                    result.Value = MethodData.MethodArguments[1];
+                                    selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
+                                    result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
+                                    result.WasTranslated = true;
+                                    return result;
+                                case "SqlGreaterThan":
+                                    result.ParamName = $"OtherId{index}";
+                                    result.Value = MethodData.MethodArguments[1];
+                                    selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
+                                    result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} > {selectCommand} ";
+                                    result.WasTranslated = true;
+                                    return result;
+                                case "SqlLessThan":
+                                    result.ParamName = $"OtherId{index}";
+                                    result.Value = MethodData.MethodArguments[1];
+                                    selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
+                                    result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} < {selectCommand} ";
+                                    result.WasTranslated = true;
+                                    return result;
+                            }
+                        }
+                    }
+                }
             }
+
+            if (!result.WasTranslated)
+            {
+                Task.Factory.StartNew(() => MethodData.MethodName.CreateErrorLogs($"SqlFunctionsReader_{MethodData.MethodName}",
+                    $"Unknown Method: {MethodData.MethodName}. It was translated into '1 != 1' to avoid data corruption.",
+                    "Please read the documentation to find the supported Sql functions and the correct usage of them."));
+            }
+
             return result;
         }
-
-      
 
         private static string ExpressionTypeToSql(this ExpressionType ExpType, bool IsReversed, bool IsNullValue)
         {
@@ -1122,25 +1355,10 @@ namespace BlackHole.Engine
             {
                 allow = typeToType switch
                 {
-                    "Int16Int32" or
-                    "Int16String" or
-                    "Int16Int64" or
-                    "Int32String" or
-                    "Int32Int64" or
-                    "Int64String" or
-                    "DecimalString" or
-                    "DecimalDouble" or
-                    "SingleString" or
-                    "SingleDouble" or
-                    "SingleDecimal" or
-                    "DoubleString" or
-                    "Int32Decimal" or
-                    "GuidString" or
-                    "Int32Double" or
-                    "BooleanString" or
-                    "BooleanInt32" or
-                    "Byte[]String" or
-                    "DateTimeString" => defAllow,
+                    "Int16Int32" or "Int16String" or "Int16Int64" or "Int32String" or "Int32Int64" or
+                    "Int64String" or "DecimalString" or "DecimalDouble" or "SingleString" or "SingleDouble" or
+                    "SingleDecimal" or "DoubleString" or "Int32Decimal" or "GuidString" or "Int32Double" or
+                    "BooleanString" or "BooleanInt32" or "Byte[]String" or "DateTimeString" => defAllow,
                     _ => 0,
                 };
             }

@@ -10,14 +10,6 @@ namespace BlackHole.Engine
             WasTranslated = false;
         }
 
-        internal SqlFunctionResult(string sqlCommand, string parameterName, object? paramValue)
-        {
-            SqlCommand = sqlCommand;
-            ParamName = parameterName;
-            Value = paramValue;
-            WasTranslated = true;
-        }
-
         public string SqlCommand { get; set; } = " 1 != 1 ";
         internal object? Value { get; set; }
         internal string ParamName { get; set; } = string.Empty;
