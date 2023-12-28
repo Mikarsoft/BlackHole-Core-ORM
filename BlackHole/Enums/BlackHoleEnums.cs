@@ -30,4 +30,19 @@
         ChangesRequired,
         Incompatible
     }
+
+    internal enum BHMode
+    {
+        Single,
+        MultiSchema,
+        Multiple,
+        HighAvailability
+    }
+
+    internal enum DatabaseRole
+    {
+        Master,
+        StandBy,
+        BackUp
+    }
 }

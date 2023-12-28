@@ -11,7 +11,6 @@ using MySql.Data.MySqlClient;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 using System.Data;
-using System.DirectoryServices.ActiveDirectory;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -644,21 +643,7 @@ namespace BlackHole.Engine
                     string selectCommand;
                     string operationType;
 
-                    switch (MethodData.MethodName)
-                    {
-                        case "SqlMax":
-                            selectCommand = $"( Select MAX({compareProperty[1].SkipNameQuotes(isMyShit)}) from {schemaName}{MethodData.TableName.SkipNameQuotes(isMyShit)} )";
-                            result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
-                            result.WasTranslated = true;
-                            return result;
-                        case "SqlMin":
-                            selectCommand = $"( Select MIN({compareProperty[1].SkipNameQuotes(isMyShit)}) from {schemaName}{MethodData.TableName.SkipNameQuotes(isMyShit)} )";
-                            result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
-                            result.WasTranslated = true;
-                            return result;
-                    }
-
-                    if(methodType == 0)
+                    if (methodType == 0)
                     {
                         if(MethodData.ComparedValue != null)
                         {
@@ -739,7 +724,58 @@ namespace BlackHole.Engine
                         }
                     }
 
-                    if(methodType == 2)
+                    if (methodType == 1 || methodType == 2)
+                    {
+                        if (MethodData.MethodArguments.Count == 2 && MethodData.CompareProperty != null)
+                        {
+                            string? aTable = MethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            string? PropertyName = MethodData.CompareProperty.Member?.Name;
+
+                            if (aTable != null && PropertyName != null)
+                            {
+                                switch (MethodData.MethodName)
+                                {
+                                    case "SqlEqualTo":
+                                        result.ParamName = $"OtherId{index}";
+                                        result.Value = MethodData.MethodArguments[1];
+                                        selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
+                                        result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
+                                        result.WasTranslated = true;
+                                        return result;
+                                    case "SqlGreaterThan":
+                                        result.ParamName = $"OtherId{index}";
+                                        result.Value = MethodData.MethodArguments[1];
+                                        selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
+                                        result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} > {selectCommand} ";
+                                        result.WasTranslated = true;
+                                        return result;
+                                    case "SqlLessThan":
+                                        result.ParamName = $"OtherId{index}";
+                                        result.Value = MethodData.MethodArguments[1];
+                                        selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
+                                        result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} < {selectCommand} ";
+                                        result.WasTranslated = true;
+                                        return result;
+                                }
+                            }
+                        }
+
+                        switch (MethodData.MethodName)
+                        {
+                            case "SqlMax":
+                                selectCommand = $"( Select MAX({compareProperty[1].SkipNameQuotes(isMyShit)}) from {schemaName}{MethodData.TableName.SkipNameQuotes(isMyShit)} )";
+                                result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
+                                result.WasTranslated = true;
+                                return result;
+                            case "SqlMin":
+                                selectCommand = $"( Select MIN({compareProperty[1].SkipNameQuotes(isMyShit)}) from {schemaName}{MethodData.TableName.SkipNameQuotes(isMyShit)} )";
+                                result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
+                                result.WasTranslated = true;
+                                return result;
+                        }
+                    }
+
+                    if (methodType == 2)
                     {
                         string decimalPoints = string.Empty;
                         PropertyInfo? thePlusValue = null;
@@ -799,7 +835,7 @@ namespace BlackHole.Engine
                                         result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} - {MethodData.MethodArguments[1]}) {operationType} @{result.ParamName} ";
                                     }
                                     result.WasTranslated = true;
-                                    break;
+                                    return result;
                             }
                         }
 
@@ -826,7 +862,7 @@ namespace BlackHole.Engine
                                         operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
                                         result.SqlCommand = $" ROUND({letter}{compareProperty[1].SkipNameQuotes(isMyShit)}{decimalPoints}) {operationType} {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} ";
                                         result.WasTranslated = true;
-                                        break;
+                                        return result;
                                     case "SqlPlus":
                                         operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
                                         if (thePlusValue != null)
@@ -850,42 +886,8 @@ namespace BlackHole.Engine
                                             result.SqlCommand = $" ({letter}{compareProperty[1].SkipNameQuotes(isMyShit)} - {MethodData.MethodArguments[1]}) {operationType} {letter}{otherPropName[1].SkipNameQuotes(isMyShit)} ";
                                         }
                                         result.WasTranslated = true;
-                                        break;
+                                        return result;
                                 }
-                            }
-                        }
-                    }
-
-                    if (MethodData.MethodArguments.Count == 2 && MethodData.CompareProperty != null)
-                    {
-                        string? aTable = MethodData.CompareProperty.Member?.ReflectedType?.Name;
-                        string? PropertyName = MethodData.CompareProperty.Member?.Name;
-
-                        if (aTable != null && PropertyName != null)
-                        {
-                            switch (MethodData.MethodName)
-                            {
-                                case "SqlEqualTo":
-                                    result.ParamName = $"OtherId{index}";
-                                    result.Value = MethodData.MethodArguments[1];
-                                    selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
-                                    result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} = {selectCommand} ";
-                                    result.WasTranslated = true;
-                                    return result;
-                                case "SqlGreaterThan":
-                                    result.ParamName = $"OtherId{index}";
-                                    result.Value = MethodData.MethodArguments[1];
-                                    selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
-                                    result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} > {selectCommand} ";
-                                    result.WasTranslated = true;
-                                    return result;
-                                case "SqlLessThan":
-                                    result.ParamName = $"OtherId{index}";
-                                    result.Value = MethodData.MethodArguments[1];
-                                    selectCommand = $"( Select {PropertyName.SkipNameQuotes(isMyShit)} from {schemaName}{aTable.SkipNameQuotes(isMyShit)} where {"Id".SkipNameQuotes(isMyShit)}= @{result.ParamName} )";
-                                    result.SqlCommand = $" {letter}{compareProperty[1].SkipNameQuotes(isMyShit)} < {selectCommand} ";
-                                    result.WasTranslated = true;
-                                    return result;
                             }
                         }
                     }

@@ -1,4 +1,6 @@
 ﻿
+using BlackHole.Enums;
+
 namespace BlackHole.Configuration
 {
     /// <summary>
@@ -12,29 +14,19 @@ namespace BlackHole.Configuration
         /// </summary>
         public DataPathSettings directorySettings { get; set; } = new DataPathSettings();
 
-        /// <summary>
-        /// connection settings for the database
-        /// </summary>
         internal ConnectionSettings connectionConfig { get; set; } = new ConnectionSettings();
 
-        // MULTIPLE DATABASES , WORK IN PROGRESS
-
-        /// <summary>
-        /// connection settings for multiple databases
-        /// </summary>
         internal List<ConnectionSettings> connectionsConfig { get; set; } = new List<ConnectionSettings>();
-        // MULTIPLE DATABASES , WORK IN PROGRESS
 
+        internal MultiSchemaConnectionSettings multiSchemaConfig { get; set; } = new();
 
-        /// <summary>
-        /// put BlackHole into developer mode
-        /// </summary>
+        internal HighAvailabilityConnectionSettings highAvailabilityConfig { get; set; } = new();
+
         internal bool isInDevMode { get; set; } = false;
 
-        /// <summary>
-        /// blocks automatic update of the database
-        /// </summary>
         internal bool AutoUpdate { get; set; } = false;
+
+        internal BHMode DatabaseConfig { get; set; }
 
         /// <summary>
         /// Add the configuration for a database.
@@ -44,6 +36,7 @@ namespace BlackHole.Configuration
         public DataPathSettings AddDatabase(Action<ConnectionSettings> connectionSettings)
         {
             connectionSettings.Invoke(connectionConfig);
+            DatabaseConfig = BHMode.Single;
             return directorySettings;
         }
 
@@ -52,14 +45,24 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionSettings">connection settings</param>
         /// <returns>DataPath Settings to add more settings</returns>
-        public DataPathSettings AddMultiSchemaDatabase(Action<ConnectionSettings> connectionSettings)
+        public DataPathSettings AddMultiSchemaDatabase(Action<MultiSchemaConnectionSettings> connectionSettings)
         {
-            connectionSettings.Invoke(connectionConfig);
+            connectionSettings.Invoke(multiSchemaConfig);
+            DatabaseConfig = BHMode.MultiSchema;
             return directorySettings;
         }
 
-        
-        // MULTIPLE DATABASES , WORK IN PROGRESS
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionSettings"></param>
+        /// <returns></returns>
+        public DataPathSettings AddHighAvailabilityScheme(Action<HighAvailabilityConnectionSettings> connectionSettings)
+        {
+            connectionSettings.Invoke(highAvailabilityConfig);
+            DatabaseConfig = BHMode.HighAvailability;
+            return directorySettings;
+        }
 
         /// <summary>
         /// Add the configuration for a database.
@@ -69,7 +72,7 @@ namespace BlackHole.Configuration
         public DataPathSettings AddMultipleDatabases(Action<List<Action<ConnectionSettings>>> connectionSettings)
         {
             List<Action<ConnectionSettings>> list = new();
-
+            DatabaseConfig = BHMode.Multiple;
             connectionSettings.Invoke(list);
 
             foreach(Action<ConnectionSettings> settings in list)
@@ -81,7 +84,6 @@ namespace BlackHole.Configuration
 
             return directorySettings;
         }
-        // MULTIPLE DATABASES , WORK IN PROGRESS
 
 
         /// <summary>
