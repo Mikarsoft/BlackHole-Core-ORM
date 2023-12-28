@@ -11,6 +11,7 @@ using MySql.Data.MySqlClient;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 using System.Data;
+using System.DirectoryServices.ActiveDirectory;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -616,11 +617,22 @@ namespace BlackHole.Engine
             {
                 int methodType = 2;
 
-                if (MethodData.CastedOn.Type == typeof(string))
+                Type CastedOnPropType = MethodData.CastedOn.Type;
+
+                if (MethodData.CastedOn.Type.Name.Contains("Nullable"))
+                {
+                    if (MethodData.CastedOn.Type.GenericTypeArguments != null && MethodData.CastedOn.Type.GenericTypeArguments.Length > 0)
+                    {
+                        CastedOnPropType = MethodData.CastedOn.Type.GenericTypeArguments[0];
+                    }
+                }
+
+                if (CastedOnPropType == typeof(string))
                 {
                     methodType = 0;
                 }
-                else if (MethodData.CastedOn.Type == typeof(DateTime))
+
+                if (CastedOnPropType == typeof(DateTime))
                 {
                     methodType = 1;
                 }
