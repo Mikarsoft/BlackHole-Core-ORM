@@ -1,5 +1,4 @@
-﻿
-using BlackHole.Enums;
+﻿using BlackHole.Enums;
 
 namespace BlackHole.Configuration
 {
