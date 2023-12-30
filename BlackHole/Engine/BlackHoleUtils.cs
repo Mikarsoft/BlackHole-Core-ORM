@@ -1,8 +1,65 @@
-﻿using System.Linq.Expressions;
+﻿using BlackHole.Enums;
+using System.Data;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace BlackHole.Engine
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    public class ConnectionReference : IDisposable
+    {
+        internal ConnectionReference(int connectionIndex)
+        {
+            Connection = connectionIndex.GetConnection();
+            Connection.Open();
+            IsOpen = true;
+            Transaction = Connection.BeginTransaction();
+        }
+
+        internal bool IsOpen { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public IDbConnection Connection { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public IDbTransaction Transaction { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose()
+        {
+            if (IsOpen)
+            {
+                Transaction.Dispose();
+                Connection.Close();
+                Connection.Dispose();
+                IsOpen= false;
+            }
+        }
+    }
+
+    internal class EntityContext
+    {
+        internal int ConnectionIndex { get; set; }
+        internal BlackHoleSqlTypes DatabaseType { get; set; }
+        internal bool IsQuotedDb { get; set; }
+        internal List<string> Columns { get; set; } = new();
+        internal bool WithActivator { get; set; }
+        internal string ThisTable { get; set; } = string.Empty;
+        internal string PropertyNames { get; set; } = string.Empty;
+        internal string PropertyParams { get; set; } = string.Empty;
+        internal string UpdateParams { get; set; } = string.Empty;
+        internal string ThisId { get; set; } = string.Empty;
+        internal string ThisInactive { get; set; } = string.Empty;
+        internal string ThisSchema { get; set; } = string.Empty;
+        internal string ReturningId {  get; set; } = string.Empty;
+    }
+
     internal class SqlFunctionResult
     {
         internal SqlFunctionResult()
@@ -15,7 +72,7 @@ namespace BlackHole.Engine
         internal string ParamName { get; set; } = string.Empty;
         internal string Letter { get; set; } = string.Empty;
         internal int Index { get; set; }
-        internal bool SkipQuotes { get; set; }
+        internal bool IsQuotedDb { get; set; }
         internal bool WasTranslated { get; set; }
         internal string SchemaName { get; set; } = string.Empty;
     }
@@ -106,7 +163,7 @@ namespace BlackHole.Engine
         internal string WherePredicates { get; set; } = string.Empty;
         internal List<BlackHoleParameter> DynamicParams { get; set; } = new List<BlackHoleParameter>();
         internal int HelperIndex { get; set; }
-        internal bool IsMyShit { get; set; }
+        internal bool IsQuotedDb { get; set; }
         internal bool Ignore { get; set; }
         internal int ParamsCount { get; set; }
         internal string OrderByOptions { get; set; } = string.Empty;

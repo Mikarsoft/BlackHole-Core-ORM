@@ -20,7 +20,7 @@ namespace BlackHole.Core
         /// </summary>
         public BHTransaction()
         {
-            transaction = new BlackHoleTransaction();
+            transaction = new BlackHoleTransaction(BlackHoleEngine.GetAvailableConnections());
         }
 
         /// <summary>

@@ -39,10 +39,18 @@ namespace BlackHole.Statics
 
     internal static class WormHoleData
     {
-        internal static string[]? ConnectionStrings { get; set; }
-        internal static string[]? DbSchemas { get; set; }
-        internal static Type[]? Entities { get; set; }
-        internal static int[]? Databases { get; set; }
-        internal static int[][,]? EntitiesMap { get; set; }
+        internal static byte[][] EntitiesCodes { get; set; } = new byte[0][];
+        internal static EntityInfo[] EntityInfos { get; set; } = new EntityInfo[0];
+        internal static string[] ConnectionStrings { get; set; } = new string[0];
+        internal static string[] DbSchemas { get; set; } = new string[0];
+        internal static BlackHoleSqlTypes[] DbTypes { get; set; } = new BlackHoleSqlTypes[0];
+    }
+
+    internal class EntityInfo
+    {
+        internal int CSIndex { get; set; }
+        internal int SchIndex { get; set; }
+        internal int DBTIndex { get; set; }
+        internal bool QuotedDb { get; set; }
     }
 }

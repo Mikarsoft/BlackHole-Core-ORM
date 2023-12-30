@@ -14,17 +14,7 @@ namespace BlackHole.Core
     public class BHDataProvider<T, G> : IBHDataProvider<T, G> where T : BlackHoleEntity<G> where G :IComparable<G>
     {
         #region Ctor
-        private bool WithActivator { get; }
-        private string ThisTable { get; }
-        private List<string> Columns { get; } = new();
-        private string PropertyNames { get; }
-        private string PropertyParams { get; }
-        private string UpdateParams { get; }
-        private string ThisId { get; }
-        private string ThisInactive { get; }
-        private string ThisSchema { get; }
-        private bool IsMyShit { get; }
-
+        private EntityContext _context;
         private readonly IDataProvider _dataProvider;
         /// <summary>
         /// Create a Data Provider that Automatically Communicates with the Database Using the Black Hole Entity, that you pass in.
@@ -32,36 +22,10 @@ namespace BlackHole.Core
         public BHDataProvider()
         {
             Type EntityType = typeof(T);
-
-            WithActivator = EntityType.CheckActivator();
+            _context = EntityType.GetEntityContext();
             _dataProvider = typeof(G).GetDataProvider(EntityType.Name);
-            IsMyShit = _dataProvider.SkipQuotes();
-            ThisSchema = BlackHoleEngine.GetDatabaseSchema();
-            ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";
-            ThisId = MyShit("Id");
-            ThisInactive = MyShit("Inactive");
-
-            using(TripleStringBuilder sb = new())
-            {
-                foreach (PropertyInfo prop in EntityType.GetProperties())
-                {
-                    if (prop.Name != "Inactive")
-                    {
-                        if (prop.Name != "Id")
-                        {
-                            string property = MyShit(prop.Name);
-                            sb.PNSb.Append($", {property}");
-                            sb.PPSb.Append($", @{prop.Name}");
-                            sb.UPSb.Append($",{property} = @{prop.Name}");
-                        }
-                        Columns.Add(prop.Name);
-                    }
-                }
-                PropertyNames = $"{sb.PNSb.ToString().Remove(0, 1)} ";
-                PropertyParams = $"{sb.PPSb.ToString().Remove(0, 1)} ";
-                UpdateParams = $"{sb.UPSb.ToString().Remove(0, 1)} ";
-            }
         }
+
         #endregion
 
         #region Common Helper Methods
@@ -86,7 +50,7 @@ namespace BlackHole.Core
 
         private string MyShit(string? propName)
         {
-            if (!IsMyShit)
+            if (_context.IsQuotedDb)
             {
                 return $@"""{propName}""";
             }

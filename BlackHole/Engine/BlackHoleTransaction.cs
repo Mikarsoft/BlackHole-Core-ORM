@@ -7,26 +7,48 @@ namespace BlackHole.Engine
     /// </summary>
     public class BlackHoleTransaction : IDisposable
     {
-        /// <summary>
-        /// Generic connection
-        /// </summary>
-        public IDbConnection connection;
-        /// <summary>
-        /// Generic transaction
-        /// </summary>
-        public IDbTransaction _transaction;
         private bool committed = false;
         internal bool hasError = false;
         private bool pendingRollback = false;
 
-        internal BlackHoleTransaction()
+        /// <summary>
+        /// 
+        /// </summary>
+        public ConnectionReference[] connections;
+
+        internal BlackHoleTransaction(int availableConnections)
         {
-            connection = BlackHoleEngine.GetConnection();
-            connection.Open();
-            _transaction = connection.BeginTransaction();
+            connections = new ConnectionReference[availableConnections];
+        }
+
+        internal IDbConnection GetConnection(int connectionIndex)
+        {
+            if (connections[connectionIndex].IsOpen)
+            {
+                return connections[connectionIndex].Connection;
+            }
+
+            connections[connectionIndex] = new(connectionIndex);
+            return connections[connectionIndex].Connection;
+        }
+
+        internal IDbTransaction GetTransaction(int connectionIndex)
+        {
+            if (connections[connectionIndex].IsOpen)
+            {
+                return connections[connectionIndex].Transaction;
+            }
+
+            connections[connectionIndex] = new(connectionIndex);
+            return connections[connectionIndex].Transaction;
         }
 
         internal bool Commit()
+        {
+            return CommitAll();
+        }
+
+        private bool CommitAll()
         {
             if (!committed)
             {
@@ -34,11 +56,18 @@ namespace BlackHole.Engine
 
                 if (hasError)
                 {
-                    _transaction.Rollback();
+                    RollBackAll();
                     return false;
                 }
 
-                _transaction.Commit();
+                foreach(ConnectionReference connectionRef in connections)
+                {
+                    if (connectionRef.IsOpen)
+                    {
+                        connectionRef.Transaction.Commit();
+                    }
+                }
+
                 return committed;
             }
             return false;
@@ -58,9 +87,21 @@ namespace BlackHole.Engine
 
         internal bool RollBack()
         {
+            return RollBackAll();
+        }
+
+        private bool RollBackAll()
+        {
             if (!committed || pendingRollback)
             {
-                _transaction.Rollback();
+                foreach(ConnectionReference connectionRef in connections)
+                {
+                    if (connectionRef.IsOpen)
+                    {
+                        connectionRef.Transaction.Rollback();
+                    }
+                }
+
                 hasError = false;
                 return true;
             }
@@ -77,22 +118,23 @@ namespace BlackHole.Engine
             {
                 if (hasError)
                 {
-                    _transaction.Rollback();
+                    RollBackAll();
                 }
                 else
                 {
-                    _transaction.Commit();
+                   CommitAll();
                 }
             }
 
             if (pendingRollback)
             {
-                _transaction.Rollback();
+                RollBackAll();
             }
-
-            _transaction.Dispose();
-            connection.Close();
-            connection.Dispose();
+            
+            foreach(ConnectionReference connectionRef in connections)
+            {
+                connectionRef.Dispose();
+            }
         }
     }
 }
