@@ -176,6 +176,14 @@ namespace BlackHole.Engine
             Type entityType = typeof(T);
             entitySettings.Tprops = entityType.GetProperties();
 
+            string? TableName = entityType.GetTableDisplayName(entitySettings.IsQuotedDb);
+            entitySettings.ThisTable = $"{entitySettings.ThisSchema}{TableName}";
+
+            if (entitySettings.HasAutoIncrement)
+            {
+                entitySettings.MainPK = entitySettings.MainPrimaryKey.UseNameQuotes(entitySettings.IsQuotedDb);
+            }
+
             using (TripleStringBuilder sb = new())
             {
                 foreach (PropertyInfo prop in entitySettings.Tprops)

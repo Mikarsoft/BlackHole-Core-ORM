@@ -16,16 +16,6 @@ namespace BlackHole.Core
         #region Ctor
 
         private readonly EntitySettings<T> _settings;
-        private string ThisTable { get; }
-        private List<string> Columns { get; } = new();
-        private string PropertyNames { get; }
-        private string PropertyParams { get; }
-        private string UpdateParams { get; }
-        private string ThisSchema { get; }
-        private string MainPK { get; set; } = string.Empty;
-        private bool IsMyShit { get; }
-        private PropertyInfo[] Tprops { get; set; }
-        private string[] ReturningCase { get; set; } = new string[2];
         private readonly IDataProvider _executionProvider;
 
         /// <summary>
@@ -43,63 +33,14 @@ namespace BlackHole.Core
             }
 
             _settings.MapEntitySettings();
-            _executionProvider = _settings.ConnectionIndex.GetDataProvider();
-
-            Type EntityType = typeof(T);
-
-            IsMyShit = _executionProvider.SkipQuotes();
-            ThisSchema = BlackHoleEngine.GetDatabaseSchema();
-            ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";
-
-            if (_settings.HasAutoIncrement)
-            {
-                MainPK = $"{MyShit(_settings.MainPrimaryKey)},";
-            }
-
-            Tprops = EntityType.GetProperties();
-
-            using (TripleStringBuilder sb = new())
-            {
-                foreach (PropertyInfo prop in Tprops)
-                {
-                    string property = MyShit(prop.Name);
-
-                    if (_settings.HasAutoIncrement)
-                    {
-                        if (prop.Name != _settings.MainPrimaryKey)
-                        {
-                            sb.PNSb.Append($", {property}");
-                            sb.PPSb.Append($", @{prop.Name}");
-                        }
-                        else
-                        {
-                            ReturningCase = _settings.GetReturningPrimaryKey(property, ThisTable);
-                        }
-                    }
-                    else
-                    {
-                        sb.PNSb.Append($", {property}");
-                        sb.PPSb.Append($", @{prop.Name}");
-                    }
-
-                    if (!_settings.PKPropertyNames.Contains(prop.Name))
-                    {
-                        sb.UPSb.Append($",{property} = @{prop.Name}");
-                    }
-
-                    Columns.Add(prop.Name);
-                }
-                PropertyNames = $"{sb.PNSb.ToString().Remove(0, 1)} ";
-                PropertyParams = $"{sb.PPSb.ToString().Remove(0, 1)} ";
-                UpdateParams = $"{sb.UPSb.ToString().Remove(0, 1)} ";
-            }
+            _executionProvider = _settings.ConnectionIndex.GetDataProvider();       
         }
         #endregion
 
         #region Common Helper Methods
         private string MyShit(string? propName)
         {
-            if (!IsMyShit)
+            if (!_settings.IsQuotedDb)
             {
                 return $@"""{propName}""";
             }
@@ -111,7 +52,7 @@ namespace BlackHole.Core
             StringBuilder PNsb = new();
             foreach (PropertyInfo property in dto.GetProperties())
             {
-                if (Columns.Contains(property.Name)
+                if (_settings.Columns.Contains(property.Name)
                     && typeof(T).GetProperty(property.Name)?.PropertyType == property.PropertyType)
                 {
                     PNsb.Append($",{MyShit(property.Name)}");
@@ -126,7 +67,7 @@ namespace BlackHole.Core
             StringBuilder PNsb = new();
             foreach (PropertyInfo property in dto.GetProperties())
             {
-                if (!_settings.PKPropertyNames.Contains(property.Name) && Columns.Contains(property.Name)
+                if (!_settings.PKPropertyNames.Contains(property.Name) && _settings.Columns.Contains(property.Name)
                     && typeof(T).GetProperty(property.Name)?.PropertyType == property.PropertyType)
                 {
                     PNsb.Append($",{MyShit(property.Name)}=@{property.Name}");
@@ -170,19 +111,20 @@ namespace BlackHole.Core
         #region Helper Methods
         private bool InsertMany<Dto>(List<Dto> entries, string textCommand)
         {
-            BlackHoleTransaction bhTransaction = new();
+            BHTransaction bhTransaction = new();
             bool result = true;
             foreach (Dto entry in entries)
             {
                 CheckGenerateValue(entry);
                 if (_settings.HasAutoIncrement)
                 {
-                    object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction);
+                    object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) {_settings.ReturningCase[0]} values({_settings.PropertyParams}) {_settings.ReturningCase[1]}",
+                        MapObjectToParameters(entry, _settings.Tprops), bhTransaction.transaction, _settings.ConnectionIndex);
                     if (IdEntry != null) { typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry); }
                 }
                 else
                 {
-                    _executionProvider.JustExecute(textCommand, MapObjectToParameters(entry, Tprops), bhTransaction);
+                    _executionProvider.JustExecute(textCommand, MapObjectToParameters(entry, _settings.Tprops), bhTransaction.transaction, _settings.ConnectionIndex);
                 }
             }
             if (!bhTransaction.Commit())
@@ -203,7 +145,9 @@ namespace BlackHole.Core
                 CheckGenerateValue(entry);
                 if (_settings.HasAutoIncrement)
                 {
-                    object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction);
+                    object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) {_settings.ReturningCase[0]} values({_settings.PropertyParams}) {_settings.ReturningCase[1]}",
+                        MapObjectToParameters(entry, _settings.Tprops), bhTransaction, _settings.ConnectionIndex);
+
                     if (IdEntry != null)
                     {
                         typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
@@ -215,7 +159,7 @@ namespace BlackHole.Core
                 }
                 else
                 {
-                    if (!_executionProvider.JustExecute(textCommand, MapObjectToParameters(entry, Tprops), bhTransaction))
+                    if (!_executionProvider.JustExecute(textCommand, MapObjectToParameters(entry, _settings.Tprops), bhTransaction, _settings.ConnectionIndex))
                     {
                         result = false;
                     }
@@ -230,25 +174,25 @@ namespace BlackHole.Core
         bool IBHOpenDataProvider<T>.Any()
         {
             string[] oneRow = 1.GetLimiter();
-            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null) != null;
+            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{_settings.PropertyNames} from {_settings.ThisTable} where 1=1 {oneRow[1]}", null) != null;
         }
 
         bool IBHOpenDataProvider<T>.Any(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
+            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
         }
 
         int IBHOpenDataProvider<T>.Count()
         {
-            return _executionProvider.QueryFirst<int>($"select count(*) from {ThisTable}", null);
+            return _executionProvider.QueryFirst<int>($"select count(*) from {_settings.ThisTable}", null);
         }
 
         int IBHOpenDataProvider<T>.CountWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<int>($"select count(*) from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<int>($"select count(*) from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
@@ -256,25 +200,29 @@ namespace BlackHole.Core
         bool IBHOpenDataProvider<T>.Any(BHTransaction bhTransaction)
         {
             string[] oneRow = 1.GetLimiter();
-            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null, bhTransaction.transaction) != null;
+            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{_settings.PropertyNames} from {_settings.ThisTable} where 1=1 {oneRow[1]}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex) != null;
         }
 
         bool IBHOpenDataProvider<T>.Any(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction) != null;
+            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex) != null;
         }
 
         int IBHOpenDataProvider<T>.Count(BHTransaction bhTransaction)
         {
-            return _executionProvider.QueryFirst<int>($"select count(*) from {ThisTable}", null, bhTransaction.transaction);
+            return _executionProvider.QueryFirst<int>($"select count(*) from {_settings.ThisTable}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         int IBHOpenDataProvider<T>.CountWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<int>($"select count(*) from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<int>($"select count(*) from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         #endregion
@@ -283,7 +231,7 @@ namespace BlackHole.Core
 
         List<T> IBHOpenDataProvider<T>.GetAllEntries()
         {
-            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable}", null);
+            return _executionProvider.Query<T>($"select {_settings.PropertyNames} from {_settings.ThisTable}", null);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>()
@@ -293,13 +241,13 @@ namespace BlackHole.Core
             {
                 return new List<Dto>();
             }
-            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable}", null);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {_settings.ThisTable}", null);
         }
 
         List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.Query<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate)
@@ -309,15 +257,15 @@ namespace BlackHole.Core
             {
                 return new List<Dto>();
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
+            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
         }
 
         Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
@@ -327,16 +275,17 @@ namespace BlackHole.Core
             {
                 return default;
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            return _executionProvider.QueryFirst<Dto>($"select {oneRow[0]}{commonColumns} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
+            return _executionProvider.QueryFirst<Dto>($"select {oneRow[0]}{commonColumns} from {_settings.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         List<T> IBHOpenDataProvider<T>.GetAllEntries(BHTransaction bhTransaction)
         {
-            return _executionProvider.Query<T>($"select {MainPK}{PropertyNames} from {ThisTable}", null, bhTransaction.transaction);
+            return _executionProvider.Query<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>(BHTransaction bhTransaction)
@@ -346,13 +295,15 @@ namespace BlackHole.Core
             {
                 return new List<Dto>();
             }
-            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable}", null, bhTransaction.transaction);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {_settings.ThisTable}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.Query<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
@@ -362,15 +313,17 @@ namespace BlackHole.Core
             {
                 return new List<Dto>();
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+            return _executionProvider.QueryFirst<T>($"select {oneRow[0]}{_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
@@ -380,8 +333,9 @@ namespace BlackHole.Core
             {
                 return default;
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         // WITH ORDER BY
@@ -390,7 +344,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
+            return _executionProvider.Query<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} {orderClass.OrderByToSql(_settings.IsQuotedDb)}", null);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : class
@@ -402,7 +356,7 @@ namespace BlackHole.Core
             }
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {_settings.ThisTable} {orderClass.OrderByToSql(_settings.IsQuotedDb)}", null);
         }
 
         T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
@@ -410,8 +364,8 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}", sql.Parameters);
         }
 
         Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : class
@@ -424,16 +378,16 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}", sql.Parameters);
         }
 
         List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.Query<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}", sql.Parameters);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : class
@@ -445,8 +399,8 @@ namespace BlackHole.Core
             };
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}", sql.Parameters);
         }
 
         // WITH ORDER BY AND TRANSACTION
@@ -455,7 +409,8 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return _executionProvider.Query<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} {orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
@@ -467,7 +422,8 @@ namespace BlackHole.Core
             }
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {_settings.ThisTable} {orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         T? IBHOpenDataProvider<T>.GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction)
@@ -475,8 +431,9 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         Dto? IBHOpenDataProvider<T>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
@@ -489,16 +446,18 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.QueryFirst<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         List<T> IBHOpenDataProvider<T>.GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.Query<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         List<Dto> IBHOpenDataProvider<T>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
@@ -510,8 +469,9 @@ namespace BlackHole.Core
             };
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.Query<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.Query<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         #endregion
@@ -520,7 +480,7 @@ namespace BlackHole.Core
 
         bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries)
         {
-            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
+            return InsertMany(entries, $"insert into {_settings.ThisTable} ({_settings.PropertyNames}) values ({_settings.PropertyParams})");
         }
 
         bool IBHOpenDataProvider<T>.InsertEntry(T entry)
@@ -528,19 +488,22 @@ namespace BlackHole.Core
             CheckGenerateValue(entry);
             if (_settings.HasAutoIncrement)
             {
-                object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops));
+                object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) {_settings.ReturningCase[0]} values({_settings.PropertyParams}) {_settings.ReturningCase[1]}",
+                    MapObjectToParameters(entry, _settings.Tprops));
+
                 if (IdEntry == null) { return false; }
                 typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
                 return true;
             }
-            return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry, Tprops));
+            return _executionProvider.JustExecute($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) values ({_settings.PropertyParams})",
+                MapObjectToParameters(entry, _settings.Tprops));
         }
 
         // WITH TRANSACTION
 
         bool IBHOpenDataProvider<T>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
         {
-            return InsertMany(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
+            return InsertMany(entries, $"insert into {_settings.ThisTable} ({_settings.PropertyNames}) values ({_settings.PropertyParams})", bhTransaction.transaction);
         }
 
         bool IBHOpenDataProvider<T>.InsertEntry(T entry, BHTransaction bhTransaction)
@@ -548,12 +511,15 @@ namespace BlackHole.Core
             CheckGenerateValue(entry);
             if (_settings.HasAutoIncrement)
             {
-                object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction.transaction);
+                object? IdEntry = _executionProvider.ExecuteRawScalar($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) {_settings.ReturningCase[0]} values({_settings.PropertyParams}) {_settings.ReturningCase[1]}",
+                    MapObjectToParameters(entry, _settings.Tprops), bhTransaction.transaction, _settings.ConnectionIndex);
+
                 if (IdEntry == null) { return false; }
                 typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
                 return true;
             }
-            return _executionProvider.JustExecute($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry, Tprops), bhTransaction.transaction);
+            return _executionProvider.JustExecute($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) values ({_settings.PropertyParams})",
+                MapObjectToParameters(entry, _settings.Tprops), bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         #endregion
@@ -561,9 +527,9 @@ namespace BlackHole.Core
         #region Update Methods
         bool IBHOpenDataProvider<T>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            return _executionProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters);
+            return _executionProvider.JustExecute($"update {_settings.ThisTable} set {_settings.UpdateParams} where {sql.Columns}", sql.Parameters);
         }
 
         bool IBHOpenDataProvider<T>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
@@ -573,18 +539,19 @@ namespace BlackHole.Core
             {
                 return false;
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            return _executionProvider.JustExecute($"update {ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters);
+            return _executionProvider.JustExecute($"update {_settings.ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         bool IBHOpenDataProvider<T>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            return _executionProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _executionProvider.JustExecute($"update {_settings.ThisTable} set {_settings.UpdateParams} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         bool IBHOpenDataProvider<T>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
@@ -594,35 +561,37 @@ namespace BlackHole.Core
             {
                 return false;
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            return _executionProvider.JustExecute($"update {ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _executionProvider.JustExecute($"update {_settings.ThisTable} set {commonColumns} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
         #endregion
 
         #region Delete Methods
         bool IBHOpenDataProvider<T>.DeleteAllEntries()
         {
-            return _executionProvider.JustExecute($"delete from {ThisTable}", null);
+            return _executionProvider.JustExecute($"delete from {_settings.ThisTable}", null);
         }
 
         bool IBHOpenDataProvider<T>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.JustExecute($"delete from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.JustExecute($"delete from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         bool IBHOpenDataProvider<T>.DeleteAllEntries(BHTransaction bhTransaction)
         {
-            return _executionProvider.JustExecute($"delete from {ThisTable}", null, bhTransaction.transaction);
+            return _executionProvider.JustExecute($"delete from {_settings.ThisTable}", null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         bool IBHOpenDataProvider<T>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return _executionProvider.JustExecute($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return _executionProvider.JustExecute($"delete from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
         #endregion
 
@@ -631,19 +600,20 @@ namespace BlackHole.Core
         #region Helper Methods Async
         private async Task<bool> InsertManyAsync<Dto>(List<Dto> entries, string textCommand)
         {
-            BlackHoleTransaction bhTransaction = new();
+            BHTransaction bhTransaction = new();
             bool result = true;
             foreach (Dto entry in entries)
             {
                 CheckGenerateValue(entry);
                 if (_settings.HasAutoIncrement)
                 {
-                    object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction);
+                    object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) {_settings.ReturningCase[0]} values({_settings.PropertyParams}) {_settings.ReturningCase[1]}",
+                        MapObjectToParameters(entry, _settings.Tprops), bhTransaction.transaction, _settings.ConnectionIndex);
                     if (IdEntry != null) { typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry); }
                 }
                 else
                 {
-                    await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(entry, Tprops), bhTransaction);
+                    await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(entry, _settings.Tprops), bhTransaction.transaction, _settings.ConnectionIndex);
                 }
             }
             if (!bhTransaction.Commit())
@@ -664,7 +634,9 @@ namespace BlackHole.Core
                 CheckGenerateValue(entry);
                 if (_settings.HasAutoIncrement)
                 {
-                    object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction);
+                    object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) {_settings.ReturningCase[0]} values({_settings.PropertyParams}) {_settings.ReturningCase[1]}",
+                        MapObjectToParameters(entry, _settings.Tprops), bhTransaction, _settings.ConnectionIndex);
+
                     if (IdEntry != null)
                     {
                         typeof(Dto).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
@@ -676,7 +648,7 @@ namespace BlackHole.Core
                 }
                 else
                 {
-                    if (!await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(entry, Tprops), bhTransaction))
+                    if (!await _executionProvider.JustExecuteAsync(textCommand, MapObjectToParameters(entry, _settings.Tprops), bhTransaction, _settings.ConnectionIndex))
                     {
                         result = false;
                     }
@@ -691,25 +663,25 @@ namespace BlackHole.Core
         async Task<bool> IBHOpenDataProvider<T>.AnyAsync()
         {
             string[] oneRow = 1.GetLimiter();
-            return await _executionProvider.QueryFirstAsync<T>($"select {oneRow[0]}{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null) != null;
+            return await _executionProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_settings.PropertyNames} from {_settings.ThisTable} where 1=1 {oneRow[1]}", null) != null;
         }
 
         async Task<bool> IBHOpenDataProvider<T>.AnyAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            return await _executionProvider.QueryFirstAsync<T>($"select {oneRow[0]}{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
+            return await _executionProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
         }
 
         async Task<int> IBHOpenDataProvider<T>.CountAsync()
         {
-            return await _executionProvider.QueryFirstAsync<int>($"select count(*) from {ThisTable}", null);
+            return await _executionProvider.QueryFirstAsync<int>($"select count(*) from {_settings.ThisTable}", null);
         }
 
         async Task<int> IBHOpenDataProvider<T>.CountWhereAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<int>($"select count(*) from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<int>($"select count(*) from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
@@ -717,25 +689,29 @@ namespace BlackHole.Core
         async Task<bool> IBHOpenDataProvider<T>.AnyAsync(BHTransaction bhTransaction)
         {
             string[] oneRow = 1.GetLimiter();
-            return await _executionProvider.QueryFirstAsync<T>($"select {oneRow[0]}{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null, bhTransaction.transaction) != null;
+            return await _executionProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_settings.PropertyNames} from {_settings.ThisTable} where 1 = 1 {oneRow[1]}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex) != null;
         }
 
         async Task<bool> IBHOpenDataProvider<T>.AnyAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            return await _executionProvider.QueryFirstAsync<T>($"select {oneRow[0]}{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction) != null; ;
+            return await _executionProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex) != null;
         }
 
         async Task<int> IBHOpenDataProvider<T>.CountAsync(BHTransaction bhTransaction)
         {
-            return await _executionProvider.QueryFirstAsync<int>($"select count(*) from {ThisTable}", null, bhTransaction.transaction);
+            return await _executionProvider.QueryFirstAsync<int>($"select count(*) from {_settings.ThisTable}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<int> IBHOpenDataProvider<T>.CountWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<int>($"select count(*) from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<int>($"select count(*) from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         #endregion
@@ -744,7 +720,7 @@ namespace BlackHole.Core
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetAllEntriesAsync()
         {
-            return await _executionProvider.QueryAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable}", null);
+            return await _executionProvider.QueryAsync<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable}", null);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>()
@@ -754,13 +730,13 @@ namespace BlackHole.Core
             {
                 return new List<Dto>();
             }
-            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable}", null);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {_settings.ThisTable}", null);
         }
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate)
@@ -770,14 +746,14 @@ namespace BlackHole.Core
             {
                 return new List<Dto>();
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
@@ -787,15 +763,16 @@ namespace BlackHole.Core
             {
                 return default;
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetAllEntriesAsync(BHTransaction bhTransaction)
         {
-            return await _executionProvider.QueryAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable}", null, bhTransaction.transaction);
+            return await _executionProvider.QueryAsync<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>(BHTransaction bhTransaction)
@@ -805,13 +782,15 @@ namespace BlackHole.Core
             {
                 return new List<Dto>();
             }
-            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable}", null, bhTransaction.transaction);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {_settings.ThisTable}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
@@ -821,14 +800,16 @@ namespace BlackHole.Core
             {
                 return new List<Dto>();
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<T>($"select {MainPK}{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<T>($"select {_settings.MainPK}{_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
@@ -838,8 +819,9 @@ namespace BlackHole.Core
             {
                 return default;
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         // WITH ORDER BY
@@ -848,7 +830,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
+            return await _executionProvider.QueryAsync<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} {orderClass.OrderByToSql(_settings.IsQuotedDb)}", null);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : class
@@ -860,7 +842,7 @@ namespace BlackHole.Core
             }
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} {orderClass.OrderByToSql(_settings.IsQuotedDb)}", null);
         }
 
         async Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
@@ -868,8 +850,8 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}", sql.Parameters);
         }
 
         async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : class
@@ -882,16 +864,16 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}", sql.Parameters);
         }
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}", sql.Parameters);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : class
@@ -903,8 +885,8 @@ namespace BlackHole.Core
             };
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}", sql.Parameters);
         }
 
         // WITH ORDER BY AND TRANSACTION
@@ -913,7 +895,8 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return await _executionProvider.QueryAsync<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} {orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
@@ -925,7 +908,8 @@ namespace BlackHole.Core
             }
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} {orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<T?> IBHOpenDataProvider<T>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction)
@@ -933,8 +917,9 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<Dto?> IBHOpenDataProvider<T>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
@@ -947,16 +932,18 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryFirstAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<List<T>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<T>($"select {PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<T>($"select {_settings.PropertyNames} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<List<Dto>> IBHOpenDataProvider<T>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
@@ -968,15 +955,16 @@ namespace BlackHole.Core
             };
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.QueryAsync<Dto>($"select {commonColumns} from {_settings.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_settings.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
         #endregion
 
         #region Insert Methods Async
         async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries)
         {
-            return await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})");
+            return await InsertManyAsync(entries, $"insert into {_settings.ThisTable} ({_settings.PropertyNames}) values ({_settings.PropertyParams})");
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry)
@@ -984,19 +972,19 @@ namespace BlackHole.Core
             CheckGenerateValue(entry);
             if (_settings.HasAutoIncrement)
             {
-                object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops));
+                object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) {_settings.ReturningCase[0]} values({_settings.PropertyParams}) {_settings.ReturningCase[1]}", MapObjectToParameters(entry, _settings.Tprops));
                 if (IdEntry == null) { return false; }
                 typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
                 return true;
             }
-            return await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry, Tprops));
+            return await _executionProvider.JustExecuteAsync($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) values ({_settings.PropertyParams})", MapObjectToParameters(entry, _settings.Tprops));
         }
 
         // WITH TRANSACTION
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
         {
-            return await InsertManyAsync(entries, $"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", bhTransaction.transaction);
+            return await InsertManyAsync(entries, $"insert into {_settings.ThisTable} ({_settings.PropertyNames}) values ({_settings.PropertyParams})", bhTransaction.transaction);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
@@ -1004,21 +992,24 @@ namespace BlackHole.Core
             CheckGenerateValue(entry);
             if (_settings.HasAutoIncrement)
             {
-                object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {ThisTable} ({PropertyNames}) {ReturningCase[0]} values({PropertyParams}) {ReturningCase[1]}", MapObjectToParameters(entry, Tprops), bhTransaction.transaction);
+                object? IdEntry = await _executionProvider.ExecuteRawScalarAsync($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) {_settings.ReturningCase[0]} values({_settings.PropertyParams}) {_settings.ReturningCase[1]}",
+                    MapObjectToParameters(entry, _settings.Tprops), bhTransaction.transaction, _settings.ConnectionIndex);
+
                 if (IdEntry == null) { return false; }
                 typeof(T).GetProperty(_settings.MainPrimaryKey)?.SetValue(entry, IdEntry);
                 return true;
             }
-            return await _executionProvider.JustExecuteAsync($"insert into {ThisTable} ({PropertyNames}) values ({PropertyParams})", MapObjectToParameters(entry, Tprops), bhTransaction.transaction);
+            return await _executionProvider.JustExecuteAsync($"insert into {_settings.ThisTable} ({_settings.PropertyNames}) values ({_settings.PropertyParams})",
+                MapObjectToParameters(entry, _settings.Tprops), bhTransaction.transaction, _settings.ConnectionIndex);
         }
         #endregion
 
         #region Update Methods Async
         async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            return await _executionProvider.JustExecuteAsync($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters);
+            return await _executionProvider.JustExecuteAsync($"update {_settings.ThisTable} set {_settings.UpdateParams} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
@@ -1028,18 +1019,19 @@ namespace BlackHole.Core
             {
                 return false;
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            return await _executionProvider.JustExecuteAsync($"update {ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters);
+            return await _executionProvider.JustExecuteAsync($"update {_settings.ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            return await _executionProvider.JustExecuteAsync($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _executionProvider.JustExecuteAsync($"update {_settings.ThisTable} set {_settings.UpdateParams} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
@@ -1049,35 +1041,38 @@ namespace BlackHole.Core
             {
                 return false;
             }
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            return await _executionProvider.JustExecuteAsync($"update {ThisTable} set {commonColumns} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _executionProvider.JustExecuteAsync($"update {_settings.ThisTable} set {commonColumns} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
         #endregion
 
         #region Delete Methods Async
         async Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync()
         {
-            return await _executionProvider.JustExecuteAsync($"delete from {ThisTable}", null);
+            return await _executionProvider.JustExecuteAsync($"delete from {_settings.ThisTable}", null);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.JustExecuteAsync($"delete from {ThisTable} where {sql.Columns}", sql.Parameters);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.JustExecuteAsync($"delete from {_settings.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         async Task<bool> IBHOpenDataProvider<T>.DeleteAllEntriesAsync(BHTransaction bhTransaction)
         {
-            return await _executionProvider.JustExecuteAsync($"delete from {ThisTable}", null, bhTransaction.transaction);
+            return await _executionProvider.JustExecuteAsync($"delete from {_settings.ThisTable}",
+                null, bhTransaction.transaction, _settings.ConnectionIndex);
         }
 
         async Task<bool> IBHOpenDataProvider<T>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            return await _executionProvider.JustExecuteAsync($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_settings.IsQuotedDb, string.Empty, null, 0);
+            return await _executionProvider.JustExecuteAsync($"delete from {_settings.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _settings.ConnectionIndex);
         }
         #endregion
     }
