@@ -42,6 +42,7 @@ namespace BlackHole.Statics
         internal static byte[][] EntitiesCodes { get; set; } = new byte[0][];
         internal static EntityInfo[] EntityInfos { get; set; } = new EntityInfo[0];
         internal static string[] ConnectionStrings { get; set; } = new string[0];
+        internal static bool[] IsQuotedDb { get; set; } = new bool[0];
         internal static string[] DbSchemas { get; set; } = new string[0];
         internal static BlackHoleSqlTypes[] DbTypes { get; set; } = new BlackHoleSqlTypes[0];
     }
@@ -51,6 +52,5 @@ namespace BlackHole.Statics
         internal int CSIndex { get; set; }
         internal int SchIndex { get; set; }
         internal int DBTIndex { get; set; }
-        internal bool QuotedDb { get; set; }
     }
 }

@@ -35,16 +35,15 @@ namespace BlackHole.Engine
 
             DataProviders[providerIndex] = WormHoleData.DbTypes[providerIndex] switch
             {
-                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
+                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(WormHoleData.ConnectionStrings[providerIndex], WormHoleData.IsQuotedDb[providerIndex]),
                 BlackHoleSqlTypes.MySql => new MySqlDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
                 BlackHoleSqlTypes.Postgres => new PostgresDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
-                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
+                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(WormHoleData.ConnectionStrings[providerIndex], WormHoleData.IsQuotedDb[providerIndex]),
                 _ => new OracleDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
             };
 
             return DataProviders[providerIndex];
         }
-
 
         internal static IDbConnection GetConnection(this int providerIndex)
         {
@@ -55,10 +54,10 @@ namespace BlackHole.Engine
 
             DataProviders[providerIndex] = WormHoleData.DbTypes[providerIndex] switch
             {
-                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
+                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(WormHoleData.ConnectionStrings[providerIndex], WormHoleData.IsQuotedDb[providerIndex]),
                 BlackHoleSqlTypes.MySql => new MySqlDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
                 BlackHoleSqlTypes.Postgres => new PostgresDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
-                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
+                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(WormHoleData.ConnectionStrings[providerIndex], WormHoleData.IsQuotedDb[providerIndex]),
                 _ => new OracleDataProvider(WormHoleData.ConnectionStrings[providerIndex]),
             };
 
@@ -68,11 +67,6 @@ namespace BlackHole.Engine
         internal static int GetAvailableConnections()
         {
             return WormHoleData.ConnectionStrings.Length;
-        }
-
-        internal static string GetConnectionString(this int connectionIndex)
-        {
-            return WormHoleData.ConnectionStrings[connectionIndex];
         }
 
         internal static EntityContext GetEntityContext<G>(this Type entityType)
@@ -88,7 +82,7 @@ namespace BlackHole.Engine
                 {
                     ConnectionIndex = entityInfo.CSIndex,
                     DatabaseType = WormHoleData.DbTypes[entityInfo.DBTIndex],
-                    IsQuotedDb = entityInfo.QuotedDb,
+                    IsQuotedDb = WormHoleData.IsQuotedDb[entityInfo.DBTIndex],
                     ThisSchema = WormHoleData.DbSchemas[entityInfo.SchIndex]
                 };
 
@@ -157,7 +151,7 @@ namespace BlackHole.Engine
                 EntityInfo entityInfo = WormHoleData.EntityInfos[entityInfoIndex];
                 entitySettings.ConnectionIndex = entityInfo.CSIndex;
                 entitySettings.DatabaseType = WormHoleData.DbTypes[entityInfo.DBTIndex];
-                entitySettings.IsQuotedDb = entityInfo.QuotedDb;
+                entitySettings.IsQuotedDb = WormHoleData.IsQuotedDb[entityInfo.DBTIndex];
                 entitySettings.ThisSchema = WormHoleData.DbSchemas[entityInfo.SchIndex];
             }
             else
@@ -300,21 +294,6 @@ namespace BlackHole.Engine
                 return $"{DatabaseStatics.DatabaseSchema}.";
             }
             return string.Empty;
-        }
-
-        private static BlackHoleIdTypes GetIdType(Type type)
-        {
-            if (type == typeof(int))
-            {
-                return BlackHoleIdTypes.IntId;
-            }
-
-            if (type == typeof(Guid))
-            {
-                return BlackHoleIdTypes.GuidId;
-            }
-
-            return BlackHoleIdTypes.StringId;
         }
 
         internal static ColumnsAndParameters SplitMembers<T>(this Expression expression, bool isQuotedDb, string? letter, List<BlackHoleParameter>? DynamicParams, int index)

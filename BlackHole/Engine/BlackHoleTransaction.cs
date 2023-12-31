@@ -5,7 +5,7 @@ namespace BlackHole.Engine
     /// <summary>
     /// Transaction Object
     /// </summary>
-    public class BlackHoleTransaction : IDisposable
+    internal class BlackHoleTransaction : IDisposable
     {
         private bool committed = false;
         internal bool hasError = false;

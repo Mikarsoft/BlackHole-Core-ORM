@@ -8,16 +8,15 @@ namespace BlackHole.DataProviders
 {
     internal class PostgresDataProvider : IDataProvider
     {
+        #region Ctor
+
         private readonly string _connectionString;
         internal PostgresDataProvider(string connectionString)
         {
             _connectionString = connectionString;
         }
 
-        public IDbConnection GetConnection()
-        {
-            return new NpgsqlConnection(_connectionString);
-        }
+        #endregion
 
         #region Internal Processes
         private G? ExecuteEntryScalar<T, G>(string commandText, T entry)
@@ -122,6 +121,12 @@ namespace BlackHole.DataProviders
         #endregion
 
         #region Execution Methods
+
+        public IDbConnection GetConnection()
+        {
+            return new NpgsqlConnection(_connectionString);
+        }
+
         public G? InsertScalar<T, G>(string commandStart, string commandEnd, T entry, bool useGenerator, string insertedOutput)
         {
             if (useGenerator)
@@ -468,7 +473,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Pg_RawScalar", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -486,7 +491,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 bHTransaction.hasError = true;
-                Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalar", ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs("Pg_RawScalar", ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -508,7 +513,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("Pg_RawScalarAsync", ex.Message, ex.ToString()));
                 return default;
             }
         }
@@ -526,7 +531,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 bHTransaction.hasError = true;
-                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("RawScalarAsync", ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("Pg_RawScalarAsync", ex.Message, ex.ToString()));
             }
             return default;
         }
@@ -545,7 +550,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 bHTransaction.hasError = true;
-                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Execute", ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Pg_Execute", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -566,7 +571,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Execute", ex.Message, ex.ToString()));
+                Task.Factory.StartNew(() => commandText.CreateErrorLogs($"Pg_Execute", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -585,7 +590,7 @@ namespace BlackHole.DataProviders
             catch (Exception ex)
             {
                 bhTransaction.hasError = true;
-                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ExecuteAsync", ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("Pg_ExecuteAsync", ex.Message, ex.ToString()));
                 return false;
             }
         }
@@ -606,7 +611,7 @@ namespace BlackHole.DataProviders
             }
             catch (Exception ex)
             {
-                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("ExecuteAsync", ex.Message, ex.ToString()));
+                await Task.Factory.StartNew(() => commandText.CreateErrorLogs("Pg_ExecuteAsync", ex.Message, ex.ToString()));
                 return false;
             }
         }

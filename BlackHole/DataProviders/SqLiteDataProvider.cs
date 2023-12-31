@@ -1,7 +1,7 @@
 ﻿using BlackHole.Engine;
-using BlackHole.Enums;
 using BlackHole.Logger;
 using Microsoft.Data.Sqlite;
+using System.Data;
 using System.Reflection;
 
 namespace BlackHole.DataProviders
@@ -10,40 +10,14 @@ namespace BlackHole.DataProviders
     {
         #region Constructor
         private readonly string _connectionString;
-        internal readonly string insertedOutput = "returning Id";
-        internal readonly bool skipQuotes = true;
-        internal readonly bool ForceQuotes = false;
-        private readonly BlackHoleIdTypes _idType;
-        private readonly bool useGenerator = false;
-        private readonly string TableName = string.Empty;
         internal readonly string PK = "Id";
 
-        internal SqLiteDataProvider(string connectionString, BlackHoleIdTypes idType, string tableName, bool forceQuotes)
+        internal SqLiteDataProvider(string connectionString, bool isQuotedDb)
         {
             _connectionString = connectionString;
-            _idType = idType;
-            TableName = tableName;
-            ForceQuotes = forceQuotes;
-            if (ForceQuotes) { PK = @"""Id"""; insertedOutput = @"returning ""Id"""; }
-
-            if (idType != BlackHoleIdTypes.IntId)
-            {
-                useGenerator = true;
-            }
-            else
-            {
-                useGenerator = false;
-            }
+            if (isQuotedDb) { PK = @"""Id""";}
         }
 
-        internal SqLiteDataProvider(string connectionString, bool forceQuotes)
-        {
-            _connectionString = connectionString;
-            TableName = string.Empty;
-            ForceQuotes = forceQuotes;
-            if (ForceQuotes) { PK = @"""Id"""; insertedOutput = @"returning ""Id"""; }
-            useGenerator = false;
-        }
         #endregion
 
         #region Internal Processes
@@ -148,14 +122,13 @@ namespace BlackHole.DataProviders
         }
         #endregion
 
-        #region Helper Methods
-        public bool SkipQuotes()
-        {
-            return ForceQuotes? false : skipQuotes;
-        }
-        #endregion
-
         #region Execution Methods
+
+        public IDbConnection GetConnection()
+        {
+            return new SqliteConnection(_connectionString);
+        }
+
         public G? InsertScalar<T, G>(string commandStart, string commandEnd, T entry)
         {
             if (useGenerator)
@@ -1030,15 +1003,17 @@ namespace BlackHole.DataProviders
         {
             object? value = default(G);
 
-            switch (_idType)
+            if (typeof(G) == typeof(Guid))
             {
-                case BlackHoleIdTypes.GuidId:
-                    value = Guid.NewGuid();
-                    break;
-                case BlackHoleIdTypes.StringId:
-                    string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
-                    value = ToHash.GenerateSHA1();
-                    break;
+                value = Guid.NewGuid();
+                return (G?)value;
+            }
+
+            if (typeof(G) == typeof(string))
+            {
+                string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
+                value = ToHash.GenerateSHA1();
+                return (G?)value;
             }
 
             return (G?)value;
