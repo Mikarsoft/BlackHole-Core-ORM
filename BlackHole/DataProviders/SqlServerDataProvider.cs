@@ -8,7 +8,7 @@ namespace BlackHole.DataProviders
 {
     internal class SqlServerDataProvider : IDataProvider
     {
-        #region Constructor
+        #region Ctor
         private readonly string _connectionString;
         internal readonly string PK = "Id";
 

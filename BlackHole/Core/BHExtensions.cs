@@ -20,7 +20,8 @@ namespace BlackHole.Core
         {
             if(data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
             {
-                IDataProvider connection = BlackHoleEngine.GetDataProvider();
+                int connectionIndex = data.Data.ConnectionIndex;
+                IDataProvider connection = connectionIndex.GetDataProvider();
                 return connection.Query<Dto>(command.Columns, command.Parameters);
             }
             return new List<Dto>();
@@ -36,7 +37,8 @@ namespace BlackHole.Core
         {
             if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
             {
-                IDataProvider connection = BlackHoleEngine.GetDataProvider();
+                int connectionIndex = data.Data.ConnectionIndex;
+                IDataProvider connection = connectionIndex.GetDataProvider();
                 return await connection.QueryAsync<Dto>(command.Columns, command.Parameters);
             }
             return new List<Dto>();
@@ -53,8 +55,9 @@ namespace BlackHole.Core
         {
             if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
             {
-                IDataProvider connection = BlackHoleEngine.GetDataProvider();
-                return connection.Query<Dto>(command.Columns, command.Parameters, bHTransaction.transaction);
+                int connectionIndex = data.Data.ConnectionIndex;
+                IDataProvider connection = connectionIndex.GetDataProvider();
+                return connection.Query<Dto>(command.Columns, command.Parameters, bHTransaction.transaction, connectionIndex);
             }
             return new List<Dto>();
         }
@@ -70,8 +73,9 @@ namespace BlackHole.Core
         {
             if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
             {
-                IDataProvider connection = BlackHoleEngine.GetDataProvider();
-                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, bHTransaction.transaction);
+                int connectionIndex = data.Data.ConnectionIndex;
+                IDataProvider connection = connectionIndex.GetDataProvider();
+                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, bHTransaction.transaction, connectionIndex);
             }
             return new List<Dto>();
         }
@@ -90,7 +94,8 @@ namespace BlackHole.Core
                 BHOrderBy<Dto> orderClass = new();
                 orderBy.Invoke(orderClass);
                 data.Data.OrderByToSqlJoins(orderClass);
-                IDataProvider connection = BlackHoleEngine.GetDataProvider();
+                int connectionIndex = data.Data.ConnectionIndex;
+                IDataProvider connection = connectionIndex.GetDataProvider();
                 return connection.Query<Dto>(command.Columns, command.Parameters);
             }
             return new List<Dto>();
@@ -110,7 +115,8 @@ namespace BlackHole.Core
                 BHOrderBy<Dto> orderClass = new();
                 orderBy.Invoke(orderClass);
                 data.Data.OrderByToSqlJoins(orderClass);
-                IDataProvider connection = BlackHoleEngine.GetDataProvider();
+                int connectionIndex = data.Data.ConnectionIndex;
+                IDataProvider connection = connectionIndex.GetDataProvider();
                 return await connection.QueryAsync<Dto>(command.Columns, command.Parameters);
             }
             return new List<Dto>();
@@ -131,8 +137,9 @@ namespace BlackHole.Core
                 BHOrderBy<Dto> orderClass = new();
                 orderBy.Invoke(orderClass);
                 data.Data.OrderByToSqlJoins(orderClass);
-                IDataProvider connection = BlackHoleEngine.GetDataProvider();
-                return connection.Query<Dto>(command.Columns, command.Parameters, bHTransaction.transaction);
+                int connectionIndex = data.Data.ConnectionIndex;
+                IDataProvider connection = connectionIndex.GetDataProvider(); 
+                return connection.Query<Dto>(command.Columns, command.Parameters, bHTransaction.transaction, connectionIndex);
             }
             return new List<Dto>();
         }
@@ -152,8 +159,9 @@ namespace BlackHole.Core
                 BHOrderBy<Dto> orderClass = new();
                 orderBy.Invoke(orderClass);
                 data.Data.OrderByToSqlJoins(orderClass);
-                IDataProvider connection = BlackHoleEngine.GetDataProvider();
-                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, bHTransaction.transaction);
+                int connectionIndex = data.Data.ConnectionIndex;
+                IDataProvider connection = connectionIndex.GetDataProvider();
+                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, bHTransaction.transaction, connectionIndex);
             }
             return new List<Dto>();
         }

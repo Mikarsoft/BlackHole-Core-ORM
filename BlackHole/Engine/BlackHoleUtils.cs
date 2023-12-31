@@ -156,7 +156,7 @@ namespace BlackHole.Engine
         {
             DtoType = dtoType;
         }
-
+        internal int ConnectionIndex { get; set; }
         internal Type DtoType { get; set; }
         internal Type? BaseTable { get; set; }
         internal List<PropertyOccupation> OccupiedDtoProps { get; set; } = new List<PropertyOccupation>();
