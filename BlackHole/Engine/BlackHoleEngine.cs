@@ -16,6 +16,16 @@ namespace BlackHole.Engine
     {
         private static IDataProvider[] DataProviders { get; set; } = new IDataProvider[0];
 
+        internal static int SetIndex(this int providerIndex, int providerNewIndex)
+        {
+            if(providerNewIndex > -1 && providerNewIndex < DataProviders.Length)
+            {
+                return providerNewIndex;
+            }
+
+            return providerIndex;
+        }
+
         internal static IDataProvider GetDataProvider(this int providerIndex)
         {
             if (DataProviders[providerIndex] != null)
@@ -65,7 +75,7 @@ namespace BlackHole.Engine
             return WormHoleData.ConnectionStrings[connectionIndex];
         }
 
-        internal static EntityContext GetEntityContext(this Type entityType)
+        internal static EntityContext GetEntityContext<G>(this Type entityType)
         {
             string entityHash = $"{entityType.Name}_{entityType.Namespace}_{entityType.Assembly.FullName}".GenerateSHA1();
             byte[] entityCode = Encoding.ASCII.GetBytes(entityHash);
@@ -82,7 +92,7 @@ namespace BlackHole.Engine
                     ThisSchema = WormHoleData.DbSchemas[entityInfo.SchIndex]
                 };
 
-                entityContext.MapEntityContext(entityType);
+                entityContext.MapEntityContext<G>(entityType);
                 return entityContext;
             }
             else
@@ -95,22 +105,23 @@ namespace BlackHole.Engine
                     ThisSchema = DatabaseStatics.DatabaseSchema
                 };
 
-                entityContext.MapEntityContext(entityType);
+                entityContext.MapEntityContext<G>(entityType);
                 return  entityContext;
             }
         }
 
-        internal static void MapEntityContext(this EntityContext entityContext, Type entityType)
+        internal static void MapEntityContext<G>(this EntityContext entityContext, Type entityType)
         {
             string entityId = "Id";
             string inactiveColumn = "Inactive";
-            string TableName = entityType.Name.UseNameQuotes(entityContext.IsQuotedDb);
+            string? TableName = entityType.GetTableDisplayName(entityContext.IsQuotedDb);
 
             entityContext.ReturningId = entityContext.DatabaseType.GetReturningIdCommand(TableName);
             entityContext.ThisTable = $"{entityContext.ThisSchema}{TableName}";
             entityContext.ThisId = entityId.UseNameQuotes(entityContext.IsQuotedDb);
             entityContext.ThisInactive = inactiveColumn.UseNameQuotes(entityContext.IsQuotedDb);
             entityContext.WithActivator = entityType.CheckActivator();
+            entityContext.UseIdGenerator = entityContext.DatabaseType.DetermineUseGenerator<G>();
 
             using (TripleStringBuilder sb = new())
             {
@@ -134,12 +145,90 @@ namespace BlackHole.Engine
             }
         }
 
-        internal static void MapOpenEntityContext(this EntityContext entityContext, Type entityType)
+        internal static void MapEntitySettings<T>(this EntitySettings<T> entitySettings)
         {
+            Type entityType = typeof(T);
+            string entityHash = $"{entityType.Name}_{entityType.Namespace}_{entityType.Assembly.FullName}".GenerateSHA1();
+            byte[] entityCode = Encoding.ASCII.GetBytes(entityHash);
+            int entityInfoIndex = Array.IndexOf(WormHoleData.EntitiesCodes, entityCode);
 
+            if (entityInfoIndex > -1)
+            {
+                EntityInfo entityInfo = WormHoleData.EntityInfos[entityInfoIndex];
+                entitySettings.ConnectionIndex = entityInfo.CSIndex;
+                entitySettings.DatabaseType = WormHoleData.DbTypes[entityInfo.DBTIndex];
+                entitySettings.IsQuotedDb = entityInfo.QuotedDb;
+                entitySettings.ThisSchema = WormHoleData.DbSchemas[entityInfo.SchIndex];
+            }
+            else
+            {
+                entitySettings.ConnectionIndex = 0;
+                entitySettings.DatabaseType = DatabaseStatics.DatabaseType;
+                entitySettings.IsQuotedDb = DatabaseStatics.IsQuotedDatabase;
+                entitySettings.ThisSchema = DatabaseStatics.DatabaseSchema;
+            }
+
+            entitySettings.MapOpenEntityContext();
         }
 
-        private static string GetReturningIdCommand(this BlackHoleSqlTypes sqlType, string tableName)
+        internal static void MapOpenEntityContext<T>(this EntitySettings<T> entitySettings)
+        {
+            Type entityType = typeof(T);
+            entitySettings.Tprops = entityType.GetProperties();
+
+            using (TripleStringBuilder sb = new())
+            {
+                foreach (PropertyInfo prop in entitySettings.Tprops)
+                {
+                    string property = prop.Name.UseNameQuotes(entitySettings.IsQuotedDb);
+
+                    if (entitySettings.HasAutoIncrement)
+                    {
+                        if (prop.Name != entitySettings.MainPrimaryKey)
+                        {
+                            sb.PNSb.Append($", {property}");
+                            sb.PPSb.Append($", @{prop.Name}");
+                        }
+                        else
+                        {
+                            entitySettings.ReturningCase = entitySettings.GetReturningPrimaryKey(property, entitySettings.ThisTable);
+                        }
+                    }
+                    else
+                    {
+                        sb.PNSb.Append($", {property}");
+                        sb.PPSb.Append($", @{prop.Name}");
+                    }
+
+                    if (!entitySettings.PKPropertyNames.Contains(prop.Name))
+                    {
+                        sb.UPSb.Append($",{property} = @{prop.Name}");
+                    }
+
+                    entitySettings.Columns.Add(prop.Name);
+                }
+                entitySettings.PropertyNames = $"{sb.PNSb.ToString().Remove(0, 1)} ";
+                entitySettings.PropertyParams = $"{sb.PPSb.ToString().Remove(0, 1)} ";
+                entitySettings.UpdateParams = $"{sb.UPSb.ToString().Remove(0, 1)} ";
+            }
+        }
+
+        private static bool DetermineUseGenerator<G>(this BlackHoleSqlTypes sqlType)
+        {
+            if(typeof(G) == typeof(string))
+            {
+                return true;
+            }
+
+            if(typeof(G) == typeof(Guid) && sqlType != BlackHoleSqlTypes.SqlServer && sqlType != BlackHoleSqlTypes.Postgres)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static string GetReturningIdCommand(this BlackHoleSqlTypes sqlType, string? tableName)
         {
             return sqlType switch
             {
@@ -151,15 +240,15 @@ namespace BlackHole.Engine
             };
         }
 
-        internal static string[] GetReturningPrimaryKey<T>(this EntitySettings<T> pkOptions, string MainColumn, string Tablename)
+        internal static string[] GetReturningPrimaryKey<T>(this EntitySettings<T> pkOptions, string MainColumn, string TableName)
         {
             if (pkOptions.HasAutoIncrement)
             {
-                return DatabaseStatics.DatabaseType switch
+                return pkOptions.DatabaseType switch
                 {
                     BlackHoleSqlTypes.SqlServer => new string[] { $"output Inserted.{MainColumn}", "" },
                     BlackHoleSqlTypes.MySql => new string[] { "", ";SELECT LAST_INSERT_ID();" },
-                    BlackHoleSqlTypes.Postgres => new string[] { "", $"returning {Tablename}.{MainColumn}" },
+                    BlackHoleSqlTypes.Postgres => new string[] { "", $"returning {TableName}.{MainColumn}" },
                     BlackHoleSqlTypes.SqlLite => new string[] { "", $"returning {MainColumn}" },
                     _ => new string[] { "", $"returning {MainColumn} into :OracleReturningValue" },
                 };
@@ -183,6 +272,17 @@ namespace BlackHole.Engine
         private static bool CheckActivator(this Type entity)
         {
             return entity.GetCustomAttributes(true).Any(x => x.GetType() == typeof(UseActivator));
+        }
+
+        private static string? GetTableDisplayName(this Type entity, bool isQuotedDb)
+        {
+            Type tableDisplayAttr = typeof(TableDisplayName);
+            if(entity.GetCustomAttributes(true).FirstOrDefault(x => x.GetType() == tableDisplayAttr) is TableDisplayName displayName)
+            {
+                object? tableName = tableDisplayAttr.GetProperty("TableName")?.GetValue(displayName, null);
+                return tableName?.ToString().UseNameQuotes(isQuotedDb);
+            }
+            return entity.Name.UseNameQuotes(isQuotedDb);
         }
 
         internal static string GetDatabaseSchema()

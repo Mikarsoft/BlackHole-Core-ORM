@@ -1242,15 +1242,17 @@ namespace BlackHole.DataProviders
         {
             object? value = default(G);
 
-            switch (_idType)
+            if(typeof(G) == typeof(Guid))
             {
-                case BlackHoleIdTypes.GuidId:
-                    value = Guid.NewGuid();
-                    break;
-                case BlackHoleIdTypes.StringId:
-                    string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
-                    value = ToHash.GenerateSHA1();
-                    break;
+                value = Guid.NewGuid();
+                return (G?)value;
+            }
+
+            if (typeof(G) == typeof(string))
+            {
+                string ToHash = Guid.NewGuid().ToString() + DateTime.Now.ToString();
+                value = ToHash.GenerateSHA1();
+                return (G?)value;
             }
 
             return (G?)value;

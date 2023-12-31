@@ -3,16 +3,14 @@
     /// <summary>
     /// Identifier for Black Hole Entities.
     /// </summary>
-    public abstract class BHEntityIdentifier
+    internal interface BHEntityIdentifier
     {
-        internal BHEntityIdentifier() { }
     }
 
     /// <summary>
     /// Identifier for BlackHole DTOs
     /// </summary>
-    public abstract class BHDtoIdentifier
+    public interface BHDtoIdentifier
     {
-        internal BHDtoIdentifier() { }
     }
 }

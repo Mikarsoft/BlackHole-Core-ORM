@@ -22,8 +22,8 @@ namespace BlackHole.Core
         public BHDataProvider()
         {
             Type EntityType = typeof(T);
-            _context = EntityType.GetEntityContext();
-            _dataProvider = typeof(G).GetDataProvider(EntityType.Name);
+            _context = EntityType.GetEntityContext<G>();
+            _dataProvider = _context.ConnectionIndex.GetDataProvider();
         }
 
         #endregion
@@ -41,20 +41,9 @@ namespace BlackHole.Core
                         return false;
                     }
                 }
-
                 return true;
             }
-
             return false;
-        }
-
-        private string MyShit(string? propName)
-        {
-            if (_context.IsQuotedDb)
-            {
-                return $@"""{propName}""";
-            }
-            return propName ?? string.Empty;
         }
 
         private string CompareDtoToEntity(Type dto)
@@ -62,10 +51,10 @@ namespace BlackHole.Core
             StringBuilder PNsb = new();
             foreach (PropertyInfo property in dto.GetProperties())
             {
-                if (Columns.Contains(property.Name)
+                if (_context.Columns.Contains(property.Name)
                     && typeof(T).GetProperty(property.Name)?.PropertyType == property.PropertyType)
                 {
-                    PNsb.Append($",{MyShit(property.Name)}");
+                    PNsb.Append($",{property.Name.UseNameQuotes(_context.IsQuotedDb)}");
                 }
             }
             PNsb.Append(' ');
@@ -77,10 +66,10 @@ namespace BlackHole.Core
             StringBuilder PNsb = new();
             foreach (PropertyInfo property in dto.GetProperties())
             {
-                if (property.Name != "Id" && Columns.Contains(property.Name)
+                if (property.Name != "Id" && _context.Columns.Contains(property.Name)
                     && typeof(T).GetProperty(property.Name)?.PropertyType == property.PropertyType)
                 {
-                    PNsb.Append($",{MyShit(property.Name)}=@{property.Name}");
+                    PNsb.Append($",{property.Name.UseNameQuotes(_context.IsQuotedDb)} = @{property.Name}");
                 }
             }
             PNsb.Append(' ');
@@ -93,11 +82,11 @@ namespace BlackHole.Core
         #region Helper Methods
         private bool UpdateMany(List<T> entries, string updateCommand)
         {
-            BlackHoleTransaction bhTransaction = new();
+            BHTransaction bhTransaction = new();
 
             foreach (T entry in entries)
             {
-                _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction);
+                _dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction.transaction, _context.ConnectionIndex);
             }
 
             bool result = bhTransaction.Commit();
@@ -108,22 +97,22 @@ namespace BlackHole.Core
 
         private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<G>($"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}", sql.Parameters);
+                return _dataProvider.QueryFirst<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return _dataProvider.QueryFirst<G>($"select {ThisId} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return _dataProvider.QueryFirst<G>($"select {_context.ThisId} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<G>($"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}", sql.Parameters);
+                return _dataProvider.Query<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return _dataProvider.Query<G>($"select {ThisId} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return _dataProvider.Query<G>($"select {_context.ThisId} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
@@ -134,7 +123,7 @@ namespace BlackHole.Core
 
             foreach (T entry in entries)
             {
-                if (!_dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction))
+                if (!_dataProvider.ExecuteEntry(updateCommand, entry, bhTransaction, _context.ConnectionIndex))
                 {
                     result = false;
                 }
@@ -145,22 +134,26 @@ namespace BlackHole.Core
 
         private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<G>($"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<G>($"select {ThisId} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<G>($"select {_context.ThisId} from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<G>($"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.Query<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<G>($"select {ThisId} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<G>($"select {_context.ThisId} from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
         #endregion
 
@@ -168,41 +161,41 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.Any()
         {
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {oneRow[1]}", null) != null;
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {oneRow[1]}", null) != null;
             }
-            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null) != null;
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where 1 = 1 {oneRow[1]}", null) != null;
         }
 
         bool IBHDataProvider<T, G>.Any(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
             }
-            return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
         }
 
         int IBHDataProvider<T, G>.Count()
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0", null);
+                return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0", null);
             }
-            return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable}", null);
+            return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable}", null);
         }
 
         int IBHDataProvider<T, G>.CountWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         G? IBHDataProvider<T, G>.GetIdWhere(Expression<Func<T, bool>> predicate)
@@ -220,41 +213,49 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.Any(BHTransaction bhTransaction)
         {
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {oneRow[1]}", null, bhTransaction.transaction) != null;
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {oneRow[1]}",
+                    null, bhTransaction.transaction, _context.ConnectionIndex) != null;
             }
-            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null, bhTransaction.transaction) != null;
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where 1 = 1 {oneRow[1]}",
+                null, bhTransaction.transaction, _context.ConnectionIndex) != null;
         }
 
         bool IBHDataProvider<T, G>.Any(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction) != null;
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex) != null;
             }
-            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction) != null;
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex) != null;
         }
 
         int IBHDataProvider<T, G>.Count(BHTransaction bhTransaction)
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable}", null, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable}",
+                null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         int IBHDataProvider<T, G>.CountWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<int>($"select count({ThisId}) from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         G? IBHDataProvider<T, G>.GetIdWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
@@ -271,27 +272,27 @@ namespace BlackHole.Core
         #region Select Methods
         List<T> IBHDataProvider<T, G>.GetAllEntries()
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0", null);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null);
+            return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable}", null);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>() where Dto : class
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0", null);
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0", null);
             }
-            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable}", null);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable}", null);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllInactiveEntries()
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1", null);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 1", null);
             }
             return new List<T>();
         }
@@ -300,91 +301,96 @@ namespace BlackHole.Core
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters);
+                return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0", Params.Parameters);
             }
-            return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id", Params.Parameters);
+            return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id", Params.Parameters);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryById<Dto>(G Id) where Dto : class
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters);
+                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0", Params.Parameters);
             }
-            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id", Params.Parameters);
+            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisId} = @Id", Params.Parameters);
         }
 
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null , 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null , 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters);
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters);
             }
-            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters);
+                return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters);
             }
-            return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
+            return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         List<T> IBHDataProvider<T, G>.GetAllEntries(BHTransaction bhTransaction)
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0", null,
+                    bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null, bhTransaction.transaction);
+            return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable}", null,
+                bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(BHTransaction bhTransaction) where Dto : class
         { 
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0", null,
+                    bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable}", null, bhTransaction.transaction);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable}", null,
+                bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllInactiveEntries(BHTransaction bhTransaction)
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1", null, bhTransaction.transaction);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 1", null,
+                    bhTransaction.transaction, _context.ConnectionIndex);
             }
             return new List<T>();
         }
@@ -393,64 +399,76 @@ namespace BlackHole.Core
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id",
+                Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryById<Dto>(G Id, BHTransaction bhTransaction) where Dto : class
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisId} = @Id",
+                Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<T>($"select {oneRow[0]} {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         // ORDER BY
@@ -459,31 +477,31 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
+            return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
             }
-            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllInactiveEntries(Action<BHOrderBy<T>> orderBy)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1 {orderClass.OrderByToSql(IsMyShit)}", null);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 1 {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
             }
             return new List<T>();
         }
@@ -493,12 +511,12 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+                return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
             }
-            return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : class
@@ -506,36 +524,36 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
             }
-            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
             }
-            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
         }
 
         // ORDER BY WITH TRANSACTION
@@ -544,31 +562,36 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+                return _dataProvider.Query<Dto>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return _dataProvider.Query<Dto>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         List<T> IBHDataProvider<T, G>.GetAllInactiveEntries(Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
             return new List<T>();
         }
@@ -578,12 +601,14 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
@@ -591,36 +616,42 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction bhTransaction) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
         #endregion
 
@@ -628,16 +659,18 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.InsertEntry(T entry)
         {
-            G? id = _dataProvider.InsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry);
+            G? id = _dataProvider.InsertScalar<T, G>($"insert into {_context.ThisTable} ({_context.PropertyNames},{_context.ThisInactive}",
+                $"values ({_context.PropertyParams}, 0", entry, _context.UseIdGenerator, _context.ReturningId);
             return entry.SetId(id);
         }
 
         bool IBHDataProvider<T, G>.InsertEntries(List<T> entries)
         {
             List<G?> Ids = new();
-            using(BlackHoleTransaction bhTransaction = new())
+            using(BHTransaction bhTransaction = new())
             {
-                Ids = _dataProvider.MultiInsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction);
+                Ids = _dataProvider.MultiInsertScalar<T, G>($"insert into {_context.ThisTable} ({_context.PropertyNames},{_context.ThisInactive}",
+                    $"values ({_context.PropertyParams}, 0", entries, bhTransaction.transaction, _context.UseIdGenerator, _context.ReturningId, _context.ConnectionIndex);
             }
             return SetIds(entries, Ids);
         }
@@ -646,13 +679,15 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.InsertEntry(T entry, BHTransaction bhTransaction)
         {
-            G? id = _dataProvider.InsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames}, {ThisInactive}", $"values ({PropertyParams}, 0", entry, bhTransaction.transaction);
+            G? id = _dataProvider.InsertScalar<T, G>($"insert into {_context.ThisTable} ({_context.PropertyNames}, {_context.ThisInactive}",
+                $"values ({_context.PropertyParams}, 0", entry, bhTransaction.transaction, _context.UseIdGenerator, _context.ReturningId, _context.ConnectionIndex);
             return entry.SetId(id);
         }
 
         bool IBHDataProvider<T, G>.InsertEntries(List<T> entries, BHTransaction bhTransaction)
         {
-            List<G?> Ids = _dataProvider.MultiInsertScalar<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction.transaction);
+            List<G?> Ids = _dataProvider.MultiInsertScalar<T, G>($"insert into {_context.ThisTable} ({_context.PropertyNames},{_context.ThisInactive}",
+                $"values ({_context.PropertyParams}, 0", entries, bhTransaction.transaction, _context.UseIdGenerator, _context.ReturningId, _context.ConnectionIndex);
             return SetIds(entries, Ids);
         }
         #endregion
@@ -660,88 +695,94 @@ namespace BlackHole.Core
         #region Update Methods
         bool IBHDataProvider<T, G>.UpdateEntryById(T entry)
         {
-            return _dataProvider.ExecuteEntry($"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", entry);
+            return _dataProvider.ExecuteEntry($"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisId} = @Id", entry);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry) where Columns : class
         {
-            return _dataProvider.ExecuteEntry($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id", entry);
+            return _dataProvider.ExecuteEntry($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisId} = @Id", entry);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries)
         {
-            return UpdateMany(entries, $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id");
+            return UpdateMany(entries, $"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisId} = @Id");
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries) where Columns : class
         {
-            return UpdateMany(entries, $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id");
+            return UpdateMany(entries, $"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisId}=@Id");
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return _dataProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters);
+            return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.UpdateParams} where {sql.Columns}", sql.Parameters);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return _dataProvider.JustExecute($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}", sql.Parameters);
+            return _dataProvider.JustExecute($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         bool IBHDataProvider<T, G>.UpdateEntryById(T entry, BHTransaction bhTransaction)
         {
-            return _dataProvider.ExecuteEntry($"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", entry, bhTransaction.transaction);
+            return _dataProvider.ExecuteEntry($"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisId} = @Id",
+                entry, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntryById<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
         {
-            return _dataProvider.ExecuteEntry($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id", entry, bhTransaction.transaction);
+            return _dataProvider.ExecuteEntry($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisId} = @Id",
+                entry, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById(List<T> entries, BHTransaction bhTransaction)
         {
-            return UpdateMany(entries, $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", bhTransaction.transaction);
+            return UpdateMany(entries, $"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisId} = @Id", bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesById<Columns>(List<T> entries, BHTransaction bhTransaction) where Columns : class
         {
-            return UpdateMany(entries, $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId}=@Id", bhTransaction.transaction);
+            return UpdateMany(entries, $"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisId} = @Id", bhTransaction.transaction);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.JustExecute($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.UpdateParams} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.JustExecute($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
         #endregion
 
@@ -749,55 +790,56 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteAllEntries()
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0", null);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {_context.ThisInactive} = 0", null);
             }
-            return _dataProvider.JustExecute($"delete from {ThisTable}", null);
+            return _dataProvider.JustExecute($"delete from {_context.ThisTable}", null);
         }
 
         bool IBHDataProvider<T, G>.DeleteAllEntries(BHTransaction bhTransaction)
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0", null, bhTransaction.transaction);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {_context.ThisInactive} = 0",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.JustExecute($"delete from {ThisTable}", null, bhTransaction.transaction);
+            return _dataProvider.JustExecute($"delete from {_context.ThisTable}", null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         bool IBHDataProvider<T, G>.DeleteEntryById(G Id)
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"Update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id", Params.Parameters);
+                return _dataProvider.JustExecute($"Update {_context.ThisTable} set {_context.ThisInactive} = 1 where {_context.ThisId} = @Id", Params.Parameters);
             }
-            return _dataProvider.JustExecute($"delete from {ThisTable} where {ThisId} = @Id", Params.Parameters);
+            return _dataProvider.JustExecute($"delete from {_context.ThisTable} where {_context.ThisId} = @Id", Params.Parameters);
         }
 
         bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id)
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            return _dataProvider.JustExecute($"delete from {ThisTable} where {ThisId}= @Id and {ThisInactive} = 1", Params.Parameters);
+            return _dataProvider.JustExecute($"delete from {_context.ThisTable} where {_context.ThisId}= @Id and {_context.ThisInactive} = 1", Params.Parameters);
         }
 
         bool IBHDataProvider<T, G>.ReactivateEntryById(G Id)
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters);
+            return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 0 where {_context.ThisId} = @Id and {_context.ThisInactive} = 1", Params.Parameters);
         }
 
         bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}", sql.Parameters);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {sql.Columns}", sql.Parameters);
             }
-            return _dataProvider.JustExecute($"delete from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return _dataProvider.JustExecute($"delete from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
@@ -806,35 +848,49 @@ namespace BlackHole.Core
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {_context.ThisId} = @Id",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.JustExecute($"delete from {ThisTable} where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute($"delete from {_context.ThisTable} where {_context.ThisId} = @Id",
+                Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         bool IBHDataProvider<T, G>.DeleteInactiveEntryById(G Id, BHTransaction bhTransaction)
         {
-            BHParameters Params = new();
-            Params.Add("Id", Id);
-            return _dataProvider.JustExecute($"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters, bhTransaction.transaction);
+            if (_context.WithActivator)
+            {
+                BHParameters Params = new();
+                Params.Add("Id", Id);
+                return _dataProvider.JustExecute($"delete from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 1",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
+            }
+            return false;
         }
 
         bool IBHDataProvider<T, G>.ReactivateEntryById(G Id, BHTransaction bhTransaction)
         {
-            BHParameters Params = new();
-            Params.Add("Id", Id);
-            return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters, bhTransaction.transaction);
+            if (_context.WithActivator)
+            {
+                BHParameters Params = new();
+                Params.Add("Id", Id);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 0 where {_context.ThisId} = @Id and {_context.ThisInactive} = 1",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
+            }
+            return false;
         }
 
         bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return _dataProvider.JustExecute($"update {ThisTable} set {ThisInactive}=1 where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return _dataProvider.JustExecute($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return _dataProvider.JustExecute($"delete from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
         #endregion
 
@@ -843,11 +899,11 @@ namespace BlackHole.Core
         #region Helper Methods Async
         private async Task<bool> UpdateManyAsync(List<T> entries, string updateCommand)
         {
-            BlackHoleTransaction bhTransaction = new();
+            BHTransaction bhTransaction = new();
 
             foreach (T entry in entries)
             {
-                await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction);
+                await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction.transaction, _context.ConnectionIndex);
             }
 
             bool result = bhTransaction.Commit();
@@ -861,7 +917,7 @@ namespace BlackHole.Core
             bool result = true;
             foreach (T entry in entries)
             {
-                if (!await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction))
+                if (!await _dataProvider.ExecuteEntryAsync(updateCommand, entry, bhTransaction, _context.ConnectionIndex))
                 {
                     result = false;
                 }
@@ -871,43 +927,47 @@ namespace BlackHole.Core
 
         private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<G>($"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}", sql.Parameters);
+                return await _dataProvider.QueryAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.QueryAsync<G>($"select {ThisId} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.QueryAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
         private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<G>($"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}", sql.Parameters);
+                return await _dataProvider.QueryFirstAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.QueryFirstAsync<G>($"select {ThisId} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.QueryFirstAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<G>($"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<G>($"select {ThisId} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<G>($"select {ThisId} from {ThisTable} where {ThisInactive}=0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<G>($"select {ThisId} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
         #endregion
 
@@ -915,41 +975,41 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.AnyAsync()
         {
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {oneRow[1]}", null) != null;
+                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {oneRow[1]}", null) != null;
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null) != null;
+            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where 1 = 1 {oneRow[1]}", null) != null;
         }
 
         async Task<bool> IBHDataProvider<T, G>.AnyAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
+                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]} {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]} {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
+            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]} {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters) != null;
         }
 
         async Task<int> IBHDataProvider<T, G>.CountAsync()
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0", null);
+                return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0", null);
             }
-            return await _dataProvider.QueryFirstAsync<int>($"select count({ThisId}) from {ThisTable}", null);
+            return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable}", null);
         }
 
         async Task<int> IBHDataProvider<T, G>.CountWhereAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.QueryFirstAsync<int>($"select count({ThisId}) from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<G?> IBHDataProvider<T, G>.GetIdAsyncWhere(Expression<Func<T, bool>> predicate)
@@ -967,41 +1027,49 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.AnyAsync(BHTransaction bhTransaction)
         {
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {oneRow[1]}", null, bhTransaction.transaction) != null;
+                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {oneRow[1]}",
+                    null, bhTransaction.transaction, _context.ConnectionIndex) != null;
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where 1=1 {oneRow[1]}", null, bhTransaction.transaction) != null;
+            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where 1 = 1 {oneRow[1]}",
+                null, bhTransaction.transaction, _context.ConnectionIndex) != null;
         }
 
         async Task<bool> IBHDataProvider<T, G>.AnyAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction) != null;
+                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex) != null;
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction) != null;
+            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex) != null;
         }
 
         async Task<int> IBHDataProvider<T, G>.CountAsync(BHTransaction bhTransaction)
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<int>($"select count({ThisId}) from {ThisTable}", null, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable}",
+                null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<int> IBHDataProvider<T, G>.CountWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<int>($"select count({ThisId}) from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<int>($"select count({ThisId}) from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<G?> IBHDataProvider<T, G>.GetIdAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
@@ -1019,27 +1087,27 @@ namespace BlackHole.Core
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync()
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0", null);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null);
+            return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable}", null);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>() where Dto : class
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0", null);
+                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0", null);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable}", null);
+            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable}", null);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync()
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1", null);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 1", null);
             }
             return new List<T>();
         }
@@ -1048,102 +1116,109 @@ namespace BlackHole.Core
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters);
+                return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0", Params.Parameters);
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id", Params.Parameters);
+            return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id", Params.Parameters);
         }
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisId} = @Id", Params.Parameters,bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id",
+                Params.Parameters,bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryByIdAsync<Dto>(G Id) where Dto : class
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters);
+                return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0", Params.Parameters);
             }
-            return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id", Params.Parameters);
+            return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisId} = @Id", Params.Parameters);
         }
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters);
+                return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters);
             }
-            return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
+            return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllEntriesAsync(BHTransaction bhTransaction)
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable}", null, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable}",
+                null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(BHTransaction bhTransaction) where Dto : class
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0", null, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable}", null, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable}",
+                null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync(BHTransaction bhTransaction)
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1", null, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 1",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
             return new List<T>();
         }
@@ -1152,53 +1227,63 @@ namespace BlackHole.Core
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 0", Params.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisId} = @Id",
+                Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<T>($"select {oneRow[0]}{_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             string[] oneRow = 1.GetLimiter();
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{oneRow[1]}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{oneRow[1]}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<Dto>($"select {oneRow[0]}{CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{oneRow[1]}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         // WITH ORDER BY
@@ -1207,31 +1292,31 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
+            return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null);
+                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null);
+            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync(Action<BHOrderBy<T>> orderBy)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 1 {orderClass.OrderByToSql(IsMyShit)}", null);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 1 {orderClass.OrderByToSql(_context.IsQuotedDb)}", null);
             }
             return new List<T>();
         }
@@ -1241,12 +1326,12 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+                return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
         }
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : class
@@ -1254,12 +1339,12 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+                return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
             }
-            return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy)
@@ -1267,24 +1352,24 @@ namespace BlackHole.Core
 
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters);
+            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
         }
 
         // WITH ORDER BY AND TRANSACTION
@@ -1293,31 +1378,36 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<Dto>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {ThisId},{PropertyNames} from {ThisTable} {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<Dto>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetAllInactiveEntriesAsync(Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction)
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 {orderClass.OrderByToSql(IsMyShit)}", null, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 {orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
             return new List<T>();
         }
@@ -1327,12 +1417,14 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction) where Dto : class
@@ -1340,37 +1432,42 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction bhTransaction)
         {
-
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<T>($"select {ThisId},{PropertyNames} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction bhTransaction) where Dto : class
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {ThisTable} where {sql.Columns}{orderClass.OrderByToSql(IsMyShit)}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
         #endregion
 
@@ -1378,30 +1475,35 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.InsertEntryAsync(T entry)
         {
-            G? Id  = await _dataProvider.InsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry);
+            G? Id  = await _dataProvider.InsertScalarAsync<T, G>($"insert into {_context.ThisTable} ({_context.PropertyNames},{_context.ThisInactive}",
+                $"values ({_context.PropertyParams}, 0", entry, _context.UseIdGenerator, _context.ReturningId);
             return entry.SetId(Id);
         }
 
         async Task<bool> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries)
         {
             List<G?> Ids = new();
-            using(BlackHoleTransaction bhTransaction = new())
+            using(BHTransaction bhTransaction = new())
             {
-                Ids = await _dataProvider.MultiInsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction);
+                Ids = await _dataProvider.MultiInsertScalarAsync<T, G>($"insert into {_context.ThisTable} ({_context.PropertyNames},{_context.ThisInactive}",
+                    $"values ({_context.PropertyParams}, 0", entries, bhTransaction.transaction, _context.UseIdGenerator, _context.ReturningId, _context.ConnectionIndex);
             }
             return SetIds(entries, Ids);
         }
+
         // WITH TRANSACTION
 
         async Task<bool> IBHDataProvider<T, G>.InsertEntryAsync(T entry, BHTransaction bhTransaction)
         {
-            G? Id = await _dataProvider.InsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entry, bhTransaction.transaction);
+            G? Id = await _dataProvider.InsertScalarAsync<T, G>($"insert into {_context.ThisTable} ({_context.PropertyNames},{_context.ThisInactive}",
+                $"values ({_context.PropertyParams}, 0", entry, bhTransaction.transaction, _context.UseIdGenerator, _context.ReturningId, _context.ConnectionIndex);
             return entry.SetId(Id);
         }
 
         async Task<bool> IBHDataProvider<T, G>.InsertEntriesAsync(List<T> entries, BHTransaction bhTransaction)
         {
-            List<G?> Ids = await _dataProvider.MultiInsertScalarAsync<T, G>($"insert into {ThisTable} ({PropertyNames},{ThisInactive}", $"values ({PropertyParams}, 0", entries, bhTransaction.transaction);
+            List<G?> Ids = await _dataProvider.MultiInsertScalarAsync<T, G>($"insert into {_context.ThisTable} ({_context.PropertyNames},{_context.ThisInactive}",
+                $"values ({_context.PropertyParams}, 0", entries, bhTransaction.transaction, _context.UseIdGenerator, _context.ReturningId, _context.ConnectionIndex);
             return SetIds(entries, Ids);
         }
         #endregion
@@ -1410,180 +1512,209 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync(T entry)
         {
-            return await _dataProvider.ExecuteEntryAsync($"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", entry);
+            return await _dataProvider.ExecuteEntryAsync($"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisId} = @Id", entry);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync<Columns>(T entry) where Columns : class
         {
-            return await _dataProvider.ExecuteEntryAsync($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id", entry);
+            return await _dataProvider.ExecuteEntryAsync($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisId} = @Id", entry);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync(List<T> entries)
         {
-            return await UpdateManyAsync(entries, $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id");
+            return await UpdateManyAsync(entries, $"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisId} = @Id");
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync<Columns>(List<T> entries) where Columns : class
         {
-            return await UpdateManyAsync(entries, $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id");
+            return await UpdateManyAsync(entries, $"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisId} = @Id");
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.UpdateParams} where {sql.Columns}", sql.Parameters);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync(T entry, BHTransaction bhTransaction)
         {
-            return await _dataProvider.ExecuteEntryAsync($"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", entry, bhTransaction.transaction);
+            return await _dataProvider.ExecuteEntryAsync($"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisId} = @Id",
+                entry, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntryByIdAsync<Columns>(T entry, BHTransaction bhTransaction) where Columns : class
         {
-            return await _dataProvider.ExecuteEntryAsync($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id", entry, bhTransaction.transaction);
+            return await _dataProvider.ExecuteEntryAsync($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisId} = @Id",
+                entry, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync(List<T> entries, BHTransaction bhTransaction)
         {
-            return await UpdateManyAsync(entries, $"update {ThisTable} set {UpdateParams} where {ThisId} = @Id", bhTransaction.transaction);
+            return await UpdateManyAsync(entries, $"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisId} = @Id", bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesByIdAsync<Columns>(List<T> entries, BHTransaction bhTransaction) where Columns : class
         {
-            return await UpdateManyAsync(entries, $"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisId} = @Id", bhTransaction.transaction);
+            return await UpdateManyAsync(entries, $"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisId} = @Id", bhTransaction.transaction);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {UpdateParams} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.UpdateParams} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {UpdateParams} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.UpdateParams} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction bhTransaction) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
             sql.AdditionalParameters(entry);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {ThisInactive} = 0 and {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {_context.ThisInactive} = 0 and {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {CompareColumnsToEntity(typeof(Columns))} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
         #endregion
 
         #region Delete Methods Async
         async Task<bool> IBHDataProvider<T, G>.DeleteAllEntriesAsync()
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0", null);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {_context.ThisInactive} = 0", null);
             }
-            return await _dataProvider.JustExecuteAsync($"delete from {ThisTable}", null);
+            return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable}", null);
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntryByIdAsync(G Id)
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id", Params.Parameters);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {_context.ThisId} = @Id", Params.Parameters);
             }
-            return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {ThisId} = @Id", Params.Parameters);
+            return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable} where {_context.ThisId} = @Id", Params.Parameters);
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id)
         {
-            BHParameters Params = new();
-            Params.Add("Id", Id);
-            return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters);
+            if (_context.WithActivator)
+            {
+                BHParameters Params = new();
+                Params.Add("Id", Id);
+                return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 1", Params.Parameters);
+            }
+            return false;
         }
 
         async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id)
         {
-            BHParameters Params = new();
-            Params.Add("Id", Id);
-            return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters);
+            if (_context.WithActivator)
+            {
+                BHParameters Params = new();
+                Params.Add("Id", Id);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 0 where {_context.ThisId} = @Id and {_context.ThisInactive} = 1", Params.Parameters);
+            }
+            return false;
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}", sql.Parameters);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {sql.Columns}", sql.Parameters);
             }
-            return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {sql.Columns}", sql.Parameters);
+            return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable} where {sql.Columns}", sql.Parameters);
         }
 
         // WITH TRANSACTION
 
         async Task<bool> IBHDataProvider<T, G>.DeleteAllEntriesAsync(BHTransaction bhTransaction)
         {
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 1 where {ThisInactive} = 0", null, bhTransaction.transaction);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {_context.ThisInactive} = 0",
+                    null, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.JustExecuteAsync($"delete from {ThisTable}", null, bhTransaction.transaction);
+            return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable}", null, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
             BHParameters Params = new();
             Params.Add("Id", Id);
-            if (WithActivator)
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 1 where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {_context.ThisId} = @Id",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {ThisId} = @Id", Params.Parameters, bhTransaction.transaction);
+            return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable} where {_context.ThisId} = @Id",
+                Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteInactiveEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            BHParameters Params = new();
-            Params.Add("Id", Id);
-            return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters, bhTransaction.transaction);
+            if (_context.WithActivator)
+            {
+                BHParameters Params = new();
+                Params.Add("Id", Id);
+                return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 1",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
+            }
+            return false;
         }
 
         async Task<bool> IBHDataProvider<T, G>.ReactivateEntryByIdAsync(G Id, BHTransaction bhTransaction)
         {
-            BHParameters Params = new();
-            Params.Add("Id", Id);
-            return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 0 where {ThisId} = @Id and {ThisInactive} = 1", Params.Parameters, bhTransaction.transaction);
+            if (_context.WithActivator)
+            {
+                BHParameters Params = new();
+                Params.Add("Id", Id);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 0 where {_context.ThisId} = @Id and {_context.ThisInactive} = 1",
+                    Params.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
+            }
+            return false;
         }
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction bhTransaction)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(IsMyShit, string.Empty, null, 0);
-            if (WithActivator)
+            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0);
+            if (_context.WithActivator)
             {
-                return await _dataProvider.JustExecuteAsync($"update {ThisTable} set {ThisInactive} = 1 where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+                return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {sql.Columns}",
+                    sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
             }
-            return await _dataProvider.JustExecuteAsync($"delete from {ThisTable} where {sql.Columns}", sql.Parameters, bhTransaction.transaction);
+            return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable} where {sql.Columns}",
+                sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
         #endregion
     }

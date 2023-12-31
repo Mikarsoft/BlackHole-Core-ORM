@@ -42,9 +42,11 @@ namespace BlackHole.Core
                 _settings = new(true);
             }
 
+            _settings.MapEntitySettings();
+            _executionProvider = _settings.ConnectionIndex.GetDataProvider();
+
             Type EntityType = typeof(T);
 
-            _executionProvider = BlackHoleEngine.GetDataProvider();
             IsMyShit = _executionProvider.SkipQuotes();
             ThisSchema = BlackHoleEngine.GetDatabaseSchema();
             ThisTable = $"{ThisSchema}{MyShit(EntityType.Name)}";

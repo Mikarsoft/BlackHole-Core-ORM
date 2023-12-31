@@ -1,6 +1,7 @@
 ﻿using BlackHole.Enums;
 using System.Data;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace BlackHole.Engine
@@ -49,6 +50,7 @@ namespace BlackHole.Engine
         internal BlackHoleSqlTypes DatabaseType { get; set; }
         internal bool IsQuotedDb { get; set; }
         internal List<string> Columns { get; set; } = new();
+        internal bool UseIdGenerator { get; set; }
         internal bool WithActivator { get; set; }
         internal string ThisTable { get; set; } = string.Empty;
         internal string PropertyNames { get; set; } = string.Empty;
@@ -58,6 +60,7 @@ namespace BlackHole.Engine
         internal string ThisInactive { get; set; } = string.Empty;
         internal string ThisSchema { get; set; } = string.Empty;
         internal string ReturningId {  get; set; } = string.Empty;
+        internal PropertyInfo[] Tprops { get; set; } = new PropertyInfo[0];
     }
 
     internal class SqlFunctionResult
