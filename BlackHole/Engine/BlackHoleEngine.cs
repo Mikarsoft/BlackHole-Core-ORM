@@ -87,7 +87,6 @@ namespace BlackHole.Engine
                     if (entityInfoIndex > -1)
                     {
                         entityConfig = WormHoleData.EntityInfos[entityInfoIndex];
-                        entityConfig.MainDb = 0;
                         entityConfig.DBTIndex = 0;
                     }
                     else
@@ -96,7 +95,6 @@ namespace BlackHole.Engine
                         {
                             DBTIndex = 0,
                             SchemaIndex = 0,
-                            MainDb = 0,
                         };
                     }
                     return entityConfig;
@@ -104,15 +102,14 @@ namespace BlackHole.Engine
                 case BHMode.HighAvailability:
 
                     int IndexOfMainDb = Array.IndexOf(WormHoleData.DatabaseRoles, dbRole);
-                    entityHash = $"{entityType.Name}_{entityType.Namespace}_{entityType.Assembly.FullName}".GenerateSHA1();
-                    entityCode = Encoding.ASCII.GetBytes(entityHash);
-                    entityInfoIndex = Array.IndexOf(WormHoleData.EntitiesCodes, entityCode);
 
-                    if (entityInfoIndex > -1 && IndexOfMainDb > -1)
+                    if (IndexOfMainDb > -1)
                     {
-                        entityConfig = WormHoleData.EntityInfos[entityInfoIndex];
-                        entityConfig.MainDb = IndexOfMainDb;
-                        entityConfig.DBTIndex = IndexOfMainDb;
+                        entityConfig = new EntityInfo
+                        {
+                            DBTIndex = IndexOfMainDb,
+                            SchemaIndex = 0,
+                        };
                     }
                     else
                     {
@@ -120,7 +117,6 @@ namespace BlackHole.Engine
                         {
                             DBTIndex = 0,
                             SchemaIndex = 0,
-                            MainDb = 0,
                         };
                     }
                     return entityConfig;
@@ -134,7 +130,6 @@ namespace BlackHole.Engine
                     if (entityInfoIndex > -1)
                     {
                         entityConfig = WormHoleData.EntityInfos[entityInfoIndex];
-                        entityConfig.MainDb = 0;
                     }
                     else
                     {
@@ -142,7 +137,6 @@ namespace BlackHole.Engine
                         {
                             DBTIndex = 0,
                             SchemaIndex = 0,
-                            MainDb = 0,
                         };
                     }
                     return entityConfig;
@@ -152,7 +146,6 @@ namespace BlackHole.Engine
                     {
                         DBTIndex = 0,
                         SchemaIndex = 0,
-                        MainDb = 0,
                     };
                     return entityConfig;
             }
@@ -167,7 +160,7 @@ namespace BlackHole.Engine
                 ConnectionIndex = entityInfo.DBTIndex,
                 DatabaseType = WormHoleData.DbTypes[entityInfo.DBTIndex],
                 IsQuotedDb = WormHoleData.IsQuotedDb[entityInfo.DBTIndex],
-                ThisSchema = WormHoleData.DbSchemas[entityInfo.MainDb, entityInfo.SchemaIndex]
+                ThisSchema = WormHoleData.DbSchemas[entityInfo.SchemaIndex]
             };
 
             entityContext.MapEntityContext<G>(entityType);
@@ -218,7 +211,7 @@ namespace BlackHole.Engine
             entitySettings.ConnectionIndex = entityInfo.DBTIndex;
             entitySettings.DatabaseType = WormHoleData.DbTypes[entityInfo.DBTIndex];
             entitySettings.IsQuotedDb = WormHoleData.IsQuotedDb[entityInfo.DBTIndex];
-            entitySettings.ThisSchema = WormHoleData.DbSchemas[entityInfo.MainDb, entityInfo.SchemaIndex];
+            entitySettings.ThisSchema = WormHoleData.DbSchemas[entityInfo.SchemaIndex];
 
             entitySettings.MapOpenEntityContext();
         }
@@ -736,8 +729,14 @@ namespace BlackHole.Engine
         {
             parameters ??= new List<BlackHoleParameter>();
 
+            bool HAMode = false;
+
+            if (WormHoleData.BlackHoleMode == BHMode.HighAvailability)
+            {
+                HAMode = true;
+            }
+
             List<ExpressionsData> children = data.Where(x => x.MemberValue != null || x.MethodData.Count > 0).ToList();
-            //string[] translations = new string[children.Count];
 
             foreach (ExpressionsData child in children)
             {
@@ -761,12 +760,20 @@ namespace BlackHole.Engine
                     if(parent.SqlCommand == string.Empty)
                     {
                         parent.SqlCommand = $"{sqlFunctionResult.SqlCommand}";
-                        parent.SqlCommandReverseQuotes = $"{sqlFunctionResult.SqlCommandReverseQuotes}";
+
+                        if (HAMode) 
+                        { 
+                            parent.SqlCommandReverseQuotes = $"{sqlFunctionResult.SqlCommandReverseQuotes}";
+                        }
                     }
                     else
                     {
                         parent.SqlCommand += $" and {sqlFunctionResult.SqlCommand}";
-                        parent.SqlCommandReverseQuotes += $" and {sqlFunctionResult.SqlCommandReverseQuotes}";
+
+                        if (HAMode)
+                        {
+                            parent.SqlCommandReverseQuotes += $" and {sqlFunctionResult.SqlCommandReverseQuotes}";
+                        }
                     }
 
                     parent.LeftChecked = false;
@@ -783,7 +790,12 @@ namespace BlackHole.Engine
                         }
 
                         parent.SqlCommand = $"{childParams.Column}";
-                        parent.SqlCommandReverseQuotes = $"{childParams.ColumnReverseQuotes}";
+
+                        if (HAMode)
+                        {
+                            parent.SqlCommandReverseQuotes = $"{childParams.ColumnReverseQuotes}";
+                        }
+
                         parent.LeftChecked = false;
                         index++;
                     }
@@ -806,7 +818,12 @@ namespace BlackHole.Engine
                         }
 
                         parent.SqlCommand = $"({parent.SqlCommand} {parentCols.Column} {childCols.Column})";
-                        parent.SqlCommandReverseQuotes = $"({parent.SqlCommandReverseQuotes} {parentCols.ColumnReverseQuotes} {childCols.ColumnReverseQuotes})";
+
+                        if (HAMode)
+                        {
+                            parent.SqlCommandReverseQuotes = $"({parent.SqlCommandReverseQuotes} {parentCols.ColumnReverseQuotes} {childCols.ColumnReverseQuotes})";
+                        }
+
                         index++;
                     }
                 }
@@ -826,7 +843,7 @@ namespace BlackHole.Engine
                     if (parent.LeftChecked)
                     {
                         parent.SqlCommand = parents[parentsCount - 1 - i].SqlCommand;
-                        parent.SqlCommandReverseQuotes = parents[parentsCount - 1 - i].SqlCommandReverseQuotes;
+                        if (HAMode) { parent.SqlCommandReverseQuotes = parents[parentsCount - 1 - i].SqlCommandReverseQuotes; }
                         parent.LeftChecked = false;
                     }
                     else
@@ -839,7 +856,12 @@ namespace BlackHole.Engine
                         }
 
                         parent.SqlCommand = $"({parent.SqlCommand} {parentParams.Column} {parents[parentsCount - 1 - i].SqlCommand})";
-                        parent.SqlCommandReverseQuotes = $"({parent.SqlCommandReverseQuotes} {parentParams.ColumnReverseQuotes} {parents[parentsCount - 1 - i].SqlCommandReverseQuotes})";
+
+                        if (HAMode)
+                        {
+                            parent.SqlCommandReverseQuotes = $"({parent.SqlCommandReverseQuotes} {parentParams.ColumnReverseQuotes} {parents[parentsCount - 1 - i].SqlCommandReverseQuotes})";
+                        }
+
                         index++;
                     }
                 }
@@ -980,8 +1002,6 @@ namespace BlackHole.Engine
                         }
                     }
 
-                    string standBySchemaName = string.Empty;
-
                     if (methodType == 1 || methodType == 2)
                     {
                         if (MethodData.MethodArguments.Count == 2 && MethodData.CompareProperty != null)
@@ -1034,10 +1054,10 @@ namespace BlackHole.Engine
                                 result.WasTranslated = true;
                                 return result;
                             case "SqlMin":
-                                selectCommandReverse = $"( Select MIN({compareProperty[1].UseNameQuotes(!isQuotedDb)}) from {schemaName}{MethodData.TableName.UseNameQuotes(!isQuotedDb)} )";
+                                selectCommandReverse = NotHAMode ? string.Empty : $"( Select MIN({compareProperty[1].UseNameQuotes(!isQuotedDb)}) from {schemaName}{MethodData.TableName.UseNameQuotes(!isQuotedDb)} )";
                                 selectCommand = $"( Select MIN({compareProperty[1].UseNameQuotes(isQuotedDb)}) from {schemaName}{MethodData.TableName.UseNameQuotes(isQuotedDb)} )";
                                 result.SqlCommand = $" {letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} = {selectCommand} ";
-                                result.SqlCommandReverseQuotes = $" {letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} = {selectCommandReverse} ";
+                                result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" {letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} = {selectCommandReverse} ";
                                 result.WasTranslated = true;
                                 return result;
                         }
@@ -1063,6 +1083,7 @@ namespace BlackHole.Engine
                                     result.ParamName = $"{compareProperty[1]}{index}";
                                     result.Value = MethodData.ComparedValue;
                                     result.SqlCommand = $" ABS({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)}) {operationType} @{result.ParamName} ";
+                                    result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ABS({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)}) {operationType} @{result.ParamName} ";
                                     result.WasTranslated = true;
                                     return result;
                                 case "SqlRound":
@@ -1070,6 +1091,7 @@ namespace BlackHole.Engine
                                     result.ParamName = $"{compareProperty[1]}{index}";
                                     result.Value = MethodData.ComparedValue;
                                     result.SqlCommand = $" ROUND({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)}{decimalPoints}) {operationType} @{result.ParamName} ";
+                                    result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ROUND({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)}{decimalPoints}) {operationType} @{result.ParamName} ";
                                     result.WasTranslated = true;
                                     return result;
                                 case "SqlPlus":
@@ -1079,12 +1101,14 @@ namespace BlackHole.Engine
                                         result.ParamName = $"{compareProperty[1]}{index}";
                                         result.Value = MethodData.ComparedValue;
                                         result.SqlCommand = $" ({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} + {letter}{thePlusValue.Name.UseNameQuotes(isQuotedDb)}) {operationType} @{result.ParamName} ";
+                                        result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} + {letter}{thePlusValue.Name.UseNameQuotes(!isQuotedDb)}) {operationType} @{result.ParamName} ";
                                     }
                                     else
                                     {
                                         result.ParamName = $"{compareProperty[1]}{index}";
                                         result.Value = MethodData.ComparedValue;
                                         result.SqlCommand = $" ({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} + {MethodData.MethodArguments[1]}) {operationType} @{result.ParamName} ";
+                                        result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} + {MethodData.MethodArguments[1]}) {operationType} @{result.ParamName} ";
                                     }
                                     result.WasTranslated = true;
                                     return result;
@@ -1095,12 +1119,14 @@ namespace BlackHole.Engine
                                         result.ParamName = $"{compareProperty[1]}{index}";
                                         result.Value = MethodData.ComparedValue;
                                         result.SqlCommand = $" ({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} - {letter}{thePlusValue.Name.UseNameQuotes(isQuotedDb)}) {operationType} @{result.ParamName} ";
+                                        result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} - {letter}{thePlusValue.Name.UseNameQuotes(!isQuotedDb)}) {operationType} @{result.ParamName} ";
                                     }
                                     else
                                     {
                                         result.ParamName = $"{compareProperty[1]}{index}";
                                         result.Value = MethodData.ComparedValue;
                                         result.SqlCommand = $" ({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} - {MethodData.MethodArguments[1]}) {operationType} @{result.ParamName} ";
+                                        result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} - {MethodData.MethodArguments[1]}) {operationType} @{result.ParamName} ";
                                     }
                                     result.WasTranslated = true;
                                     return result;
@@ -1118,17 +1144,21 @@ namespace BlackHole.Engine
                                     case "SqlAverage":
                                         operationType = ExpressionTypeToSql(MethodData.OperatorType, MethodData.ReverseOperator, false);
                                         string SelectAverage = $"( Select AVG({compareProperty[1].UseNameQuotes(isQuotedDb)}) from {schemaName}{MethodData.TableName.UseNameQuotes(isQuotedDb)} )";
+                                        string SelectAverageReverse = NotHAMode ? string.Empty : $"( Select AVG({compareProperty[1].UseNameQuotes(!isQuotedDb)}) from {schemaName}{MethodData.TableName.UseNameQuotes(!isQuotedDb)} )";
                                         result.SqlCommand = $" {letter}{otherPropName[1].UseNameQuotes(isQuotedDb)} {operationType} {SelectAverage} ";
+                                        result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" {letter}{otherPropName[1].UseNameQuotes(!isQuotedDb)} {operationType} {SelectAverageReverse} ";
                                         result.WasTranslated = true;
                                         return result;
                                     case "SqlAbsolut":
                                         operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
                                         result.SqlCommand = $" ABS({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)}) {operationType} {letter}{otherPropName[1].UseNameQuotes(isQuotedDb)} ";
+                                        result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ABS({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)}) {operationType} {letter}{otherPropName[1].UseNameQuotes(!isQuotedDb)} ";
                                         result.WasTranslated = true;
                                         return result;
                                     case "SqlRound":
                                         operationType = ExpressionTypeToSql(MethodData.OperatorType, !MethodData.ReverseOperator, false);
                                         result.SqlCommand = $" ROUND({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)}{decimalPoints}) {operationType} {letter}{otherPropName[1].UseNameQuotes(isQuotedDb)} ";
+                                        result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ROUND({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)}{decimalPoints}) {operationType} {letter}{otherPropName[1].UseNameQuotes(!isQuotedDb)} ";
                                         result.WasTranslated = true;
                                         return result;
                                     case "SqlPlus":
@@ -1136,10 +1166,12 @@ namespace BlackHole.Engine
                                         if (thePlusValue != null)
                                         {
                                             result.SqlCommand = $" ({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} + {letter}{thePlusValue.Name.UseNameQuotes(isQuotedDb)}) {operationType} {letter}{otherPropName[1].UseNameQuotes(isQuotedDb)} ";
+                                            result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} + {letter}{thePlusValue.Name.UseNameQuotes(!isQuotedDb)}) {operationType} {letter}{otherPropName[1].UseNameQuotes(!isQuotedDb)} ";
                                         }
                                         else
                                         {
                                             result.SqlCommand = $" ({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} + {MethodData.MethodArguments[1]}) {operationType} {letter}{otherPropName[1].UseNameQuotes(isQuotedDb)} ";
+                                            result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} + {MethodData.MethodArguments[1]}) {operationType} {letter}{otherPropName[1].UseNameQuotes(!isQuotedDb)} ";
                                         }
                                         result.WasTranslated = true;
                                         return result;
@@ -1148,10 +1180,12 @@ namespace BlackHole.Engine
                                         if (thePlusValue != null)
                                         {
                                             result.SqlCommand = $" ({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} - {letter}{thePlusValue.Name.UseNameQuotes(isQuotedDb)}) {operationType} {letter}{otherPropName[1].UseNameQuotes(isQuotedDb)} ";
+                                            result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} - {letter}{thePlusValue.Name.UseNameQuotes(!isQuotedDb)}) {operationType} {letter}{otherPropName[1].UseNameQuotes(!isQuotedDb)} ";
                                         }
                                         else
                                         {
                                             result.SqlCommand = $" ({letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} - {MethodData.MethodArguments[1]}) {operationType} {letter}{otherPropName[1].UseNameQuotes(isQuotedDb)} ";
+                                            result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" ({letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} - {MethodData.MethodArguments[1]}) {operationType} {letter}{otherPropName[1].UseNameQuotes(!isQuotedDb)} ";
                                         }
                                         result.WasTranslated = true;
                                         return result;
@@ -1305,31 +1339,46 @@ namespace BlackHole.Engine
 
         internal static void CreateJoin<Dto, TSource, TOther>(this JoinsData data, LambdaExpression key, LambdaExpression otherKey, string joinType, bool first)
         {
-            if (first)
-            {
-                string? parameterOne = key.Parameters[0].Name;
-
-                data.IsQuotedDb = true;
-                data.BaseTable = typeof(TSource);
-                data.Ignore = false;
-                bool OpenEntity = typeof(TSource).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
-
-                data.TablesToLetters.Add(new TableLetters { Table = typeof(TSource), Letter = parameterOne, IsOpenEntity = OpenEntity });
-                data.Letters.Add(parameterOne);
-                data.BindPropertiesToDtoExtension(typeof(TSource), parameterOne);
-            }
-
+            TableLetters? firstType;
             string? parameter = string.Empty;
 
-            TableLetters? firstType = data.TablesToLetters.Where(x => x.Table == typeof(TSource)).FirstOrDefault();
-
-            if (firstType == null)
+            if (first)
             {
-                data.Ignore = true;
+                if (WormHoleData.BlackHoleMode == BHMode.HighAvailability)
+                {
+                    data.HAMode = true;
+                }
+
+                string? parameterOne = key.Parameters[0].Name;
+
+                data.BaseTable = typeof(TSource);
+                data.Ignore = false;
+
+                bool OpenEntity = typeof(TSource).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
+                EntityInfo basicTableInfo = data.BaseTable.SwitchBlackHoleMode(DatabaseRole.Master);
+
+                data.TablesToLetters.Add(new TableLetters { Table = typeof(TSource),
+                    Schema = WormHoleData.DbSchemas[basicTableInfo.SchemaIndex],
+                    Letter = parameterOne, IsOpenEntity = OpenEntity });
+
+                data.ConnectionIndex = basicTableInfo.DBTIndex;
+                data.IsQuotedDb = WormHoleData.IsQuotedDb[basicTableInfo.DBTIndex];
+                data.Letters.Add(parameterOne);
+                data.BindPropertiesToDtoExtension(typeof(TSource), parameterOne);
+                firstType = data.TablesToLetters[0];
             }
             else
             {
-                parameter = firstType.Letter;
+                firstType = data.TablesToLetters.FirstOrDefault(x => x.Table == typeof(TSource));
+
+                if (firstType == null)
+                {
+                    data.Ignore = true;
+                }
+                else
+                {
+                    parameter = firstType.Letter;
+                }
             }
 
             if (!data.Ignore)
@@ -1341,30 +1390,56 @@ namespace BlackHole.Engine
                 MemberExpression? memberOther = otherKey.Body as MemberExpression;
                 string? propNameOther = memberOther?.Member.Name;
 
-                TableLetters? secondTable = data.TablesToLetters.FirstOrDefault(x => x.Table == typeof(TOther));
+                Type otherTableType = typeof(TOther);
+
+                TableLetters? secondTable = data.TablesToLetters.FirstOrDefault(x => x.Table == otherTableType);
+
+                string schemaName = string.Empty;
+                bool isValidTable = false;
 
                 if (secondTable == null)
                 {
-                    if (data.Letters.Contains(parameterOther))
+                    bool isOpen = otherTableType.BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
+                    EntityInfo otherTableInfo = otherTableType.SwitchBlackHoleMode(DatabaseRole.Master);
+
+                    if(data.ConnectionIndex == otherTableInfo.DBTIndex)
                     {
-                        parameterOther += data.HelperIndex.ToString();
-                        data.HelperIndex++;
+                        isValidTable = true;
+
+                        if (data.Letters.Contains(parameterOther))
+                        {
+                            parameterOther += data.HelperIndex.ToString();
+                            data.HelperIndex++;
+                        }
+
+                        data.TablesToLetters.Add(new TableLetters
+                        {
+                            Table = otherTableType,
+                            Schema = WormHoleData.DbSchemas[otherTableInfo.SchemaIndex],
+                            Letter = parameterOther,
+                            IsOpenEntity = isOpen
+                        });
+
+                        data.Letters.Add(parameterOther);
+                        data.BindPropertiesToDtoExtension(otherTableType, parameterOther);
                     }
-
-                    data.Letters.Add(parameterOther);
-
-                    bool isOpen = typeof(TOther).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
-                    data.TablesToLetters.Add(new TableLetters { Table = typeof(TOther), Letter = parameterOther, IsOpenEntity = isOpen });
                 }
                 else
                 {
                     parameterOther = secondTable.Letter;
+                    schemaName = secondTable.Schema;
+                    isValidTable = true;
                 }
 
-                string schemaName = GetDatabaseSchema();
+                if (isValidTable)
+                {
+                    data.Joins += $" {joinType} join {schemaName}{otherTableType.Name.UseNameQuotes(data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
 
-                data.Joins += $" {joinType} join {schemaName}{typeof(TOther).Name.UseNameQuotes(data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
-                data.BindPropertiesToDtoExtension(typeof(TOther), parameterOther);
+                    if (data.HAMode)
+                    {
+                        data.JoinsReverseQuotes += $" {joinType} join {schemaName}{otherTableType.Name.UseNameQuotes(!data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(!data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(!data.IsQuotedDb)}";
+                    }
+                }
             }
         }
 
@@ -1444,6 +1519,11 @@ namespace BlackHole.Engine
                 string? propNameOther = memberOther?.Member.Name;
 
                 data.Joins += $" {additionalType} {secondLetter}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {firstLetter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
+
+                if (data.HAMode)
+                {
+                    data.JoinsReverseQuotes += $" {additionalType} {secondLetter}.{propNameOther.UseNameQuotes(!data.IsQuotedDb)} = {firstLetter}.{propName.UseNameQuotes(!data.IsQuotedDb)}";
+                }
             }
         }
 
@@ -1451,18 +1531,28 @@ namespace BlackHole.Engine
         {
             if (!data.Ignore)
             {
-                string? letter = data.TablesToLetters.First(x => x.Table == typeof(TSource)).Letter;
-                ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TSource>(data.IsQuotedDb, letter, data.DynamicParams, data.ParamsCount);
+                TableLetters tb = data.TablesToLetters.First(x => x.Table == typeof(TSource));
+                ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TSource>(data.IsQuotedDb, tb.Letter, data.DynamicParams, data.ParamsCount, tb.Schema);
                 data.DynamicParams = colsAndParams.Parameters;
                 data.ParamsCount = colsAndParams.Count;
 
                 if (data.WherePredicates == string.Empty)
                 {
                     data.WherePredicates = $" where {colsAndParams.Columns}";
+
+                    if (data.HAMode)
+                    {
+                        data.WhereReverseQuotes = $" where {colsAndParams.ColumnsReverseQuotes}";
+                    }
                 }
                 else
                 {
                     data.WherePredicates += $" and {colsAndParams.Columns}";
+
+                    if (data.HAMode)
+                    {
+                        data.WhereReverseQuotes += $" and {colsAndParams.ColumnsReverseQuotes}";
+                    }
                 }
             }
         }
@@ -1472,10 +1562,16 @@ namespace BlackHole.Engine
             if (data.DtoType == typeof(Dto))
             {
                 data.RejectInactiveEntities();
-                TableLetters? tL = data.TablesToLetters.FirstOrDefault(x => x.Table == data.BaseTable);
-                string schemaName = GetDatabaseSchema();
-                string commandText = $"{data.BuildCommand()} from {schemaName}{tL?.Table?.Name.UseNameQuotes(data.IsQuotedDb)} {tL?.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
-                return new ColumnsAndParameters { Columns = commandText, Parameters = data.DynamicParams };
+                TableLetters tL = data.TablesToLetters.First(x => x.Table == data.BaseTable);
+                string commandTextReverse = string.Empty;
+                string commandText = $"{data.BuildCommand(false)} from {tL.Schema}{tL.Table?.Name.UseNameQuotes(data.IsQuotedDb)} {tL.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
+
+                if (data.HAMode)
+                {
+                    commandTextReverse = $"{data.BuildCommand(true)} from {tL.Schema}{tL.Table?.Name.UseNameQuotes(!data.IsQuotedDb)} {tL.Letter} {data.JoinsReverseQuotes} {data.WhereReverseQuotes} {data.OrderByReverseQuotes}";
+                }
+
+                return new ColumnsAndParameters { Columns = commandText, ColumnsReverseQuotes = commandTextReverse, Parameters = data.DynamicParams };
             }
             return null;
         }
@@ -1512,6 +1608,8 @@ namespace BlackHole.Engine
             else
             {
                 StringBuilder orderby = new();
+                string orderByReverse = string.Empty;
+
                 string limiter = string.Empty;
                 int counter = 0;
 
@@ -1521,6 +1619,11 @@ namespace BlackHole.Engine
                     {
                         counter++;
                         orderby.Append($", {occupation.TableLetter}.{occupation.TableProperty.UseNameQuotes(data.IsQuotedDb)} {pair.Orientation}");
+
+                        if (data.HAMode)
+                        {
+                            orderByReverse += $", {occupation.TableLetter}.{occupation.TableProperty.UseNameQuotes(!data.IsQuotedDb)} {pair.Orientation}";
+                        }
                     }
                 }
 
@@ -1532,6 +1635,11 @@ namespace BlackHole.Engine
                 if (counter > 0)
                 {
                     data.OrderByOptions = $"order by{orderby.ToString().Remove(0, 1)}{limiter}";
+
+                    if (data.HAMode)
+                    {
+                        data.OrderByReverseQuotes = $"order by{orderByReverse.Remove(0, 1)}{limiter}";
+                    }
                 }
             }
         }
@@ -1575,18 +1683,30 @@ namespace BlackHole.Engine
             data.WherePredicates += command;
         }
 
-        private static string BuildCommand(this JoinsData data)
+        private static string BuildCommand(this JoinsData data, bool reverseQuotes)
         {
             string sqlCommand = "select ";
 
             foreach (PropertyOccupation prop in data.OccupiedDtoProps.Where(x => x.Occupied))
             {
-                sqlCommand += prop.WithCast switch
+                if (reverseQuotes)
                 {
-                    1 => $" {prop.TableLetter}.{prop.TableProperty.UseNameQuotes(data.IsQuotedDb)} as {prop.PropName.UseNameQuotes(data.IsQuotedDb)},",
-                    2 => $" cast({prop.TableLetter}.{prop.TableProperty.UseNameQuotes(data.IsQuotedDb)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.UseNameQuotes(data.IsQuotedDb)},",
-                    _ => $" {prop.TableLetter}.{prop.PropName.UseNameQuotes(data.IsQuotedDb)},",
-                };
+                    sqlCommand += prop.WithCast switch
+                    {
+                        1 => $" {prop.TableLetter}.{prop.TableProperty.UseNameQuotes(!data.IsQuotedDb)} as {prop.PropName.UseNameQuotes(!data.IsQuotedDb)},",
+                        2 => $" cast({prop.TableLetter}.{prop.TableProperty.UseNameQuotes(!data.IsQuotedDb)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.UseNameQuotes(!data.IsQuotedDb)},",
+                        _ => $" {prop.TableLetter}.{prop.PropName.UseNameQuotes(!data.IsQuotedDb)},",
+                    };
+                }
+                else
+                {
+                    sqlCommand += prop.WithCast switch
+                    {
+                        1 => $" {prop.TableLetter}.{prop.TableProperty.UseNameQuotes(data.IsQuotedDb)} as {prop.PropName.UseNameQuotes(data.IsQuotedDb)},",
+                        2 => $" cast({prop.TableLetter}.{prop.TableProperty.UseNameQuotes(data.IsQuotedDb)} as {prop.PropType.SqlTypeFromType()}) as {prop.PropName.UseNameQuotes(data.IsQuotedDb)},",
+                        _ => $" {prop.TableLetter}.{prop.PropName.UseNameQuotes(data.IsQuotedDb)},",
+                    };
+                }
             }
 
             return sqlCommand[..^1];
