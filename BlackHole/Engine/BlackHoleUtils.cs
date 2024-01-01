@@ -71,6 +71,7 @@ namespace BlackHole.Engine
         }
 
         public string SqlCommand { get; set; } = " 1 != 1 ";
+        public string SqlCommandReverseQuotes { get; set; } = "1 != 1";
         internal object? Value { get; set; }
         internal string ParamName { get; set; } = string.Empty;
         internal string Letter { get; set; } = string.Empty;
@@ -94,7 +95,8 @@ namespace BlackHole.Engine
         internal bool RightChecked { get; set; }
         internal bool LeftChecked { get; set; }
         internal int ParentIndex { get; set; }
-        internal string SqlCommand { get; set; } = "";
+        internal string SqlCommand { get; set; } = string.Empty;
+        internal string SqlCommandReverseQuotes { get; set; } = string.Empty;
     }
 
     internal class MethodExpressionData
@@ -117,7 +119,8 @@ namespace BlackHole.Engine
 
     internal class ColumnsAndParameters
     {
-        internal string Columns { get; set; } = "";
+        internal string Columns { get; set; } = string.Empty;
+        internal string ColumnsReverseQuotes { get; set; } = string.Empty;
         internal List<BlackHoleParameter> Parameters { get; set; } = new List<BlackHoleParameter>();
         internal int Count { get; set; }
     }
@@ -125,6 +128,7 @@ namespace BlackHole.Engine
     internal class ColumnAndParameter
     {
         internal string? Column { get; set; }
+        internal string? ColumnReverseQuotes { get; set; }
         internal string? ParamName { get; set; }
         internal object? Value { get; set; }
     }
