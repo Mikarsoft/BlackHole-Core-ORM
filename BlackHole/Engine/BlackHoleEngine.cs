@@ -71,7 +71,7 @@ namespace BlackHole.Engine
 
         internal static EntityInfo SwitchBlackHoleMode(this Type entityType, DatabaseRole dbRole)
         {
-            EntityInfo entityConfig;
+            EntityInfo entityConfig = new();
             int entityInfoIndex;
             byte[] entityCode;
             string entityHash;
@@ -79,76 +79,50 @@ namespace BlackHole.Engine
             switch (WormHoleData.BlackHoleMode)
             {
                 case BHMode.MultiSchema:
-
-                    entityHash = $"{entityType.Name}_{entityType.Namespace}_{entityType.Assembly.FullName}".GenerateSHA1();
-                    entityCode = Encoding.ASCII.GetBytes(entityHash);
-                    entityInfoIndex = Array.IndexOf(WormHoleData.EntitiesCodes, entityCode);
-
-                    if (entityInfoIndex > -1)
-                    {
-                        entityConfig = WormHoleData.EntityInfos[entityInfoIndex];
-                        entityConfig.DBTIndex = 0;
-                    }
-                    else
-                    {
-                        entityConfig = new EntityInfo
-                        {
-                            DBTIndex = 0,
-                            SchemaIndex = 0,
-                        };
-                    }
+                    entityConfig.EntitySchema = entityType.GetEntitySchema();
+                    entityConfig.DBTIndex = 0;
                     return entityConfig;
 
                 case BHMode.HighAvailability:
-
                     int IndexOfMainDb = Array.IndexOf(WormHoleData.DatabaseRoles, dbRole);
-
-                    if (IndexOfMainDb > -1)
-                    {
-                        entityConfig = new EntityInfo
-                        {
-                            DBTIndex = IndexOfMainDb,
-                            SchemaIndex = 0,
-                        };
-                    }
-                    else
-                    {
-                        entityConfig = new EntityInfo
-                        {
-                            DBTIndex = 0,
-                            SchemaIndex = 0,
-                        };
-                    }
+                    entityConfig.EntitySchema = string.Empty;
+                    entityConfig.DBTIndex = IndexOfMainDb > -1? IndexOfMainDb : 0;
                     return entityConfig;
 
                 case BHMode.Multiple:
-
                     entityHash = $"{entityType.Name}_{entityType.Namespace}_{entityType.Assembly.FullName}".GenerateSHA1();
                     entityCode = Encoding.ASCII.GetBytes(entityHash);
                     entityInfoIndex = Array.IndexOf(WormHoleData.EntitiesCodes, entityCode);
-
-                    if (entityInfoIndex > -1)
-                    {
-                        entityConfig = WormHoleData.EntityInfos[entityInfoIndex];
-                    }
-                    else
-                    {
-                        entityConfig = new EntityInfo
-                        {
-                            DBTIndex = 0,
-                            SchemaIndex = 0,
-                        };
-                    }
+                    entityConfig.DBTIndex = entityInfoIndex > -1 ? WormHoleData.EntityTargetDb[entityInfoIndex] : 0;
+                    entityConfig.EntitySchema = entityType.GetEntitySchema();
                     return entityConfig;
 
                 default:
-                    entityConfig = new EntityInfo
-                    {
-                        DBTIndex = 0,
-                        SchemaIndex = 0,
-                    };
+                    entityConfig.EntitySchema = WormHoleData.DefaultSchema;
+                    entityConfig.DBTIndex = 0;
                     return entityConfig;
             }
+        }
+
+        internal static string GetEntitySchema(this Type entityType)
+        {
+            if (WormHoleData.IsSchemaFromNamespace)
+            {
+                if(entityType.Namespace?.Split(".") is string[] NmsParts)
+                {
+                    return NmsParts[NmsParts.Length - 1];
+                }
+            }
+
+            if (WormHoleData.IsSchemaFromAssembly)
+            {
+                if (entityType.Namespace?.Split(".") is string[] AsmParts)
+                {
+                    return AsmParts[AsmParts.Length - 1];
+                }
+            }
+
+            return WormHoleData.DefaultSchema;
         }
 
         internal static EntityContext GetEntityContext<G>(this Type entityType)
@@ -160,7 +134,7 @@ namespace BlackHole.Engine
                 ConnectionIndex = entityInfo.DBTIndex,
                 DatabaseType = WormHoleData.DbTypes[entityInfo.DBTIndex],
                 IsQuotedDb = WormHoleData.IsQuotedDb[entityInfo.DBTIndex],
-                ThisSchema = WormHoleData.DbSchemas[entityInfo.SchemaIndex]
+                ThisSchema = entityInfo.EntitySchema
             };
 
             entityContext.MapEntityContext<G>(entityType);
@@ -211,7 +185,7 @@ namespace BlackHole.Engine
             entitySettings.ConnectionIndex = entityInfo.DBTIndex;
             entitySettings.DatabaseType = WormHoleData.DbTypes[entityInfo.DBTIndex];
             entitySettings.IsQuotedDb = WormHoleData.IsQuotedDb[entityInfo.DBTIndex];
-            entitySettings.ThisSchema = WormHoleData.DbSchemas[entityInfo.SchemaIndex];
+            entitySettings.ThisSchema = entityInfo.EntitySchema;
 
             entitySettings.MapOpenEntityContext();
         }
@@ -333,18 +307,13 @@ namespace BlackHole.Engine
             if(entity.GetCustomAttributes(true).FirstOrDefault(x => x.GetType() == tableDisplayAttr) is TableDisplayName displayName)
             {
                 object? tableName = tableDisplayAttr.GetProperty("TableName")?.GetValue(displayName, null);
-                return tableName?.ToString().UseNameQuotes(isQuotedDb);
+
+                if(tableName is string tbN)
+                {
+                    return tbN.UseNameQuotes(isQuotedDb);
+                }
             }
             return entity.Name.UseNameQuotes(isQuotedDb);
-        }
-
-        internal static string GetDatabaseSchema()
-        {
-            if (DatabaseStatics.DatabaseSchema != string.Empty)
-            {
-                return $"{DatabaseStatics.DatabaseSchema}.";
-            }
-            return string.Empty;
         }
 
         internal static ColumnsAndParameters SplitMembers<T>(this Expression expression, bool isQuotedDb, string? letter,
@@ -1358,7 +1327,7 @@ namespace BlackHole.Engine
                 EntityInfo basicTableInfo = data.BaseTable.SwitchBlackHoleMode(DatabaseRole.Master);
 
                 data.TablesToLetters.Add(new TableLetters { Table = typeof(TSource),
-                    Schema = WormHoleData.DbSchemas[basicTableInfo.SchemaIndex],
+                    Schema = basicTableInfo.EntitySchema,
                     Letter = parameterOne, IsOpenEntity = OpenEntity });
 
                 data.ConnectionIndex = basicTableInfo.DBTIndex;
@@ -1415,7 +1384,7 @@ namespace BlackHole.Engine
                         data.TablesToLetters.Add(new TableLetters
                         {
                             Table = otherTableType,
-                            Schema = WormHoleData.DbSchemas[otherTableInfo.SchemaIndex],
+                            Schema = otherTableInfo.EntitySchema,
                             Letter = parameterOther,
                             IsOpenEntity = isOpen
                         });
@@ -1433,12 +1402,16 @@ namespace BlackHole.Engine
 
                 if (isValidTable)
                 {
-                    data.Joins += $" {joinType} join {schemaName}{otherTableType.Name.UseNameQuotes(data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
+                    data.Joins += $" {joinType} join {schemaName}{otherTableType.GetTableDisplayName(data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
 
                     if (data.HAMode)
                     {
-                        data.JoinsReverseQuotes += $" {joinType} join {schemaName}{otherTableType.Name.UseNameQuotes(!data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(!data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(!data.IsQuotedDb)}";
+                        data.JoinsReverseQuotes += $" {joinType} join {schemaName}{otherTableType.GetTableDisplayName(!data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(!data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(!data.IsQuotedDb)}";
                     }
+                }
+                else
+                {
+                    data.Ignore = true;
                 }
             }
         }
@@ -1564,11 +1537,11 @@ namespace BlackHole.Engine
                 data.RejectInactiveEntities();
                 TableLetters tL = data.TablesToLetters.First(x => x.Table == data.BaseTable);
                 string commandTextReverse = string.Empty;
-                string commandText = $"{data.BuildCommand(false)} from {tL.Schema}{tL.Table?.Name.UseNameQuotes(data.IsQuotedDb)} {tL.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
+                string commandText = $"{data.BuildCommand(false)} from {tL.Schema}{tL.Table?.GetTableDisplayName(data.IsQuotedDb)} {tL.Letter} {data.Joins} {data.WherePredicates} {data.OrderByOptions}";
 
                 if (data.HAMode)
                 {
-                    commandTextReverse = $"{data.BuildCommand(true)} from {tL.Schema}{tL.Table?.Name.UseNameQuotes(!data.IsQuotedDb)} {tL.Letter} {data.JoinsReverseQuotes} {data.WhereReverseQuotes} {data.OrderByReverseQuotes}";
+                    commandTextReverse = $"{data.BuildCommand(true)} from {tL.Schema}{tL.Table?.GetTableDisplayName(!data.IsQuotedDb)} {tL.Letter} {data.JoinsReverseQuotes} {data.WhereReverseQuotes} {data.OrderByReverseQuotes}";
                 }
 
                 return new ColumnsAndParameters { Columns = commandText, ColumnsReverseQuotes = commandTextReverse, Parameters = data.DynamicParams };
@@ -1659,6 +1632,7 @@ namespace BlackHole.Engine
         private static void RejectInactiveEntities(this JoinsData data)
         {
             string command = string.Empty;
+            string reverseCommand = string.Empty;
             string inactiveColumn = "Inactive";
             string anD = "and";
 
@@ -1677,10 +1651,20 @@ namespace BlackHole.Engine
                     }
 
                     command += $" {anD} {table.Letter}.{inactiveColumn.UseNameQuotes(data.IsQuotedDb)} = 0 ";
+
+                    if (data.HAMode)
+                    {
+                        reverseCommand += $" {anD} {table.Letter}.{inactiveColumn.UseNameQuotes(!data.IsQuotedDb)} = 0 ";
+                    }
                 }
             }
 
             data.WherePredicates += command;
+
+            if (data.HAMode)
+            {
+                data.WhereReverseQuotes += reverseCommand;
+            }
         }
 
         private static string BuildCommand(this JoinsData data, bool reverseQuotes)
