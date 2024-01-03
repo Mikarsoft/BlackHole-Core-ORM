@@ -10,41 +10,57 @@ namespace BlackHole.Configuration
     {
         internal string ConnectionString { get; set; } = string.Empty;
         internal string TableSchema { get; set; } = string.Empty;
+        internal string SelectedNamespace {  get; set; } = string.Empty;
         internal BlackHoleSqlTypes ConnectionType { get; set; }
-        internal DatabaseRole Role { get; set; } = DatabaseRole.Master;
+        internal Assembly? Ass {  get; set; }
+        internal bool IsUsingAssembly { get; set; }
+        internal bool UseQuotedDb { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public ConnectionAdditionalSettings additionalSettings = new();
-        internal bool UseQuotedDb { get; set; }
+        public MultiAdditionalSettings additionalSettings = new();
 
         /// <summary>
-        /// <para>Use the data provider for Microsoft Sql Server.</para>
-        /// <para>Do not use the Name of an Existing Database.</para>
-        /// <para>BlackHole is going to create the database, based on the
-        /// connection string.</para>
+        /// 
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseSqlServer(string connectionString, string fromNamespace)
+        /// <param name="connectionString"></param>
+        /// <param name="fromNamespace"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace)
         {
+            SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             return additionalSettings;
         }
 
         /// <summary>
-        /// <para>Use the data provider for Microsoft Sql Server.</para>
-        /// <para>Do not use the Name of an Existing Database.</para>
-        /// <para>BlackHole is going to create the database, based on the
-        /// connection string.</para>
+        /// 
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <param name="quotedDb">Use quotes for Naming</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, bool quotedDb)
+        /// <param name="connectionString"></param>
+        /// <param name="fromNamespace"></param>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, string schema)
         {
+            TableSchema = schema;
+            SelectedNamespace = fromNamespace;
+            ConnectionString = connectionString;
+            ConnectionType = BlackHoleSqlTypes.SqlServer;
+            return additionalSettings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="fromNamespace"></param>
+        /// <param name="quotedDb"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, bool quotedDb)
+        {
+            SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             UseQuotedDb = quotedDb;
@@ -52,61 +68,108 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
-        /// <para>Use the data provider for Postgresql.</para>
-        /// <para>Do not use the Name of an Existing Database.</para>
-        /// <para>BlackHole is going to create the database, based on the
-        /// connection string.</para>
+        /// 
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseNpgSql(string connectionString, string fromNamespace)
+        /// <param name="connectionString"></param>
+        /// <param name="fromNamespace"></param>
+        /// <param name="schema"></param>
+        /// <param name="quotedDb"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, string schema, bool quotedDb)
         {
+            TableSchema = schema;
+            SelectedNamespace = fromNamespace;
+            ConnectionString = connectionString;
+            ConnectionType = BlackHoleSqlTypes.SqlServer;
+            UseQuotedDb = quotedDb;
+            return additionalSettings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="fromNamespace"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseNpgSql(string connectionString, string fromNamespace)
+        {
+            UseQuotedDb = true;
+            SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.Postgres;
             return additionalSettings;
         }
 
         /// <summary>
-        /// <para>Use the data provider for MySql.</para>
-        /// <para>Do not use the Name of an Existing Database.</para>
-        /// <para>BlackHole is going to create the database, based on the
-        /// connection string.</para>
+        /// 
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseMySql(string connectionString, string fromNamespace)
+        /// <param name="connectionString"></param>
+        /// <param name="fromNamespace"></param>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseNpgSql(string connectionString, string fromNamespace, string schema)
         {
+            TableSchema = schema;
+            UseQuotedDb = true;
+            SelectedNamespace = fromNamespace;
+            ConnectionString = connectionString;
+            ConnectionType = BlackHoleSqlTypes.Postgres;
+            return additionalSettings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="fromNamespace"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseMySql(string connectionString, string fromNamespace)
+        {
+            SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.MySql;
             return additionalSettings;
         }
 
         /// <summary>
-        /// <para>Use the data provider for Sqlite.</para>
-        /// <para>The Sqlite database is stored in the Default
-        /// BlackHole DataPath. You can only choose the file name here.</para>
-        /// <para>If you need to move it elsewhere you have to use 'SetDataPath()'</para>
+        /// 
         /// </summary>
-        /// <param name="databaseName">Just the name of the database</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseSqlite(string databaseName, string fromNamespace)
+        /// <param name="connectionString"></param>
+        /// <param name="fromAssembly"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseMySql(string connectionString, Assembly fromAssembly)
         {
+            Ass = fromAssembly;
+            IsUsingAssembly = true;
+            ConnectionString = connectionString;
+            ConnectionType = BlackHoleSqlTypes.MySql;
+            return additionalSettings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <param name="fromNamespace"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlite(string databaseName, string fromNamespace)
+        {
+            SelectedNamespace = fromNamespace;
             ConnectionString = databaseName;
             ConnectionType = BlackHoleSqlTypes.SqlLite;
             return additionalSettings;
         }
 
         /// <summary>
-        /// <para>Use the data provider for Sqlite.</para>
-        /// <para>The Sqlite database is stored in the Default
-        /// BlackHole DataPath. You can only choose the file name here.</para>
-        /// <para>If you need to move it elsewhere you have to use 'SetDataPath()'</para>
+        /// 
         /// </summary>
-        /// <param name="databaseName">Just the name of the database</param>
-        /// <param name="quotedDb">Use quotes for Naming</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseSqlite(string databaseName, string fromNamespace, bool quotedDb)
+        /// <param name="databaseName"></param>
+        /// <param name="fromNamespace"></param>
+        /// <param name="quotedDb"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlite(string databaseName, string fromNamespace, bool quotedDb)
         {
+            SelectedNamespace = fromNamespace;
             ConnectionString = databaseName;
             ConnectionType = BlackHoleSqlTypes.SqlLite;
             UseQuotedDb = quotedDb;
@@ -114,49 +177,79 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
-        /// <para>Use the data provider for Oracle database.</para>
-        /// <para>BlackHole can not setup an oracle database
-        /// on your system.</para>
-        /// <para>Make sure to install the database first and
-        /// then this library will create the tables.</para>
+        /// 
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseOracle(string connectionString, string fromNamespace)
+        /// <param name="connectionString"></param>
+        /// <param name="fromNamespace"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseOracle(string connectionString, string fromNamespace)
         {
+            UseQuotedDb = true;
+            SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.Oracle;
             return additionalSettings;
         }
 
         /// <summary>
-        /// <para>Use the data provider for Microsoft Sql Server.</para>
-        /// <para>Do not use the Name of an Existing Database.</para>
-        /// <para>BlackHole is going to create the database, based on the
-        /// connection string.</para>
+        /// 
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <param name="schema">The name of the schema</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly)
+        /// <param name="connectionString"></param>
+        /// <param name="fromAssembly"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseOracle(string connectionString, Assembly fromAssembly)
         {
+            Ass = fromAssembly;
+            IsUsingAssembly = true;
+            UseQuotedDb = true;
+            ConnectionString = connectionString;
+            ConnectionType = BlackHoleSqlTypes.Oracle;
+            return additionalSettings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="fromAssembly"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly)
+        {
+            Ass = fromAssembly;
+            IsUsingAssembly = true;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             return additionalSettings;
         }
 
         /// <summary>
-        /// <para>Use the data provider for Microsoft Sql Server.</para>
-        /// <para>Do not use the Name of an Existing Database.</para>
-        /// <para>BlackHole is going to create the database, based on the
-        /// connection string.</para>
+        /// 
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <param name="schema">The name of the schema</param>
-        /// <param name="quotedDb">Use quotes for Naming</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, bool quotedDb)
+        /// <param name="connectionString"></param>
+        /// <param name="fromAssembly"></param>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, string schema)
         {
+            TableSchema = schema;
+            Ass = fromAssembly;
+            IsUsingAssembly = true;
+            ConnectionString = connectionString;
+            ConnectionType = BlackHoleSqlTypes.SqlServer;
+            return additionalSettings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="fromAssembly"></param>
+        /// <param name="quotedDb"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, bool quotedDb)
+        {
+            Ass = fromAssembly;
+            IsUsingAssembly = true;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             UseQuotedDb = quotedDb;
@@ -164,19 +257,109 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
-        /// <para>Use the data provider for Postgresql.</para>
-        /// <para>Do not use the Name of an Existing Database.</para>
-        /// <para>BlackHole is going to create the database, based on the
-        /// connection string.</para>
+        /// 
         /// </summary>
-        /// <param name="connectionString">connection string to the database</param>
-        /// <param name="schema">The name of the schema</param>
-        /// <returns>Additional Settings</returns>
-        public ConnectionAdditionalSettings UseNpgSql(string connectionString, Assembly fromAssembly)
+        /// <param name="connectionString"></param>
+        /// <param name="fromAssembly"></param>
+        /// <param name="schema"></param>
+        /// <param name="quotedDb"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, string schema, bool quotedDb)
         {
+            TableSchema = schema;
+            Ass = fromAssembly;
+            IsUsingAssembly = true;
+            ConnectionString = connectionString;
+            ConnectionType = BlackHoleSqlTypes.SqlServer;
+            UseQuotedDb = quotedDb;
+            return additionalSettings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="fromAssembly"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseNpgSql(string connectionString, Assembly fromAssembly)
+        {
+            Ass = fromAssembly;
+            IsUsingAssembly = true;
+            UseQuotedDb = true;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.Postgres;
             return additionalSettings;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="fromAssembly"></param>
+        /// <param name="schema"></param>
+        /// <returns></returns>
+        public MultiAdditionalSettings UseNpgSql(string connectionString, Assembly fromAssembly, string schema)
+        {
+            TableSchema = schema;
+            Ass = fromAssembly;
+            IsUsingAssembly = true;
+            UseQuotedDb = true;
+            ConnectionString = connectionString;
+            ConnectionType = BlackHoleSqlTypes.Postgres;
+            return additionalSettings;
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class MultiAdditionalSettings
+    {
+        internal int ConnectionTimeOut { get; set; } = 60;
+        internal bool SamePathServices { get; set; }
+        internal bool RegisterServices { get; set; }
+        internal bool ServicesInOtherAssembly { get; set; }
+        internal string ServicesNamespace { get; set; } = string.Empty;
+        internal Assembly? ServicesAssembly { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="timoutInSeconds"></param>
+        public MultiAdditionalSettings SetConnectionTimeoutSeconds(int timoutInSeconds)
+        {
+            ConnectionTimeOut = timoutInSeconds;
+            return this;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ServicesIncluded()
+        {
+            RegisterServices = true;
+            SamePathServices = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fromNamespace"></param>
+        public void AddServicesFromNamespace(string fromNamespace)
+        {
+            RegisterServices = true;
+            ServicesNamespace = fromNamespace;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assembly"></param>
+        public void AddServicesFromOtherAssembly(Assembly assembly)
+        {
+            RegisterServices = true;
+            ServicesInOtherAssembly = true;
+            ServicesAssembly = assembly;
         }
     }
 }

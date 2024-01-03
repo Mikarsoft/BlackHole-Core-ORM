@@ -11,17 +11,17 @@ namespace BlackHole.Configuration
         /// <summary>
         /// set the default directory of BlackHole to store logs and data
         /// </summary>
-        public DataPathSettings directorySettings { get; set; } = new DataPathSettings();
+        public DataPathSettings DirectorySettings { get; set; } = new DataPathSettings();
 
-        internal ConnectionSettings connectionConfig { get; set; } = new ConnectionSettings();
+        internal ConnectionSettings ConnectionConfig { get; set; } = new ConnectionSettings();
 
-        internal List<ConnectionSettings> connectionsConfig { get; set; } = new List<ConnectionSettings>();
+        internal List<MultiConnectionSettings> MultipleConnectionsConfig { get; set; } = new List<MultiConnectionSettings>();
 
-        internal MultiSchemaConnectionSettings multiSchemaConfig { get; set; } = new();
+        internal MultiSchemaConnectionSettings MultiSchemaConfig { get; set; } = new();
 
-        internal HighAvailabilityConnectionSettings highAvailabilityConfig { get; set; } = new();
+        internal HighAvailabilityConnectionSettings HighAvailabilityConfig { get; set; } = new();
 
-        internal bool isInDevMode { get; set; } = false;
+        internal bool IsInDevMode { get; set; } = false;
 
         internal bool AutoUpdate { get; set; } = false;
 
@@ -34,9 +34,9 @@ namespace BlackHole.Configuration
         /// <returns>DataPath Settings to add more settings</returns>
         public DataPathSettings AddDatabase(Action<ConnectionSettings> connectionSettings)
         {
-            connectionSettings.Invoke(connectionConfig);
+            connectionSettings.Invoke(ConnectionConfig);
             DatabaseConfig = BHMode.Single;
-            return directorySettings;
+            return DirectorySettings;
         }
 
         /// <summary>
@@ -46,9 +46,9 @@ namespace BlackHole.Configuration
         /// <returns>DataPath Settings to add more settings</returns>
         public DataPathSettings AddMultiSchemaDatabase(Action<MultiSchemaConnectionSettings> connectionSettings)
         {
-            connectionSettings.Invoke(multiSchemaConfig);
+            connectionSettings.Invoke(MultiSchemaConfig);
             DatabaseConfig = BHMode.MultiSchema;
-            return directorySettings;
+            return DirectorySettings;
         }
 
         /// <summary>
@@ -58,9 +58,9 @@ namespace BlackHole.Configuration
         /// <returns></returns>
         public DataPathSettings AddHighAvailabilityScheme(Action<HighAvailabilityConnectionSettings> connectionSettings)
         {
-            connectionSettings.Invoke(highAvailabilityConfig);
+            connectionSettings.Invoke(HighAvailabilityConfig);
             DatabaseConfig = BHMode.HighAvailability;
-            return directorySettings;
+            return DirectorySettings;
         }
 
         /// <summary>
@@ -68,20 +68,21 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionSettings">connection settings</param>
         /// <returns>DataPath Settings to add more settings</returns>
-        public DataPathSettings AddMultipleDatabases(Action<List<Action<ConnectionSettings>>> connectionSettings)
+        public DataPathSettings AddMultipleDatabases(Action<List<Action<MultiConnectionSettings>>> connectionSettings)
         {
-            List<Action<ConnectionSettings>> list = new();
             DatabaseConfig = BHMode.Multiple;
+
+            List<Action<MultiConnectionSettings>> list = new();
             connectionSettings.Invoke(list);
 
-            foreach(Action<ConnectionSettings> settings in list)
+            foreach(Action<MultiConnectionSettings> settings in list)
             {
-                ConnectionSettings dbSettings = new();
+                MultiConnectionSettings dbSettings = new();
                 settings.Invoke(dbSettings);
-                connectionsConfig.Add(dbSettings);
+                MultipleConnectionsConfig.Add(dbSettings);
             }
 
-            return directorySettings;
+            return DirectorySettings;
         }
 
 
@@ -97,7 +98,7 @@ namespace BlackHole.Configuration
         /// <returns>BlackHoleSettings to add more settings</returns>
         public BlackHoleSettings IsDeveloperMode(bool isDevMode)
         {
-            isInDevMode = isDevMode;
+            IsInDevMode = isDevMode;
             return this;
         }
 

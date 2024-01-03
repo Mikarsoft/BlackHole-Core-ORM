@@ -27,51 +27,51 @@ namespace BlackHole.Configuration
             Assembly assembly = Assembly.GetCallingAssembly();
             BlackHoleSettings blackHoleSettings = new();
             settings.Invoke(blackHoleSettings);
-            if (blackHoleSettings.directorySettings.DataPath == string.Empty)
+            if (blackHoleSettings.DirectorySettings.DataPath == string.Empty)
             {
-                blackHoleSettings.directorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
+                blackHoleSettings.DirectorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
             }
 
             bool useLogsCleaner = false;
             int daysToClean = 60;
 
-            if (blackHoleSettings.directorySettings.UseLogsCleaner)
+            if (blackHoleSettings.DirectorySettings.UseLogsCleaner)
             {
                 useLogsCleaner = true;
-                daysToClean = blackHoleSettings.directorySettings.DaysForCleanUp;
+                daysToClean = blackHoleSettings.DirectorySettings.DaysForCleanUp;
             }
 
             SetMode(blackHoleSettings.isInDevMode, blackHoleSettings.AutoUpdate);
 
-            bool cliMode = BHCliCommandReader.ReadCliJson(assembly, blackHoleSettings.connectionConfig.ConnectionString);
+            bool cliMode = BHCliCommandReader.ReadCliJson(assembly, blackHoleSettings.ConnectionConfig.ConnectionString);
             if (cliMode)
             {
                 useLogsCleaner = false;
-                blackHoleSettings.directorySettings.UseLogger = true;
-                if(blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut < 300)
+                blackHoleSettings.DirectorySettings.UseLogger = true;
+                if(blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut < 300)
                 {
-                    blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut = 300;
+                    blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut = 300;
                 }
             }
 
-            if (blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut < 60)
+            if (blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut < 60)
             {
-                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut = 60;
+                blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut = 60;
             }
 
-            ScanConnectionString(blackHoleSettings.connectionConfig.ConnectionType, blackHoleSettings.connectionConfig.ConnectionString,
-                blackHoleSettings.directorySettings.DataPath, blackHoleSettings.connectionConfig.TableSchema,
-                blackHoleSettings.connectionConfig.additionalSettings.ConnectionTimeOut,
-                blackHoleSettings.connectionConfig.UseQuotedDb);
+            ScanConnectionString(blackHoleSettings.ConnectionConfig.ConnectionType, blackHoleSettings.ConnectionConfig.ConnectionString,
+                blackHoleSettings.DirectorySettings.DataPath, blackHoleSettings.ConnectionConfig.TableSchema,
+                blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut,
+                blackHoleSettings.ConnectionConfig.UseQuotedDb);
 
-            DataPathAndLogs(blackHoleSettings.directorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.directorySettings.UseLogger);
+            DataPathAndLogs(blackHoleSettings.DirectorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.DirectorySettings.UseLogger);
             CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
 
             int exitCode = 0;
             switch (cliSettings.commandType)
             {
                 case CliCommandTypes.Update:
-                    exitCode = BuildOrUpdateDatabaseCliProcess(blackHoleSettings.connectionConfig.additionalSettings, assembly);
+                    exitCode = BuildOrUpdateDatabaseCliProcess(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
                     break;
                 case CliCommandTypes.Drop:
                     exitCode = DropDatabaseCliProcess();
@@ -80,7 +80,7 @@ namespace BlackHole.Configuration
                     exitCode = ParseDatabaseCliProcess();
                     break;
                 case CliCommandTypes.Default:
-                    services.BuildDatabaseAndServices(blackHoleSettings.connectionConfig.additionalSettings, assembly);
+                    services.BuildDatabaseAndServices(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
                     break;
             }
 
