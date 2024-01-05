@@ -557,8 +557,8 @@ namespace BlackHole.Engine
                                     CompareProperty = expressionTree[currentIndx].RightMember,
                                     OperatorType = expressionTree[currentIndx].OperationType,
                                     ReverseOperator = true,
-                                    TableName = typeof(T).Name
-                                });
+                                    TableName = typeof(T).GetTableDisplayName(false)
+                                });;
                             }
                         }
                     }
@@ -655,7 +655,7 @@ namespace BlackHole.Engine
                                     CompareProperty = expressionTree[currentIndx].LeftMember,
                                     OperatorType = expressionTree[currentIndx].OperationType,
                                     ReverseOperator = false,
-                                    TableName = typeof(T).Name
+                                    TableName = typeof(T).GetTableDisplayName(false)
                                 });
                             }
                         }
@@ -986,36 +986,42 @@ namespace BlackHole.Engine
                     {
                         if (MethodData.MethodArguments.Count == 2 && MethodData.CompareProperty != null)
                         {
-                            string? aTable = MethodData.CompareProperty.Member?.ReflectedType?.Name;
+                            Type? aTableType = MethodData.CompareProperty.Member?.ReflectedType;
                             string? PropertyName = MethodData.CompareProperty.Member?.Name;
+                            string? aTable = aTableType?.GetTableDisplayName(false);
 
                             if (aTable != null && PropertyName != null)
                             {
+                                string? specialSchema;
+
                                 switch (MethodData.MethodName)
                                 {
                                     case "SqlEqualTo":
+                                        specialSchema = aTableType?.GetEntitySchema();
                                         result.ParamName = $"OtherId{index}";
                                         result.Value = MethodData.MethodArguments[1];
-                                        selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {schemaName}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
-                                        selectCommand = $"( Select {PropertyName.UseNameQuotes(isQuotedDb)} from {schemaName}{aTable.UseNameQuotes(isQuotedDb)} where {"Id".UseNameQuotes(isQuotedDb)} = @{result.ParamName} )";
+                                        selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
+                                        selectCommand = $"( Select {PropertyName.UseNameQuotes(isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(isQuotedDb)} where {"Id".UseNameQuotes(isQuotedDb)} = @{result.ParamName} )";
                                         result.SqlCommand = $" {letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} = {selectCommand} ";
                                         result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" {letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} = {selectCommandReverse} ";
                                         result.WasTranslated = true;
                                         return result;
                                     case "SqlGreaterThan":
+                                        specialSchema = aTableType?.GetEntitySchema();
                                         result.ParamName = $"OtherId{index}";
                                         result.Value = MethodData.MethodArguments[1];
-                                        selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {schemaName}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
-                                        selectCommand = $"( Select {PropertyName.UseNameQuotes(isQuotedDb)} from {schemaName}{aTable.UseNameQuotes(isQuotedDb)} where {"Id".UseNameQuotes(isQuotedDb)} = @{result.ParamName} )";
+                                        selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
+                                        selectCommand = $"( Select {PropertyName.UseNameQuotes(isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(isQuotedDb)} where {"Id".UseNameQuotes(isQuotedDb)} = @{result.ParamName} )";
                                         result.SqlCommand = $" {letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} > {selectCommand} ";
                                         result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" {letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} > {selectCommandReverse} ";
                                         result.WasTranslated = true;
                                         return result;
                                     case "SqlLessThan":
+                                        specialSchema = aTableType?.GetEntitySchema();
                                         result.ParamName = $"OtherId{index}";
                                         result.Value = MethodData.MethodArguments[1];
-                                        selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {schemaName}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
-                                        selectCommand = $"( Select {PropertyName.UseNameQuotes(isQuotedDb)} from {schemaName}{aTable.UseNameQuotes(isQuotedDb)} where {"Id".UseNameQuotes(isQuotedDb)} = @{result.ParamName} )";
+                                        selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
+                                        selectCommand = $"( Select {PropertyName.UseNameQuotes(isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(isQuotedDb)} where {"Id".UseNameQuotes(isQuotedDb)} = @{result.ParamName} )";
                                         result.SqlCommand = $" {letter}{compareProperty[1].UseNameQuotes(isQuotedDb)} < {selectCommand} ";
                                         result.SqlCommandReverseQuotes = NotHAMode ? string.Empty : $" {letter}{compareProperty[1].UseNameQuotes(!isQuotedDb)} < {selectCommandReverse} ";
                                         result.WasTranslated = true;
