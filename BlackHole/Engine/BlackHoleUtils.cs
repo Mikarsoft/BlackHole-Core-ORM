@@ -154,6 +154,20 @@ namespace BlackHole.Engine
         }
     }
 
+    internal class SPData
+    {
+        internal SPData(Type dtoType, string procName)
+        {
+            DtoType = dtoType;
+            ProcedureName = procName;
+        }
+
+        internal Type DtoType { get; set; }
+        internal string ProcedureName { get; set; } = string.Empty;
+        internal int ConnectionIndex { get; set; }
+        internal bool IsQuotedDb { get; set; }
+    }
+
     internal class JoinsData
     {
         internal JoinsData(Type dtoType)

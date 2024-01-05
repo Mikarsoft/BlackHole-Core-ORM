@@ -33,5 +33,10 @@ namespace BlackHole.PreLoads
 
             BlackHoleViews.Stored.Add(data.Data);
         }
+
+        internal static void StoreAsProcedure<Dto>(this StoredProcedureComplete<Dto> data) where Dto : BHDtoIdentifier
+        {
+
+        }
     }
 }

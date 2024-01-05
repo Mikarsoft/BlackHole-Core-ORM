@@ -8,6 +8,7 @@ using BlackHole.Statics;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace BlackHole.Engine
@@ -15,6 +16,7 @@ namespace BlackHole.Engine
     internal static class BlackHoleEngine
     {
         private static IDataProvider[] DataProviders { get; set; } = new IDataProvider[0];
+        private static SHA1? Sh { get; set; }
 
         internal static int SetIndex(this int providerIndex, int providerNewIndex)
         {
@@ -74,7 +76,6 @@ namespace BlackHole.Engine
             EntityInfo entityConfig = new();
             int entityInfoIndex;
             byte[] entityCode;
-            string entityHash;
 
             switch (WormHoleData.BlackHoleMode)
             {
@@ -90,8 +91,7 @@ namespace BlackHole.Engine
                     return entityConfig;
 
                 case BHMode.Multiple:
-                    entityHash = $"{entityType.Name}_{entityType.Namespace}_{entityType.Assembly.FullName}".GenerateSHA1();
-                    entityCode = Encoding.ASCII.GetBytes(entityHash);
+                    entityCode = ComputeByteHash($"{entityType.Name}_{entityType.Namespace}_{entityType.Assembly.FullName}");
                     entityInfoIndex = Array.IndexOf(WormHoleData.EntitiesCodes, entityCode);
                     entityConfig.DBTIndex = entityInfoIndex > -1 ? WormHoleData.EntityTargetDb[entityInfoIndex] : 0;
                     entityConfig.EntitySchema = entityType.GetEntitySchema();
@@ -102,6 +102,17 @@ namespace BlackHole.Engine
                     entityConfig.DBTIndex = 0;
                     return entityConfig;
             }
+        }
+
+        private static byte[] ComputeByteHash(this string text)
+        {
+            if(Sh == null)
+            {
+                Sh = SHA1.Create();
+            }
+
+            byte[] bytes = Encoding.ASCII.GetBytes(text);
+            return Sh.ComputeHash(bytes);
         }
 
         internal static string GetEntitySchema(this Type entityType)

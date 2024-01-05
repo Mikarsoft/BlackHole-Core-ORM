@@ -16,7 +16,7 @@
         /// 
         /// </summary>
         /// <returns></returns>
-        public abstract BHDefaultData DefaultData(DefaultDataBuilder defaultDataBuilder);
+        public abstract void DefaultData(DefaultDataBuilder defaultDataBuilder);
 
         /// <summary>
         /// 
@@ -28,6 +28,6 @@
         /// 
         /// </summary>
         /// <returns></returns>
-        public abstract BHStoredProcedures StoredProcedures(StoredProceduresBuilder storedProceduresBuilder);
+        public abstract void StoredProcedures(StoredProceduresBuilder storedProceduresBuilder);
     }
 }

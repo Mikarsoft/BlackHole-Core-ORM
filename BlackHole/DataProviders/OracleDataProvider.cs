@@ -32,6 +32,7 @@ namespace BlackHole.DataProviders
                     {
                         BindByName = true
                     };
+
                     ObjectToParameters(entry, Command.Parameters);
                     Command.ExecuteScalar();
                     int param = Command.Parameters.IndexOf("Id");
