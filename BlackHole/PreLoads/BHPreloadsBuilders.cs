@@ -2,16 +2,6 @@
 
 namespace BlackHole.PreLoads
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public class AuditSettingsBuilder
-    {
-        public BHAuditSettings Save()
-        {
-            return new();
-        }
-    }
 
     /// <summary>
     /// 

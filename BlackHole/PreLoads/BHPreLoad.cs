@@ -10,12 +10,6 @@
         /// 
         /// </summary>
         /// <returns></returns>
-        public abstract BHAuditSettings AuditSettings(AuditSettingsBuilder auditSettingsBuilder);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public abstract void DefaultData(DefaultDataBuilder defaultDataBuilder);
 
         /// <summary>

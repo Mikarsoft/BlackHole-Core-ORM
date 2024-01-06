@@ -12,7 +12,7 @@ namespace BlackHole.Configuration
         internal string TableSchema { get; set; } = string.Empty;
         internal BlackHoleSqlTypes ConnectionType { get; set; }
         internal ConnectionAdditionalSettings additionalSettings { get; set; } = new();
-        internal bool UseQuotedDb { get; set; }
+        internal bool UseQuotedDb { get; set; } = false;
 
         /// <summary>
         /// <para>Use the data provider for Microsoft Sql Server.</para>
@@ -56,6 +56,7 @@ namespace BlackHole.Configuration
         /// <returns>Additional Settings</returns>
         public ConnectionAdditionalSettings UseNpgSql(string connectionString)
         {
+            UseQuotedDb = true;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.Postgres;
             return additionalSettings;
@@ -119,6 +120,7 @@ namespace BlackHole.Configuration
         /// <returns>Additional Settings</returns>
         public ConnectionAdditionalSettings UseOracle(string connectionString)
         {
+            UseQuotedDb = true;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.Oracle;
             return additionalSettings;
@@ -171,6 +173,7 @@ namespace BlackHole.Configuration
         /// <returns>Additional Settings</returns>
         public ConnectionAdditionalSettings UseNpgSql(string connectionString, string schema)
         {
+            UseQuotedDb = true;
             ConnectionString = connectionString;
             TableSchema = schema;
             ConnectionType = BlackHoleSqlTypes.Postgres;

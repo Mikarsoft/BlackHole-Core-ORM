@@ -316,19 +316,20 @@ namespace BlackHole.Configuration
     public class MultiAdditionalSettings
     {
         internal int ConnectionTimeOut { get; set; } = 60;
-        internal bool SamePathServices { get; set; }
-        internal bool RegisterServices { get; set; }
-        internal bool ServicesInOtherAssembly { get; set; }
+        internal bool SamePathServices { get; set; } = false;
+        internal bool RegisterServices { get; set; } = false;
+        internal bool ServicesInOtherAssembly { get; set; } = false;
+        internal bool SkipDefaultProjectServices { get; set; } = false;
         internal string ServicesNamespace { get; set; } = string.Empty;
         internal Assembly? ServicesAssembly { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="timoutInSeconds"></param>
-        public MultiAdditionalSettings SetConnectionTimeoutSeconds(int timoutInSeconds)
+        /// <param name="timeoutInSeconds"></param>
+        public MultiAdditionalSettings SetConnectionTimeoutSeconds(int timeoutInSeconds)
         {
-            ConnectionTimeOut = timoutInSeconds;
+            ConnectionTimeOut = timeoutInSeconds;
             return this;
         }
 
@@ -339,7 +340,9 @@ namespace BlackHole.Configuration
         {
             RegisterServices = true;
             SamePathServices = true;
+            SkipDefaultProjectServices = true;
         }
+
 
         /// <summary>
         /// 
@@ -349,6 +352,7 @@ namespace BlackHole.Configuration
         {
             RegisterServices = true;
             ServicesNamespace = fromNamespace;
+            SkipDefaultProjectServices = true;
         }
 
         /// <summary>
@@ -360,6 +364,7 @@ namespace BlackHole.Configuration
             RegisterServices = true;
             ServicesInOtherAssembly = true;
             ServicesAssembly = assembly;
+            SkipDefaultProjectServices = true;
         }
     }
 }

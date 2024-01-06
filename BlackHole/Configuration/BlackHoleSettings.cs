@@ -17,6 +17,8 @@ namespace BlackHole.Configuration
 
         internal List<MultiConnectionSettings> MultipleConnectionsConfig { get; set; } = new List<MultiConnectionSettings>();
 
+        internal bool UseDefaultServicesOnMultiDb { get; set; } = true;
+
         internal MultiSchemaConnectionSettings MultiSchemaConfig { get; set; } = new();
 
         internal HighAvailabilityConnectionSettings HighAvailabilityConfig { get; set; } = new();
@@ -79,6 +81,12 @@ namespace BlackHole.Configuration
             {
                 MultiConnectionSettings dbSettings = new();
                 settings.Invoke(dbSettings);
+
+                if (dbSettings.additionalSettings.SkipDefaultProjectServices)
+                {
+                    UseDefaultServicesOnMultiDb = false;
+                }
+
                 MultipleConnectionsConfig.Add(dbSettings);
             }
 
