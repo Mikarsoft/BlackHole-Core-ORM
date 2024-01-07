@@ -49,7 +49,6 @@ namespace BlackHole.Statics
         internal static BHMode BlackHoleMode { get; set; } = BHMode.Single;
         internal static bool IsSchemaFromNamespace { get; set; }
         internal static bool IsSchemaFromAssembly { get; set; }
-        internal static string DefaultSchema { get; set; } = string.Empty;
     }
 
     internal class EntityInfo

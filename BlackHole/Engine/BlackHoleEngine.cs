@@ -18,6 +18,12 @@ namespace BlackHole.Engine
         private static IDataProvider[] DataProviders { get; set; } = new IDataProvider[0];
         private static SHA1? Sh { get; set; }
 
+        internal static void InitializeEngine(this int pvCount)
+        {
+            DataProviders = new IDataProvider[pvCount];
+            Sh = SHA1.Create();
+        }
+
         internal static int SetIndex(this int providerIndex, int providerNewIndex)
         {
             if(providerNewIndex > -1 && providerNewIndex < DataProviders.Length)
@@ -80,7 +86,7 @@ namespace BlackHole.Engine
             switch (WormHoleData.BlackHoleMode)
             {
                 case BHMode.MultiSchema:
-                    entityConfig.EntitySchema = entityType.GetEntitySchema();
+                    entityConfig.EntitySchema = entityType.GetEntitySchema(0);
                     entityConfig.DBTIndex = 0;
                     return entityConfig;
 
@@ -94,11 +100,11 @@ namespace BlackHole.Engine
                     entityCode = ComputeByteHash($"{entityType.Name}_{entityType.Namespace}_{entityType.Assembly.FullName}");
                     entityInfoIndex = Array.IndexOf(WormHoleData.EntitiesCodes, entityCode);
                     entityConfig.DBTIndex = entityInfoIndex > -1 ? WormHoleData.EntityTargetDb[entityInfoIndex] : 0;
-                    entityConfig.EntitySchema = entityType.GetEntitySchema();
+                    entityConfig.EntitySchema = entityType.GetEntitySchema(entityConfig.DBTIndex);
                     return entityConfig;
 
                 default:
-                    entityConfig.EntitySchema = WormHoleData.DefaultSchema;
+                    entityConfig.EntitySchema = WormHoleData.DbSchemas[0];
                     entityConfig.DBTIndex = 0;
                     return entityConfig;
             }
@@ -115,7 +121,7 @@ namespace BlackHole.Engine
             return Sh.ComputeHash(bytes);
         }
 
-        internal static string GetEntitySchema(this Type entityType)
+        internal static string GetEntitySchema(this Type entityType, int connectionIndex)
         {
             if (WormHoleData.IsSchemaFromNamespace)
             {
@@ -133,7 +139,7 @@ namespace BlackHole.Engine
                 }
             }
 
-            return WormHoleData.DefaultSchema;
+            return WormHoleData.DbSchemas[connectionIndex];
         }
 
         internal static EntityContext GetEntityContext<G>(this Type entityType)

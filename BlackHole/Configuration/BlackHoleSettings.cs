@@ -8,25 +8,19 @@ namespace BlackHole.Configuration
     /// </summary>
     public class BlackHoleSettings
     {
-        /// <summary>
-        /// set the default directory of BlackHole to store logs and data
-        /// </summary>
-        public DataPathSettings DirectorySettings { get; set; } = new DataPathSettings();
+        internal DataPathSettings DirectorySettings = new DataPathSettings();
 
-        internal ConnectionSettings ConnectionConfig { get; set; } = new ConnectionSettings();
+        internal ConnectionSettings ConnectionConfig = new ConnectionSettings();
 
-        internal List<MultiConnectionSettings> MultipleConnectionsConfig { get; set; } = new List<MultiConnectionSettings>();
+        internal List<MultiConnectionSettings> MultipleConnectionsConfig = new List<MultiConnectionSettings>();
+
+        internal MultiSchemaConnectionSettings MultiSchemaConfig = new();
+
+        internal HighAvailabilityConnectionSettings HighAvailabilityConfig = new();
 
         internal bool UseDefaultServicesOnMultiDb { get; set; } = true;
-
-        internal MultiSchemaConnectionSettings MultiSchemaConfig { get; set; } = new();
-
-        internal HighAvailabilityConnectionSettings HighAvailabilityConfig { get; set; } = new();
-
         internal bool IsInDevMode { get; set; } = false;
-
         internal bool AutoUpdate { get; set; } = false;
-
         internal BHMode DatabaseConfig { get; set; }
 
         /// <summary>

@@ -8,6 +8,8 @@ namespace BlackHole.Configuration
     /// </summary>
     public class MultiConnectionSettings
     {
+        internal MultiAdditionalSettings additionalSettings = new();
+
         internal string ConnectionString { get; set; } = string.Empty;
         internal string TableSchema { get; set; } = string.Empty;
         internal string SelectedNamespace {  get; set; } = string.Empty;
@@ -15,11 +17,6 @@ namespace BlackHole.Configuration
         internal Assembly? Ass {  get; set; }
         internal bool IsUsingAssembly { get; set; }
         internal bool UseQuotedDb { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public MultiAdditionalSettings additionalSettings = new();
 
         /// <summary>
         /// 

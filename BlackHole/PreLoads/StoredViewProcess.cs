@@ -312,12 +312,24 @@ namespace BlackHole.PreLoads
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    public class StoredViewComplete<Dto>
+    internal class StoredViewComplete<Dto> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
         internal StoredViewComplete(JoinsData data)
         {
             Data = data;
+        }
+
+        internal void StoreAsView()
+        {
+            JoinsData? existingJoin = BlackHoleViews.Stored.FirstOrDefault(x => x.DtoType == typeof(Dto));
+
+            if (existingJoin != null)
+            {
+                BlackHoleViews.Stored.Remove(existingJoin);
+            }
+
+            BlackHoleViews.Stored.Add(Data);
         }
     }
 }

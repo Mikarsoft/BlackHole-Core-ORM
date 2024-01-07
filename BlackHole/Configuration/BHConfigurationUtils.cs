@@ -25,8 +25,9 @@ namespace BlackHole.Configuration
     /// </summary>
     public class EntitiesWithNamespace
     {
-        internal List<string> EntitiesNamespaces = new List<string>();
-        internal AssembliesUsed? AssemblyToUse { get; set; }
+        internal AssembliesUsed? AssemblyToUse;
+
+        internal List<string> EntitiesNamespaces { get; set; } = new List<string>();
 
         /// <summary>
         /// Using only the Entities that are in the specified 
@@ -70,8 +71,9 @@ namespace BlackHole.Configuration
     /// </summary>
     public class ServicesWithNamespace
     {
-        internal List<string> ServicesNamespaces = new List<string>();
-        internal AssembliesUsed? AssemblyToUse { get; set; }
+        internal AssembliesUsed? AssemblyToUse;
+
+        internal List<string> ServicesNamespaces { get; set; } = new List<string>();
 
         /// <summary>
         /// Using only the services that are in the

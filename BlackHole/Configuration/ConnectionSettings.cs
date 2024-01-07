@@ -188,8 +188,9 @@ namespace BlackHole.Configuration
     /// </summary>
     public class ConnectionAdditionalSettings
     {
-        internal EntitiesWithNamespace? EntityNamespaces { get; set; }
-        internal ServicesWithNamespace? ServicesNamespaces { get; set; }
+        internal EntitiesWithNamespace? EntityNamespaces;
+        internal ServicesWithNamespace? ServicesNamespaces;
+
         internal List<Assembly> AssembliesToUse { get; set; } = new List<Assembly>();
         internal bool useCallingAssembly { get; set; } = true;
         internal int ConnectionTimeOut { get; set; } = 60;

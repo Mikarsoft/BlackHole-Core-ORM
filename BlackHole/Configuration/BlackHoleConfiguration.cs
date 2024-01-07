@@ -27,11 +27,12 @@ namespace BlackHole.Configuration
             Assembly assembly = Assembly.GetCallingAssembly();
             BlackHoleSettings blackHoleSettings = new();
             settings.Invoke(blackHoleSettings);
+
             if (blackHoleSettings.DirectorySettings.DataPath == string.Empty)
             {
                 blackHoleSettings.DirectorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
             }
-
+            
             bool useLogsCleaner = false;
             int daysToClean = 60;
 
@@ -41,7 +42,7 @@ namespace BlackHole.Configuration
                 daysToClean = blackHoleSettings.DirectorySettings.DaysForCleanUp;
             }
 
-            SetMode(blackHoleSettings.isInDevMode, blackHoleSettings.AutoUpdate);
+            SetMode(blackHoleSettings.IsInDevMode, blackHoleSettings.AutoUpdate);
 
             bool cliMode = BHCliCommandReader.ReadCliJson(assembly, blackHoleSettings.ConnectionConfig.ConnectionString);
             if (cliMode)
@@ -89,6 +90,63 @@ namespace BlackHole.Configuration
                 Environment.Exit(exitCode);
             }
             return services;
+        }
+
+        private static void BuildDatabase(this IServiceCollection services, BlackHoleSettings settings, bool cliMode)
+        {
+            switch (settings.DatabaseConfig)
+            {
+                case BHMode.Single:
+                    services.BuildSingleDatabase(settings.ConnectionConfig);
+                    break;
+                case BHMode.MultiSchema:
+                    services.BuildMultiSchemaDatabases(settings.MultiSchemaConfig);
+                    break;
+                case BHMode.Multiple:
+                    services.BuildMultipleDatabases(settings.MultipleConnectionsConfig);
+                    break;
+                case BHMode.HighAvailability:
+                    services.BuildHighAvailabilityDatabase(settings.HighAvailabilityConfig);
+                    break;
+            }
+        }
+
+        private static void BuildSingleDatabase(this IServiceCollection services , ConnectionSettings singleSettings)
+        {
+            DatabaseInitializer initializer = new();
+
+            initializer.SetBHMode(BHMode.Single);
+            initializer.InitializeProviders(1);
+        }
+
+        private static void BuildMultipleDatabases(this IServiceCollection services, List<MultiConnectionSettings> multiSettings)
+        {
+            DatabaseInitializer initializer = new();
+
+            initializer.SetBHMode(BHMode.Multiple);
+            initializer.InitializeProviders(multiSettings.Count);
+
+            for(int i = 0; i < multiSettings.Count; i++)
+            {
+                initializer.AssignWormholeSettings(multiSettings[i].ConnectionString, multiSettings[i].ConnectionType,
+                    multiSettings[i].TableSchema, multiSettings[i].UseQuotedDb, i);
+            }
+        }
+
+        private static void BuildMultiSchemaDatabases(this IServiceCollection services, MultiSchemaConnectionSettings multiSchemaSettings)
+        {
+            DatabaseInitializer initializer = new();
+
+            initializer.SetBHMode(BHMode.MultiSchema);
+            initializer.InitializeProviders(1);
+        }
+
+        private static void BuildHighAvailabilityDatabase(this IServiceCollection services, HighAvailabilityConnectionSettings haSettings)
+        {
+            DatabaseInitializer initializer = new();
+
+            initializer.SetBHMode(BHMode.HighAvailability);
+            initializer.InitializeProviders(2);
         }
 
         private static int BuildOrUpdateDatabaseCliProcess(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)

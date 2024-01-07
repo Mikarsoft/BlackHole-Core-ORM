@@ -111,5 +111,10 @@ namespace BlackHole.PreLoads
         internal BlackHoleSqlTypes ConnectionType { get; set; }
         internal string ConnectionString { get; set; } = string.Empty;
         internal bool UseQuotedDb { get; set; }
+
+        internal void StoreAsProcedure()
+        {
+
+        }
     }
 }

@@ -7,14 +7,11 @@ namespace BlackHole.Configuration
     /// </summary>
     public class HighAvailabilityConnectionSettings
     {
+        internal HighAvailabilitySecondDbConfig secondDbConfig = new();
+
         internal BlackHoleSqlTypes ConnectionType { get; set; }
         internal string ConnectionString { get; set; } = string.Empty;
         internal bool QuotedDb { get; set; } = false;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public HighAvailabilitySecondDbConfig secondDbConfig { get; set; } = new();
 
         /// <summary>
         /// 

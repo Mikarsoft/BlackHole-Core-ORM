@@ -8,11 +8,11 @@ namespace BlackHole.Configuration
     /// </summary>
     public class MultiSchemaConnectionSettings
     {
+        internal MultiSchemaSettings additionalSettings = new();
+
         internal string ConnectionString { get; set; } = string.Empty;
         internal string TableSchema { get; set; } = string.Empty;
         internal BlackHoleSqlTypes ConnectionType { get; set; }
-
-        internal MultiSchemaSettings additionalSettings = new();
         internal bool UseQuotedDb { get; set; } = false;
 
         /// <summary>
@@ -70,7 +70,6 @@ namespace BlackHole.Configuration
     /// </summary>
     public class MultiSchemaSettings
     {
-
         internal List<Assembly> AssembliesToUse { get; set; } = new List<Assembly>();
         internal bool SeparateSchemaByNamespaceInAssembly { get; set; } = false;
         internal bool SeparateSchemaByAssembly { get; set; } = false;
