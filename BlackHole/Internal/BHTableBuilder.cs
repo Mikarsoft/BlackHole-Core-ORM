@@ -1706,13 +1706,13 @@ namespace BlackHole.Internal
             {
                 if (IsLite)
                 {
-                    BlackHoleTransaction transaction = new();
-                    connection.JustExecute("PRAGMA foreign_keys = off", null, transaction);
+                    BlackHoleTransaction transaction = new(0);
+                    connection.JustExecute("PRAGMA foreign_keys = off", null, transaction,0);
                     foreach (string command in AllCommands)
                     {
-                        connection.JustExecute(command, null, transaction);
+                        connection.JustExecute(command, null, transaction,0);
                     }
-                    connection.JustExecute("PRAGMA foreign_keys = on", null, transaction);
+                    connection.JustExecute("PRAGMA foreign_keys = on", null, transaction, 0);
                     bool result = transaction.Commit();
                     transaction.Dispose();
                     return result;
@@ -1730,12 +1730,12 @@ namespace BlackHole.Internal
                     RevertChanges.AddRange(RevertOracleTransaction);
                     RevertChanges.AddRange(RevertOracleAfterMath);
 
-                    BlackHoleTransaction transaction = new();
+                    BlackHoleTransaction transaction = new(0);
                     int failedIndex = 0;
 
                     for (int i = 0; i < UpdateCommands.Count; i++)
                     {
-                        bool success = connection.JustExecute(AllCommands[i], null, transaction);
+                        bool success = connection.JustExecute(AllCommands[i], null, transaction,0);
                         if (!success)
                         {
                             failedIndex = i;
@@ -1757,7 +1757,7 @@ namespace BlackHole.Internal
                     {
                         foreach(string command in DropTransaction)
                         {
-                            connection.JustExecute(command, null, transaction);
+                            connection.JustExecute(command, null, transaction,0);
                         }
                         result = transaction.Commit();
                     }

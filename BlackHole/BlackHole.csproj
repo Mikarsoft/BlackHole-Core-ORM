@@ -7,7 +7,7 @@
     <PackageId>BlackHole.Core.ORM</PackageId>
     <Authors>Michael Archolekas</Authors>
     <Company>Mikarsoft Ltd</Company>
-	<PackageOutputPath>../nupkg</PackageOutputPath>
+	<PackageOutputPath>../nupkg/orm</PackageOutputPath>
 	  <Description>The Most Complete and Fast ORM for .NetCore
 
 - Supports  SqlServer, Oracle, NpgSql, MySql, Sqlite
@@ -75,17 +75,13 @@ Find the Tutorial here =&gt;</Description>
       <PackagePath>\</PackagePath>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
     <EmbeddedResource Include="LICENSE.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BlackHole.Core.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.2" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.25" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
@@ -93,6 +89,14 @@ Find the Tutorial here =&gt;</Description>
     <PackageReference Include="Npgsql" Version="6.0.10" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

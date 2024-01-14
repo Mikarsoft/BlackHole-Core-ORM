@@ -1,9 +1,59 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<PackageOutputPath>../nupkg/abstractions</PackageOutputPath>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<PackageId>BlackHole.Core.Abstractions</PackageId>
+	<Title>BlackHole.Abstractions</Title>
+	<Version>6.0.0</Version>
+	<Authors>Michael Archolekas</Authors>
+	<Company>Mikarsoft Ltd</Company>
+	<Copyright>Copyright (c) 2024, Mikarsoft Ltd</Copyright>
+	<PackageProjectUrl>https://mikarsoft.com</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/Mikarsoft/BlackHole-Core-ORM</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
+	<PackageTags>dotnet6,dotnet7,dotnet8,orm,entities,abstractions,black,hole</PackageTags>
+	<NeutralLanguage>en</NeutralLanguage>
+	<AssemblyVersion>6.0.0</AssemblyVersion>
+	<FileVersion>6.0.0</FileVersion>
+	<ErrorReport>none</ErrorReport>
+	<IncludeSymbols>True</IncludeSymbols>
+	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	<Description>Abstract classes for BlackHole.Core.ORM.
+
+- BlackHole Entity Types
+- BlackHole DTO Types
+- BlackHole Services Types
+- BlackHole Attributes</Description>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <FileAlignment>1024</FileAlignment>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <FileAlignment>1024</FileAlignment>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Link="README.md">
+      <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
