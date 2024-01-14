@@ -187,7 +187,6 @@ namespace BlackHole.Engine
         internal List<BlackHoleParameter> DynamicParams { get; set; } = new List<BlackHoleParameter>();
         internal int HelperIndex { get; set; }
         internal bool IsQuotedDb { get; set; }
-        internal bool Ignore { get; set; }
         internal int ParamsCount { get; set; }
         internal string OrderByOptions { get; set; } = string.Empty;
         internal string OrderByReverseQuotes { get; set; } = string.Empty;

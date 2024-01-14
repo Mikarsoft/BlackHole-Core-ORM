@@ -6,23 +6,26 @@
     <Nullable>enable</Nullable>
     <PackageId>BlackHole.Core.ORM</PackageId>
     <Authors>Michael Archolekas</Authors>
-    <Company>Mikarsoft</Company>
+    <Company>Mikarsoft Ltd</Company>
 	<PackageOutputPath>../nupkg</PackageOutputPath>
-	  <Description>A very Fast, Fully automated and easy to setup ORM that has ALL the required features:
+	  <Description>The Most Complete and Fast ORM for .NetCore
 
-- Supports out of the box: SQL Server, MySql, Postgres, Oracle and SqLite.
-- Handling all the databases with the same methods.
-- Auto Create and Update Database on Startup.
-- Tables are based on the Entities.
-- Supports Autoincrement, Composite Primary Keys.
-- Has Value Generator Interface , to auto generate values on Insert.
-- Uses Property Attributes to declare, Foreign Keys , Unique constraints and more.
-- Direct Mapping Entities to DTO.
-- Methods for performing Joins on any table.
-- Interface for Default Data.
-- Using its Cli it can Parse Any Database and Generate the Entities in the app.
+- Supports  SqlServer, Oracle, NpgSql, MySql, Sqlite
+- All Databases are working with the exact same methods of the Data Provider
+- Can handle multiple Databases in one instance
+- High Availability Database feature
+- Multi Shcema Database based on Entity's Namespace 
+- Can Create Stored Views and Joins using C# code
+- Has Interface for Stored Procedures and Custom Sql Commands
+- Can Select or Update specific columns Using DTOs 
+- Supports Code First and Database First architectures
+- Parsing any database and generating the Entities using BlackHole.Core.Cli
 
-Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</Description>
+Warning: This version has BREAKING CHANGES. Please watch the tutorial 
+or read the documentation before updating from a previous version.
+
+Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html
+Find the Tutorial here =&gt;</Description>
     <Copyright>Copyright (c) 2023, Mikarsoft Ltd</Copyright>
     <PackageProjectUrl>https://mikarsoft.com</PackageProjectUrl>
     <PackageIcon>mikarsoft.png</PackageIcon>
@@ -31,12 +34,12 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
     <NeutralLanguage>en</NeutralLanguage>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>6.1.3</AssemblyVersion>
-    <FileVersion>6.1.3</FileVersion>
+    <AssemblyVersion>6.2.1</AssemblyVersion>
+    <FileVersion>6.2.1</FileVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 	<PropertyGroup>
-		<Version>6.1.3</Version>
+		<Version>6.2.1</Version>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>- Bugfix Postgres adding Not Nullable Column
 - Mandatory logging on Database Update
@@ -45,6 +48,15 @@ Find documentation here =&gt; https://mikarsoft.com/BHDocumentation/index.html</
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<Title>BlackHole.ORM</Title>
+		<ErrorReport>none</ErrorReport>
+		<IncludeSymbols>True</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <FileAlignment>1024</FileAlignment>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <FileAlignment>1024</FileAlignment>
 	</PropertyGroup>
 	<ItemGroup>
 	  <None Remove="LICENSE.md" />

@@ -3,7 +3,6 @@ using BlackHole.DataProviders;
 using BlackHole.Entities;
 using BlackHole.Enums;
 using BlackHole.Identifiers;
-using BlackHole.Logger;
 using BlackHole.Statics;
 using System.Data;
 using System.Linq.Expressions;
@@ -334,7 +333,7 @@ namespace BlackHole.Engine
         }
 
         internal static ColumnsAndParameters SplitMembers<T>(this Expression expression, bool isQuotedDb, string? letter,
-            List<BlackHoleParameter>? DynamicParams, int index, string schemaName)
+            List<BlackHoleParameter>? DynamicParams, int index, string schemaName, int connectionIndex)
         {
             List<ExpressionsData> expressionTree = new();
 
@@ -679,7 +678,7 @@ namespace BlackHole.Engine
                 }
             }
 
-            return expressionTree.ExpressionTreeToSql<T>(isQuotedDb, letter, DynamicParams, index, schemaName);
+            return expressionTree.ExpressionTreeToSql<T>(isQuotedDb, letter, DynamicParams, index, schemaName, connectionIndex);
         }
         
         private static void InvokeOrTake<T>(this ExpressionsData thisBranch, MemberExpression memberExp, bool isRight)
@@ -711,7 +710,7 @@ namespace BlackHole.Engine
         }
 
         internal static ColumnsAndParameters ExpressionTreeToSql<T>(this List<ExpressionsData> data, bool isQuotedDb, string? letter,
-            List<BlackHoleParameter>? parameters, int index, string schemaName)
+            List<BlackHoleParameter>? parameters, int index, string schemaName, int connectionIndex)
         {
             parameters ??= new List<BlackHoleParameter>();
 
@@ -735,7 +734,7 @@ namespace BlackHole.Engine
                         child.MethodData[0].ComparedValue = child.MemberValue;
                     }
 
-                    SqlFunctionResult sqlFunctionResult = child.MethodData[0].TranslateBHMethod<T>(index, letter, isQuotedDb, schemaName);
+                    SqlFunctionResult sqlFunctionResult = child.MethodData[0].TranslateBHMethod<T>(index, letter, isQuotedDb, schemaName, connectionIndex);
 
                     if (sqlFunctionResult.ParamName != string.Empty)
                     {
@@ -856,9 +855,11 @@ namespace BlackHole.Engine
             return new ColumnsAndParameters { Columns = data[0].SqlCommand, ColumnsReverseQuotes = data[0].SqlCommandReverseQuotes, Parameters = parameters, Count = index};
         }
 
-        private static SqlFunctionResult TranslateBHMethod<T>(this MethodExpressionData MethodData, int index, string? letter, bool isQuotedDb, string schemaName)
+        private static SqlFunctionResult TranslateBHMethod<T>(this MethodExpressionData MethodData, int index, string? letter, bool isQuotedDb, string schemaName, int connectionIndex)
         {
             SqlFunctionResult result = new();
+
+            bool connectionMismatch = false;
 
             if(MethodData.CastedOn != null)
             {
@@ -996,14 +997,16 @@ namespace BlackHole.Engine
                             string? PropertyName = MethodData.CompareProperty.Member?.Name;
                             string? aTable = aTableType?.GetTableDisplayName(false);
 
-                            if (aTable != null && PropertyName != null)
+                            if (aTableType != null && PropertyName != null)
                             {
                                 string? specialSchema;
+                                EntityInfo otherInfo = aTableType.SwitchBlackHoleMode(DatabaseRole.Master);
 
                                 switch (MethodData.MethodName)
                                 {
                                     case "SqlEqualTo":
-                                        specialSchema = aTableType?.GetEntitySchema();
+                                        connectionMismatch = connectionIndex != otherInfo.DBTIndex;
+                                        specialSchema = otherInfo.EntitySchema;
                                         result.ParamName = $"OtherId{index}";
                                         result.Value = MethodData.MethodArguments[1];
                                         selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
@@ -1013,7 +1016,8 @@ namespace BlackHole.Engine
                                         result.WasTranslated = true;
                                         return result;
                                     case "SqlGreaterThan":
-                                        specialSchema = aTableType?.GetEntitySchema();
+                                        connectionMismatch = connectionIndex != otherInfo.DBTIndex;
+                                        specialSchema = otherInfo.EntitySchema;
                                         result.ParamName = $"OtherId{index}";
                                         result.Value = MethodData.MethodArguments[1];
                                         selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
@@ -1023,7 +1027,8 @@ namespace BlackHole.Engine
                                         result.WasTranslated = true;
                                         return result;
                                     case "SqlLessThan":
-                                        specialSchema = aTableType?.GetEntitySchema();
+                                        connectionMismatch = connectionIndex != otherInfo.DBTIndex;
+                                        specialSchema = otherInfo.EntitySchema;
                                         result.ParamName = $"OtherId{index}";
                                         result.Value = MethodData.MethodArguments[1];
                                         selectCommandReverse = NotHAMode ? string.Empty : $"( Select {PropertyName.UseNameQuotes(!isQuotedDb)} from {specialSchema}{aTable.UseNameQuotes(!isQuotedDb)} where {"Id".UseNameQuotes(!isQuotedDb)} = @{result.ParamName} )";
@@ -1190,9 +1195,12 @@ namespace BlackHole.Engine
 
             if (!result.WasTranslated)
             {
-                Task.Factory.StartNew(() => MethodData.MethodName.CreateErrorLogs($"SqlFunctionsReader_{MethodData.MethodName}",
-                    $"Unknown Method: {MethodData.MethodName}. It was translated into '1 != 1' to avoid data corruption.",
-                    "Please read the documentation to find the supported Sql functions and the correct usage of them."));
+                throw new Exception($"Black Hole Method Translator : The '{MethodData.MethodName}' Method is unsupported , or the usage is incorrect.");
+            }
+
+            if (connectionMismatch)
+            {
+                throw new Exception($"Black Hole Method Translator : Connection Mismatch at method '{MethodData.MethodName}'. The entities belong to different databases.");
             }
 
             return result;
@@ -1344,7 +1352,6 @@ namespace BlackHole.Engine
                 string? parameterOne = key.Parameters[0].Name;
 
                 data.BaseTable = typeof(TSource);
-                data.Ignore = false;
 
                 bool OpenEntity = typeof(TSource).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
                 EntityInfo basicTableInfo = data.BaseTable.SwitchBlackHoleMode(DatabaseRole.Master);
@@ -1365,7 +1372,8 @@ namespace BlackHole.Engine
 
                 if (firstType == null)
                 {
-                    data.Ignore = true;
+                    throw new Exception($"Joins Error : At the join between '{typeof(TSource).Name}' and  '{typeof(TOther).Name}'," +
+                        $" the first table '{typeof(TSource).Name}' has not been used in previous joins.");
                 }
                 else
                 {
@@ -1373,69 +1381,60 @@ namespace BlackHole.Engine
                 }
             }
 
-            if (!data.Ignore)
+            MemberExpression? member = key.Body as MemberExpression;
+            string? propName = member?.Member.Name;
+
+            string? parameterOther = otherKey.Parameters[0].Name;
+            MemberExpression? memberOther = otherKey.Body as MemberExpression;
+            string? propNameOther = memberOther?.Member.Name;
+
+            Type otherTableType = typeof(TOther);
+
+            TableLetters? secondTable = data.TablesToLetters.FirstOrDefault(x => x.Table == otherTableType);
+
+            string schemaName = string.Empty;
+
+            if (secondTable == null)
             {
-                MemberExpression? member = key.Body as MemberExpression;
-                string? propName = member?.Member.Name;
+                bool isOpen = otherTableType.BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
+                EntityInfo otherTableInfo = otherTableType.SwitchBlackHoleMode(DatabaseRole.Master);
 
-                string? parameterOther = otherKey.Parameters[0].Name;
-                MemberExpression? memberOther = otherKey.Body as MemberExpression;
-                string? propNameOther = memberOther?.Member.Name;
-
-                Type otherTableType = typeof(TOther);
-
-                TableLetters? secondTable = data.TablesToLetters.FirstOrDefault(x => x.Table == otherTableType);
-
-                string schemaName = string.Empty;
-                bool isValidTable = false;
-
-                if (secondTable == null)
+                if (data.ConnectionIndex == otherTableInfo.DBTIndex)
                 {
-                    bool isOpen = otherTableType.BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
-                    EntityInfo otherTableInfo = otherTableType.SwitchBlackHoleMode(DatabaseRole.Master);
-
-                    if(data.ConnectionIndex == otherTableInfo.DBTIndex)
+                    if (data.Letters.Contains(parameterOther))
                     {
-                        isValidTable = true;
-
-                        if (data.Letters.Contains(parameterOther))
-                        {
-                            parameterOther += data.HelperIndex.ToString();
-                            data.HelperIndex++;
-                        }
-
-                        data.TablesToLetters.Add(new TableLetters
-                        {
-                            Table = otherTableType,
-                            Schema = otherTableInfo.EntitySchema,
-                            Letter = parameterOther,
-                            IsOpenEntity = isOpen
-                        });
-
-                        data.Letters.Add(parameterOther);
-                        data.BindPropertiesToDtoExtension(otherTableType, parameterOther);
+                        parameterOther += data.HelperIndex.ToString();
+                        data.HelperIndex++;
                     }
+
+                    data.TablesToLetters.Add(new TableLetters
+                    {
+                        Table = otherTableType,
+                        Schema = otherTableInfo.EntitySchema,
+                        Letter = parameterOther,
+                        IsOpenEntity = isOpen
+                    });
+
+                    data.Letters.Add(parameterOther);
+                    data.BindPropertiesToDtoExtension(otherTableType, parameterOther);
                 }
                 else
                 {
-                    parameterOther = secondTable.Letter;
-                    schemaName = secondTable.Schema;
-                    isValidTable = true;
+                    throw new Exception($"Joins Error : At the join between '{typeof(TSource).Name}' and  '{typeof(TOther).Name}'," +
+                        $" there is a connection mismatch. The Tables belong to different databases.");
                 }
+            }
+            else
+            {
+                parameterOther = secondTable.Letter;
+                schemaName = secondTable.Schema;
+            }
 
-                if (isValidTable)
-                {
-                    data.Joins += $" {joinType} join {schemaName}{otherTableType.GetTableDisplayName(data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
+            data.Joins += $" {joinType} join {schemaName}{otherTableType.GetTableDisplayName(data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
 
-                    if (data.HAMode)
-                    {
-                        data.JoinsReverseQuotes += $" {joinType} join {schemaName}{otherTableType.GetTableDisplayName(!data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(!data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(!data.IsQuotedDb)}";
-                    }
-                }
-                else
-                {
-                    data.Ignore = true;
-                }
+            if (data.HAMode)
+            {
+                data.JoinsReverseQuotes += $" {joinType} join {schemaName}{otherTableType.GetTableDisplayName(!data.IsQuotedDb)} {parameterOther} on {parameterOther}.{propNameOther.UseNameQuotes(!data.IsQuotedDb)} = {parameter}.{propName.UseNameQuotes(!data.IsQuotedDb)}";
             }
         }
 
@@ -1478,77 +1477,71 @@ namespace BlackHole.Engine
 
         internal static void CastColumn<TSource>(this JoinsData data, LambdaExpression predicate, LambdaExpression castOnDto)
         {
-            if (!data.Ignore)
+            Type propertyType = predicate.Body.Type;
+            MemberExpression? member = predicate.Body as MemberExpression;
+            string? propName = member?.Member.Name;
+
+            Type dtoPropType = castOnDto.Body.Type;
+            MemberExpression? memberOther = castOnDto.Body as MemberExpression;
+            string? propNameOther = memberOther?.Member.Name;
+            int allow = propertyType.AllowCast(dtoPropType);
+
+            if (allow != 0)
             {
-                Type propertyType = predicate.Body.Type;
-                MemberExpression? member = predicate.Body as MemberExpression;
-                string? propName = member?.Member.Name;
-
-                Type dtoPropType = castOnDto.Body.Type;
-                MemberExpression? memberOther = castOnDto.Body as MemberExpression;
-                string? propNameOther = memberOther?.Member.Name;
-                int allow = propertyType.AllowCast(dtoPropType);
-
-                if (allow != 0)
-                {
-                    var oDp = data.OccupiedDtoProps.First(x => x.PropName == propNameOther);
-                    int index = data.OccupiedDtoProps.IndexOf(oDp);
-                    data.OccupiedDtoProps[index].Occupied = true;
-                    data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.First(x => x.Table == typeof(TSource)).Letter;
-                    data.OccupiedDtoProps[index].TableProperty = propName;
-                    data.OccupiedDtoProps[index].TablePropertyType = propertyType;
-                    data.OccupiedDtoProps[index].WithCast = allow;
-                }
+                var oDp = data.OccupiedDtoProps.First(x => x.PropName == propNameOther);
+                int index = data.OccupiedDtoProps.IndexOf(oDp);
+                data.OccupiedDtoProps[index].Occupied = true;
+                data.OccupiedDtoProps[index].TableLetter = data.TablesToLetters.First(x => x.Table == typeof(TSource)).Letter;
+                data.OccupiedDtoProps[index].TableProperty = propName;
+                data.OccupiedDtoProps[index].TablePropertyType = propertyType;
+                data.OccupiedDtoProps[index].WithCast = allow;
             }
         }
 
         internal static void Additional<TSource, TOther>(this JoinsData data, LambdaExpression key, LambdaExpression otherKey, string additionalType)
         {
-            if (!data.Ignore)
+            string? firstLetter = data.TablesToLetters.First(t => t.Table == typeof(TSource)).Letter;
+            string? secondLetter = data.TablesToLetters.First(t => t.Table == typeof(TOther)).Letter;
+
+            MemberExpression? member = key.Body as MemberExpression;
+            string? propName = member?.Member.Name;
+            MemberExpression? memberOther = otherKey.Body as MemberExpression;
+            string? propNameOther = memberOther?.Member.Name;
+
+            data.Joins += $" {additionalType} {secondLetter}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {firstLetter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
+
+            if (data.HAMode)
             {
-                string? firstLetter = data.TablesToLetters.First(t => t.Table == typeof(TSource)).Letter;
-                string? secondLetter = data.TablesToLetters.First(t => t.Table == typeof(TOther)).Letter;
-
-                MemberExpression? member = key.Body as MemberExpression;
-                string? propName = member?.Member.Name;
-                MemberExpression? memberOther = otherKey.Body as MemberExpression;
-                string? propNameOther = memberOther?.Member.Name;
-
-                data.Joins += $" {additionalType} {secondLetter}.{propNameOther.UseNameQuotes(data.IsQuotedDb)} = {firstLetter}.{propName.UseNameQuotes(data.IsQuotedDb)}";
-
-                if (data.HAMode)
-                {
-                    data.JoinsReverseQuotes += $" {additionalType} {secondLetter}.{propNameOther.UseNameQuotes(!data.IsQuotedDb)} = {firstLetter}.{propName.UseNameQuotes(!data.IsQuotedDb)}";
-                }
+                data.JoinsReverseQuotes += $" {additionalType} {secondLetter}.{propNameOther.UseNameQuotes(!data.IsQuotedDb)} = {firstLetter}.{propName.UseNameQuotes(!data.IsQuotedDb)}";
             }
         }
 
         internal static void WhereJoin<TSource>(this JoinsData data, Expression<Func<TSource, bool>> predicate)
         {
-            if (!data.Ignore)
+            TableLetters tb = data.TablesToLetters.First(x => x.Table == typeof(TSource));
+
+            ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TSource>(data.IsQuotedDb, tb.Letter,
+                data.DynamicParams, data.ParamsCount, tb.Schema, data.ConnectionIndex);
+
+            data.DynamicParams = colsAndParams.Parameters;
+            data.ParamsCount = colsAndParams.Count;
+
+            if (data.WherePredicates == string.Empty)
             {
-                TableLetters tb = data.TablesToLetters.First(x => x.Table == typeof(TSource));
-                ColumnsAndParameters colsAndParams = predicate.Body.SplitMembers<TSource>(data.IsQuotedDb, tb.Letter, data.DynamicParams, data.ParamsCount, tb.Schema);
-                data.DynamicParams = colsAndParams.Parameters;
-                data.ParamsCount = colsAndParams.Count;
+                data.WherePredicates = $" where {colsAndParams.Columns}";
 
-                if (data.WherePredicates == string.Empty)
+                if (data.HAMode)
                 {
-                    data.WherePredicates = $" where {colsAndParams.Columns}";
-
-                    if (data.HAMode)
-                    {
-                        data.WhereReverseQuotes = $" where {colsAndParams.ColumnsReverseQuotes}";
-                    }
+                    data.WhereReverseQuotes = $" where {colsAndParams.ColumnsReverseQuotes}";
                 }
-                else
-                {
-                    data.WherePredicates += $" and {colsAndParams.Columns}";
+            }
+            else
+            {
+                data.WherePredicates += $" and {colsAndParams.Columns}";
 
-                    if (data.HAMode)
-                    {
-                        data.WhereReverseQuotes += $" and {colsAndParams.ColumnsReverseQuotes}";
-                    }
+                if (data.HAMode)
+                {
+                    data.WhereReverseQuotes += $" and {colsAndParams.ColumnsReverseQuotes}";
                 }
             }
         }
