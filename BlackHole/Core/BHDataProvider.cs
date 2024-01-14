@@ -1716,6 +1716,11 @@ namespace BlackHole.Core
             return await _dataProvider.JustExecuteAsync($"delete from {_context.ThisTable} where {sql.Columns}",
                 sql.Parameters, bhTransaction.transaction, _context.ConnectionIndex);
         }
+
+        IBHTransaction IBHDataProvider<T, G>.BeginBHTransaction()
+        {
+            return new BHTransaction();
+        }
         #endregion
     }
 }

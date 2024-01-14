@@ -6,7 +6,7 @@ namespace BlackHole.Core
     /// An Object that can store Dynamic Parameters that get
     /// translated into SQL Parameters in every provider.
     /// </summary>
-    public class BHParameters
+    public class BHParameters : IBHParameters
     {
         internal List<BlackHoleParameter> Parameters = new();
 

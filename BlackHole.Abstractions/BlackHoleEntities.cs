@@ -54,7 +54,12 @@ namespace BlackHole.Entities
 
         internal int Inactive { get; set; }
 
-        internal bool SetId(G? id)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool SetId(G? id)
         {
             if (id != null)
             {

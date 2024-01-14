@@ -19,13 +19,6 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        IBHTransaction BeginBHTransaction();
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         bool Any();
 
         /// <summary>
@@ -72,7 +65,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        bool Any(BHTransaction transaction);
+        bool Any(IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -80,14 +73,14 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        bool Any(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        bool Any(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        int Count(BHTransaction transaction);
+        int Count(IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -95,7 +88,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        int CountWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        int CountWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Finds the active entries of the database table that
@@ -105,7 +98,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Id of the Entry</returns>
-        G? GetIdWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        G? GetIdWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
 
         /// <summary>
@@ -115,7 +108,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of Entry Ids</returns>
-        List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
         #endregion
 
         #region Select Methods
@@ -211,7 +204,7 @@ namespace BlackHole.Core
         /// and returns a List of Entities
         /// </summary>
         /// <returns>All Active Entities of the Table</returns>
-        List<T> GetAllEntries(BHTransaction transaction);
+        List<T> GetAllEntries(IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Selects only the columns of the specified Dto that exist on the Table
@@ -221,7 +214,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        List<Dto> GetAllEntries<Dto>(BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        List<Dto> GetAllEntries<Dto>(IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// <b>Transaction.</b> In case you are using the 'UseActivator' Attribute on the Entity
@@ -229,7 +222,7 @@ namespace BlackHole.Core
         /// in this Table
         /// </summary>
         /// <returns>All Incative Entities of the Table</returns>
-        List<T> GetAllInactiveEntries(BHTransaction transaction);
+        List<T> GetAllInactiveEntries(IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Returns the Entity from this Table that has the
@@ -238,7 +231,7 @@ namespace BlackHole.Core
         /// <param name="Id">Specified Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Entity</returns>
-        T? GetEntryById(G Id, BHTransaction transaction);
+        T? GetEntryById(G Id, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Selects only the columns of the specified Dto that exist on the Table
@@ -250,7 +243,7 @@ namespace BlackHole.Core
         /// <param name="Id">Specified Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Data Transfer Object</returns>
-        Dto? GetEntryById<Dto>(G Id, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Dto? GetEntryById<Dto>(G Id, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -259,7 +252,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Entity</returns>
-        T? GetEntryWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        T? GetEntryWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
@@ -272,7 +265,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Data Transfer Object</returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -281,7 +274,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of Entities</returns>
-        List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -294,7 +287,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of DTOs</returns>
-        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         // WITH ORDER BY
 
@@ -365,7 +358,7 @@ namespace BlackHole.Core
         /// and returns a List of Entities
         /// </summary>
         /// <returns>All Active Entities of the Table</returns>
-        List<T> GetAllEntries(Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
+        List<T> GetAllEntries(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Selects only the columns of the specified Dto that exist on the Table
@@ -375,7 +368,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        List<Dto> GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        List<Dto> GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// <b>Transaction.</b> In case you are using the 'UseActivator' Attribute on the Entity
@@ -383,7 +376,7 @@ namespace BlackHole.Core
         /// in this Table
         /// </summary>
         /// <returns>All Incative Entities of the Table</returns>
-        List<T> GetAllInactiveEntries(Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
+        List<T> GetAllInactiveEntries(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -392,26 +385,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        T? GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="orderBy"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="orderBy"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction);
+        T? GetEntryWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -421,7 +395,26 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        List<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, IBHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
         #endregion
 
         #region Insert Methods
@@ -450,7 +443,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Id of the Entity</returns>
-        bool InsertEntry(T entry, BHTransaction transaction);
+        bool InsertEntry(T entry, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Inserts a list of Entities into the table, generates a new Id of each one
@@ -459,7 +452,7 @@ namespace BlackHole.Core
         /// <param name="entries">Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Ids of the Entities</returns>
-        bool InsertEntries(List<T> entries, BHTransaction transaction);
+        bool InsertEntries(List<T> entries, IBHTransaction transaction);
 
 
         #endregion
@@ -548,7 +541,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool UpdateEntryById(T entry, BHTransaction transaction);
+        bool UpdateEntryById(T entry, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b>Finds the entry in the database table that
@@ -562,7 +555,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool UpdateEntryById<Columns>(T entry, BHTransaction transaction) where Columns : class;
+        bool UpdateEntryById<Columns>(T entry, IBHTransaction transaction) where Columns : class;
 
         /// <summary>
         /// <b>Transaction.</b> Finds the entries in the table that have
@@ -573,7 +566,7 @@ namespace BlackHole.Core
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool UpdateEntriesById(List<T> entries, BHTransaction transaction);
+        bool UpdateEntriesById(List<T> entries, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Finds the entries in the database table that
@@ -587,7 +580,7 @@ namespace BlackHole.Core
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool UpdateEntriesById<Columns>(List<T> entries, BHTransaction transaction) where Columns : class;
+        bool UpdateEntriesById<Columns>(List<T> entries, IBHTransaction transaction) where Columns : class;
 
         /// <summary>
         /// <b>Transaction.</b>Finds the entries in the table
@@ -599,7 +592,7 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <param name="entry">Entity</param>
         /// <returns>Success</returns>
-        bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction);
+        bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> Finds the entries in the database table
@@ -614,7 +607,7 @@ namespace BlackHole.Core
         /// <param name="entry">Columns Object</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class;
+        bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction transaction) where Columns : class;
 
         #endregion
 
@@ -677,7 +670,7 @@ namespace BlackHole.Core
         /// be accessed with the 'GetInactiveEntries' command. 
         /// </summary>
         /// <returns>Success</returns>
-        bool DeleteAllEntries(BHTransaction transaction);
+        bool DeleteAllEntries(IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b>Finds and deletes the entry of the database table
@@ -689,7 +682,7 @@ namespace BlackHole.Core
         /// <param name="Id">Entry's Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool DeleteEntryById(G Id, BHTransaction transaction);
+        bool DeleteEntryById(G Id, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> If you are using a 'UseActivator' Attribute on this Entity
@@ -699,7 +692,7 @@ namespace BlackHole.Core
         /// <param name="Id">Inactive Entry's Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool DeleteInactiveEntryById(G Id, BHTransaction transaction);
+        bool DeleteInactiveEntryById(G Id, IBHTransaction transaction);
 
         /// <summary>
         /// Activates again an Inactive Entry
@@ -708,7 +701,7 @@ namespace BlackHole.Core
         /// <param name="Id"></param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool ReactivateEntryById(G Id, BHTransaction transaction);
+        bool ReactivateEntryById(G Id, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b>Finds and deletes the entries of the database table
@@ -720,7 +713,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool DeleteEntriesWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        bool DeleteEntriesWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         #endregion
 
@@ -780,7 +773,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<bool> AnyAsync(BHTransaction transaction);
+        Task<bool> AnyAsync(IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -788,14 +781,14 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<int> CountAsync(BHTransaction transaction);
+        Task<int> CountAsync(IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -803,7 +796,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<int> CountWhereAsync(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        Task<int> CountWhereAsync(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the active entries of the database table that
@@ -814,7 +807,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Id of the Entry</returns>
-        Task<G?> GetIdAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        Task<G?> GetIdAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the active entries of the database table that
@@ -824,7 +817,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of Entry Ids</returns>
-        Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         #endregion
 
@@ -932,7 +925,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns>All Active Entities of the Table</returns>
-        Task<List<T>> GetAllEntriesAsync(BHTransaction transaction);
+        Task<List<T>> GetAllEntriesAsync(IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b><b>Asyncronous.</b> Selects only the columns of the specified Dto that exist on the Table
@@ -944,7 +937,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data transfer Object</typeparam>
         /// <param name="transaction"></param>
         /// <returns>All Active Entities of the Table mapped to DTO</returns>
-        Task<List<Dto>> GetAllEntriesAsync<Dto>(BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Task<List<Dto>> GetAllEntriesAsync<Dto>(IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// <b>Transaction.</b><b>Asyncronous.</b> In case you are using the 'UseActivator' Attribute on the Entity
@@ -953,7 +946,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="transaction"></param>
         /// <returns>All Incative Entities of the Table</returns>
-        Task<List<T>> GetAllInactiveEntriesAsync(BHTransaction transaction);
+        Task<List<T>> GetAllInactiveEntriesAsync(IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Returns the Entity from this Table that has the
@@ -963,7 +956,7 @@ namespace BlackHole.Core
         /// <param name="Id">Specified Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Entity</returns>
-        Task<T?> GetEntryByIdAsync(G Id, BHTransaction transaction);
+        Task<T?> GetEntryByIdAsync(G Id, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Selects only the columns of the specified Dto that exist on the Table
@@ -976,7 +969,7 @@ namespace BlackHole.Core
         /// <param name="Id">Specified Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Data Transfer Object</returns>
-        Task<Dto?> GetEntryByIdAsync<Dto>(G Id, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Task<Dto?> GetEntryByIdAsync<Dto>(G Id, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -986,7 +979,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Entity</returns>
-        Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
@@ -1000,7 +993,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Data Transfer Object</returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// <b>Transaction.</b><b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -1010,7 +1003,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of Entities</returns>
-        Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -1024,7 +1017,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of DTOs</returns>
-        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         // WITH ORDER BY
 
@@ -1092,7 +1085,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<List<T>> GetAllEntriesAsync(Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
+        Task<List<T>> GetAllEntriesAsync(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -1101,7 +1094,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<List<Dto>> GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Task<List<Dto>> GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         /// <summary>
         /// 
@@ -1109,26 +1102,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<List<T>> GetAllInactiveEntriesAsync(Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="orderBy"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="orderBy"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Task<List<T>> GetAllInactiveEntriesAsync(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -1137,7 +1111,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, BHTransaction transaction);
+        Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction);
 
         /// <summary>
         /// 
@@ -1147,7 +1121,26 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, BHTransaction transaction) where Dto : BlackHoleDto<G>;
+        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<List<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="Dto"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>>  orderBy, IBHTransaction transaction) where Dto : BlackHoleDto<G>;
 
         #endregion
 
@@ -1181,7 +1174,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Id of the Entity</returns>
-        Task<bool> InsertEntryAsync(T entry, BHTransaction transaction);
+        Task<bool> InsertEntryAsync(T entry, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Inserts a list of Entities into the table, generates a new Id of each one
@@ -1190,7 +1183,7 @@ namespace BlackHole.Core
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Ids of the Entities</returns>
-        Task<bool> InsertEntriesAsync(List<T> entries, BHTransaction transaction);
+        Task<bool> InsertEntriesAsync(List<T> entries, IBHTransaction transaction);
         #endregion
 
         #region Update Methods Async
@@ -1284,7 +1277,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> UpdateEntryByIdAsync(T entry, BHTransaction transaction);
+        Task<bool> UpdateEntryByIdAsync(T entry, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the entry in the database table that
@@ -1299,7 +1292,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> UpdateEntryByIdAsync<Columns>(T entry, BHTransaction transaction) where Columns : class;
+        Task<bool> UpdateEntryByIdAsync<Columns>(T entry, IBHTransaction transaction) where Columns : class;
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the entries in the table that have
@@ -1311,7 +1304,7 @@ namespace BlackHole.Core
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> UpdateEntriesByIdAsync(List<T> entries, BHTransaction transaction);
+        Task<bool> UpdateEntriesByIdAsync(List<T> entries, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the entries in the database table that
@@ -1326,7 +1319,7 @@ namespace BlackHole.Core
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> UpdateEntriesByIdAsync<Columns>(List<T> entries, BHTransaction transaction) where Columns : class;
+        Task<bool> UpdateEntriesByIdAsync<Columns>(List<T> entries, IBHTransaction transaction) where Columns : class;
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the entries in the table
@@ -1339,7 +1332,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, BHTransaction transaction);
+        Task<bool> UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Finds the entries in the database table
@@ -1355,7 +1348,7 @@ namespace BlackHole.Core
         /// <param name="entry">Columns Object</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, BHTransaction transaction) where Columns : class;
+        Task<bool> UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction transaction) where Columns : class;
 
         #endregion
 
@@ -1424,7 +1417,7 @@ namespace BlackHole.Core
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <returns>Success</returns>
-        Task<bool> DeleteAllEntriesAsync(BHTransaction transaction);
+        Task<bool> DeleteAllEntriesAsync(IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b><b>Asyncronous.</b> Finds and deletes the entry of the database table
@@ -1437,7 +1430,7 @@ namespace BlackHole.Core
         /// <param name="Id">Entry's Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> DeleteEntryByIdAsync(G Id, BHTransaction transaction);
+        Task<bool> DeleteEntryByIdAsync(G Id, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> If you are using a 'UseActivator' Attribute on this Entity
@@ -1448,7 +1441,7 @@ namespace BlackHole.Core
         /// <param name="Id">Inactive Entry's Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> DeleteInactiveEntryByIdAsync(G Id, BHTransaction transaction);
+        Task<bool> DeleteInactiveEntryByIdAsync(G Id, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Asyncronous.</b> Activates again an Inactive Entry
@@ -1458,7 +1451,7 @@ namespace BlackHole.Core
         /// <param name="Id">Entity's Id</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> ReactivateEntryByIdAsync(G Id, BHTransaction transaction);
+        Task<bool> ReactivateEntryByIdAsync(G Id, IBHTransaction transaction);
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Finds and deletes the entries of the database table
@@ -1471,7 +1464,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, BHTransaction transaction);
+        Task<bool> DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
         #endregion
     }
 }

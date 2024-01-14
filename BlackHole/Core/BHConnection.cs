@@ -52,16 +52,17 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para> Classic Execute Scalar with BHParameters</para>
+        /// <para> Classic Execute Scalar with IBHParameters</para>
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
         /// <returns>The First Value of the Result</returns>
-        public G? ExecuteScalar<G>(string commandText, BHParameters parameters)
+        public G? ExecuteScalar<G>(string commandText, IBHParameters parameters)
         {
-            return _executionProvider.ExecuteScalar<G>(commandText, parameters.Parameters);
+            BHParameters bhParameters = (BHParameters)parameters;
+            return _executionProvider.ExecuteScalar<G>(commandText, bhParameters.Parameters);
         }
 
         /// <summary>
@@ -78,17 +79,19 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para><b>Transaction.</b> Classic Execute Scalar with BHParameters</para>
+        /// <para><b>Transaction.</b> Classic Execute Scalar with IBHParameters</para>
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Value of the Result</returns>
-        public G? ExecuteScalar<G>(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        public G? ExecuteScalar<G>(string commandText, IBHParameters parameters, IBHTransaction bHTransaction)
         {
-            return _executionProvider.ExecuteScalar<G>(commandText, parameters.Parameters, bHTransaction.transaction, _connectionIndex);
+            BHParameters bhParameters = (BHParameters)parameters;
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.ExecuteScalar<G>(commandText, bhParameters.Parameters, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -97,11 +100,12 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Value of the Result</returns>
-        public G? ExecuteScalar<G>(string commandText, BHTransaction bHTransaction)
+        public G? ExecuteScalar<G>(string commandText, IBHTransaction bHTransaction)
         {
-            return _executionProvider.ExecuteScalar<G>(commandText, null, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.ExecuteScalar<G>(commandText, null, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -111,11 +115,12 @@ namespace BlackHole.Core
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Value of the Result</returns>
-        public G? ExecuteScalar<G>(string commandText, object parametersObject, BHTransaction bHTransaction)
+        public G? ExecuteScalar<G>(string commandText, object parametersObject, IBHTransaction bHTransaction)
         {
-            return _executionProvider.ExecuteScalar<G>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.ExecuteScalar<G>(commandText, MapObjectToParameters(parametersObject), transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -132,17 +137,18 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <para><b>Asyncronous.</b> Classic Execute Scalar with BHParameters</para>
+        /// <para><b>Asyncronous.</b> Classic Execute Scalar with IBHParameters</para>
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
         /// <returns>The First Value of the Result</returns>
-        public async Task<G?> ExecuteScalarAsync<G>(string commandText, BHParameters parameters)
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, IBHParameters parameters)
         {
-            return await _executionProvider.ExecuteScalarAsync<G>(commandText, parameters.Parameters);
+            BHParameters bhParameters = (BHParameters)parameters;
+            return await _executionProvider.ExecuteScalarAsync<G>(commandText, bhParameters.Parameters);
         }
 
         /// <summary>
@@ -166,26 +172,29 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Value of the Result</returns>
-        public async Task<G?> ExecuteScalarAsync<G>(string commandText, BHTransaction bHTransaction)
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.ExecuteScalarAsync<G>(commandText, null, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return await _executionProvider.ExecuteScalarAsync<G>(commandText, null, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
-        /// <para><b>Asyncronous.</b> <b>Transaction.</b> Classic Execute Scalar with BHParameters</para>
+        /// <para><b>Asyncronous.</b> <b>Transaction.</b> Classic Execute Scalar with IBHParameters</para>
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Value of the Result</returns>
-        public async Task<G?> ExecuteScalarAsync<G>(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, IBHParameters parameters, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.ExecuteScalarAsync<G>(commandText, parameters.Parameters, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            BHParameters bhParameters = (BHParameters)parameters;
+            return await _executionProvider.ExecuteScalarAsync<G>(commandText, bhParameters.Parameters, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -196,11 +205,12 @@ namespace BlackHole.Core
         /// <typeparam name="G">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Value of the Result</returns>
-        public async Task<G?> ExecuteScalarAsync<G>(string commandText, object parametersObject, BHTransaction bHTransaction)
+        public async Task<G?> ExecuteScalarAsync<G>(string commandText, object parametersObject, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.ExecuteScalarAsync<G>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return await _executionProvider.ExecuteScalarAsync<G>(commandText, MapObjectToParameters(parametersObject), transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -215,15 +225,16 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// Classic Execute with BHParameters.
+        /// Classic Execute with IBHParameters.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
         /// <returns>Success</returns>
-        public bool JustExecute(string commandText, BHParameters parameters)
+        public bool JustExecute(string commandText, IBHParameters parameters)
         {
-            return _executionProvider.JustExecute(commandText, parameters.Parameters);
+            BHParameters bhParameters = (BHParameters)parameters;
+            return _executionProvider.JustExecute(commandText, bhParameters.Parameters);
         }
 
         /// <summary>
@@ -243,11 +254,12 @@ namespace BlackHole.Core
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>Success</returns>
-        public bool JustExecute(string commandText, BHTransaction bHTransaction)
+        public bool JustExecute(string commandText, IBHTransaction bHTransaction)
         {
-            return _executionProvider.JustExecute(commandText, null, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.JustExecute(commandText, null, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -255,12 +267,14 @@ namespace BlackHole.Core
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>Success</returns>
-        public bool JustExecute(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        public bool JustExecute(string commandText, IBHParameters parameters, IBHTransaction bHTransaction)
         {
-            return _executionProvider.JustExecute(commandText, parameters.Parameters, bHTransaction.transaction, _connectionIndex);
+            BHParameters bhParameters = (BHParameters)parameters;
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.JustExecute(commandText, bhParameters.Parameters, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -269,11 +283,12 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>Success</returns>
-        public bool JustExecute(string commandText, object parametersObject, BHTransaction bHTransaction)
+        public bool JustExecute(string commandText, object parametersObject, IBHTransaction bHTransaction)
         {
-            return _executionProvider.JustExecute(commandText , MapObjectToParameters(parametersObject), bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.JustExecute(commandText , MapObjectToParameters(parametersObject), transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -289,16 +304,17 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <b>Asyncronous.</b> Classic Execute with BHParameters.
+        /// <b>Asyncronous.</b> Classic Execute with IBHParameters.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
         /// <returns>Success</returns>
-        public async Task<bool> JustExecuteAsync(string commandText, BHParameters parameters)
+        public async Task<bool> JustExecuteAsync(string commandText, IBHParameters parameters)
         {
-            return await _executionProvider.JustExecuteAsync(commandText, parameters.Parameters);
+            BHParameters bhParameters = (BHParameters)parameters;
+            return await _executionProvider.JustExecuteAsync(commandText, bhParameters.Parameters);
         }
 
         /// <summary>
@@ -320,25 +336,28 @@ namespace BlackHole.Core
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>Success</returns>
-        public async Task<bool> JustExecuteAsync(string commandText, BHTransaction bHTransaction)
+        public async Task<bool> JustExecuteAsync(string commandText, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.JustExecuteAsync(commandText, null, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return await _executionProvider.JustExecuteAsync(commandText, null, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
-        /// <b>Asyncronous.</b> <b>Transaction.</b> Classic Execute with BHParameters.
+        /// <b>Asyncronous.</b> <b>Transaction.</b> Classic Execute with IBHParameters.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>Success</returns>
-        public async Task<bool> JustExecuteAsync(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        public async Task<bool> JustExecuteAsync(string commandText, IBHParameters parameters, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.JustExecuteAsync(commandText, parameters.Parameters, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            BHParameters bhParameters = (BHParameters)parameters;
+            return await _executionProvider.JustExecuteAsync(commandText, bhParameters.Parameters, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -348,11 +367,12 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>Success</returns>
-        public async Task<bool> JustExecuteAsync(string commandText, object parametersObject, BHTransaction bHTransaction)
+        public async Task<bool> JustExecuteAsync(string commandText, object parametersObject, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.JustExecuteAsync(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return await _executionProvider.JustExecuteAsync(commandText, MapObjectToParameters(parametersObject), transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -368,16 +388,17 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// A Query that takes BHParameters and returns all Lines of the Result as List.
+        /// A Query that takes IBHParameters and returns all Lines of the Result as List.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
         /// <returns>The First Line of the Result</returns>
-        public List<T> Query<T>(string commandText, BHParameters parameters)
+        public List<T> Query<T>(string commandText, IBHParameters parameters)
         {
-            return _executionProvider.Query<T>(commandText, parameters.Parameters);
+            BHParameters bhParameters = (BHParameters)parameters;
+            return _executionProvider.Query<T>(commandText, bhParameters.Parameters);
         }
 
         /// <summary>
@@ -399,25 +420,28 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public List<T> Query<T>(string commandText, BHTransaction bHTransaction)
+        public List<T> Query<T>(string commandText, IBHTransaction bHTransaction)
         {
-            return _executionProvider.Query<T>(commandText, null, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.Query<T>(commandText, null, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
-        /// <b>Transaction.</b> A Query that takes BHParameters and returns all Lines of the Result as List.
+        /// <b>Transaction.</b> A Query that takes IBHParameters and returns all Lines of the Result as List.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public List<T> Query<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        public List<T> Query<T>(string commandText, IBHParameters parameters, IBHTransaction bHTransaction)
         {
-            return _executionProvider.Query<T>(commandText, parameters.Parameters, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            BHParameters bhParameters = (BHParameters)parameters;
+            return _executionProvider.Query<T>(commandText, bhParameters.Parameters, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -427,11 +451,12 @@ namespace BlackHole.Core
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public List<T> Query<T>(string commandText, object parametersObject, BHTransaction bHTransaction)
+        public List<T> Query<T>(string commandText, object parametersObject, IBHTransaction bHTransaction)
         {
-            return _executionProvider.Query<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.Query<T>(commandText, MapObjectToParameters(parametersObject), transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -448,17 +473,18 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <b>Asyncronous.</b> A Query that takes BHParameters and returns all Lines of the Result as List.
+        /// <b>Asyncronous.</b> A Query that takes IBHParameters and returns all Lines of the Result as List.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
         /// <returns>List of Lines</returns>
-        public async Task<List<T>> QueryAsync<T>(string commandText, BHParameters parameters)
+        public async Task<List<T>> QueryAsync<T>(string commandText, IBHParameters parameters)
         {
-            return await _executionProvider.QueryAsync<T>(commandText, parameters.Parameters);
+            BHParameters bhParameters = (BHParameters)parameters;
+            return await _executionProvider.QueryAsync<T>(commandText, bhParameters.Parameters);
         }
 
         /// <summary>
@@ -482,26 +508,29 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>List of Lines</returns>
-        public async Task<List<T>> QueryAsync<T>(string commandText, BHTransaction bHTransaction)
+        public async Task<List<T>> QueryAsync<T>(string commandText, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.QueryAsync<T>(commandText, null, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return await _executionProvider.QueryAsync<T>(commandText, null, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
-        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that takes BHParameters and returns all Lines of the Result as List.
+        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that takes IBHParameters and returns all Lines of the Result as List.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>List of Lines</returns>
-        public async Task<List<T>> QueryAsync<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        public async Task<List<T>> QueryAsync<T>(string commandText, IBHParameters parameters, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.QueryAsync<T>(commandText, parameters.Parameters, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            BHParameters bhParameters = (BHParameters)parameters;
+            return await _executionProvider.QueryAsync<T>(commandText, bhParameters.Parameters, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -512,11 +541,12 @@ namespace BlackHole.Core
         /// <typeparam name="T">Output List Type</typeparam>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>List of Lines</returns>
-        public async Task<List<T>> QueryAsync<T>(string commandText, object parametersObject, BHTransaction bHTransaction)
+        public async Task<List<T>> QueryAsync<T>(string commandText, object parametersObject, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.QueryAsync<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return await _executionProvider.QueryAsync<T>(commandText, MapObjectToParameters(parametersObject), transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -532,16 +562,17 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// A Query that takes BHParameters and returns only the first Line of the result.
+        /// A Query that takes IBHParameters and returns only the first Line of the result.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
         /// <returns>The First Line of the Result</returns>
-        public T? QueryFirst<T>(string commandText, BHParameters parameters)
+        public T? QueryFirst<T>(string commandText, IBHParameters parameters)
         {
-            return _executionProvider.QueryFirst<T>(commandText, parameters.Parameters);
+            BHParameters bhParameters = (BHParameters)parameters;
+            return _executionProvider.QueryFirst<T>(commandText, bhParameters.Parameters);
         }
 
         /// <summary>
@@ -563,25 +594,28 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public T? QueryFirst<T>(string commandText, BHTransaction bHTransaction)
+        public T? QueryFirst<T>(string commandText, IBHTransaction bHTransaction)
         {
-            return _executionProvider.QueryFirst<T>(commandText, null, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.QueryFirst<T>(commandText, null, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
-        /// <b>Transaction.</b> A Query that takes BHParameters and returns only the first Line of the result.
+        /// <b>Transaction.</b> A Query that takes IBHParameters and returns only the first Line of the result.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public T? QueryFirst<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        public T? QueryFirst<T>(string commandText, IBHParameters parameters, IBHTransaction bHTransaction)
         {
-            return _executionProvider.QueryFirst<T>(commandText, parameters.Parameters, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            BHParameters bhParameters = (BHParameters)parameters;
+            return _executionProvider.QueryFirst<T>(commandText, bhParameters.Parameters, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -591,11 +625,12 @@ namespace BlackHole.Core
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public T? QueryFirst<T>(string commandText, object parametersObject, BHTransaction bHTransaction)
+        public T? QueryFirst<T>(string commandText, object parametersObject, IBHTransaction bHTransaction)
         {
-            return _executionProvider.QueryFirst<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return _executionProvider.QueryFirst<T>(commandText, MapObjectToParameters(parametersObject), transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -612,17 +647,18 @@ namespace BlackHole.Core
         }
 
         /// <summary>
-        /// <b>Asyncronous.</b> A Query that takes BHParameters and returns only the first Line of the result.
+        /// <b>Asyncronous.</b> A Query that takes IBHParameters and returns only the first Line of the result.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
         /// <returns>The First Line of the Result</returns>
-        public async Task<T?> QueryFirstAsync<T>(string commandText, BHParameters parameters)
+        public async Task<T?> QueryFirstAsync<T>(string commandText, IBHParameters parameters)
         {
-            return await _executionProvider.QueryFirstAsync<T>(commandText, parameters.Parameters);
+            BHParameters bhParameters = (BHParameters)parameters;
+            return await _executionProvider.QueryFirstAsync<T>(commandText, bhParameters.Parameters);
         }
 
         /// <summary>
@@ -646,26 +682,29 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public async Task<T?> QueryFirstAsync<T>(string commandText, BHTransaction bHTransaction)
+        public async Task<T?> QueryFirstAsync<T>(string commandText, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.QueryFirstAsync<T>(commandText, null, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return await _executionProvider.QueryFirstAsync<T>(commandText, null, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
-        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that takes BHParameters and returns only the first Line of the result.
+        /// <b>Asyncronous.</b> <b>Transaction.</b> A Query that takes IBHParameters and returns only the first Line of the result.
         /// <para><b>Tip:</b> For Oracle and Postgres , Double Quotes are required for the Table and Column Names in your command text</para>
         /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
         /// </summary>
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
-        /// <param name="parameters">BHParameters Class, populated with black hole parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="parameters">IBHParameters Class, populated with black hole parameters</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public async Task<T?> QueryFirstAsync<T>(string commandText, BHParameters parameters, BHTransaction bHTransaction)
+        public async Task<T?> QueryFirstAsync<T>(string commandText, IBHParameters parameters, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.QueryFirstAsync<T>(commandText, parameters.Parameters, bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            BHParameters bhParameters = (BHParameters)parameters;
+            return await _executionProvider.QueryFirstAsync<T>(commandText, bhParameters.Parameters, transactionBh.transaction, _connectionIndex);
         }
 
         /// <summary>
@@ -676,11 +715,12 @@ namespace BlackHole.Core
         /// <typeparam name="T">Output Type</typeparam>
         /// <param name="commandText">Command Text</param>
         /// <param name="parametersObject">Class with properties as Parameters</param>
-        /// <param name="bHTransaction">BHTransaction Class, contains connection and transaction</param>
+        /// <param name="bHTransaction">IBHTransaction Class, contains connection and transaction</param>
         /// <returns>The First Line of the Result</returns>
-        public async Task<T?> QueryFirstAsync<T>(string commandText, object parametersObject, BHTransaction bHTransaction)
+        public async Task<T?> QueryFirstAsync<T>(string commandText, object parametersObject, IBHTransaction bHTransaction)
         {
-            return await _executionProvider.QueryFirstAsync<T>(commandText, MapObjectToParameters(parametersObject), bHTransaction.transaction, _connectionIndex);
+            BHTransaction transactionBh = (BHTransaction)bHTransaction;
+            return await _executionProvider.QueryFirstAsync<T>(commandText, MapObjectToParameters(parametersObject), transactionBh.transaction, _connectionIndex);
         }
 
         private static List<BlackHoleParameter> MapObjectToParameters(object parametersObject)
@@ -695,6 +735,24 @@ namespace BlackHole.Core
             }
 
             return parameters.Parameters;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IBHParameters CreateBHParameters()
+        {
+            return new BHParameters();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IBHTransaction BeginBHTransaction()
+        {
+            return new BHTransaction();
         }
     }
 }

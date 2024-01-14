@@ -8,7 +8,7 @@ namespace BlackHole.Core
     /// <para>Tip: Don't forget to dispose this Object after using it. If you don't perform any 
     /// action on this class, the Commit Method gets triggered on Dispose</para>
     /// </summary>
-    public class BHTransaction : IDisposable
+    public class BHTransaction : IBHTransaction
     {
         internal BlackHoleTransaction transaction;
 
