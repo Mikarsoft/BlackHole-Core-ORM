@@ -92,6 +92,4 @@
             ServiceType = type;
         }
     }
-
-  
 }

@@ -1,6 +1,4 @@
-﻿using BlackHole.Enums;
-using System.Linq.Expressions;
-using System.Reflection;
+﻿using System.Linq.Expressions;
 
 namespace BlackHole.Entities
 {
@@ -136,19 +134,6 @@ namespace BlackHole.Entities
         {
             LockedPK = lockedPK;
         }
-
-        internal int ConnectionIndex { get; set; }
-        internal BlackHoleSqlTypes DatabaseType { get; set; }
-        internal string ThisTable { get; set; } = string.Empty;
-        internal List<string> Columns { get; set; } = new();
-        internal string PropertyNames { get; set; } = string.Empty;
-        internal string PropertyParams { get; set; } = string.Empty;
-        internal string UpdateParams { get; set; } = string.Empty;
-        internal string ThisSchema { get; set; } = string.Empty;
-        internal string MainPK { get; set; } = string.Empty;
-        internal bool IsQuotedDb { get; set; }
-        internal PropertyInfo[] Tprops { get; set; } = new PropertyInfo[0];
-        internal string[] ReturningCase { get; set; } = new string[2];
     }
 
     /// <summary>
