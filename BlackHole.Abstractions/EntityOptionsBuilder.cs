@@ -1,5 +1,4 @@
 ﻿using BlackHole.Enums;
-using BlackHole.Statics;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -77,10 +76,7 @@ namespace BlackHole.Entities
             {
                 settings.PKPropertyNames.Add(pkMember.Member.Name);
                 settings.MainPrimaryKey = pkMember.Member.Name;
-                if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Postgres)
-                {
-                    settings.HasAutoIncrement = HasSequence;
-                }
+                settings.HasAutoIncrement = HasSequence;
             }
             return settings;
         }
