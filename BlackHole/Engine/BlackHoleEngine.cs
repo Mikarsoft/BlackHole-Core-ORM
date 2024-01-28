@@ -838,7 +838,7 @@ namespace BlackHole.Engine
 
             return expressionTree.ExpressionTreeToSql<T>(isQuotedDb, letter, DynamicParams, index, schemaName, connectionIndex);
         }
-        
+
         private static void InvokeOrTake<T>(this ExpressionsData thisBranch, MemberExpression memberExp, bool isRight)
         {
             string? typeName = memberExp.Member.ReflectedType?.FullName;
@@ -847,7 +847,24 @@ namespace BlackHole.Engine
             {
                 try
                 {
-                    thisBranch.MemberValue = Expression.Lambda(memberExp).Compile().DynamicInvoke();
+                    var lExp = Expression.Lambda(memberExp);
+
+                    if (lExp.Parameters.Count > 0)
+                    {
+                        thisBranch.MemberValue = lExp.Compile().DynamicInvoke();
+                        thisBranch.IsNullValue = thisBranch.MemberValue == null;
+                    }
+                    else
+                    {
+                        if (isRight)
+                        {
+                            thisBranch.RightMember = memberExp;
+                        }
+                        else
+                        {
+                            thisBranch.LeftMember = memberExp;
+                        }
+                    }
                 }
                 catch
                 {
@@ -864,6 +881,7 @@ namespace BlackHole.Engine
             else
             {
                 thisBranch.MemberValue = Expression.Lambda(memberExp).Compile().DynamicInvoke();
+                thisBranch.IsNullValue = thisBranch.MemberValue == null;
             }
         }
 
@@ -879,7 +897,7 @@ namespace BlackHole.Engine
                 HAMode = true;
             }
 
-            List<ExpressionsData> children = data.Where(x => x.MemberValue != null || x.MethodData.Count > 0).ToList();
+            List<ExpressionsData> children = data.Where(x => x.MemberValue != null || x.MethodData.Count > 0 || (x.MemberValue == null && x.IsNullValue)).ToList();
 
             foreach (ExpressionsData child in children)
             {
@@ -953,23 +971,46 @@ namespace BlackHole.Engine
 
                         index++;
 
-                        ColumnAndParameter childCols = child.TranslateExpression(index, isQuotedDb, letter);
-
-                        if (childCols.ParamName != string.Empty)
+                        if (child != parent)
                         {
-                            parameters.Add(new BlackHoleParameter { Name = childCols.ParamName, Value = childCols.Value });
+                            ColumnAndParameter childCols = child.TranslateExpression(index, isQuotedDb, letter);
+
+                            if (childCols.ParamName != string.Empty)
+                            {
+                                parameters.Add(new BlackHoleParameter { Name = childCols.ParamName, Value = childCols.Value });
+                            }
+
+                            parent.SqlCommand = $"({parent.SqlCommand} {parentCols.Column} {childCols.Column})";
+
+                            if (HAMode)
+                            {
+                                parent.SqlCommandReverseQuotes = $"({parent.SqlCommandReverseQuotes} {parentCols.ColumnReverseQuotes} {childCols.ColumnReverseQuotes})";
+                            }
                         }
-
-                        parent.SqlCommand = $"({parent.SqlCommand} {parentCols.Column} {childCols.Column})";
-
-                        if (HAMode)
+                        else
                         {
-                            parent.SqlCommandReverseQuotes = $"({parent.SqlCommandReverseQuotes} {parentCols.ColumnReverseQuotes} {childCols.ColumnReverseQuotes})";
+                            parent.SqlCommand = $"({parentCols.Column})";
+
+                            if (HAMode)
+                            {
+                                parent.SqlCommandReverseQuotes = $"({parentCols.ColumnReverseQuotes})";
+                            }
                         }
 
                         index++;
                     }
                 }
+            }
+
+            List<ExpressionsData> selfCompair = data.Where(x => x.MemberValue == null && x.LeftMember != null && x.RightMember != null && x.MethodData.Count == 0).ToList();
+
+            foreach (ExpressionsData self in selfCompair)
+            {
+                ExpressionsData parent = data[self.ParentIndex];
+                ColumnAndParameter selfCompairCols = self.TranslateSelfCompairExpression(letter);
+
+                parent.SqlCommand = $"({selfCompairCols.Column})";
+                parent.LeftChecked = false;
             }
 
             List<ExpressionsData> parents = data.Where(x => x.MemberValue == null && x.MethodData.Count == 0 && x.OperationType != ExpressionType.Default).ToList();
@@ -1011,6 +1052,26 @@ namespace BlackHole.Engine
             }
 
             return new ColumnsAndParameters { Columns = data[0].SqlCommand, ColumnsReverseQuotes = data[0].SqlCommandReverseQuotes, Parameters = parameters, Count = index};
+        }
+
+        private static ColumnAndParameter TranslateSelfCompairExpression(this ExpressionsData expression, string? letter)
+        {
+            string? leftPart = expression.LeftMember?.ToString().Split('.')[1];
+            string? rightPart = expression.RightMember?.ToString().Split(".")[1];
+            string subLetter = letter != string.Empty ? $"{letter}." : string.Empty;
+
+            string column = expression.OperationType switch
+            {
+                ExpressionType.Equal => $"{subLetter}{leftPart} = {subLetter}{rightPart}",
+                ExpressionType.GreaterThanOrEqual => $"{subLetter}{leftPart} >= {subLetter}{rightPart}",
+                ExpressionType.LessThanOrEqual => $"{leftPart} <= {rightPart}",
+                ExpressionType.LessThan => $"{subLetter} {leftPart} < {subLetter}{rightPart}",
+                ExpressionType.GreaterThan => $"{subLetter} {leftPart} > {subLetter}{rightPart}",
+                ExpressionType.NotEqual => $"{subLetter} {leftPart} != {subLetter}{rightPart}",
+                _ => string.Empty
+            };
+
+            return new ColumnAndParameter { Column = column };
         }
 
         private static SqlFunctionResult TranslateBHMethod<T>(this MethodExpressionData MethodData, int index, string? letter, bool isQuotedDb, string schemaName, int connectionIndex)
