@@ -27,5 +27,14 @@ namespace BlackHole.Core
         {
             return new BHOpenDataProvider<T>();
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static IBHConnection Connection()
+        {
+            return new BHConnection();
+        }
     }
 }

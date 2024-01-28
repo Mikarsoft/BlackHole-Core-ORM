@@ -85,7 +85,7 @@ Find the Tutorial here =&gt;</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BlackHole.Core.Abstractions" Version="6.0.2" />
+    <PackageReference Include="BlackHole.Core.Abstractions" Version="6.0.6" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.2" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.25" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />

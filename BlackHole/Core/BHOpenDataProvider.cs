@@ -1122,7 +1122,7 @@ namespace BlackHole.Core
                 sql.Parameters, transactionBh.transaction, _context.ConnectionIndex);
         }
 
-        IBHTransaction IBHOpenDataProvider<T>.BeginBHTransaction()
+        IBHTransaction IBHOpenDataProvider<T>.BeginIBHTransaction()
         {
             return new BHTransaction();
         }

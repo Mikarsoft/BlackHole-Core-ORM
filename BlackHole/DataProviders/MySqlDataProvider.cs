@@ -126,12 +126,12 @@ namespace BlackHole.DataProviders
 
         #region Execution Methods
 
-        public IDbConnection GetConnection()
+        IDbConnection IDataProvider.GetConnection()
         {
             return new MySqlConnection(_connectionString);
         }
 
-        public G? InsertScalar<T, G>(string commandStart, string commandEnd, T entry, bool useGenerator, string insertedOutput)
+        G? IDataProvider.InsertScalar<T, G>(string commandStart, string commandEnd, T entry, bool useGenerator, string insertedOutput) where G : default
         {
             if (useGenerator)
             {

@@ -2,19 +2,13 @@
 
 namespace BlackHole.Engine
 {
-    /// <summary>
-    /// Transaction Object
-    /// </summary>
     internal class BlackHoleTransaction : IDisposable
     {
         private bool committed = false;
         internal bool hasError = false;
         private bool pendingRollback = false;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public ConnectionReference[] connections;
+        internal ConnectionReference[] connections;
 
         internal BlackHoleTransaction(int availableConnections)
         {

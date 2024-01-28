@@ -8,9 +8,15 @@ namespace BlackHole.Core
     /// <typeparam name="T"></typeparam>
     public class BHOrderBy<T>
     {
-        internal BHOrderBy() { }
+        /// <summary>
+        /// 
+        /// </summary>
+        public BHOrderBy() { }
 
-        internal BlackHoleOrderBy<T> OrderBy { get; set; } = new();
+        /// <summary>
+        /// 
+        /// </summary>
+        public BlackHoleOrderBy<T> OrderBy { get; set; } = new();
         
         /// <summary>
         /// 
@@ -69,11 +75,30 @@ namespace BlackHole.Core
     /// <typeparam name="T"></typeparam>
     public class BlackHoleOrderBy<T>
     {
-        internal List<OrderByPair> OrderProperties { get; set; }
-        internal bool LockedByError { get; set; }
-        internal bool TakeSpecificRange { get; set; }
-        internal int FromRow { get; set; } = 0;
-        internal int ToRow { get; set; } = 0;
+        /// <summary>
+        /// 
+        /// </summary>
+        public List<OrderByPair> OrderProperties { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool LockedByError { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool TakeSpecificRange { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int FromRow { get; set; } = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int ToRow { get; set; } = 0;
 
         internal BlackHoleOrderBy()
         {
@@ -190,9 +215,25 @@ namespace BlackHole.Core
         }
     }
 
-    internal class OrderByPair
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class OrderByPair
     {
-        internal string PropertyName { get; set; } = string.Empty;
-        internal string Orientation { get; set; } = string.Empty;
+        internal OrderByPair()
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string PropertyName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Orientation { get; set; } = string.Empty;
     }
 }

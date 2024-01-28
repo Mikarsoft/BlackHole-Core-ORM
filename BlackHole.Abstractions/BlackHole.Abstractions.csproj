@@ -8,7 +8,7 @@
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<PackageId>BlackHole.Core.Abstractions</PackageId>
 	<Title>BlackHole.Abstractions</Title>
-	<Version>6.0.2</Version>
+	<Version>6.0.6</Version>
 	<Authors>Michael Archolekas</Authors>
 	<Company>Mikarsoft Ltd</Company>
 	<Copyright>Copyright (c) 2024, Mikarsoft Ltd</Copyright>
@@ -17,8 +17,8 @@
 	<RepositoryType>git</RepositoryType>
 	<PackageTags>dotnet6,dotnet7,dotnet8,orm,entities,abstractions,black,hole</PackageTags>
 	<NeutralLanguage>en</NeutralLanguage>
-	<AssemblyVersion>6.0.2</AssemblyVersion>
-	<FileVersion>6.0.2</FileVersion>
+	<AssemblyVersion>6.0.6</AssemblyVersion>
+	<FileVersion>6.0.6</FileVersion>
 	<ErrorReport>none</ErrorReport>
 	<IncludeSymbols>True</IncludeSymbols>
 	<SymbolPackageFormat>snupkg</SymbolPackageFormat>

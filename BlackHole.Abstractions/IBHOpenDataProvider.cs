@@ -18,6 +18,12 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
+        IBHTransaction BeginIBHTransaction();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         bool Any();
 
         /// <summary>

@@ -7,10 +7,7 @@ using System.Text;
 
 namespace BlackHole.Engine
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    public class ConnectionReference : IDisposable
+    internal class ConnectionReference : IDisposable
     {
         internal ConnectionReference(int connectionIndex)
         {
@@ -21,10 +18,12 @@ namespace BlackHole.Engine
         }
 
         internal bool IsOpen { get; set; }
+
         /// <summary>
         /// 
         /// </summary>
         public IDbConnection Connection { get; set; }
+
         /// <summary>
         /// 
         /// </summary>
@@ -113,6 +112,7 @@ namespace BlackHole.Engine
         internal int ParentIndex { get; set; }
         internal string SqlCommand { get; set; } = string.Empty;
         internal string SqlCommandReverseQuotes { get; set; } = string.Empty;
+        internal bool IsNullValue { get; set; }
     }
 
     internal class MethodExpressionData
