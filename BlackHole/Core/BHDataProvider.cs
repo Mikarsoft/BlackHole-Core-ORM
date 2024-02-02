@@ -97,7 +97,7 @@ namespace BlackHole.Core
 
         private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.QueryFirst<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -107,7 +107,7 @@ namespace BlackHole.Core
 
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -135,7 +135,7 @@ namespace BlackHole.Core
         private G? GetIdFromPredicate(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.QueryFirst<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -148,7 +148,7 @@ namespace BlackHole.Core
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -172,7 +172,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.Any(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -192,7 +192,7 @@ namespace BlackHole.Core
 
         int IBHDataProvider<T, G>.CountWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -228,7 +228,7 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.Any(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -254,7 +254,7 @@ namespace BlackHole.Core
         int IBHDataProvider<T, G>.CountWhere(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.QueryFirst<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -327,7 +327,7 @@ namespace BlackHole.Core
 
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null , 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null , 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -338,7 +338,7 @@ namespace BlackHole.Core
 
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -349,7 +349,7 @@ namespace BlackHole.Core
 
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -359,7 +359,7 @@ namespace BlackHole.Core
 
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -436,7 +436,7 @@ namespace BlackHole.Core
         T? IBHDataProvider<T, G>.GetEntryWhere(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -450,7 +450,7 @@ namespace BlackHole.Core
         Dto? IBHDataProvider<T, G>.GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction) where Dto : class
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -464,7 +464,7 @@ namespace BlackHole.Core
         List<T> IBHDataProvider<T, G>.GetEntriesWhere(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -477,7 +477,7 @@ namespace BlackHole.Core
         List<Dto> IBHDataProvider<T, G>.GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction) where Dto : class
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -527,7 +527,7 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
@@ -540,7 +540,7 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
@@ -552,7 +552,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
@@ -564,7 +564,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
@@ -621,7 +621,7 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
@@ -637,7 +637,7 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.QueryFirst<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
@@ -652,7 +652,7 @@ namespace BlackHole.Core
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
@@ -667,7 +667,7 @@ namespace BlackHole.Core
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
@@ -740,7 +740,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             sql.AdditionalParameters(entry);
             if (_context.WithActivator)
             {
@@ -751,7 +751,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             sql.AdditionalParameters(entry);
             if (_context.WithActivator)
             {
@@ -791,7 +791,7 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             sql.AdditionalParameters(entry);
             if (_context.WithActivator)
             {
@@ -805,7 +805,7 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction bhTransaction) where Columns : class
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             sql.AdditionalParameters(entry);
             if (_context.WithActivator)
             {
@@ -866,7 +866,7 @@ namespace BlackHole.Core
 
         bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {sql.Columns}", sql.Parameters);
@@ -919,7 +919,7 @@ namespace BlackHole.Core
         bool IBHDataProvider<T, G>.DeleteEntriesWhere(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.JustExecute($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {sql.Columns}",
@@ -963,7 +963,7 @@ namespace BlackHole.Core
 
         private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -974,7 +974,7 @@ namespace BlackHole.Core
         // WITH TRANSACTION
         private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryFirstAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -985,7 +985,7 @@ namespace BlackHole.Core
         private async Task<G?> GetIdFromPredicateAsync(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryFirstAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -998,7 +998,7 @@ namespace BlackHole.Core
         private async Task<List<G>> GetIdsFromPredicateAsync(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -1022,7 +1022,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.AnyAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -1042,7 +1042,7 @@ namespace BlackHole.Core
 
         async Task<int> IBHDataProvider<T, G>.CountWhereAsync(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -1078,7 +1078,7 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.AnyAsync(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -1104,7 +1104,7 @@ namespace BlackHole.Core
         async Task<int> IBHDataProvider<T, G>.CountWhereAsync(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryFirstAsync<int>($"select count({_context.ThisId}) from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -1192,7 +1192,7 @@ namespace BlackHole.Core
 
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -1203,7 +1203,7 @@ namespace BlackHole.Core
 
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -1214,7 +1214,7 @@ namespace BlackHole.Core
 
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -1224,7 +1224,7 @@ namespace BlackHole.Core
 
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
@@ -1286,7 +1286,7 @@ namespace BlackHole.Core
         async Task<T?> IBHDataProvider<T, G>.GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -1300,7 +1300,7 @@ namespace BlackHole.Core
         async Task<Dto?> IBHDataProvider<T, G>.GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction) where Dto : class
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             string[] oneRow = 1.GetLimiter();
             if (_context.WithActivator)
             {
@@ -1314,7 +1314,7 @@ namespace BlackHole.Core
         async Task<List<T>> IBHDataProvider<T, G>.GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -1327,7 +1327,7 @@ namespace BlackHole.Core
         async Task<List<Dto>> IBHDataProvider<T, G>.GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction) where Dto : class
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}",
@@ -1377,7 +1377,7 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
@@ -1390,7 +1390,7 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
@@ -1403,7 +1403,7 @@ namespace BlackHole.Core
 
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
@@ -1415,7 +1415,7 @@ namespace BlackHole.Core
         {
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}", sql.Parameters);
@@ -1472,7 +1472,7 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryFirstAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
@@ -1488,7 +1488,7 @@ namespace BlackHole.Core
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
             orderClass.OrderBy.TakeWithOffset(0, 1);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryFirstAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
@@ -1503,7 +1503,7 @@ namespace BlackHole.Core
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
@@ -1518,7 +1518,7 @@ namespace BlackHole.Core
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
             BHOrderBy<T> orderClass = new();
             orderBy.Invoke(orderClass);
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.QueryAsync<Dto>($"select {CompareDtoToEntity(typeof(Dto))} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}{orderClass.OrderByToSql(_context.IsQuotedDb)}",
@@ -1592,7 +1592,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             sql.AdditionalParameters(entry);
             if (_context.WithActivator)
             {
@@ -1603,7 +1603,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             sql.AdditionalParameters(entry);
             if (_context.WithActivator)
             {
@@ -1643,7 +1643,7 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             sql.AdditionalParameters(entry);
             if (_context.WithActivator)
             {
@@ -1657,7 +1657,7 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction bhTransaction) where Columns : class
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             sql.AdditionalParameters(entry);
             if (_context.WithActivator)
             {
@@ -1714,7 +1714,7 @@ namespace BlackHole.Core
 
         async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {sql.Columns}", sql.Parameters);
@@ -1778,7 +1778,7 @@ namespace BlackHole.Core
         async Task<bool> IBHDataProvider<T, G>.DeleteEntriesAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction bhTransaction)
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
-            ColumnsAndParameters sql = predicate.Body.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return await _dataProvider.JustExecuteAsync($"update {_context.ThisTable} set {_context.ThisInactive} = 1 where {sql.Columns}",

@@ -1439,6 +1439,22 @@ namespace BlackHole.Engine
             };
         }
 
+        private static string GetExpressionOperator(this ExpressionType expType, bool hasNullValue, bool IsReversed)
+        {
+            return expType switch
+            {
+                ExpressionType.AndAlso => "and",
+                ExpressionType.OrElse => "or",
+                ExpressionType.Equal => hasNullValue ? "is" : "=",
+                ExpressionType.NotEqual => hasNullValue? "is not" : "!=",
+                ExpressionType.GreaterThan => IsReversed? "<" : ">",
+                ExpressionType.GreaterThanOrEqual => IsReversed? "<=" : ">=",
+                ExpressionType.LessThan => IsReversed? ">" : "<",
+                ExpressionType.LessThanOrEqual => IsReversed? ">=" : "<=",
+                _=> string.Empty          
+            };
+        }
+
         private static ColumnAndParameter TranslateExpression(this ExpressionsData expression, int index, bool isQuotedDb, string? letter)
         {
             string? column = string.Empty;
@@ -1447,7 +1463,8 @@ namespace BlackHole.Engine
             object? value = new();
             string[]? variable = new string[2];
             string subLetter = letter != string.Empty ? $"{letter}." : string.Empty;
-            string sqlOperator = "=";
+
+            string sqlOperator = expression.OperationType.GetExpressionOperator(expression.IsNullValue, false);
 
             switch (expression.OperationType)
             {
