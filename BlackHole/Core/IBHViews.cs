@@ -24,7 +24,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        List<Dto> ExecuteView<Dto>(BHTransaction transaction) where Dto : BHDtoIdentifier;
+        List<Dto> ExecuteView<Dto>(IBHTransaction transaction) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// <b>Asyncronous.</b> Executes the stored view that has the inserted DTO as
@@ -44,7 +44,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        Task<List<Dto>> ExecuteViewAsync<Dto>(BHTransaction transaction) where Dto : BHDtoIdentifier;
+        Task<List<Dto>> ExecuteViewAsync<Dto>(IBHTransaction transaction) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// Executes the stored view that has the inserted DTO as
@@ -62,7 +62,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        List<Dto> ExecuteView<Dto>(Action<BHOrderBy<Dto>> orderBy, BHTransaction transaction) where Dto : BHDtoIdentifier;
+        List<Dto> ExecuteView<Dto>(Action<BHOrderBy<Dto>> orderBy, IBHTransaction transaction) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// <b>Asyncronous.</b> Executes the stored view that has the inserted DTO as
@@ -82,7 +82,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Class that the view will be mapped</typeparam>
         /// <returns>List of the DTO</returns>
-        Task<List<Dto>> ExecuteViewAsync<Dto>(Action<BHOrderBy<Dto>> orderBy,BHTransaction transaction) where Dto : BHDtoIdentifier;
+        Task<List<Dto>> ExecuteViewAsync<Dto>(Action<BHOrderBy<Dto>> orderBy,IBHTransaction transaction) where Dto : BHDtoIdentifier;
 
         /// <summary>
         /// 

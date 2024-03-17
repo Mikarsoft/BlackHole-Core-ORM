@@ -1007,7 +1007,7 @@ namespace BlackHole.Engine
             foreach (ExpressionsData self in selfCompair)
             {
                 ExpressionsData parent = data[self.ParentIndex];
-                ColumnAndParameter selfCompairCols = self.TranslateSelfCompairExpression(letter);
+                ColumnAndParameter selfCompairCols = self.TranslateSelfCompairExpression(letter, isQuotedDb);
 
                 parent.SqlCommand = $"({selfCompairCols.Column})";
                 parent.LeftChecked = false;
@@ -1054,10 +1054,10 @@ namespace BlackHole.Engine
             return new ColumnsAndParameters { Columns = data[0].SqlCommand, ColumnsReverseQuotes = data[0].SqlCommandReverseQuotes, Parameters = parameters, Count = index};
         }
 
-        private static ColumnAndParameter TranslateSelfCompairExpression(this ExpressionsData expression, string? letter)
+        private static ColumnAndParameter TranslateSelfCompairExpression(this ExpressionsData expression, string? letter, bool isQuotedDb)
         {
-            string? leftPart = expression.LeftMember?.ToString().Split('.')[1];
-            string? rightPart = expression.RightMember?.ToString().Split(".")[1];
+            string? leftPart = expression.LeftMember?.ToString().Split('.')[1].UseNameQuotes(isQuotedDb);
+            string? rightPart = expression.RightMember?.ToString().Split(".")[1].UseNameQuotes(isQuotedDb);
             string subLetter = letter != string.Empty ? $"{letter}." : string.Empty;
 
             string column = expression.OperationType switch

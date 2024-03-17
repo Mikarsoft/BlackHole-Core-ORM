@@ -49,15 +49,17 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto"></typeparam>
         /// <param name="data"></param>
-        /// <param name="bHTransaction"></param>
+        /// <param name="bhTransaction"></param>
         /// <returns></returns>
-        public static List<Dto> ExecuteQuery<Dto>(this JoinComplete<Dto> data, BHTransaction bHTransaction) where Dto : BHDtoIdentifier
+        public static List<Dto> ExecuteQuery<Dto>(this JoinComplete<Dto> data, IBHTransaction bhTransaction) where Dto : BHDtoIdentifier
         {
+            BHTransaction transactionBh = (BHTransaction)bhTransaction;
+
             if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
             {
                 int connectionIndex = data.Data.ConnectionIndex;
                 IDataProvider connection = connectionIndex.GetDataProvider();
-                return connection.Query<Dto>(command.Columns, command.Parameters, bHTransaction.transaction, connectionIndex);
+                return connection.Query<Dto>(command.Columns, command.Parameters, transactionBh.transaction, connectionIndex);
             }
             return new List<Dto>();
         }
@@ -67,15 +69,17 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto"></typeparam>
         /// <param name="data"></param>
-        /// <param name="bHTransaction"></param>
+        /// <param name="bhTransaction"></param>
         /// <returns></returns>
-        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinComplete<Dto> data, BHTransaction bHTransaction) where Dto : BHDtoIdentifier
+        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinComplete<Dto> data, IBHTransaction bhTransaction) where Dto : BHDtoIdentifier
         {
+            BHTransaction transactionBh = (BHTransaction)bhTransaction;
+
             if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
             {
                 int connectionIndex = data.Data.ConnectionIndex;
                 IDataProvider connection = connectionIndex.GetDataProvider();
-                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, bHTransaction.transaction, connectionIndex);
+                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, transactionBh.transaction, connectionIndex);
             }
             return new List<Dto>();
         }
@@ -128,10 +132,12 @@ namespace BlackHole.Core
         /// <typeparam name="Dto"></typeparam>
         /// <param name="data"></param>
         /// <param name="orderBy"></param>
-        /// <param name="bHTransaction"></param>
+        /// <param name="bhTransaction"></param>
         /// <returns></returns>
-        public static List<Dto> ExecuteQuery<Dto>(this JoinComplete<Dto> data, Action<BHOrderBy<Dto>> orderBy, BHTransaction bHTransaction) where Dto : BHDtoIdentifier
+        public static List<Dto> ExecuteQuery<Dto>(this JoinComplete<Dto> data, Action<BHOrderBy<Dto>> orderBy, IBHTransaction bhTransaction) where Dto : BHDtoIdentifier
         {
+            BHTransaction transactionBh = (BHTransaction)bhTransaction;
+
             if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
             {
                 BHOrderBy<Dto> orderClass = new();
@@ -139,7 +145,7 @@ namespace BlackHole.Core
                 data.Data.OrderByToSqlJoins(orderClass);
                 int connectionIndex = data.Data.ConnectionIndex;
                 IDataProvider connection = connectionIndex.GetDataProvider(); 
-                return connection.Query<Dto>(command.Columns, command.Parameters, bHTransaction.transaction, connectionIndex);
+                return connection.Query<Dto>(command.Columns, command.Parameters, transactionBh.transaction, connectionIndex);
             }
             return new List<Dto>();
         }
@@ -150,10 +156,12 @@ namespace BlackHole.Core
         /// <typeparam name="Dto"></typeparam>
         /// <param name="data"></param>
         /// <param name="orderBy"></param>
-        /// <param name="bHTransaction"></param>
+        /// <param name="bhTransaction"></param>
         /// <returns></returns>
-        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinComplete<Dto> data, Action<BHOrderBy<Dto>> orderBy, BHTransaction bHTransaction) where Dto : BHDtoIdentifier
+        public static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinComplete<Dto> data, Action<BHOrderBy<Dto>> orderBy, IBHTransaction bhTransaction) where Dto : BHDtoIdentifier
         {
+            BHTransaction transactionBh = (BHTransaction)bhTransaction;
+
             if (data.Data.TranslateJoin<Dto>() is ColumnsAndParameters command)
             {
                 BHOrderBy<Dto> orderClass = new();
@@ -161,7 +169,7 @@ namespace BlackHole.Core
                 data.Data.OrderByToSqlJoins(orderClass);
                 int connectionIndex = data.Data.ConnectionIndex;
                 IDataProvider connection = connectionIndex.GetDataProvider();
-                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, bHTransaction.transaction, connectionIndex);
+                return await connection.QueryAsync<Dto>(command.Columns, command.Parameters, transactionBh.transaction, connectionIndex);
             }
             return new List<Dto>();
         }

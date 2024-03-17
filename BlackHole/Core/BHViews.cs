@@ -21,7 +21,7 @@ namespace BlackHole.Core
             return result;
         }
 
-        List<Dto> IBHViews.ExecuteView<Dto>(Action<BHOrderBy<Dto>> orderBy, BHTransaction transaction)
+        List<Dto> IBHViews.ExecuteView<Dto>(Action<BHOrderBy<Dto>> orderBy, IBHTransaction transaction)
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             List<Dto> result = new();
@@ -49,7 +49,7 @@ namespace BlackHole.Core
             return result;
         }
 
-        async Task<List<Dto>> IBHViews.ExecuteViewAsync<Dto>(Action<BHOrderBy<Dto>> orderBy, BHTransaction transaction)
+        async Task<List<Dto>> IBHViews.ExecuteViewAsync<Dto>(Action<BHOrderBy<Dto>> orderBy, IBHTransaction transaction)
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             List<Dto> result = new();
@@ -77,7 +77,7 @@ namespace BlackHole.Core
             return result;
         }
 
-        List<Dto> IBHViews.ExecuteView<Dto>(BHTransaction transaction)
+        List<Dto> IBHViews.ExecuteView<Dto>(IBHTransaction transaction)
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             List<Dto> result = new();
@@ -105,7 +105,7 @@ namespace BlackHole.Core
             return result;
         }
 
-        async Task<List<Dto>> IBHViews.ExecuteViewAsync<Dto>(BHTransaction transaction)
+        async Task<List<Dto>> IBHViews.ExecuteViewAsync<Dto>(IBHTransaction transaction)
         {
             JoinsData? existingJoin = BlackHoleViews.Stored.Where(x => x.DtoType == typeof(Dto)).FirstOrDefault();
             List<Dto> result = new();
