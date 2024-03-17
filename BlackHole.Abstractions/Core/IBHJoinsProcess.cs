@@ -1,5 +1,4 @@
-﻿
-using BlackHole.Identifiers;
+﻿using BlackHole.Identifiers;
 
 namespace BlackHole.Core
 {

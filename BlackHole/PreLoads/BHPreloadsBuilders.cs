@@ -6,7 +6,7 @@ namespace BlackHole.PreLoads
     /// <summary>
     /// 
     /// </summary>
-    public class DefaultDataBuilder
+    public class DefaultDataBuilder : IDefaultDataBuilder
     {
         
     }
@@ -15,7 +15,7 @@ namespace BlackHole.PreLoads
     /// <summary>
     /// 
     /// </summary>
-    public class StoredViewsBuilder
+    public class StoredViewsBuilder : IStoredViewsBuilder
     {
         /// <summary>
         /// 
@@ -31,7 +31,7 @@ namespace BlackHole.PreLoads
     /// <summary>
     /// 
     /// </summary>
-    public class StoredProceduresBuilder
+    public class StoredProceduresBuilder : IStoredProceduresBuilder
     {
         /// <summary>
         /// 
