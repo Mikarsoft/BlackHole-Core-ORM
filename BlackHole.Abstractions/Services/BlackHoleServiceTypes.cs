@@ -42,11 +42,11 @@
         /// <summary>
         /// The class of the service
         /// </summary>
-        public object ServiceType { get; set; }
+        public Type ServiceType { get; set; }
         /// <summary>
         /// The Interface of the service
         /// </summary>
-        public object? InterfaceType { get; set; }
+        public Type? InterfaceType { get; set; }
 
         /// <summary>
         /// Make a service Inherit from this class
