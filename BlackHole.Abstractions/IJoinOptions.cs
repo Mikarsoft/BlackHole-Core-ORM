@@ -1,5 +1,6 @@
 ﻿
 
+using BlackHole.Identifiers;
 using System.Linq.Expressions;
 
 namespace BlackHole.Core
@@ -10,7 +11,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IJoinOptions<Dto, Tsource, TOther>
+    public interface IJoinOptions<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
     {
         /// <summary>
         /// 

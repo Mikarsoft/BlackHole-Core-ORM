@@ -89,6 +89,6 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto"></typeparam>
         /// <returns></returns>
-        IBHJoinsProcess<Dto> StartJoinUsing<Dto>();
+        IBHJoinsProcess<Dto> StartJoinUsing<Dto>() where Dto : BHDtoIdentifier;
     }
 }

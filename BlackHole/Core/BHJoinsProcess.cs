@@ -1,4 +1,5 @@
 ﻿using BlackHole.Engine;
+using BlackHole.Identifiers;
 using System.Linq.Expressions;
 
 namespace BlackHole.Core
@@ -7,7 +8,7 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    public class BHJoinsProcess<Dto> : IBHJoinsProcess<Dto>
+    internal class BHJoinsProcess<Dto> : IBHJoinsProcess<Dto> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
         internal bool IsFirst {  get; set; }
@@ -76,7 +77,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    internal class PreJoin<Dto, Tsource, TOther> : IPrejoin<Dto, Tsource, TOther>
+    internal class PreJoin<Dto, Tsource, TOther> : IPrejoin<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
         internal string JoinType { get; set; }
@@ -96,7 +97,7 @@ namespace BlackHole.Core
         /// <param name="key"></param>
         /// <param name="otherkey"></param>
         /// <returns></returns>
-        public JoinConfig<Dto, Tsource, TOther> On<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IJoinConfig<Dto, Tsource, TOther> On<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
         {
             Data.CreateJoin<Dto, Tsource, TOther>(key, otherkey, JoinType, IsFirst);
             return new JoinConfig<Dto, Tsource, TOther>(Data);
@@ -110,7 +111,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public class JoinConfig<Dto, Tsource, TOther> : IJoinConfig<Dto, Tsource, TOther>
+    internal class JoinConfig<Dto, Tsource, TOther> : IJoinConfig<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
 
@@ -221,7 +222,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public class JoinOptions<Dto, Tsource, TOther> : IJoinOptions<Dto, Tsource, TOther>
+    internal class JoinOptions<Dto, Tsource, TOther> : IJoinOptions<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
 
@@ -304,12 +305,52 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    public class JoinComplete<Dto> : IJoinComplete<Dto>
+    internal class JoinComplete<Dto> : IJoinComplete<Dto> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
         internal JoinComplete(JoinsData data)
         {
             Data = data;
+        }
+
+        public List<Dto> ExecuteQuery()
+        {
+            return Data.ExecuteQuery<Dto>();
+        }
+
+        public async Task<List<Dto>> ExecuteQueryAsync()
+        {
+            return await Data.ExecuteQueryAsync<Dto>();
+        }
+
+        public List<Dto> ExecuteQuery(IBHTransaction bhTransaction)
+        {
+            return Data.ExecuteQuery<Dto>(bhTransaction);
+        }
+
+        public async Task<List<Dto>> ExecuteQueryAsync(IBHTransaction bhTransaction)
+        {
+            return await Data.ExecuteQueryAsync<Dto>(bhTransaction);
+        }
+
+        public List<Dto> ExecuteQuery(Action<BHOrderBy<Dto>> orderBy)
+        {
+            return Data.ExecuteQuery(orderBy);
+        }
+
+        public async Task<List<Dto>> ExecuteQueryAsync(Action<BHOrderBy<Dto>> orderBy)
+        {
+            return await Data.ExecuteQueryAsync(orderBy);
+        }
+
+        public List<Dto> ExecuteQuery(Action<BHOrderBy<Dto>> orderBy, IBHTransaction bhTransaction)
+        {
+            return Data.ExecuteQuery(orderBy, bhTransaction);
+        }
+
+        public async Task<List<Dto>> ExecuteQueryAsync(Action<BHOrderBy<Dto>> orderBy, IBHTransaction bhTransaction)
+        {
+            return await Data.ExecuteQueryAsync(orderBy, bhTransaction);
         }
     }
 }

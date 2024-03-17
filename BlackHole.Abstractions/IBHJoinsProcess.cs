@@ -1,10 +1,12 @@
 ﻿
+using BlackHole.Identifiers;
+
 namespace BlackHole.Core
 {
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHJoinsProcess<Dto>
+    public interface IBHJoinsProcess<Dto> where Dto : BHDtoIdentifier
     {
         /// <summary>
         /// 
