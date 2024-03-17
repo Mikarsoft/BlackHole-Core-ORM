@@ -7,7 +7,7 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    public class BHJoinsProcess<Dto>
+    public class BHJoinsProcess<Dto> : IBHJoinsProcess<Dto>
     {
         internal JoinsData Data { get; set; }
         internal bool IsFirst {  get; set; }
@@ -31,7 +31,7 @@ namespace BlackHole.Core
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        public PreJoin<Dto, TSource, TOther> InnerJoin<TSource, TOther>()
+        public IPrejoin<Dto, TSource, TOther> InnerJoin<TSource, TOther>()
         {
             return new PreJoin<Dto,TSource, TOther>(Data, "inner", IsFirst);
         }
@@ -42,7 +42,7 @@ namespace BlackHole.Core
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        public PreJoin<Dto, TSource, TOther> OuterJoin<TSource, TOther>()
+        public IPrejoin<Dto, TSource, TOther> OuterJoin<TSource, TOther>()
         {
             return new PreJoin<Dto, TSource, TOther>(Data, "full outer", IsFirst);
         }
@@ -53,7 +53,7 @@ namespace BlackHole.Core
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        public PreJoin<Dto, TSource, TOther> LeftJoin<TSource, TOther>()
+        public IPrejoin<Dto, TSource, TOther> LeftJoin<TSource, TOther>()
         {
             return new PreJoin<Dto, TSource, TOther>(Data, "left", IsFirst);
         }
@@ -64,7 +64,7 @@ namespace BlackHole.Core
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        public PreJoin<Dto, TSource, TOther> RightJoin<TSource, TOther>()
+        public IPrejoin<Dto, TSource, TOther> RightJoin<TSource, TOther>()
         {
             return new PreJoin<Dto, TSource, TOther>(Data, "right", IsFirst);
         }
@@ -76,7 +76,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public class PreJoin<Dto, Tsource, TOther>
+    internal class PreJoin<Dto, Tsource, TOther> : IPrejoin<Dto, Tsource, TOther>
     {
         internal JoinsData Data { get; set; }
         internal string JoinType { get; set; }
@@ -110,7 +110,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public class JoinConfig<Dto, Tsource, TOther>
+    public class JoinConfig<Dto, Tsource, TOther> : IJoinConfig<Dto, Tsource, TOther>
     {
         internal JoinsData Data { get; set; }
 
@@ -126,7 +126,7 @@ namespace BlackHole.Core
         /// <param name="key"></param>
         /// <param name="otherkey"></param>
         /// <returns></returns>
-        public JoinConfig<Dto, Tsource, TOther> And<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IJoinConfig<Dto, Tsource, TOther> And<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
         {
             Data.Additional<Tsource, TOther>(key, otherkey, "and");
             return this;
@@ -139,7 +139,7 @@ namespace BlackHole.Core
         /// <param name="key"></param>
         /// <param name="otherkey"></param>
         /// <returns></returns>
-        public JoinConfig<Dto, Tsource, TOther> Or<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IJoinConfig<Dto, Tsource, TOther> Or<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
         {
             Data.Additional<Tsource,TOther>(key, otherkey,"or");
             return this;
@@ -150,7 +150,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        public JoinOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate)
+        public IJoinOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate)
         {
             Data.WhereJoin(predicate);
             return new JoinOptions<Dto, Tsource, TOther>(Data);
@@ -161,7 +161,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        public JoinOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
+        public IJoinOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
         {
             Data.WhereJoin(predicate);
             return new JoinOptions<Dto, Tsource, TOther>(Data);
@@ -175,7 +175,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        public JoinOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey,TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IJoinOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey,TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
         {
             Data.CastColumn<Tsource>(predicate, castOnDto);
             return new JoinOptions<Dto, Tsource, TOther>(Data);
@@ -190,7 +190,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        public JoinOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey,TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IJoinOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey,TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
         {
             Data.CastColumn<TOther>(predicate, castOnDto);
             return new JoinOptions<Dto, Tsource, TOther>(Data);
@@ -200,7 +200,7 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public BHJoinsProcess<Dto> Then()
+        public IBHJoinsProcess<Dto> Then()
         {
             return new BHJoinsProcess<Dto>(Data);
         }
@@ -209,9 +209,9 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public JoinComplete<Dto> Finally()
+        public IJoinComplete<Dto> Finally()
         {
-            return new JoinComplete<Dto> (Data);
+            return new JoinComplete<Dto>(Data);
         }
     }
 
@@ -221,7 +221,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public class JoinOptions<Dto, Tsource, TOther>
+    public class JoinOptions<Dto, Tsource, TOther> : IJoinOptions<Dto, Tsource, TOther>
     {
         internal JoinsData Data { get; set; }
 
@@ -235,7 +235,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        public JoinOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate)
+        public IJoinOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate)
         {
             Data.WhereJoin(predicate);
             return this;
@@ -246,7 +246,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        public JoinOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
+        public IJoinOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
         {
             Data.WhereJoin(predicate);
             return this;
@@ -260,7 +260,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        public JoinOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey, TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IJoinOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey, TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
         {
             Data.CastColumn<Tsource>(predicate, castOnDto);
             return this;
@@ -275,7 +275,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        public JoinOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey, TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IJoinOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey, TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
         {
             Data.CastColumn<TOther>(predicate, castOnDto);
             return this;
@@ -285,7 +285,7 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public BHJoinsProcess<Dto> Then()
+        public IBHJoinsProcess<Dto> Then()
         {
             return new BHJoinsProcess<Dto>(Data);
         }
@@ -294,7 +294,7 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        public JoinComplete<Dto> Finally()
+        public IJoinComplete<Dto> Finally()
         {
             return new JoinComplete<Dto>(Data);
         }
@@ -304,7 +304,7 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    public class JoinComplete<Dto>
+    public class JoinComplete<Dto> : IJoinComplete<Dto>
     {
         internal JoinsData Data { get; set; }
         internal JoinComplete(JoinsData data)

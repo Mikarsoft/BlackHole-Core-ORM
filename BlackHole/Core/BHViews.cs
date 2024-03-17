@@ -119,7 +119,7 @@ namespace BlackHole.Core
             return result;
         }
 
-        BHJoinsProcess<Dto> IBHViews.StartJoinUsing<Dto>()
+        IBHJoinsProcess<Dto> IBHViews.StartJoinUsing<Dto>()
         {
             return new BHJoinsProcess<Dto>();
         }
