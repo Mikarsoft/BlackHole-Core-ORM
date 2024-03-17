@@ -86,12 +86,12 @@ Find the Tutorial here =&gt;</Description>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.25" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.28" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-    <PackageReference Include="MySql.Data" Version="8.2.0" />
+    <PackageReference Include="MySql.Data" Version="8.3.0" />
     <PackageReference Include="Npgsql" Version="6.0.10" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.6" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.8" />
   </ItemGroup>
 
   <ItemGroup>
