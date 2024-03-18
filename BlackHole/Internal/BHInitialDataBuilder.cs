@@ -1,4 +1,6 @@
 ﻿using BlackHole.Core;
+using BlackHole.Engine;
+using BlackHole.PreLoads;
 using BlackHole.Statics;
 using System.Reflection;
 
@@ -21,37 +23,44 @@ namespace BlackHole.Internal
             foreach (Type initialData in initialDataClasses)
             {
                 object? instance = Activator.CreateInstance(initialData);
-                MethodInfo? method = initialData.GetMethod("DefaultData");
-                if(instance !=null && method != null)
+
+                MethodInfo? dfMethod = initialData.GetMethod("DefaultData");
+                MethodInfo? svMethod = initialData.GetMethod("StoredViews");
+                MethodInfo? spMethod = initialData.GetMethod("StoredProcedures");
+
+                InitialTransaction _transaction = new();
+
+                if (instance != null)
                 {
-                    //object[] Argumnet = new object[1];
-                    //BHDataInitializer initializer = new();
-                    //Argumnet[0] = initializer;
-                    //method.Invoke(instance, Argumnet);
-                    //foreach(InitialCommandsAndParameters colsParams in initializer.commandsAndParameters)
-                    //{
-                    //    bool result = connection.JustExecute(colsParams.commandText);
+                    if(dfMethod != null)
+                    {
+                        object[] Argumnet = new object[1];
+                        DefaultDataBuilder initializer = new DefaultDataBuilder(_transaction);
 
-                    //    if (result)
-                    //    {
-                    //        CliConsoleLogs($"{colsParams.commandText};");
+                        Argumnet[0] = initializer;
+                        dfMethod.Invoke(instance, Argumnet);
+                    }
 
-                    //        if (CliCommand.ExportSql)
-                    //        {
-                    //            sqlWriter.AddSqlCommand($"{colsParams.commandText};");
-                    //        }
-                    //    }
-                    //    else
-                    //    {
-                    //        CliConsoleLogs($"Something went wrong with this command : {colsParams.commandText};");
-                    //    }
-                    //}
+                    if(svMethod != null)
+                    {
+
+                    }
+
+                    if(spMethod != null)
+                    {
+
+                    }
+
                 }
+
+                _transaction.Commit();
             }
+
             if (CliCommand.ExportSql)
             {
                 sqlWriter.CreateSqlFile();
             }
+
             CliConsoleLogs("Default data were inserted.");
         }
 

@@ -7,7 +7,7 @@ namespace BlackHole.PreLoads
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    public class StoredProcedureProcess<Dto> where Dto : BHDtoIdentifier
+    internal class StoredProcedureProcess<Dto>: IStoredProcedureProcess<Dto> where Dto : BHDtoIdentifier
     {
         internal string ProcedureName { get; set; }
         internal string CommandText { get; set; } = string.Empty;

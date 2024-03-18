@@ -8,7 +8,7 @@ namespace BlackHole.PreLoads
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    public class StoredViewsProcess<Dto> where Dto : BHDtoIdentifier
+    public class StoredViewsProcess<Dto> : IStoredViewsProcess<Dto> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
         internal bool IsFirst { get; set; }
@@ -32,7 +32,7 @@ namespace BlackHole.PreLoads
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        public PreStoredView<Dto, TSource, TOther> InnerJoin<TSource, TOther>() 
+        public IPreStoredView<Dto, TSource, TOther> InnerJoin<TSource, TOther>() 
             where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier
         {
             return new PreStoredView<Dto, TSource, TOther>(Data, "inner", IsFirst);
@@ -44,7 +44,7 @@ namespace BlackHole.PreLoads
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        public PreStoredView<Dto, TSource, TOther> OuterJoin<TSource, TOther>() 
+        public IPreStoredView<Dto, TSource, TOther> OuterJoin<TSource, TOther>() 
             where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier
         {
             return new PreStoredView<Dto, TSource, TOther>(Data, "full outer", IsFirst);
@@ -56,7 +56,7 @@ namespace BlackHole.PreLoads
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        public PreStoredView<Dto, TSource, TOther> LeftJoin<TSource, TOther>() 
+        public IPreStoredView<Dto, TSource, TOther> LeftJoin<TSource, TOther>() 
             where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier
         {
             return new PreStoredView<Dto, TSource, TOther>(Data, "left", IsFirst);
@@ -68,7 +68,7 @@ namespace BlackHole.PreLoads
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        public PreStoredView<Dto, TSource, TOther> RightJoin<TSource, TOther>() 
+        public IPreStoredView<Dto, TSource, TOther> RightJoin<TSource, TOther>() 
             where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier
         {
             return new PreStoredView<Dto, TSource, TOther>(Data, "right", IsFirst);
@@ -81,7 +81,7 @@ namespace BlackHole.PreLoads
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public class PreStoredView<Dto, Tsource, TOther> 
+    public class PreStoredView<Dto, Tsource, TOther> : IPreStoredView<Dto, Tsource, TOther>
         where Tsource : BHEntityIdentifier where TOther : BHEntityIdentifier where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
@@ -116,7 +116,7 @@ namespace BlackHole.PreLoads
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public class StoredViewConfig<Dto, Tsource, TOther> 
+    public class StoredViewConfig<Dto, Tsource, TOther> : IStoredViewConfig<Dto, Tsource, TOther>
         where Tsource : BHEntityIdentifier where TOther : BHEntityIdentifier where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
@@ -228,7 +228,7 @@ namespace BlackHole.PreLoads
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public class StoredViewOptions<Dto, Tsource, TOther>
+    public class StoredViewOptions<Dto, Tsource, TOther> : IStoredViewOptions<Dto, Tsource, TOther>
         where Tsource : BHEntityIdentifier where TOther : BHEntityIdentifier where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
@@ -312,7 +312,7 @@ namespace BlackHole.PreLoads
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    internal class StoredViewComplete<Dto> where Dto : BHDtoIdentifier
+    internal class StoredViewComplete<Dto>: IStoredViewComplete<Dto> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
         internal StoredViewComplete(JoinsData data)

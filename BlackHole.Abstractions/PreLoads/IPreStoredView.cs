@@ -1,6 +1,4 @@
-﻿using BlackHole.Identifiers;
-
-namespace BlackHole.Core
+﻿namespace BlackHole.PreLoads
 {
     /// <summary>
     /// 
@@ -8,7 +6,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="Tsource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IPrejoin<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
+    public interface IPreStoredView<Dto, Tsource, TOther>
     {
 
     }

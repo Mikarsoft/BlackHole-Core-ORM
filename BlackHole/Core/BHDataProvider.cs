@@ -16,11 +16,21 @@ namespace BlackHole.Core
         #region Ctor
         private EntityContext _context;
         private readonly IDataProvider _dataProvider;
+        private InitialTransaction? _initialTransaction;
+
         /// <summary>
         /// Create a Data Provider that Automatically Communicates with the Database Using the Black Hole Entity, that you pass in.
         /// </summary>
         public BHDataProvider()
         {
+            Type EntityType = typeof(T);
+            _context = EntityType.GetEntityContext<G>();
+            _dataProvider = _context.ConnectionIndex.GetDataProvider();
+        }
+
+        internal BHDataProvider(InitialTransaction initialTransaction)
+        {
+            _initialTransaction = initialTransaction;
             Type EntityType = typeof(T);
             _context = EntityType.GetEntityContext<G>();
             _dataProvider = _context.ConnectionIndex.GetDataProvider();
@@ -107,7 +117,7 @@ namespace BlackHole.Core
 
         private List<G> GetIdsFromPredicate(Expression<Func<T, bool>> predicate)
         {
-            ColumnsAndParameters sql = predicate.SplitMembers<T>(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
+            ColumnsAndParameters sql = predicate.SplitMembers(_context.IsQuotedDb, string.Empty, null, 0, _context.ThisSchema, _context.ConnectionIndex);
             if (_context.WithActivator)
             {
                 return _dataProvider.Query<G>($"select {_context.ThisId} from {_context.ThisTable} where {_context.ThisInactive} = 0 and {sql.Columns}", sql.Parameters);
