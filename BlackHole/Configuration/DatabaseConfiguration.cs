@@ -44,26 +44,26 @@ namespace BlackHole.Configuration
             LoggerService.SetUpLogger();
         }
 
-        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema, int timeoutSeconds, bool isQuoted)
+        internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema, int timeoutSeconds, bool isQuoted, int connectionIndex)
         {
             DatabaseStatics.IsQuotedDatabase = isQuoted;
 
             switch (sqlType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    ScanMsSqlString(connectionString,timeoutSeconds);
+                    ScanMsSqlString(connectionString,timeoutSeconds, connectionIndex);
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    ScanMySqlString(connectionString,timeoutSeconds);
+                    ScanMySqlString(connectionString,timeoutSeconds, connectionIndex);
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    ScanPostgresString(connectionString,timeoutSeconds);
+                    ScanPostgresString(connectionString,timeoutSeconds, connectionIndex);
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    ScanLiteString(connectionString);
+                    ScanLiteString(connectionString, connectionIndex);
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    ScanOracleString(connectionString,timeoutSeconds);
+                    ScanOracleString(connectionString,timeoutSeconds, connectionIndex);
                     break;
             }
 
@@ -73,7 +73,7 @@ namespace BlackHole.Configuration
             }
         }
 
-        private static void ScanOracleString(string connectionString, int timeoutSeconds)
+        private static void ScanOracleString(string connectionString, int timeoutSeconds, int connectionIndex)
         {
             string[] parts = connectionString.Split(";");
             bool hasCommandTimeout = false;
@@ -102,7 +102,7 @@ namespace BlackHole.Configuration
             DatabaseStatics.ServerConnection = connectionString;
         }
 
-        private static void ScanMsSqlString(string connectionString, int timeoutSeconds)
+        private static void ScanMsSqlString(string connectionString, int timeoutSeconds, int connectionIndex)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
@@ -145,7 +145,7 @@ namespace BlackHole.Configuration
             DatabaseStatics.ServerConnection = serverConnection;
         }
 
-        private static void ScanMySqlString(string connectionString, int timeoutSeconds)
+        private static void ScanMySqlString(string connectionString, int timeoutSeconds, int connectionIndex)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
@@ -188,7 +188,7 @@ namespace BlackHole.Configuration
             DatabaseStatics.ServerConnection = serverConnection;
         }
 
-        private static void ScanPostgresString(string connectionString, int timeoutSeconds)
+        private static void ScanPostgresString(string connectionString, int timeoutSeconds, int connectionIndex)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
@@ -231,7 +231,7 @@ namespace BlackHole.Configuration
             DatabaseStatics.ServerConnection = serverConnection;
         }
 
-        private static void ScanLiteString(string connectionString)
+        private static void ScanLiteString(string connectionString, int connectionIndex)
         {
             try
             {

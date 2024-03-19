@@ -49,21 +49,22 @@ namespace BlackHole.Configuration
             {
                 useLogsCleaner = false;
                 blackHoleSettings.DirectorySettings.UseLogger = true;
-                if(blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut < 300)
-                {
-                    blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut = 300;
-                }
+
+                //if(blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut < 300)
+                //{
+                //    blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut = 300;
+                //}
             }
 
-            if (blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut < 60)
-            {
-                blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut = 60;
-            }
+            //if (blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut < 60)
+            //{
+            //    blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut = 60;
+            //}
 
-            ScanConnectionString(blackHoleSettings.ConnectionConfig.ConnectionType, blackHoleSettings.ConnectionConfig.ConnectionString,
-                blackHoleSettings.DirectorySettings.DataPath, blackHoleSettings.ConnectionConfig.TableSchema,
-                blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut,
-                blackHoleSettings.ConnectionConfig.UseQuotedDb);
+            //ScanConnectionString(blackHoleSettings.ConnectionConfig.ConnectionType, blackHoleSettings.ConnectionConfig.ConnectionString,
+            //    blackHoleSettings.DirectorySettings.DataPath, blackHoleSettings.ConnectionConfig.TableSchema,
+            //    blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut,
+            //    blackHoleSettings.ConnectionConfig.UseQuotedDb);
 
             DataPathAndLogs(blackHoleSettings.DirectorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.DirectorySettings.UseLogger);
             CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
@@ -72,6 +73,7 @@ namespace BlackHole.Configuration
             switch (cliSettings.commandType)
             {
                 case CliCommandTypes.Update:
+                    services.BuildDatabase(blackHoleSettings, true);
                     exitCode = BuildOrUpdateDatabaseCliProcess(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
                     break;
                 case CliCommandTypes.Drop:
@@ -81,6 +83,7 @@ namespace BlackHole.Configuration
                     exitCode = ParseDatabaseCliProcess();
                     break;
                 case CliCommandTypes.Default:
+                    services.BuildDatabase(blackHoleSettings, false);
                     services.BuildDatabaseAndServices(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
                     break;
             }
@@ -89,6 +92,7 @@ namespace BlackHole.Configuration
             {
                 Environment.Exit(exitCode);
             }
+
             return services;
         }
 
@@ -97,21 +101,21 @@ namespace BlackHole.Configuration
             switch (settings.DatabaseConfig)
             {
                 case BHMode.Single:
-                    services.BuildSingleDatabase(settings.ConnectionConfig);
+                    services.BuildSingleDatabase(settings.ConnectionConfig, cliMode);
                     break;
                 case BHMode.MultiSchema:
-                    services.BuildMultiSchemaDatabases(settings.MultiSchemaConfig);
+                    services.BuildMultiSchemaDatabases(settings.MultiSchemaConfig, cliMode);
                     break;
                 case BHMode.Multiple:
-                    services.BuildMultipleDatabases(settings.MultipleConnectionsConfig);
+                    services.BuildMultipleDatabases(settings.MultipleConnectionsConfig, cliMode);
                     break;
                 case BHMode.HighAvailability:
-                    services.BuildHighAvailabilityDatabase(settings.HighAvailabilityConfig);
+                    services.BuildHighAvailabilityDatabase(settings.HighAvailabilityConfig, cliMode);
                     break;
             }
         }
 
-        private static void BuildSingleDatabase(this IServiceCollection services , ConnectionSettings singleSettings)
+        private static void BuildSingleDatabase(this IServiceCollection services , ConnectionSettings singleSettings, bool cliMode)
         {
             DatabaseInitializer initializer = new();
 
@@ -119,7 +123,7 @@ namespace BlackHole.Configuration
             initializer.InitializeProviders(1);
         }
 
-        private static void BuildMultipleDatabases(this IServiceCollection services, List<MultiConnectionSettings> multiSettings)
+        private static void BuildMultipleDatabases(this IServiceCollection services, List<MultiConnectionSettings> multiSettings, bool cliMode)
         {
             DatabaseInitializer initializer = new();
 
@@ -133,7 +137,7 @@ namespace BlackHole.Configuration
             }
         }
 
-        private static void BuildMultiSchemaDatabases(this IServiceCollection services, MultiSchemaConnectionSettings multiSchemaSettings)
+        private static void BuildMultiSchemaDatabases(this IServiceCollection services, MultiSchemaConnectionSettings multiSchemaSettings, bool cliMode)
         {
             DatabaseInitializer initializer = new();
 
@@ -141,7 +145,7 @@ namespace BlackHole.Configuration
             initializer.InitializeProviders(1);
         }
 
-        private static void BuildHighAvailabilityDatabase(this IServiceCollection services, HighAvailabilityConnectionSettings haSettings)
+        private static void BuildHighAvailabilityDatabase(this IServiceCollection services, HighAvailabilityConnectionSettings haSettings, bool cliMode)
         {
             DatabaseInitializer initializer = new();
 
@@ -522,14 +526,14 @@ namespace BlackHole.Configuration
             DatabaseConfiguration.SetAutoUpdateMode(automaticUpdate);
         }
 
-        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema, int timoutSeconds, bool isQuoted)
+        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema, int timoutSeconds, bool isQuoted, int connectionIndex)
         {
             if(SqlType == BlackHoleSqlTypes.SqlLite)
             {
                 ConnectionString = Path.Combine(DataPath, $"{ConnectionString}.db3");
             }
 
-            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, databaseSchema, timoutSeconds,isQuoted);
+            DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, databaseSchema, timoutSeconds,isQuoted, connectionIndex);
         }
 
         internal static void DataPathAndLogs(string DataPath, bool useLogsCleaner, int daysToClean, bool useLogger)
