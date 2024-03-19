@@ -16,21 +16,12 @@ namespace BlackHole.Core
         #region Ctor
         private EntityContext _context;
         private readonly IDataProvider _dataProvider;
-        private InitialTransaction? _initialTransaction;
 
         /// <summary>
         /// Create a Data Provider that Automatically Communicates with the Database Using the Black Hole Entity, that you pass in.
         /// </summary>
         public BHDataProvider()
         {
-            Type EntityType = typeof(T);
-            _context = EntityType.GetEntityContext<G>();
-            _dataProvider = _context.ConnectionIndex.GetDataProvider();
-        }
-
-        internal BHDataProvider(InitialTransaction initialTransaction)
-        {
-            _initialTransaction = initialTransaction;
             Type EntityType = typeof(T);
             _context = EntityType.GetEntityContext<G>();
             _dataProvider = _context.ConnectionIndex.GetDataProvider();

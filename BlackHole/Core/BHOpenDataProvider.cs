@@ -19,8 +19,6 @@ namespace BlackHole.Core
 
         private readonly IDataProvider _executionProvider;
 
-        private InitialTransaction? _initialTransaction;
-
         /// <summary>
         /// Create a Data Provider that Automatically Communicates with the Database Using the BHOpenEntity, that you pass in.
         /// </summary>
@@ -41,24 +39,6 @@ namespace BlackHole.Core
             _executionProvider = _context.ConnectionIndex.GetDataProvider();       
         }
 
-        internal BHOpenDataProvider(InitialTransaction initTransaction)
-        {
-            _initialTransaction = initTransaction;
-
-            EntitySettings<T> settings;
-
-            if (Activator.CreateInstance(typeof(T)) is T entity)
-            {
-                settings = entity.EntityOptions(new EntityOptionsBuilder<T>());
-            }
-            else
-            {
-                settings = new();
-            }
-
-            _context = settings.GetEntityContext();
-            _executionProvider = _context.ConnectionIndex.GetDataProvider();
-        }
         #endregion
 
         #region Common Helper Methods

@@ -4,10 +4,6 @@ using System.Linq.Expressions;
 
 namespace BlackHole.Core
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
     internal class BHJoinsProcess<Dto> : IBHJoinsProcess<Dto> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
@@ -26,58 +22,31 @@ namespace BlackHole.Core
             IsFirst = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TOther"></typeparam>
-        /// <returns></returns>
+
         public IPrejoin<Dto, TSource, TOther> InnerJoin<TSource, TOther>()
         {
             return new PreJoin<Dto,TSource, TOther>(Data, "inner", IsFirst);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TOther"></typeparam>
-        /// <returns></returns>
+
         public IPrejoin<Dto, TSource, TOther> OuterJoin<TSource, TOther>()
         {
             return new PreJoin<Dto, TSource, TOther>(Data, "full outer", IsFirst);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TOther"></typeparam>
-        /// <returns></returns>
         public IPrejoin<Dto, TSource, TOther> LeftJoin<TSource, TOther>()
         {
             return new PreJoin<Dto, TSource, TOther>(Data, "left", IsFirst);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TOther"></typeparam>
-        /// <returns></returns>
         public IPrejoin<Dto, TSource, TOther> RightJoin<TSource, TOther>()
         {
             return new PreJoin<Dto, TSource, TOther>(Data, "right", IsFirst);
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
-    /// <typeparam name="TOther"></typeparam>
-    internal class PreJoin<Dto, Tsource, TOther> : IPrejoin<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
+
+    internal class PreJoin<Dto, TSource, TOther> : IPrejoin<Dto, TSource, TOther> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
         internal string JoinType { get; set; }
@@ -90,28 +59,14 @@ namespace BlackHole.Core
             IsFirst = isFirst;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="otherkey"></param>
-        /// <returns></returns>
-        public IJoinConfig<Dto, Tsource, TOther> On<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IJoinConfig<Dto, TSource, TOther> On<Tkey>(Expression<Func<TSource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
         {
-            Data.CreateJoin<Dto, Tsource, TOther>(key, otherkey, JoinType, IsFirst);
-            return new JoinConfig<Dto, Tsource, TOther>(Data);
+            Data.CreateJoin<Dto, TSource, TOther>(key, otherkey, JoinType, IsFirst);
+            return new JoinConfig<Dto, TSource, TOther>(Data);
         }
     }
 
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
-    /// <typeparam name="TOther"></typeparam>
-    internal class JoinConfig<Dto, Tsource, TOther> : IJoinConfig<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
+    internal class JoinConfig<Dto, TSource, TOther> : IJoinConfig<Dto, TSource, TOther> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
 
@@ -120,109 +75,54 @@ namespace BlackHole.Core
             Data = data;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="otherkey"></param>
-        /// <returns></returns>
-        public IJoinConfig<Dto, Tsource, TOther> And<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IJoinConfig<Dto, TSource, TOther> And<Tkey>(Expression<Func<TSource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
         {
-            Data.Additional<Tsource, TOther>(key, otherkey, "and");
+            Data.Additional<TSource, TOther>(key, otherkey, "and");
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="otherkey"></param>
-        /// <returns></returns>
-        public IJoinConfig<Dto, Tsource, TOther> Or<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IJoinConfig<Dto, TSource, TOther> Or<Tkey>(Expression<Func<TSource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
         {
-            Data.Additional<Tsource,TOther>(key, otherkey,"or");
+            Data.Additional<TSource,TOther>(key, otherkey,"or");
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public IJoinOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate)
+        public IJoinOptions<Dto, TSource, TOther> WhereFirst(Expression<Func<TSource, bool>> predicate)
         {
             Data.WhereJoin(predicate);
-            return new JoinOptions<Dto, Tsource, TOther>(Data);
+            return new JoinOptions<Dto, TSource, TOther>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public IJoinOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
+        public IJoinOptions<Dto, TSource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
         {
             Data.WhereJoin(predicate);
-            return new JoinOptions<Dto, Tsource, TOther>(Data);
+            return new JoinOptions<Dto, TSource, TOther>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        public IJoinOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey,TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey,TOtherKey>(Expression<Func<TSource, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
         {
-            Data.CastColumn<Tsource>(predicate, castOnDto);
-            return new JoinOptions<Dto, Tsource, TOther>(Data);
+            Data.CastColumn<TSource>(predicate, castOnDto);
+            return new JoinOptions<Dto, TSource, TOther>(Data);
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        public IJoinOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey,TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<Tkey,TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
         {
             Data.CastColumn<TOther>(predicate, castOnDto);
-            return new JoinOptions<Dto, Tsource, TOther>(Data);
+            return new JoinOptions<Dto, TSource, TOther>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public IBHJoinsProcess<Dto> Then()
         {
             return new BHJoinsProcess<Dto>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public IJoinComplete<Dto> Finally()
         {
             return new JoinComplete<Dto>(Data);
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
-    /// <typeparam name="TOther"></typeparam>
-    internal class JoinOptions<Dto, Tsource, TOther> : IJoinOptions<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
+    internal class JoinOptions<Dto, TSource, TOther> : IJoinOptions<Dto, TSource, TOther> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
 
@@ -231,80 +131,41 @@ namespace BlackHole.Core
             Data = data;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public IJoinOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate)
+        public IJoinOptions<Dto, TSource, TOther> WhereFirst(Expression<Func<TSource, bool>> predicate)
         {
             Data.WhereJoin(predicate);
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public IJoinOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
+        public IJoinOptions<Dto, TSource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
         {
             Data.WhereJoin(predicate);
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        public IJoinOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey, TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
         {
-            Data.CastColumn<Tsource>(predicate, castOnDto);
+            Data.CastColumn<TSource>(predicate, castOnDto);
             return this;
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        public IJoinOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey, TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
         {
             Data.CastColumn<TOther>(predicate, castOnDto);
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public IBHJoinsProcess<Dto> Then()
         {
             return new BHJoinsProcess<Dto>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public IJoinComplete<Dto> Finally()
         {
             return new JoinComplete<Dto>(Data);
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
     internal class JoinComplete<Dto> : IJoinComplete<Dto> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }

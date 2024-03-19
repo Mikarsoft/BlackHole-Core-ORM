@@ -1,21 +1,10 @@
 ﻿using BlackHole.Engine;
-using BlackHole.Entities;
 using BlackHole.Identifiers;
 
 namespace BlackHole.Core
 {
-    /// <summary>
-    /// Queries for the Table Joins Feature
-    /// </summary>
-    public static class BHExtensions
+    internal static class BHExtensions
     {
-        #region Joins Execution
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <returns></returns>
         internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data) where Dto: BHDtoIdentifier
         {
             if(data.TranslateJoin<Dto>() is ColumnsAndParameters command)
@@ -27,12 +16,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <returns></returns>
         internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data) where Dto : BHDtoIdentifier
         {
             if (data.TranslateJoin<Dto>() is ColumnsAndParameters command)
@@ -44,13 +27,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="bhTransaction"></param>
-        /// <returns></returns>
         internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, IBHTransaction bhTransaction) where Dto : BHDtoIdentifier
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
@@ -64,13 +40,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="bhTransaction"></param>
-        /// <returns></returns>
         internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, IBHTransaction bhTransaction) where Dto : BHDtoIdentifier
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
@@ -84,13 +53,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="orderBy"></param>
-        /// <returns></returns>
         internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy) where Dto : BHDtoIdentifier
         {
             if (data.TranslateJoin<Dto>() is ColumnsAndParameters command)
@@ -105,13 +67,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="orderBy"></param>
-        /// <returns></returns>
         internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy) where Dto : BHDtoIdentifier
         {
             if (data.TranslateJoin<Dto>() is ColumnsAndParameters command)
@@ -126,14 +81,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="orderBy"></param>
-        /// <param name="bhTransaction"></param>
-        /// <returns></returns>
         internal static List<Dto> ExecuteQuery<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy, IBHTransaction bhTransaction) where Dto : BHDtoIdentifier
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
@@ -150,14 +97,6 @@ namespace BlackHole.Core
             return new List<Dto>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="data"></param>
-        /// <param name="orderBy"></param>
-        /// <param name="bhTransaction"></param>
-        /// <returns></returns>
         internal static async Task<List<Dto>> ExecuteQueryAsync<Dto>(this JoinsData data, Action<BHOrderBy<Dto>> orderBy, IBHTransaction bhTransaction) where Dto : BHDtoIdentifier
         {
             BHTransaction transactionBh = (BHTransaction)bhTransaction;
@@ -173,6 +112,5 @@ namespace BlackHole.Core
             }
             return new List<Dto>();
         }
-        #endregion
     }
 }
