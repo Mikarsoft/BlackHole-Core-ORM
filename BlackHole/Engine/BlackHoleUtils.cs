@@ -172,12 +172,17 @@ namespace BlackHole.Engine
 
     internal class SPData
     {
-        internal SPData(Type dtoType, string procName)
+        internal SPData(Type dtoType, string procName, string commandText, bool existing, bool quotedDb)
         {
             DtoType = dtoType;
             ProcedureName = procName;
+            CommandText = commandText;
+            IsExistent = existing;
+            IsQuotedDb = quotedDb;
         }
 
+        internal string CommandText { get; set; } = string.Empty;
+        internal bool IsExistent { get; set; }
         internal Type DtoType { get; set; }
         internal string ProcedureName { get; set; } = string.Empty;
         internal int ConnectionIndex { get; set; }

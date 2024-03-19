@@ -8,17 +8,16 @@ namespace BlackHole.Core
         private IDataProvider _executionProvider;
         private int _connectionIndex;
 
-        internal BHConnection()
+        internal BHConnection(int connectionIndex)
         {
-            _connectionIndex = 0;
+            _connectionIndex = connectionIndex;
             _executionProvider = _connectionIndex.GetDataProvider();
         }
 
-        void IBHConnection.SwitchConnection(int connectionIndex)
+        internal BHConnection(string dbIdentity)
         {
-            _connectionIndex = _connectionIndex.SetIndex(connectionIndex);
+            _connectionIndex = dbIdentity.GetConnectionIndexByIdentity();
             _executionProvider = _connectionIndex.GetDataProvider();
-
         }
 
         G? IBHConnection.ExecuteScalar<G>(string commandText) where G: default

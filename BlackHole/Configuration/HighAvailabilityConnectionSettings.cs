@@ -12,27 +12,32 @@ namespace BlackHole.Configuration
         internal BlackHoleSqlTypes ConnectionType { get; set; }
         internal string ConnectionString { get; set; } = string.Empty;
         internal bool QuotedDb { get; set; } = false;
+        internal string DatabaseIdentity { get; set; } = string.Empty;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public HighAvailabilitySecondDbConfig UseSqlServerAsMain(string connectionString)
+        public HighAvailabilitySecondDbConfig UseSqlServerAsMain(string connectionString, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             return secondDbConfig;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public HighAvailabilitySecondDbConfig UseSqlServerAsMain(string connectionString, bool quotedDb)
+        public HighAvailabilitySecondDbConfig UseSqlServerAsMain(string connectionString, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             return secondDbConfig;
@@ -42,9 +47,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public HighAvailabilitySecondDbConfig UseNpgSqlAsMain(string connectionString)
+        public HighAvailabilitySecondDbConfig UseNpgSqlAsMain(string connectionString, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             return secondDbConfig;
@@ -54,9 +61,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public HighAvailabilitySecondDbConfig UseMySqlAsMain(string connectionString)
+        public HighAvailabilitySecondDbConfig UseMySqlAsMain(string connectionString, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             return secondDbConfig;
@@ -66,9 +75,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public HighAvailabilitySecondDbConfig UseOracleAsMain(string connectionString)
+        public HighAvailabilitySecondDbConfig UseOracleAsMain(string connectionString, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             ConnectionString = connectionString;
             return secondDbConfig;
         }
@@ -77,9 +88,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="databaseName"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public HighAvailabilitySecondDbConfig UseSqliteAsMain(string databaseName)
+        public HighAvailabilitySecondDbConfig UseSqliteAsMain(string databaseName, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             ConnectionString = databaseName;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             return secondDbConfig;
@@ -90,9 +103,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="databaseName"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public HighAvailabilitySecondDbConfig UseSqliteAsMain(string databaseName, bool quotedDb)
+        public HighAvailabilitySecondDbConfig UseSqliteAsMain(string databaseName, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             ConnectionString = databaseName;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
             return secondDbConfig;
@@ -108,6 +123,7 @@ namespace BlackHole.Configuration
         internal BlackHoleSqlTypes ConnectionType { get; set; }
         internal string ConnectionString { get; set; } = string.Empty;
         internal bool QuotedDb { get; set; }
+        internal string DatabaseIdentity { get; set; } = string.Empty;
 
         /// <summary>
         /// 
@@ -118,9 +134,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public ConnectionAdditionalSettings UseSqlServerAsStandBy(string connectionString)
+        public ConnectionAdditionalSettings UseSqlServerAsStandBy(string connectionString, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             BackUpIsSelected = true;
             QuotedDb = false;
             ConnectionString = connectionString;
@@ -133,9 +151,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public ConnectionAdditionalSettings UseSqlServerAsStandBy(string connectionString, bool quotedDb)
+        public ConnectionAdditionalSettings UseSqlServerAsStandBy(string connectionString, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             BackUpIsSelected = true;
             QuotedDb = quotedDb;
             ConnectionString = connectionString;
@@ -147,9 +167,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public ConnectionAdditionalSettings UseNpgSqlAsStandBy(string connectionString)
+        public ConnectionAdditionalSettings UseNpgSqlAsStandBy(string connectionString, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             BackUpIsSelected = true;
             QuotedDb = true;
             ConnectionString = connectionString;
@@ -161,9 +183,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public ConnectionAdditionalSettings UseMySqlAsStandBy(string connectionString)
+        public ConnectionAdditionalSettings UseMySqlAsStandBy(string connectionString, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             BackUpIsSelected = true;
             QuotedDb = false;
             ConnectionString = connectionString;
@@ -175,9 +199,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public ConnectionAdditionalSettings UseOracleAsStandBy(string connectionString)
+        public ConnectionAdditionalSettings UseOracleAsStandBy(string connectionString, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             BackUpIsSelected = true;
             QuotedDb = true;
             ConnectionString = connectionString;
@@ -188,9 +214,11 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="databaseName"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public ConnectionAdditionalSettings UseSqliteAsStandBy(string databaseName)
+        public ConnectionAdditionalSettings UseSqliteAsStandBy(string databaseName, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             BackUpIsSelected = true;
             QuotedDb = false;
             ConnectionString = databaseName;
@@ -203,9 +231,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="databaseName"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public ConnectionAdditionalSettings UseSqliteAsStandBy(string databaseName, bool quotedDb)
+        public ConnectionAdditionalSettings UseSqliteAsStandBy(string databaseName, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             BackUpIsSelected = true;
             QuotedDb = quotedDb;
             ConnectionString = databaseName;

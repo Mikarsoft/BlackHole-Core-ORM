@@ -1,10 +1,13 @@
-﻿namespace BlackHole.PreLoads
+﻿using BlackHole.Identifiers;
+
+namespace BlackHole.PreLoads
 {
     /// <summary>
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
     public interface IStoredProcedureProcess<Dto>
+        where Dto : BHDtoIdentifier
     {
         /// <summary>
         /// 

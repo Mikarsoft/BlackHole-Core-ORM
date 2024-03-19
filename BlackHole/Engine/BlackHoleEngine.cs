@@ -33,6 +33,11 @@ namespace BlackHole.Engine
             return providerIndex;
         }
 
+        internal static int GetConnectionIndexByIdentity(this string dbIdentity)
+        {
+            return WormHoleData.DatabaseIdentities.IndexOf(dbIdentity);
+        }
+
         internal static IDataProvider GetDataProvider(this int providerIndex)
         {
             if (DataProviders[providerIndex] != null)

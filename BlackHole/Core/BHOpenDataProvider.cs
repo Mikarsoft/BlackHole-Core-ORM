@@ -15,7 +15,7 @@ namespace BlackHole.Core
     {
         #region Ctor
 
-        private OpenEntityContext _context;
+        internal OpenEntityContext _context;
 
         private readonly IDataProvider _executionProvider;
 
@@ -1126,6 +1126,16 @@ namespace BlackHole.Core
         IBHTransaction IBHOpenDataProvider<T>.BeginIBHTransaction()
         {
             return new BHTransaction();
+        }
+
+        IBHConnection IBHOpenDataProvider<T>.CustomCommand()
+        {
+            return new BHConnection(_context.ConnectionIndex);
+        }
+
+        IBHConnection IBHOpenDataProvider<T>.CustomCommand(string dbIdentity)
+        {
+            return new BHConnection(dbIdentity);
         }
         #endregion
     }

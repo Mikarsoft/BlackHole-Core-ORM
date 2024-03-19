@@ -24,10 +24,6 @@ namespace BlackHole.Internal
             _multiDatabaseSelector.SetDbDateFormat(connection);
         }
 
-        /// <summary>
-        /// Closes all open connections and drops the database
-        /// </summary>
-        /// <returns></returns>
         internal bool DropDatabase()
         {
             string CheckDb = "";
@@ -135,10 +131,6 @@ namespace BlackHole.Internal
             }
         }
 
-        /// <summary>
-        /// Creates a new Database if it doesn't exist, in the specified Server or location
-        /// </summary>
-        /// <returns></returns>
         internal bool CreateDatabase()
         {
             string CheckDb = "";
@@ -228,10 +220,6 @@ namespace BlackHole.Internal
             }
         }
 
-        /// <summary>
-        /// Checks if the database exists and returns a boolean
-        /// </summary>
-        /// <returns></returns>
         internal bool DoesDbExists()
         {
             string CheckDb = "";

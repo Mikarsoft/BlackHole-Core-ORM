@@ -1,37 +1,7 @@
-﻿using BlackHole.Core;
-using System.Data;
+﻿using System.Data;
 
 namespace BlackHole.Engine
 {
-    internal class InitialTransaction
-    {
-        internal BHTransaction bhTransaction;
-
-        internal int hasChanges;
-
-        internal InitialTransaction()
-        {
-            bhTransaction = new();
-        }
-
-        internal bool Commit()
-        {
-            bool success;
-
-            if (hasChanges > 0)
-            {
-                success = bhTransaction.Commit();
-            }
-            else
-            {
-                success = bhTransaction.DoNotCommit();
-            }
-
-            bhTransaction.Dispose();
-            return success;
-        }
-    }
-
     internal class BlackHoleTransaction : IDisposable
     {
         private bool committed = false;

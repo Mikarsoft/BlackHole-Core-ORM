@@ -12,6 +12,6 @@ namespace BlackHole.PreLoads
         /// </summary>
         /// <typeparam name="Dto"></typeparam>
         /// <returns></returns>
-        IStoredViewsProcess<Dto> StartJoinUsing<Dto>() where Dto : BHDtoIdentifier;
+        IStoredViewsProcess<Dto> CreateViewUsing<Dto>() where Dto : BHDtoIdentifier;
     }
 }

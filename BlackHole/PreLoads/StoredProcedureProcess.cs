@@ -3,10 +3,6 @@ using BlackHole.Identifiers;
 
 namespace BlackHole.PreLoads
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
     internal class StoredProcedureProcess<Dto>: IStoredProcedureProcess<Dto> where Dto : BHDtoIdentifier
     {
         internal string ProcedureName { get; set; }
@@ -27,66 +23,36 @@ namespace BlackHole.PreLoads
             IsExistent = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionString"></param>
         public void StoredInSqlServer(string connectionString)
         {
             new StoredProcedureComplete<Dto>(ProcedureName, CommandText, connectionString, IsExistent, BlackHoleSqlTypes.SqlServer, false).StoreAsProcedure();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="quotedDb"></param>
         public void StoredInSqlServer(string connectionString, bool quotedDb)
         {
             new StoredProcedureComplete<Dto>(ProcedureName, CommandText, connectionString, IsExistent, BlackHoleSqlTypes.SqlServer, quotedDb).StoreAsProcedure();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionString"></param>
         public void StoredInNpgsql(string connectionString)
         {
             new StoredProcedureComplete<Dto>(ProcedureName, CommandText, connectionString, IsExistent, BlackHoleSqlTypes.Postgres, true).StoreAsProcedure();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionString"></param>
         public void StoredInOracle(string connectionString)
         {
             new StoredProcedureComplete<Dto>(ProcedureName, CommandText, connectionString, IsExistent, BlackHoleSqlTypes.Oracle, true).StoreAsProcedure();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionString"></param>
         public void StoredInMySql(string connectionString)
         {
             new StoredProcedureComplete<Dto>(ProcedureName, CommandText, connectionString, IsExistent, BlackHoleSqlTypes.MySql, false).StoreAsProcedure();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionString"></param>
         public void StoredInSqlite(string connectionString)
         {
             new StoredProcedureComplete<Dto>(ProcedureName, CommandText, connectionString, IsExistent, BlackHoleSqlTypes.SqlLite, false).StoreAsProcedure();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="quotedDb"></param>
         public void StoredInSqlite(string connectionString, bool quotedDb)
         {
             new StoredProcedureComplete<Dto>(ProcedureName, CommandText, connectionString, IsExistent, BlackHoleSqlTypes.SqlLite, quotedDb).StoreAsProcedure();

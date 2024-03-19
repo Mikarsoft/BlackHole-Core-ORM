@@ -14,7 +14,7 @@ namespace BlackHole.Core
     public class BHDataProvider<T, G> : IBHDataProvider<T, G> where T : BlackHoleEntity<G> where G :IComparable<G>
     {
         #region Ctor
-        private EntityContext _context;
+        internal EntityContext _context;
         private readonly IDataProvider _dataProvider;
 
         /// <summary>
@@ -1792,6 +1792,16 @@ namespace BlackHole.Core
         IBHTransaction IBHDataProvider<T, G>.BeginIBHTransaction()
         {
             return new BHTransaction();
+        }
+
+        IBHConnection IBHDataProvider<T, G>.CustomCommand()
+        {
+            return new BHConnection(_context.ConnectionIndex);
+        }
+
+        IBHConnection IBHDataProvider<T, G>.CustomCommand(string dbIdentity)
+        {
+            return new BHConnection(dbIdentity);
         }
         #endregion
     }

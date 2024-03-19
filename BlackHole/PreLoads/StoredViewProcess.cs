@@ -4,11 +4,7 @@ using System.Linq.Expressions;
 
 namespace BlackHole.PreLoads
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    public class StoredViewsProcess<Dto> : IStoredViewsProcess<Dto> where Dto : BHDtoIdentifier
+    internal class StoredViewsProcess<Dto> : IStoredViewsProcess<Dto> where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
         internal bool IsFirst { get; set; }
@@ -26,48 +22,24 @@ namespace BlackHole.PreLoads
             IsFirst = false;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TOther"></typeparam>
-        /// <returns></returns>
         public IPreStoredView<Dto, TSource, TOther> InnerJoin<TSource, TOther>() 
             where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier
         {
             return new PreStoredView<Dto, TSource, TOther>(Data, "inner", IsFirst);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TOther"></typeparam>
-        /// <returns></returns>
         public IPreStoredView<Dto, TSource, TOther> OuterJoin<TSource, TOther>() 
             where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier
         {
             return new PreStoredView<Dto, TSource, TOther>(Data, "full outer", IsFirst);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TOther"></typeparam>
-        /// <returns></returns>
         public IPreStoredView<Dto, TSource, TOther> LeftJoin<TSource, TOther>() 
             where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier
         {
             return new PreStoredView<Dto, TSource, TOther>(Data, "left", IsFirst);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TOther"></typeparam>
-        /// <returns></returns>
         public IPreStoredView<Dto, TSource, TOther> RightJoin<TSource, TOther>() 
             where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier
         {
@@ -75,13 +47,7 @@ namespace BlackHole.PreLoads
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
-    /// <typeparam name="TOther"></typeparam>
-    public class PreStoredView<Dto, Tsource, TOther> : IPreStoredView<Dto, Tsource, TOther>
+    internal class PreStoredView<Dto, Tsource, TOther> : IPreStoredView<Dto, Tsource, TOther>
         where Tsource : BHEntityIdentifier where TOther : BHEntityIdentifier where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
@@ -95,29 +61,16 @@ namespace BlackHole.PreLoads
             IsFirst = isFirst;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="otherkey"></param>
-        /// <returns></returns>
-        public StoredViewConfig<Dto, Tsource, TOther> On<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IStoredViewConfig<Dto, Tsource, TOther> On<TKey>(Expression<Func<Tsource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
         {
-            Data.CreateJoin<Dto, Tsource, TOther>(key, otherkey, StoredViewType, IsFirst);
+            Data.CreateJoin<Dto, Tsource, TOther>(key, otherKey, StoredViewType, IsFirst);
             return new StoredViewConfig<Dto, Tsource, TOther>(Data);
         }
     }
 
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
-    /// <typeparam name="TOther"></typeparam>
-    public class StoredViewConfig<Dto, Tsource, TOther> : IStoredViewConfig<Dto, Tsource, TOther>
-        where Tsource : BHEntityIdentifier where TOther : BHEntityIdentifier where Dto : BHDtoIdentifier
+    internal class StoredViewConfig<Dto, TSource, TOther> : IStoredViewConfig<Dto, TSource, TOther>
+        where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
 
@@ -126,110 +79,55 @@ namespace BlackHole.PreLoads
             Data = data;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="otherkey"></param>
-        /// <returns></returns>
-        public StoredViewConfig<Dto, Tsource, TOther> And<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IStoredViewConfig<Dto, TSource, TOther> And<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
         {
-            Data.Additional<Tsource, TOther>(key, otherkey, "and");
+            Data.Additional<TSource, TOther>(key, otherKey, "and");
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="otherkey"></param>
-        /// <returns></returns>
-        public StoredViewConfig<Dto, Tsource, TOther> Or<Tkey>(Expression<Func<Tsource, Tkey?>> key, Expression<Func<TOther, Tkey?>> otherkey)
+        public IStoredViewConfig<Dto, TSource, TOther> Or<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
         {
-            Data.Additional<Tsource, TOther>(key, otherkey, "or");
+            Data.Additional<TSource, TOther>(key, otherKey, "or");
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public StoredViewOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate)
+        public IStoredViewOptions<Dto, TSource, TOther> WhereFirst(Expression<Func<TSource, bool>> predicate)
         {
             Data.WhereJoin(predicate);
-            return new StoredViewOptions<Dto, Tsource, TOther>(Data);
+            return new StoredViewOptions<Dto, TSource, TOther>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public StoredViewOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
+        public IStoredViewOptions<Dto, TSource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
         {
             Data.WhereJoin(predicate);
-            return new StoredViewOptions<Dto, Tsource, TOther>(Data);
+            return new StoredViewOptions<Dto, TSource, TOther>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        public StoredViewOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey, TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IStoredViewOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
         {
-            Data.CastColumn<Tsource>(predicate, castOnDto);
-            return new StoredViewOptions<Dto, Tsource, TOther>(Data);
+            Data.CastColumn<TSource>(predicate, castOnDto);
+            return new StoredViewOptions<Dto, TSource, TOther>(Data);
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        public StoredViewOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey, TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IStoredViewOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
         {
             Data.CastColumn<TOther>(predicate, castOnDto);
-            return new StoredViewOptions<Dto, Tsource, TOther>(Data);
+            return new StoredViewOptions<Dto, TSource, TOther>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public StoredViewsProcess<Dto> Then()
+        public IStoredViewsProcess<Dto> Then()
         {
             return new StoredViewsProcess<Dto>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
         public void StoreAsView()
         {
             new StoredViewComplete<Dto>(Data).StoreAsView();
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
-    /// <typeparam name="TOther"></typeparam>
-    public class StoredViewOptions<Dto, Tsource, TOther> : IStoredViewOptions<Dto, Tsource, TOther>
-        where Tsource : BHEntityIdentifier where TOther : BHEntityIdentifier where Dto : BHDtoIdentifier
+    internal class StoredViewOptions<Dto, TSource, TOther> : IStoredViewOptions<Dto, TSource, TOther>
+        where TSource : BHEntityIdentifier where TOther : BHEntityIdentifier where Dto : BHDtoIdentifier
     {
         internal JoinsData Data { get; set; }
 
@@ -238,81 +136,44 @@ namespace BlackHole.PreLoads
             Data = data;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public StoredViewOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate)
+        public IStoredViewOptions<Dto, TSource, TOther> WhereFirst(Expression<Func<TSource, bool>> predicate)
         {
             Data.WhereJoin(predicate);
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public StoredViewOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
+        public IStoredViewOptions<Dto, TSource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
         {
             Data.WhereJoin(predicate);
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        public StoredViewOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey, TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IStoredViewOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
         {
-            Data.CastColumn<Tsource>(predicate, castOnDto);
+            Data.CastColumn<TSource>(predicate, castOnDto);
             return this;
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        public StoredViewOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey, TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto)
+        public IStoredViewOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
         {
             Data.CastColumn<TOther>(predicate, castOnDto);
             return this;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public StoredViewsProcess<Dto> Then()
+
+        public IStoredViewsProcess<Dto> Then()
         {
             return new StoredViewsProcess<Dto>(Data);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+
         public void StoreAsView()
         {
             new StoredViewComplete<Dto>(Data).StoreAsView();
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    internal class StoredViewComplete<Dto>: IStoredViewComplete<Dto> where Dto : BHDtoIdentifier
+    internal class StoredViewComplete<Dto>
     {
         internal JoinsData Data { get; set; }
         internal StoredViewComplete(JoinsData data)

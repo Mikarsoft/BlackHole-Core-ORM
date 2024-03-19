@@ -129,7 +129,7 @@ namespace BlackHole.Configuration
             for(int i = 0; i < multiSettings.Count; i++)
             {
                 initializer.AssignWormholeSettings(multiSettings[i].ConnectionString, multiSettings[i].ConnectionType,
-                    multiSettings[i].TableSchema, multiSettings[i].UseQuotedDb, i);
+                    multiSettings[i].TableSchema,multiSettings[i].DatabaseIdentity, multiSettings[i].UseQuotedDb, i);
             }
         }
 
@@ -203,7 +203,6 @@ namespace BlackHole.Configuration
                 services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
                 services.AddScoped(typeof(IBHOpenDataProvider<>), typeof(BHOpenDataProvider<>));
                 services.AddScoped(typeof(IBHViews), typeof(BHViews));
-                services.AddScoped(typeof(IBHConnection), typeof(BHConnection));
                 services.AddServicesAndTables(additionalSettings, callingAssembly, databaseBuilder);
             }
             else

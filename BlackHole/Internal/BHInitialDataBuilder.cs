@@ -1,6 +1,4 @@
-﻿using BlackHole.Core;
-using BlackHole.Engine;
-using BlackHole.PreLoads;
+﻿using BlackHole.PreLoads;
 using BlackHole.Statics;
 using System.Reflection;
 
@@ -8,12 +6,10 @@ namespace BlackHole.Internal
 {
     internal class BHInitialDataBuilder
     {
-        private readonly IBHConnection connection;
         private BHSqlExportWriter sqlWriter { get; set; }
 
         internal BHInitialDataBuilder()
         {
-            connection = new BHConnection();
             sqlWriter = new BHSqlExportWriter("3_InitialDataSql", "SqlFiles", "sql");
         }
 

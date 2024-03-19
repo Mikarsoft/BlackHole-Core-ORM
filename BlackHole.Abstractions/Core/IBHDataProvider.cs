@@ -19,6 +19,19 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
+        IBHConnection CustomCommand();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dbIdentity"></param>
+        /// <returns></returns>
+        IBHConnection CustomCommand(string dbIdentity);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         IBHTransaction BeginIBHTransaction();
 
         /// <summary>

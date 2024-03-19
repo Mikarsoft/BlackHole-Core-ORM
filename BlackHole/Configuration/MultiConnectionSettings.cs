@@ -18,14 +18,18 @@ namespace BlackHole.Configuration
         internal bool IsUsingAssembly { get; set; }
         internal bool UseQuotedDb { get; set; }
 
+        internal string DatabaseIdentity { get; set; } = string.Empty;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="fromNamespace"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace)
+        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
@@ -38,9 +42,11 @@ namespace BlackHole.Configuration
         /// <param name="connectionString"></param>
         /// <param name="fromNamespace"></param>
         /// <param name="schema"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, string schema)
+        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, string schema, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             TableSchema = schema;
             SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
@@ -54,9 +60,11 @@ namespace BlackHole.Configuration
         /// <param name="connectionString"></param>
         /// <param name="fromNamespace"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, bool quotedDb)
+        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.SqlServer;
@@ -71,9 +79,11 @@ namespace BlackHole.Configuration
         /// <param name="fromNamespace"></param>
         /// <param name="schema"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, string schema, bool quotedDb)
+        public MultiAdditionalSettings UseSqlServer(string connectionString, string fromNamespace, string schema, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             TableSchema = schema;
             SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
@@ -87,9 +97,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="fromNamespace"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseNpgSql(string connectionString, string fromNamespace)
+        public MultiAdditionalSettings UseNpgSql(string connectionString, string fromNamespace, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             UseQuotedDb = true;
             SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
@@ -103,9 +115,11 @@ namespace BlackHole.Configuration
         /// <param name="connectionString"></param>
         /// <param name="fromNamespace"></param>
         /// <param name="schema"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseNpgSql(string connectionString, string fromNamespace, string schema)
+        public MultiAdditionalSettings UseNpgSql(string connectionString, string fromNamespace, string schema, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             TableSchema = schema;
             UseQuotedDb = true;
             SelectedNamespace = fromNamespace;
@@ -119,9 +133,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="fromNamespace"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseMySql(string connectionString, string fromNamespace)
+        public MultiAdditionalSettings UseMySql(string connectionString, string fromNamespace, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
             ConnectionType = BlackHoleSqlTypes.MySql;
@@ -133,9 +149,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="fromAssembly"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseMySql(string connectionString, Assembly fromAssembly)
+        public MultiAdditionalSettings UseMySql(string connectionString, Assembly fromAssembly, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             Ass = fromAssembly;
             IsUsingAssembly = true;
             ConnectionString = connectionString;
@@ -148,9 +166,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="databaseName"></param>
         /// <param name="fromNamespace"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlite(string databaseName, string fromNamespace)
+        public MultiAdditionalSettings UseSqlite(string databaseName, string fromNamespace, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             SelectedNamespace = fromNamespace;
             ConnectionString = databaseName;
             ConnectionType = BlackHoleSqlTypes.SqlLite;
@@ -163,9 +183,11 @@ namespace BlackHole.Configuration
         /// <param name="databaseName"></param>
         /// <param name="fromNamespace"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlite(string databaseName, string fromNamespace, bool quotedDb)
+        public MultiAdditionalSettings UseSqlite(string databaseName, string fromNamespace, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             SelectedNamespace = fromNamespace;
             ConnectionString = databaseName;
             ConnectionType = BlackHoleSqlTypes.SqlLite;
@@ -178,9 +200,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="fromNamespace"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseOracle(string connectionString, string fromNamespace)
+        public MultiAdditionalSettings UseOracle(string connectionString, string fromNamespace, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             UseQuotedDb = true;
             SelectedNamespace = fromNamespace;
             ConnectionString = connectionString;
@@ -193,9 +217,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="fromAssembly"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseOracle(string connectionString, Assembly fromAssembly)
+        public MultiAdditionalSettings UseOracle(string connectionString, Assembly fromAssembly, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             Ass = fromAssembly;
             IsUsingAssembly = true;
             UseQuotedDb = true;
@@ -209,9 +235,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="fromAssembly"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly)
+        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             Ass = fromAssembly;
             IsUsingAssembly = true;
             ConnectionString = connectionString;
@@ -225,9 +253,11 @@ namespace BlackHole.Configuration
         /// <param name="connectionString"></param>
         /// <param name="fromAssembly"></param>
         /// <param name="schema"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, string schema)
+        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, string schema, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             TableSchema = schema;
             Ass = fromAssembly;
             IsUsingAssembly = true;
@@ -242,9 +272,11 @@ namespace BlackHole.Configuration
         /// <param name="connectionString"></param>
         /// <param name="fromAssembly"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, bool quotedDb)
+        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             Ass = fromAssembly;
             IsUsingAssembly = true;
             ConnectionString = connectionString;
@@ -260,9 +292,11 @@ namespace BlackHole.Configuration
         /// <param name="fromAssembly"></param>
         /// <param name="schema"></param>
         /// <param name="quotedDb"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, string schema, bool quotedDb)
+        public MultiAdditionalSettings UseSqlServer(string connectionString, Assembly fromAssembly, string schema, bool quotedDb, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             TableSchema = schema;
             Ass = fromAssembly;
             IsUsingAssembly = true;
@@ -277,9 +311,11 @@ namespace BlackHole.Configuration
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="fromAssembly"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseNpgSql(string connectionString, Assembly fromAssembly)
+        public MultiAdditionalSettings UseNpgSql(string connectionString, Assembly fromAssembly, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             Ass = fromAssembly;
             IsUsingAssembly = true;
             UseQuotedDb = true;
@@ -294,9 +330,11 @@ namespace BlackHole.Configuration
         /// <param name="connectionString"></param>
         /// <param name="fromAssembly"></param>
         /// <param name="schema"></param>
+        /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        public MultiAdditionalSettings UseNpgSql(string connectionString, Assembly fromAssembly, string schema)
+        public MultiAdditionalSettings UseNpgSql(string connectionString, Assembly fromAssembly, string schema, string dbIdentity)
         {
+            DatabaseIdentity = dbIdentity;
             TableSchema = schema;
             Ass = fromAssembly;
             IsUsingAssembly = true;

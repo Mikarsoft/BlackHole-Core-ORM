@@ -1,13 +1,38 @@
 ﻿using BlackHole.Core;
-using BlackHole.Engine;
 using BlackHole.Entities;
 using BlackHole.Identifiers;
 
 namespace BlackHole.PreLoads
 {
-    /// <summary>
-    /// 
-    /// </summary>
+    internal class InitialTransaction
+    {
+        internal BHTransaction bhTransaction;
+
+        internal int hasChanges;
+
+        internal InitialTransaction()
+        {
+            bhTransaction = new();
+        }
+
+        internal bool Commit()
+        {
+            bool success;
+
+            if (hasChanges > 0)
+            {
+                success = bhTransaction.Commit();
+            }
+            else
+            {
+                success = bhTransaction.DoNotCommit();
+            }
+
+            bhTransaction.Dispose();
+            return success;
+        }
+    }
+
     internal class DefaultDataBuilder : IDefaultDataBuilder
     {
         internal InitialTransaction _initialTransaction;
@@ -32,46 +57,26 @@ namespace BlackHole.PreLoads
         }
     }
 
-
-    /// <summary>
-    /// 
-    /// </summary>
     internal class StoredViewsBuilder : IStoredViewsBuilder
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <returns></returns>
-        public IStoredViewsProcess<Dto> StartJoinUsing<Dto>() where Dto : BHDtoIdentifier
+        public IStoredViewsProcess<Dto> CreateViewUsing<Dto>() where Dto : BHDtoIdentifier
         {
             return new StoredViewsProcess<Dto>();
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class StoredProceduresBuilder : IStoredProceduresBuilder
+    internal class StoredProceduresBuilder : IStoredProceduresBuilder
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="procedureName"></param>
-        /// <returns></returns>
         public IStoredProcedureProcess<Dto> DeclareExisting<Dto>(string procedureName) where Dto : BHDtoIdentifier
         {
             return new StoredProcedureProcess<Dto>(procedureName);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Dto"></typeparam>
-        /// <param name="procedureName"></param>
-        /// <param name="commandText"></param>
-        /// <returns></returns>
+        public IStoredProcedureProcess<Dto> DeclareExisting<Dto>(string procedureName, string[] parameters) where Dto : BHDtoIdentifier
+        {
+            return new StoredProcedureProcess<Dto>(procedureName);
+        }
+
         public IStoredProcedureProcess<Dto> CreateOrUpdate<Dto>(string procedureName, string commandText) where Dto : BHDtoIdentifier
         {
             return new StoredProcedureProcess<Dto>(procedureName, commandText);

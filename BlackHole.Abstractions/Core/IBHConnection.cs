@@ -11,11 +11,6 @@ namespace BlackHole.Core
     /// </summary>
     public interface IBHConnection
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="connectionIndex"></param>
-        void SwitchConnection(int connectionIndex);
 
         /// <summary>
         /// 

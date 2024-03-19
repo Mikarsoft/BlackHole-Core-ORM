@@ -21,12 +21,13 @@ namespace BlackHole.Configuration
             }
         }
 
-        internal void AssignWormholeSettings(string connectionString, BlackHoleSqlTypes sqlType, string schema, bool quotedDb, int index)
+        internal void AssignWormholeSettings(string connectionString, BlackHoleSqlTypes sqlType, string schema, string dbIdentity, bool quotedDb, int index)
         {
             WormHoleData.ConnectionStrings[index] = connectionString;
             WormHoleData.DbTypes[index] = sqlType;
             WormHoleData.IsQuotedDb[index] = quotedDb;
             WormHoleData.DbSchemas[index] = schema;
+            WormHoleData.DatabaseIdentities.Add(dbIdentity);
         }
 
         internal void SetBHMode(BHMode modeBH)

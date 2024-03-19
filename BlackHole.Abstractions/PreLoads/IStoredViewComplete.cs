@@ -7,5 +7,9 @@ namespace BlackHole.PreLoads
     /// <typeparam name="Dto"></typeparam>
     public interface IStoredViewComplete<Dto>
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        void StoreAsView();
     }
 }

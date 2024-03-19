@@ -42,6 +42,7 @@ namespace BlackHole.Statics
         internal static byte[][] EntitiesCodes { get; set; } = new byte[0][];
         internal static int[] EntityTargetDb { get; set; } = new int[0];
         internal static string[] ConnectionStrings { get; set; } = new string[0];
+        internal static List<string> DatabaseIdentities { get; set; } = new();
         internal static bool[] IsQuotedDb { get; set; } = new bool[0];
         internal static string[] DbSchemas { get; set; } = new string[0];
         internal static DatabaseRole[] DatabaseRoles { get; set; } = new DatabaseRole[0];
