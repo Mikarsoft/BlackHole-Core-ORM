@@ -197,7 +197,7 @@ namespace BlackHole.Entities
             {
                 if (primaryKey.Body is MemberExpression pkMember)
                 {
-                    string? ExistingProp = settings.PKPropertyNames.FirstOrDefault(x=>x == pkMember.Member.Name);
+                    string? ExistingProp = settings.PKPropertyNames.FirstOrDefault(x => x == pkMember.Member.Name);
 
                     if (string.IsNullOrEmpty(ExistingProp))
                     {

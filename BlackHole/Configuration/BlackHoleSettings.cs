@@ -23,7 +23,7 @@ namespace BlackHole.Configuration
         internal bool AutoUpdate { get; set; } = false;
         internal BHMode DatabaseConfig { get; set; }
 
-        internal List<string> ValidationErrors { get; set; } = new();
+        internal string ValidationErrors { get; set; } = string.Empty;
 
         /// <summary>
         /// Add the configuration for a database.
@@ -152,12 +152,13 @@ namespace BlackHole.Configuration
 
             if(assemblyNames.Any(x => x == null))
             {
-                ValidationErrors.Add("Null Assembly reference found in a configuration of a database, that was configured to use an Assembly");
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 
             if(assemblyNames.Count != assemblyNames.Distinct().Count())
             {
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 
@@ -165,11 +166,13 @@ namespace BlackHole.Configuration
 
             if (nspNames.Any(x => string.IsNullOrWhiteSpace(x)))
             {
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 
             if (nspNames.Count != nspNames.Distinct().Count())
             {
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 
@@ -177,11 +180,13 @@ namespace BlackHole.Configuration
 
             if (connectionStrings.Any(x => string.IsNullOrWhiteSpace(x)))
             {
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 
             if (connectionStrings.Count != connectionStrings.Distinct().Count())
             {
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 

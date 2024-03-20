@@ -31,7 +31,7 @@ namespace BlackHole.Configuration
             if (!blackHoleSettings.ValidateSettings())
             {
                 throw new Exception("The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once." +
-                    "BlackHole has stopped to prevent duplicate registration of services and duplicate Tables in databases");
+                    $"{blackHoleSettings.ValidationErrors}");
             }
 
             if (blackHoleSettings.DirectorySettings.DataPath == string.Empty)
