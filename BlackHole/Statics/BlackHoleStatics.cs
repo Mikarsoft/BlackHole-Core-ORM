@@ -17,7 +17,7 @@ namespace BlackHole.Statics
         internal static string ProjectPath { get; set; } = string.Empty;
     }
 
-    internal static class DatabaseStatics
+    internal static class BHStaticSettings
     {
         internal static string ConnectionString { get; set; } = string.Empty;
         internal static string DatabaseSchema { get; set; } = string.Empty;
@@ -50,6 +50,13 @@ namespace BlackHole.Statics
         internal static BHMode BlackHoleMode { get; set; } = BHMode.Single;
         internal static bool IsSchemaFromNamespace { get; set; }
         internal static bool IsSchemaFromAssembly { get; set; }
+
+        internal static string[] ServerConnections { get; set; } = new string[0];
+        internal static string[] DatabaseNames { get; set; } = new string[0];
+        internal static string[] OwnerNames { get; set; } = new string[0];
+        internal static string[] DbDateFormats { get; set; } = new string[0];
+        internal static string[] DbDefaultSchemas { get; set; } = new string[0];
+        internal static bool[] InitializeData { get; set; } = new bool[0];
     }
 
     internal class EntityInfo

@@ -36,7 +36,7 @@ namespace BlackHole.Internal
 
         internal List<string> GetExistingPrimaryKeys(string TableName)
         {
-            string pkSelectCommand = DatabaseStatics.DatabaseType switch
+            string pkSelectCommand = BHStaticSettings.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => $@"SELECT ccu.COLUMN_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc 
                         JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu ON tc.CONSTRAINT_NAME = ccu.Constraint_name
@@ -58,7 +58,7 @@ namespace BlackHole.Internal
             string parseCommand = string.Empty;
             string schemaCheck = GetSchemaCheckCommand(mode);
 
-            switch (DatabaseStatics.DatabaseType)
+            switch (BHStaticSettings.DatabaseType)
             {
                 case BlackHoleSqlTypes.SqlServer:
                     parseCommand = @"SELECT distinct tb.name as TableName, c.name as ColumnName,PT.COLUMN_NAME as ReferencedColumn, t.name as DataType, c.max_length as MaxLength,
@@ -177,19 +177,19 @@ namespace BlackHole.Internal
 
         internal string GetSchema()
         {
-            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            if (BHStaticSettings.DatabaseSchema != string.Empty)
             {
-                return DatabaseStatics.DatabaseType switch
+                return BHStaticSettings.DatabaseType switch
                 {
-                    BlackHoleSqlTypes.SqlServer => DatabaseStatics.DatabaseSchema,
+                    BlackHoleSqlTypes.SqlServer => BHStaticSettings.DatabaseSchema,
                     BlackHoleSqlTypes.MySql => _multiDatabaseSelector.GetDatabaseName(),
-                    BlackHoleSqlTypes.Postgres => DatabaseStatics.DatabaseSchema,
+                    BlackHoleSqlTypes.Postgres => BHStaticSettings.DatabaseSchema,
                     _ => _multiDatabaseSelector.GetDatabaseName()
                 };
             }
             else
             {
-                return DatabaseStatics.DatabaseType switch
+                return BHStaticSettings.DatabaseType switch
                 {
                     BlackHoleSqlTypes.SqlServer => "dbo",
                     BlackHoleSqlTypes.MySql => _multiDatabaseSelector.GetDatabaseName(),
@@ -203,17 +203,17 @@ namespace BlackHole.Internal
         {
             string schemaCheck = string.Empty;
 
-            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            if (BHStaticSettings.DatabaseSchema != string.Empty)
             {
-                switch (DatabaseStatics.DatabaseType)
+                switch (BHStaticSettings.DatabaseType)
                 {
                     case BlackHoleSqlTypes.SqlServer:
-                        schemaCheck = $"WHERE SCHEMA_NAME(tb.schema_id) = '{DatabaseStatics.DatabaseSchema}'";
+                        schemaCheck = $"WHERE SCHEMA_NAME(tb.schema_id) = '{BHStaticSettings.DatabaseSchema}'";
                         if (mode == 1) { schemaCheck += " and TC.TABLE_NAME is not null "; }
                         if (mode == 2) { schemaCheck += " and i.is_primary_key in not null "; }
                         break;
                     case BlackHoleSqlTypes.Postgres:
-                        schemaCheck = $"where K.table_schema='{DatabaseStatics.DatabaseSchema}'";
+                        schemaCheck = $"where K.table_schema='{BHStaticSettings.DatabaseSchema}'";
                         if (mode == 1) { schemaCheck += " and T.constraint_type = 'FOREIGN KEY' "; }
                         if (mode == 2) { schemaCheck += " and T.constraint_type ='PRIMARY KEY' "; }
                         break;
@@ -233,7 +233,7 @@ namespace BlackHole.Internal
             }
             else
             {
-                switch (DatabaseStatics.DatabaseType)
+                switch (BHStaticSettings.DatabaseType)
                 {
                     case BlackHoleSqlTypes.SqlServer:
                         schemaCheck = $"WHERE SCHEMA_NAME(tb.schema_id) = 'dbo'";

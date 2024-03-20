@@ -8,7 +8,7 @@ namespace BlackHole.Internal
     {
         internal ColumnScanResult ParseColumnToProperty(TableParsingInfo tableColumnInfo)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => GetSqlServerColumn(tableColumnInfo, false),
                 BlackHoleSqlTypes.MySql => GetMySqlColumn(tableColumnInfo, false),
@@ -20,7 +20,7 @@ namespace BlackHole.Internal
 
         internal ColumnScanResult ParsePrimaryKeyToProperty(TableParsingInfo tableColumnInfo)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => GetSqlServerColumn(tableColumnInfo, true),
                 BlackHoleSqlTypes.MySql => GetMySqlColumn(tableColumnInfo, true),
@@ -32,7 +32,7 @@ namespace BlackHole.Internal
 
         internal PKConfiguration? CheckPrimaryKeySettings(List<TableParsingInfo> tableColumnInfo)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => CheckServerPK(tableColumnInfo),
                 BlackHoleSqlTypes.MySql => CheckMySqlPK(tableColumnInfo),
@@ -716,7 +716,7 @@ namespace BlackHole.Internal
 
                     if (isDate)
                     {
-                        if (DateTime.TryParseExact(mainValue, DatabaseStatics.DbDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parseDt))
+                        if (DateTime.TryParseExact(mainValue, BHStaticSettings.DbDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parseDt))
                         {
                             return $" = new DateTime({parseDt.Year},{parseDt.Month},{parseDt.Day});";
                         }

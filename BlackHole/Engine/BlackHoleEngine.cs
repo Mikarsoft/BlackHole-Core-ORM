@@ -317,7 +317,7 @@ namespace BlackHole.Engine
 
         internal static string[] GetLimiter(this int rowsCount)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => new string[] { $" TOP {rowsCount} ", "" },
                 BlackHoleSqlTypes.MySql => new string[] { "", $" limit {rowsCount} " },
@@ -1860,7 +1860,7 @@ namespace BlackHole.Engine
 
         private static string RowsLimiter<T>(this BlackHoleOrderBy<T> limiter)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => $" OFFSET {limiter.FromRow} ROWS FETCH NEXT {limiter.ToRow} ROWS ONLY",
                 BlackHoleSqlTypes.MySql => $" LIMIT {limiter.ToRow} OFFSET {limiter.FromRow}",
@@ -1939,7 +1939,7 @@ namespace BlackHole.Engine
 
         private static string SqlTypeFromType(this Type? type)
         {
-            string[] SqlDatatypes = DatabaseStatics.DatabaseType switch
+            string[] SqlDatatypes = BHStaticSettings.DatabaseType switch
             {
                 BlackHoleSqlTypes.SqlServer => new[] { "nvarchar(4000)", "int", "bigint", "decimal", "float" },
                 BlackHoleSqlTypes.MySql => new[] { "char(2000)", "int", "bigint", "dec", "double" },
@@ -1983,7 +1983,7 @@ namespace BlackHole.Engine
 
             if (firstType == typeof(Guid))
             {
-                BlackHoleSqlTypes sqlType = DatabaseStatics.DatabaseType;
+                BlackHoleSqlTypes sqlType = BHStaticSettings.DatabaseType;
                 if (sqlType != BlackHoleSqlTypes.Postgres && sqlType != BlackHoleSqlTypes.SqlServer)
                 {
                     defAllow = 1;

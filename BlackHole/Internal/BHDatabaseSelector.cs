@@ -7,24 +7,28 @@ namespace BlackHole.Internal
 {
     internal class BHDatabaseSelector
     {
-
-        internal IDataProvider GetExecutionProvider(string connectionString)
-        {
-            return DatabaseStatics.DatabaseType switch
+        internal IDataProvider GetExecutionProvider(int connectionIndex)
+        {        
+            return WormHoleData.DbTypes[connectionIndex] switch
             {
-                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(connectionString, DatabaseStatics.IsQuotedDatabase),
-                BlackHoleSqlTypes.MySql => new MySqlDataProvider(connectionString),
-                BlackHoleSqlTypes.Postgres => new PostgresDataProvider(connectionString),
-                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(connectionString, DatabaseStatics.IsQuotedDatabase),
-                _ => new OracleDataProvider(connectionString),
+                BlackHoleSqlTypes.SqlServer => new SqlServerDataProvider(WormHoleData.ConnectionStrings[connectionIndex], WormHoleData.IsQuotedDb[connectionIndex]),
+                BlackHoleSqlTypes.MySql => new MySqlDataProvider(WormHoleData.ConnectionStrings[connectionIndex]),
+                BlackHoleSqlTypes.Postgres => new PostgresDataProvider(WormHoleData.ConnectionStrings[connectionIndex]),
+                BlackHoleSqlTypes.SqlLite => new SqLiteDataProvider(WormHoleData.ConnectionStrings[connectionIndex], WormHoleData.IsQuotedDb[connectionIndex]),
+                _ => new OracleDataProvider(WormHoleData.ConnectionStrings[connectionIndex]),
             };
         }
 
-        internal bool IsLite()
+        internal bool CheckIfForcedUpdate()
+        {
+            return BHStaticSettings.AutoUpdate && (BHStaticSettings.IsDevMove || CliCommand.ForceAction);
+        }
+
+        internal bool IsLite(int connectionIndex)
         {
             bool lite = false;
 
-            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlLite)
+            if (WormHoleData.DbTypes[connectionIndex] == BlackHoleSqlTypes.SqlLite)
             {
                 lite = true;
             }
@@ -32,113 +36,101 @@ namespace BlackHole.Internal
             return lite;
         }
 
-        internal string GetPrimaryKeyCommand()
+        internal string GetPrimaryKeyCommand(int connectionIndex)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => $"{GetMyShit("Id")} INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,",
-                BlackHoleSqlTypes.MySql => $"{GetMyShit("Id")} int AUTO_INCREMENT primary key NOT NULL ,",
-                BlackHoleSqlTypes.Postgres => $"{GetMyShit("Id")} SERIAL PRIMARY KEY ,",
-                BlackHoleSqlTypes.SqlLite => $"{GetMyShit("Id")} INTEGER PRIMARY KEY AUTOINCREMENT ,",
-                _ => $"{GetMyShit("Id")} NUMBER(8,0) GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlServer => $"{GetQuotes("Id",connectionIndex)} INT IDENTITY(1,1) PRIMARY KEY NOT NULL ,",
+                BlackHoleSqlTypes.MySql => $"{GetQuotes("Id", connectionIndex)} int AUTO_INCREMENT primary key NOT NULL ,",
+                BlackHoleSqlTypes.Postgres => $"{GetQuotes("Id", connectionIndex)} SERIAL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetQuotes("Id", connectionIndex)} INTEGER PRIMARY KEY AUTOINCREMENT ,",
+                _ => $"{GetQuotes("Id", connectionIndex)} NUMBER(8,0) GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,",
             };
         }
 
-        internal string GetStringPrimaryKeyCommand()
+        internal string GetStringPrimaryKeyCommand(int connectionIndex)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => $"{GetMyShit("Id")} NVARCHAR(50) PRIMARY KEY NOT NULL ,",
-                BlackHoleSqlTypes.MySql => $"{GetMyShit("Id")} varchar(50) NOT NULL PRIMARY KEY ,",
-                BlackHoleSqlTypes.Postgres => $"{GetMyShit("Id")} varchar(50) NOT NULL PRIMARY KEY ,",
-                BlackHoleSqlTypes.SqlLite => $"{GetMyShit("Id")} varchar(50) PRIMARY KEY ,",
-                _ => $"{GetMyShit("Id")} varchar2(50) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlServer => $"{GetQuotes("Id", connectionIndex)} NVARCHAR(50) PRIMARY KEY NOT NULL ,",
+                BlackHoleSqlTypes.MySql => $"{GetQuotes("Id", connectionIndex)} varchar(50) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.Postgres => $"{GetQuotes("Id", connectionIndex)} varchar(50) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetQuotes("Id", connectionIndex)} varchar(50) PRIMARY KEY ,",
+                _ => $"{GetQuotes("Id", connectionIndex)} varchar2(50) NOT NULL PRIMARY KEY ,",
             };
         }
 
-        internal string GetGuidPrimaryKeyCommand()
+        internal string GetGuidPrimaryKeyCommand(int connectionIndex)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => $"{GetMyShit("Id")} UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,",
-                BlackHoleSqlTypes.MySql => $"{GetMyShit("Id")} varchar(36) NOT NULL PRIMARY KEY ,",
-                BlackHoleSqlTypes.Postgres => $"{GetMyShit("Id")} uuid DEFAULT gen_random_uuid() PRIMARY KEY ,",
-                BlackHoleSqlTypes.SqlLite => $"{GetMyShit("Id")} varchar(36) PRIMARY KEY ,",
-                _ => $"{GetMyShit("Id")} varchar2(36) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlServer => $"{GetQuotes("Id", connectionIndex)} UNIQUEIDENTIFIER PRIMARY KEY DEFAULT (NEWID()) ,",
+                BlackHoleSqlTypes.MySql => $"{GetQuotes("Id", connectionIndex)} varchar(36) NOT NULL PRIMARY KEY ,",
+                BlackHoleSqlTypes.Postgres => $"{GetQuotes("Id", connectionIndex)} uuid DEFAULT gen_random_uuid() PRIMARY KEY ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetQuotes("Id", connectionIndex)} varchar(36) PRIMARY KEY ,",
+                _ => $"{GetQuotes("Id", connectionIndex)} varchar2(36) NOT NULL PRIMARY KEY ,",
             };
         }
 
-        internal string GetCompositePrimaryKeyCommand(Type propType, string columName)
+        internal string GetCompositePrimaryKeyCommand(Type propType, string columName, int connectionIndex)
         {
             if(propType == typeof(Guid))
             {
-                return DatabaseStatics.DatabaseType switch
+                return BHStaticSettings.DatabaseType switch
                 {
-                    BlackHoleSqlTypes.SqlServer => $"{GetMyShit(columName)} UNIQUEIDENTIFIER DEFAULT (NEWID()) ,",
-                    BlackHoleSqlTypes.Postgres => $"{GetMyShit(columName)} uuid DEFAULT gen_random_uuid() ,",
+                    BlackHoleSqlTypes.SqlServer => $"{GetQuotes(columName, connectionIndex)} UNIQUEIDENTIFIER DEFAULT (NEWID()) ,",
+                    BlackHoleSqlTypes.Postgres => $"{GetQuotes(columName, connectionIndex)} uuid DEFAULT gen_random_uuid() ,",
                     _ => string.Empty,
                 };
             }
 
             if(propType == typeof(long))
             {
-                return DatabaseStatics.DatabaseType switch
+                return BHStaticSettings.DatabaseType switch
                 {
-                    BlackHoleSqlTypes.SqlServer => $"{GetMyShit(columName)} BIGINT IDENTITY(1,1) NOT NULL ,",
-                    BlackHoleSqlTypes.MySql => $"{GetMyShit(columName)} bigint AUTO_INCREMENT NOT NULL ,",
-                    BlackHoleSqlTypes.Postgres => $"{GetMyShit(columName)} BIGSERIAL ,",
-                    BlackHoleSqlTypes.SqlLite => $"{GetMyShit(columName)} bigint default (last_insert_rowid() + 1) NOT NULL ,",
-                    _ => $"{GetMyShit(columName)} NUMBER(16,0) GENERATED ALWAYS AS IDENTITY ,",
+                    BlackHoleSqlTypes.SqlServer => $"{GetQuotes(columName, connectionIndex)} BIGINT IDENTITY(1,1) NOT NULL ,",
+                    BlackHoleSqlTypes.MySql => $"{GetQuotes(columName, connectionIndex)} bigint AUTO_INCREMENT NOT NULL ,",
+                    BlackHoleSqlTypes.Postgres => $"{GetQuotes(columName, connectionIndex)} BIGSERIAL ,",
+                    BlackHoleSqlTypes.SqlLite => $"{GetQuotes(columName, connectionIndex)} bigint default (last_insert_rowid() + 1) NOT NULL ,",
+                    _ => $"{GetQuotes(columName, connectionIndex)} NUMBER(16,0) GENERATED ALWAYS AS IDENTITY ,",
                 };
             }
 
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlServer => $"{GetMyShit(columName)} INT IDENTITY(1,1) NOT NULL ,",
-                BlackHoleSqlTypes.MySql => $"{GetMyShit(columName)} int AUTO_INCREMENT NOT NULL ,",
-                BlackHoleSqlTypes.Postgres => $"{GetMyShit(columName)} SERIAL ,",
-                BlackHoleSqlTypes.SqlLite => $"{GetMyShit(columName)} INTEGER AUTOINCREMENT ,",
-                _ => $"{GetMyShit(columName)} NUMBER(8,0) GENERATED ALWAYS AS IDENTITY ,",
+                BlackHoleSqlTypes.SqlServer => $"{GetQuotes(columName, connectionIndex)} INT IDENTITY(1,1) NOT NULL ,",
+                BlackHoleSqlTypes.MySql => $"{GetQuotes(columName, connectionIndex)} int AUTO_INCREMENT NOT NULL ,",
+                BlackHoleSqlTypes.Postgres => $"{GetQuotes(columName, connectionIndex)} SERIAL ,",
+                BlackHoleSqlTypes.SqlLite => $"{GetQuotes(columName, connectionIndex)} INTEGER AUTOINCREMENT ,",
+                _ => $"{GetQuotes(columName, connectionIndex)} NUMBER(8,0) GENERATED ALWAYS AS IDENTITY ,",
             };
         }
 
-        internal bool GetMyShit()
+        internal bool SkipQuotesOnDb(int connectionIndex)
         {
-            return SkipQuotes();
+            return SkipQuotes(connectionIndex);
         }
 
-        internal string GetServerConnection()
+        internal string GetServerConnection(int connectionIndex)
         {
-            return DatabaseStatics.ServerConnection;
+            return WormHoleData.ServerConnections[connectionIndex];
         }
 
-        internal int GetSqlTypeId()
+        internal int GetSqlTypeId(int connectionIndex)
         {
-            int sqlTypeId = 0;
-            switch (DatabaseStatics.DatabaseType)
+            return WormHoleData.DbTypes[connectionIndex] switch
             {
-                case BlackHoleSqlTypes.SqlServer:
-                    sqlTypeId = 0;
-                    break;
-                case BlackHoleSqlTypes.MySql:
-                    sqlTypeId = 1;
-                    break;
-                case BlackHoleSqlTypes.Postgres:
-                    sqlTypeId = 2;
-                    break;
-                case BlackHoleSqlTypes.SqlLite:
-                    sqlTypeId = 3;
-                    break;
-                case BlackHoleSqlTypes.Oracle:
-                    sqlTypeId = 4;
-                    break;
-            }
-            return sqlTypeId;
+                BlackHoleSqlTypes.SqlServer => 0,
+                BlackHoleSqlTypes.MySql => 1,
+                BlackHoleSqlTypes.Postgres => 2,
+                BlackHoleSqlTypes.SqlLite => 3,
+                _=> 4
+            };
         }
 
-        internal bool GetOpenPKConstraint()
+        internal bool GetOpenPKConstraint(int connectionIndex)
         {
-            return DatabaseStatics.DatabaseType switch
+            return WormHoleData.DbTypes[connectionIndex] switch
             {
                 BlackHoleSqlTypes.SqlServer => true,
                 BlackHoleSqlTypes.MySql => false,
@@ -148,9 +140,9 @@ namespace BlackHole.Internal
             };
         }
 
-        internal bool SetDbDateFormat(IDataProvider _executionProvider)
+        internal bool SetDbDateFormat(IDataProvider _executionProvider, int connectionIndex)
         {
-            string getDateCommand = DatabaseStatics.DatabaseType switch
+            string getDateCommand = WormHoleData.DbTypes[connectionIndex] switch
             {
                 BlackHoleSqlTypes.SqlServer => "SELECT r.date_format FROM master.sys.dm_exec_requests r WHERE r.session_id = @@SPID",
                 BlackHoleSqlTypes.MySql => "system",
@@ -169,14 +161,14 @@ namespace BlackHole.Internal
                 {
                     return false;
                 }
-                DatabaseStatics.DbDateFormat = AnalyzeDateFormat(dateFormat);
+                WormHoleData.DbDateFormats[connectionIndex] = AnalyzeDateFormat(dateFormat);
             }
             return true;
         }
 
         private string AnalyzeDateFormat(string dateFormat)
         {
-            if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+            if(BHStaticSettings.DatabaseType == BlackHoleSqlTypes.Oracle)
             {
                 return dateFormat.ToLower().Replace("/", "-").Replace("mm", "MM").Replace("rr", "yyyy");
             }
@@ -203,10 +195,10 @@ namespace BlackHole.Internal
             return result.Remove(0,1);
         }
 
-        internal string[] SqlDatatypesTranslation()
+        internal string[] SqlDatatypesTranslation(int connectionIndex)
         {
             string[] SqlDatatypes = new string[12];
-            switch (DatabaseStatics.DatabaseType)
+            switch (WormHoleData.DbTypes[connectionIndex])
             {
                 case BlackHoleSqlTypes.SqlServer:
                     SqlDatatypes = new[] { "nvarchar", "char", "smallint", "int", "bigint", "decimal", "smallmoney", "float", "uniqueidentifier", "bit", "datetime", "datetimeoffset", "time", "varbinary" };
@@ -227,81 +219,83 @@ namespace BlackHole.Internal
             return SqlDatatypes;
         }
 
-        internal string TableSchemaCheck()
+        internal string TableSchemaCheck(int connectionIndex)
         {
-            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            if (WormHoleData.DbDefaultSchemas[connectionIndex] != string.Empty)
             {
-                return $"and table_schema = '{DatabaseStatics.DatabaseSchema}'";
+                return $"and table_schema = '{WormHoleData.DbDefaultSchemas[connectionIndex]}'";
             }
 
             return string.Empty;
         }
 
-        internal string GetDatabaseSchema()
+        internal string GetDatabaseSchema(int connectionIndex)
         {
-            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            if (WormHoleData.DbDefaultSchemas[connectionIndex] != string.Empty)
             {
-                return $"{DatabaseStatics.DatabaseSchema}.";
+                return $"{WormHoleData.DbDefaultSchemas[connectionIndex]}.";
             }
             return string.Empty;
         }
 
         internal string GetDatabaseSchemaFk()
         {
-            if (DatabaseStatics.DatabaseSchema != string.Empty)
+            if (BHStaticSettings.DatabaseSchema != string.Empty)
             {
-                return $"{DatabaseStatics.DatabaseSchema}";
+                return $"{BHStaticSettings.DatabaseSchema}";
             }
             return string.Empty;
         }
 
-        internal string GetDatabaseName()
+        internal string GetDatabaseName(int connectionIndex)
         {
-            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite)
+            if (WormHoleData.DbTypes[connectionIndex] != BlackHoleSqlTypes.SqlLite)
             {
                 try
                 {
-                    string[] dbLinkSplit = DatabaseStatics.DatabaseName.Split("=");
+                    string[] dbLinkSplit = WormHoleData.DatabaseNames[connectionIndex].Split("=");
                     return dbLinkSplit[1];
                 }
                 catch { return string.Empty; }
             }
             else
             {
-                return DatabaseStatics.DatabaseName;
+                return WormHoleData.DatabaseNames[connectionIndex];
             }
         }
 
-        private bool SkipQuotes()
+        private bool SkipQuotes(int connectionIndex)
         {
-            return DatabaseStatics.DatabaseType switch
+            return WormHoleData.DbTypes[connectionIndex] switch
             {
-                BlackHoleSqlTypes.SqlServer => DatabaseStatics.IsQuotedDatabase ? false : true,
+                BlackHoleSqlTypes.SqlServer => BHStaticSettings.IsQuotedDatabase ? false : true,
                 BlackHoleSqlTypes.MySql => true,
                 BlackHoleSqlTypes.Postgres => false,
-                BlackHoleSqlTypes.SqlLite => DatabaseStatics.IsQuotedDatabase ? false : true,
+                BlackHoleSqlTypes.SqlLite => BHStaticSettings.IsQuotedDatabase ? false : true,
                 _ => false,
             };
         }
 
-        private string GetMyShit(string propName)
+        private string GetQuotes(string propName, int connectionIndex)
         {
-            if (!SkipQuotes())
+            if (!SkipQuotes(connectionIndex))
             {
                 return $@"""{propName}""";
             }
             return propName;
         }
 
-        internal string GetOwnerName()
+        internal string GetOwnerName(int connectionIndex)
         {
-            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.SqlLite && DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Oracle)
+            BlackHoleSqlTypes dbType = WormHoleData.DbTypes[connectionIndex];
+
+            if (dbType != BlackHoleSqlTypes.SqlLite && dbType != BlackHoleSqlTypes.Oracle)
             {
                 try
                 {
-                    if(DatabaseStatics.OwnerName != string.Empty)
+                    if(WormHoleData.OwnerNames[connectionIndex] != string.Empty)
                     {
-                        string[] dbLinkSplit = DatabaseStatics.OwnerName.Split("=");
+                        string[] dbLinkSplit = WormHoleData.OwnerNames[connectionIndex].Split("=");
                         return dbLinkSplit[1];
                     }
                 }
@@ -310,18 +304,18 @@ namespace BlackHole.Internal
             return string.Empty;
         }
 
-        internal bool IsUsingOracleProduct()
+        internal bool IsUsingOracleProduct(int connectionIndex)
         {
-            if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
+            if (WormHoleData.DbTypes[connectionIndex] == BlackHoleSqlTypes.Oracle || WormHoleData.DbTypes[connectionIndex] == BlackHoleSqlTypes.MySql)
             {
                 return true;
             }
             return false;
         }
 
-        internal string[] GetSafeTransactionTry()
+        internal string[] GetSafeTransactionTry(int connectionIndex)
         {
-            return DatabaseStatics.DatabaseType switch
+            return WormHoleData.DbTypes[connectionIndex] switch
             {
                 BlackHoleSqlTypes.SqlServer => new string[] { "BEGIN TRANSACTION BEGIN TRY ", " COMMIT END TRY BEGIN CATCH ROLLBACK; THROW; END CATCH" },
                 _ => new string[] { "do language plpgsql $$ begin ", " exception when others then raise notice 'Transaction rolled back'; " +
@@ -329,12 +323,13 @@ namespace BlackHole.Internal
             };
         }
 
-        internal string GetColumnModifyCommand()
+        internal string GetColumnModifyCommand(int connectionIndex)
         {
-            if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle || DatabaseStatics.DatabaseType == BlackHoleSqlTypes.MySql)
+            if (IsUsingOracleProduct(connectionIndex))
             {
                 return "MODIFY";
             }
+
             return "ALTER COLUMN";
         }
     }

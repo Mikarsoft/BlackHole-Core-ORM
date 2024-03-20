@@ -28,6 +28,12 @@ namespace BlackHole.Configuration
             BlackHoleSettings blackHoleSettings = new();
             settings.Invoke(blackHoleSettings);
 
+            if (!blackHoleSettings.ValidateSettings())
+            {
+                throw new Exception("The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once." +
+                    "BlackHole has stopped to prevent duplicate registration of services and duplicate Tables in databases");
+            }
+
             if (blackHoleSettings.DirectorySettings.DataPath == string.Empty)
             {
                 blackHoleSettings.DirectorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
@@ -73,8 +79,8 @@ namespace BlackHole.Configuration
             switch (cliSettings.commandType)
             {
                 case CliCommandTypes.Update:
-                    services.BuildDatabase(blackHoleSettings, true);
-                    exitCode = BuildOrUpdateDatabaseCliProcess(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
+                    services.BuildDatabase(blackHoleSettings, assembly, true);
+                    //exitCode = BuildOrUpdateDatabaseCliProcess(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
                     break;
                 case CliCommandTypes.Drop:
                     exitCode = DropDatabaseCliProcess();
@@ -83,8 +89,8 @@ namespace BlackHole.Configuration
                     exitCode = ParseDatabaseCliProcess();
                     break;
                 case CliCommandTypes.Default:
-                    services.BuildDatabase(blackHoleSettings, false);
-                    services.BuildDatabaseAndServices(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
+                    services.BuildDatabase(blackHoleSettings, assembly, false);
+                    //services.BuildDatabaseAndServices(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
                     break;
             }
 
@@ -96,12 +102,12 @@ namespace BlackHole.Configuration
             return services;
         }
 
-        private static void BuildDatabase(this IServiceCollection services, BlackHoleSettings settings, bool cliMode)
+        private static void BuildDatabase(this IServiceCollection services, BlackHoleSettings settings, Assembly callingAssembly, bool cliMode)
         {
             switch (settings.DatabaseConfig)
             {
                 case BHMode.Single:
-                    services.BuildSingleDatabase(settings.ConnectionConfig, cliMode);
+                    services.BuildSingleDatabase(settings.ConnectionConfig, callingAssembly, cliMode);
                     break;
                 case BHMode.MultiSchema:
                     services.BuildMultiSchemaDatabases(settings.MultiSchemaConfig, cliMode);
@@ -115,25 +121,63 @@ namespace BlackHole.Configuration
             }
         }
 
-        private static void BuildSingleDatabase(this IServiceCollection services , ConnectionSettings singleSettings, bool cliMode)
+        private static void BuildSingleDatabase(this IServiceCollection services , ConnectionSettings singleSettings, Assembly callingAssembly, bool cliMode)
         {
             DatabaseInitializer initializer = new();
 
             initializer.SetBHMode(BHMode.Single);
             initializer.InitializeProviders(1);
+
+            if (cliMode)
+            {
+                if (singleSettings.additionalSettings.ConnectionTimeOut < 300)
+                {
+                    singleSettings.additionalSettings.ConnectionTimeOut = 300;
+                }
+            }
+
+            ScanConnectionString(singleSettings.ConnectionType, singleSettings.ConnectionString, singleSettings.TableSchema,
+                singleSettings.additionalSettings.ConnectionTimeOut, singleSettings.UseQuotedDb, 0);
+
+            services.AddBaseServices();
+            services.BuildDatabaseAndServices(singleSettings.additionalSettings, callingAssembly, 0);
         }
 
         private static void BuildMultipleDatabases(this IServiceCollection services, List<MultiConnectionSettings> multiSettings, bool cliMode)
         {
             DatabaseInitializer initializer = new();
+            BHTableBuilder tableBuilder = new();
+            BHNamespaceSelector namespaceSelector = new();
+            BHInitialDataBuilder dataBuilder = new();
+            BHDatabaseBuilder databaseBuilder = new();
 
             initializer.SetBHMode(BHMode.Multiple);
             initializer.InitializeProviders(multiSettings.Count);
 
-            for(int i = 0; i < multiSettings.Count; i++)
+            services.AddBaseServices();
+
+            for (int i = 0; i < multiSettings.Count; i++)
             {
+                if (cliMode)
+                {
+                    if (multiSettings[i].additionalSettings.ConnectionTimeOut < 300)
+                    {
+                        multiSettings[i].additionalSettings.ConnectionTimeOut = 300;
+                    }
+                }
+
                 initializer.AssignWormholeSettings(multiSettings[i].ConnectionString, multiSettings[i].ConnectionType,
-                    multiSettings[i].TableSchema,multiSettings[i].DatabaseIdentity, multiSettings[i].UseQuotedDb, i);
+                    multiSettings[i].TableSchema,multiSettings[i].DatabaseIdentity, multiSettings[i].UseQuotedDb,
+                    multiSettings[i].additionalSettings.ConnectionTimeOut, i);
+
+                if (!databaseBuilder.CreateDatabase(i))
+                {
+                    throw new Exception($"The Host of the database {multiSettings[i].DatabaseIdentity} is inaccessible..." +
+                        $" If you are using Oracle database,make sure to grand permission to your User on the v$instance table. " +
+                        $"Connect as Sysdba and execute the command => 'grant select on v_$instance to 'Username';'");
+                }
+
+                databaseBuilder.CreateDatabaseSchema(i);
             }
         }
 
@@ -153,11 +197,11 @@ namespace BlackHole.Configuration
             initializer.InitializeProviders(2);
         }
 
-        private static int BuildOrUpdateDatabaseCliProcess(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
+        private static int BuildOrUpdateDatabaseCliProcess(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, int connectionIndex)
         {
             BHDatabaseBuilder databaseBuilder = new();
-            bool dbExists = databaseBuilder.CreateDatabase();
-            databaseBuilder.CreateDatabaseSchema();
+            bool dbExists = databaseBuilder.CreateDatabase(connectionIndex);
+            databaseBuilder.CreateDatabaseSchema(connectionIndex);
             if (dbExists)
             {
                 Console.WriteLine("_bhLog_ \t The database is ready.");
@@ -195,18 +239,23 @@ namespace BlackHole.Configuration
             }
         }
 
-        private static void BuildDatabaseAndServices(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
+        private static void AddBaseServices(this IServiceCollection services)
+        {
+            services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
+            services.AddScoped(typeof(IBHOpenDataProvider<>), typeof(BHOpenDataProvider<>));
+            services.AddScoped(typeof(IBHViews), typeof(BHViews));
+        }
+
+        private static void BuildDatabaseAndServices(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings,
+            Assembly callingAssembly, int connectionIndex)
         {
             BHDatabaseBuilder databaseBuilder = new();
 
-            bool dbExists = databaseBuilder.CreateDatabase();
-            databaseBuilder.CreateDatabaseSchema();
+            bool dbExists = databaseBuilder.CreateDatabase(0);
+            databaseBuilder.CreateDatabaseSchema(connectionIndex);
 
             if (dbExists)
             {
-                services.AddScoped(typeof(IBHDataProvider<,>), typeof(BHDataProvider<,>));
-                services.AddScoped(typeof(IBHOpenDataProvider<>), typeof(BHOpenDataProvider<>));
-                services.AddScoped(typeof(IBHViews), typeof(BHViews));
                 services.AddServicesAndTables(additionalSettings, callingAssembly, databaseBuilder);
             }
             else
@@ -440,11 +489,11 @@ namespace BlackHole.Configuration
             DataPathAndLogs(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData"), false, 60, true);
             DatabaseConfiguration.SetMode(isDevMode);
 
-            ScanConnectionString(blackHoleSettings.ConnectionType, blackHoleSettings.ConnectionString,
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData"),
-                blackHoleSettings.TableSchema,
-                blackHoleSettings.additionalSettings.ConnectionTimeOut,
-                blackHoleSettings.UseQuotedDb);
+            //ScanConnectionString(blackHoleSettings.ConnectionType, blackHoleSettings.ConnectionString,
+            //    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData"),
+            //    blackHoleSettings.TableSchema,
+            //    blackHoleSettings.additionalSettings.ConnectionTimeOut,
+            //    blackHoleSettings.UseQuotedDb);
 
             return UpdateManually(blackHoleSettings.additionalSettings, assembly);
         }
@@ -452,8 +501,8 @@ namespace BlackHole.Configuration
         internal static bool UpdateManually(ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly)
         {
             BHDatabaseBuilder databaseBuilder = new();
-            bool dbExists = databaseBuilder.CreateDatabase();
-            databaseBuilder.CreateDatabaseSchema();
+            bool dbExists = databaseBuilder.CreateDatabase(0);
+            databaseBuilder.CreateDatabaseSchema(0);
             if (dbExists)
             {
                 CreateOrUpdateTables(additionalSettings, callingAssembly, databaseBuilder);
@@ -479,10 +528,10 @@ namespace BlackHole.Configuration
             connectionSettings.Invoke(blackHoleSettings);
             DataPathAndLogs(dataPath, false, 1, true);
             DatabaseConfiguration.SetMode(isDevMode);
-            ScanConnectionString(blackHoleSettings.ConnectionType, blackHoleSettings.ConnectionString,
-                dataPath, blackHoleSettings.TableSchema,
-                blackHoleSettings.additionalSettings.ConnectionTimeOut,
-                blackHoleSettings.UseQuotedDb);
+            //ScanConnectionString(blackHoleSettings.ConnectionType, blackHoleSettings.ConnectionString,
+            //    dataPath, blackHoleSettings.TableSchema,
+            //    blackHoleSettings.additionalSettings.ConnectionTimeOut,
+            //    blackHoleSettings.UseQuotedDb);
 
             return UpdateManually(blackHoleSettings.additionalSettings, assembly);
         }
@@ -494,7 +543,7 @@ namespace BlackHole.Configuration
         public static bool TestDatabase()
         {
             BHDatabaseBuilder databaseBuilder = new();
-            return databaseBuilder.DoesDbExists();
+            return databaseBuilder.DoesDbExists(0);
         }
 
         /// <summary>
@@ -504,7 +553,7 @@ namespace BlackHole.Configuration
         public static bool DropDatabase()
         {
             BHDatabaseBuilder databaseBuilder = new();
-            return databaseBuilder.DropDatabase();
+            return databaseBuilder.DropDatabase(0);
         }
 
         /// <summary>
@@ -526,13 +575,8 @@ namespace BlackHole.Configuration
             DatabaseConfiguration.SetAutoUpdateMode(automaticUpdate);
         }
 
-        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string DataPath, string databaseSchema, int timoutSeconds, bool isQuoted, int connectionIndex)
+        internal static void ScanConnectionString(BlackHoleSqlTypes SqlType, string ConnectionString, string databaseSchema, int timoutSeconds, bool isQuoted, int connectionIndex)
         {
-            if(SqlType == BlackHoleSqlTypes.SqlLite)
-            {
-                ConnectionString = Path.Combine(DataPath, $"{ConnectionString}.db3");
-            }
-
             DatabaseConfiguration.ScanConnectionString(ConnectionString, SqlType, databaseSchema, timoutSeconds,isQuoted, connectionIndex);
         }
 

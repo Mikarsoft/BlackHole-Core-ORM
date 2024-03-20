@@ -23,6 +23,8 @@ namespace BlackHole.Configuration
         internal bool AutoUpdate { get; set; } = false;
         internal BHMode DatabaseConfig { get; set; }
 
+        internal List<string> ValidationErrors { get; set; } = new();
+
         /// <summary>
         /// Add the configuration for a database.
         /// </summary>
@@ -115,6 +117,80 @@ namespace BlackHole.Configuration
         {
             AutoUpdate = true;
             return this;
+        }
+
+        internal bool ValidateSettings()
+        {
+            return DatabaseConfig switch
+            {
+                BHMode.Single => ValidateSingle(),
+                BHMode.HighAvailability => ValidateHighAvailability(),
+                BHMode.Multiple => ValidateMultiple(),
+                BHMode.MultiSchema => ValidateMultiSchema(),
+                _ => false
+            };
+        }
+
+        private bool ValidateSingle()
+        {
+            return false;
+        }
+
+        private bool ValidateHighAvailability()
+        {
+            return false;
+        }
+
+        private bool ValidateMultiple()
+        {
+            if(MultipleConnectionsConfig.Count == 0)
+            {
+                return false;
+            }
+
+            List<string?> assemblyNames = MultipleConnectionsConfig.Where(x => x.IsUsingAssembly).Select(x => x.Ass?.FullName).ToList();
+
+            if(assemblyNames.Any(x => x == null))
+            {
+                ValidationErrors.Add("Null Assembly reference found in a configuration of a database, that was configured to use an Assembly");
+                return false;
+            }
+
+            if(assemblyNames.Count != assemblyNames.Distinct().Count())
+            {
+                return false;
+            }
+
+            List<string> nspNames = MultipleConnectionsConfig.Where(x => !x.IsUsingAssembly).Select(x => x.SelectedNamespace).ToList();
+
+            if (nspNames.Any(x => string.IsNullOrWhiteSpace(x)))
+            {
+                return false;
+            }
+
+            if (nspNames.Count != nspNames.Distinct().Count())
+            {
+                return false;
+            }
+
+            List<string> connectionStrings = MultipleConnectionsConfig.Select(x => x.ConnectionString).ToList();
+
+            if (connectionStrings.Any(x => string.IsNullOrWhiteSpace(x)))
+            {
+                return false;
+            }
+
+            if (connectionStrings.Count != connectionStrings.Distinct().Count())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ValidateMultiSchema()
+        {
+            return false;
         }
     }
 }

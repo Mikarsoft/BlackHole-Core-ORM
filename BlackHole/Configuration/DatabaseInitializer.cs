@@ -14,6 +14,11 @@ namespace BlackHole.Configuration
             WormHoleData.DbTypes = new BlackHoleSqlTypes[databasesCount];
             WormHoleData.IsQuotedDb = new bool[databasesCount];
             WormHoleData.DbSchemas = new string[databasesCount];
+            WormHoleData.DatabaseNames = new string[databasesCount];
+            WormHoleData.OwnerNames = new string[databasesCount];
+            WormHoleData.DbDateFormats = new string[databasesCount];
+            WormHoleData.ServerConnections = new string[databasesCount];
+            WormHoleData.InitializeData = new bool[databasesCount];
 
             if(WormHoleData.BlackHoleMode == BHMode.HighAvailability)
             {
@@ -21,83 +26,36 @@ namespace BlackHole.Configuration
             }
         }
 
-        internal void AssignWormholeSettings(string connectionString, BlackHoleSqlTypes sqlType, string schema, string dbIdentity, bool quotedDb, int index)
+        internal void AssignWormholeSettings(string connectionString, BlackHoleSqlTypes sqlType, string schema, string dbIdentity, bool quotedDb, int timeoutSeconds, int index)
         {
-            WormHoleData.ConnectionStrings[index] = connectionString;
             WormHoleData.DbTypes[index] = sqlType;
             WormHoleData.IsQuotedDb[index] = quotedDb;
             WormHoleData.DbSchemas[index] = schema;
             WormHoleData.DatabaseIdentities.Add(dbIdentity);
-        }
-
-        internal void SetBHMode(BHMode modeBH)
-        {
-            WormHoleData.BlackHoleMode = modeBH;
-        }
-
-        internal void SetMode(bool isDevMode)
-        {
-            DatabaseStatics.IsDevMove = isDevMode;
-        }
-
-        internal void SetAutoUpdateMode(bool automaticUpdate)
-        {
-            DatabaseStatics.AutoUpdate = automaticUpdate;
-        }
-
-        internal void LogsSettings(string LogsPath, bool useLogsCleaner, int daysToClean, bool useLogging)
-        {
-            DatabaseStatics.DataPath = LogsPath;
-
-            if (useLogging)
-            {
-                DatabaseStatics.UseLogging = useLogging;
-                DatabaseStatics.UseLogsCleaner = useLogsCleaner;
-                DatabaseStatics.CleanUpDays = daysToClean;
-            }
-            else
-            {
-                DatabaseStatics.UseLogging = useLogging;
-                DatabaseStatics.UseLogsCleaner = false;
-            }
-
-            if (DatabaseStatics.UseLogsCleaner)
-            {
-                new LogsCleaner();
-            }
-            LoggerService.SetUpLogger();
-        }
-
-        internal void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema, int timeoutSeconds, bool isQuoted)
-        {
-            DatabaseStatics.IsQuotedDatabase = isQuoted;
+            WormHoleData.DbDateFormats[index] = "yyyy-MM-dd";
 
             switch (sqlType)
             {
                 case BlackHoleSqlTypes.SqlServer:
-                    ScanMsSqlString(connectionString, timeoutSeconds);
+                    ScanMsSqlString(connectionString, timeoutSeconds, index);
                     break;
                 case BlackHoleSqlTypes.MySql:
-                    ScanMySqlString(connectionString, timeoutSeconds);
+                    ScanMySqlString(connectionString, timeoutSeconds, index);
                     break;
                 case BlackHoleSqlTypes.Postgres:
-                    ScanPostgresString(connectionString, timeoutSeconds);
+                    ScanPostgresString(connectionString, timeoutSeconds, index);
                     break;
                 case BlackHoleSqlTypes.SqlLite:
-                    ScanLiteString(connectionString);
+                    string dbPath = Path.Combine(BHStaticSettings.DataPath, $"{connectionString}.db3");
+                    ScanLiteString(dbPath, connectionString, index);
                     break;
                 case BlackHoleSqlTypes.Oracle:
-                    ScanOracleString(connectionString, timeoutSeconds);
+                    ScanOracleString(connectionString, timeoutSeconds, index);
                     break;
-            }
-
-            if (databaseSchema != string.Empty && DatabaseStatics.OwnerName != string.Empty)
-            {
-                DatabaseStatics.DatabaseSchema = databaseSchema;
             }
         }
 
-        private void ScanOracleString(string connectionString, int timeoutSeconds)
+        private static void ScanOracleString(string connectionString, int timeoutSeconds, int connectionIndex)
         {
             string[] parts = connectionString.Split(";");
             bool hasCommandTimeout = false;
@@ -107,7 +65,7 @@ namespace BlackHole.Configuration
                 string tempPart = part.Replace(" ", "").ToLower();
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
-                    DatabaseStatics.DatabaseName = part;
+                    WormHoleData.DatabaseNames[connectionIndex] = part;
                 }
 
                 if (tempPart.Contains("connectiontimeout="))
@@ -121,12 +79,11 @@ namespace BlackHole.Configuration
                 connectionString = $"Connection Timeout = {timeoutSeconds};{connectionString}";
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Oracle;
-            DatabaseStatics.ConnectionString = connectionString;
-            DatabaseStatics.ServerConnection = connectionString;
+            WormHoleData.ServerConnections[connectionIndex] = connectionString;
+            WormHoleData.ConnectionStrings[connectionIndex] = connectionString;
         }
 
-        private void ScanMsSqlString(string connectionString, int timeoutSeconds)
+        private static void ScanMsSqlString(string connectionString, int timeoutSeconds, int connectionIndex)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
@@ -138,7 +95,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
-                    DatabaseStatics.OwnerName = part;
+                    WormHoleData.OwnerNames[connectionIndex] = part;
                 }
 
                 if (tempPart.Contains("commandtimeout="))
@@ -148,7 +105,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("database=") || tempPart.Contains("initialcatalog="))
                 {
-                    DatabaseStatics.DatabaseName = part;
+                    WormHoleData.DatabaseNames[connectionIndex] = part;
                 }
                 else
                 {
@@ -164,12 +121,11 @@ namespace BlackHole.Configuration
                 connectionString = $"Command Timeout = {timeoutSeconds};{connectionString}";
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.SqlServer;
-            DatabaseStatics.ConnectionString = connectionString;
-            DatabaseStatics.ServerConnection = serverConnection;
+            WormHoleData.ServerConnections[connectionIndex] = serverConnection;
+            WormHoleData.ConnectionStrings[connectionIndex] = connectionString;
         }
 
-        private void ScanMySqlString(string connectionString, int timeoutSeconds)
+        private static void ScanMySqlString(string connectionString, int timeoutSeconds, int connectionIndex)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
@@ -181,7 +137,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
-                    DatabaseStatics.OwnerName = part;
+                    WormHoleData.OwnerNames[connectionIndex] = part;
                 }
 
                 if (tempPart.Contains("commandtimeout="))
@@ -191,7 +147,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("database="))
                 {
-                    DatabaseStatics.DatabaseName = part;
+                    WormHoleData.DatabaseNames[connectionIndex] = part;
                 }
                 else
                 {
@@ -207,12 +163,11 @@ namespace BlackHole.Configuration
                 connectionString = $"default command timeout = {timeoutSeconds};{connectionString}";
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.MySql;
-            DatabaseStatics.ConnectionString = connectionString; // +"OldGuids=true;";
-            DatabaseStatics.ServerConnection = serverConnection;
+            WormHoleData.ServerConnections[connectionIndex] = serverConnection;
+            WormHoleData.ConnectionStrings[connectionIndex] = connectionString;
         }
 
-        private void ScanPostgresString(string connectionString, int timeoutSeconds)
+        private static void ScanPostgresString(string connectionString, int timeoutSeconds, int connectionIndex)
         {
             string[] parts = connectionString.Split(";");
             string serverConnection = string.Empty;
@@ -224,7 +179,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
-                    DatabaseStatics.OwnerName = part;
+                    WormHoleData.OwnerNames[connectionIndex] = part;
                 }
 
                 if (tempPart.Contains("commandtimeout="))
@@ -234,7 +189,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("database=") || tempPart.Contains("location="))
                 {
-                    DatabaseStatics.DatabaseName = part;
+                    WormHoleData.DatabaseNames[connectionIndex] = part;
                 }
                 else
                 {
@@ -250,27 +205,53 @@ namespace BlackHole.Configuration
                 connectionString = $"Command Timeout = {timeoutSeconds};{connectionString}";
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Postgres;
-            DatabaseStatics.ConnectionString = connectionString;
-            DatabaseStatics.ServerConnection = serverConnection;
+            WormHoleData.ServerConnections[connectionIndex] = serverConnection;
+            WormHoleData.ConnectionStrings[connectionIndex] = connectionString;
         }
 
-        private void ScanLiteString(string connectionString)
+        private static void ScanLiteString(string connectionString, string dbName, int connectionIndex)
         {
-            try
+            WormHoleData.DatabaseNames[connectionIndex] = dbName;
+            WormHoleData.ServerConnections[connectionIndex] = connectionString;
+            WormHoleData.ConnectionStrings[connectionIndex] = $"Data Source={connectionString};Pooling=true;";
+        }
+
+        internal void SetBHMode(BHMode modeBH)
+        {
+            WormHoleData.BlackHoleMode = modeBH;
+        }
+
+        internal void SetMode(bool isDevMode)
+        {
+            BHStaticSettings.IsDevMove = isDevMode;
+        }
+
+        internal void SetAutoUpdateMode(bool automaticUpdate)
+        {
+            BHStaticSettings.AutoUpdate = automaticUpdate;
+        }
+
+        internal void LogsSettings(string LogsPath, bool useLogsCleaner, int daysToClean, bool useLogging)
+        {
+            BHStaticSettings.DataPath = LogsPath;
+
+            if (useLogging)
             {
-                string[] pathSplit = connectionString.Split("\\");
-                string[] nameOnly = pathSplit[^1].Split(".");
-                DatabaseStatics.DatabaseName = nameOnly[0];
+                BHStaticSettings.UseLogging = useLogging;
+                BHStaticSettings.UseLogsCleaner = useLogsCleaner;
+                BHStaticSettings.CleanUpDays = daysToClean;
             }
-            catch
+            else
             {
-                DatabaseStatics.DatabaseName = connectionString;
+                BHStaticSettings.UseLogging = useLogging;
+                BHStaticSettings.UseLogsCleaner = false;
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.SqlLite;
-            DatabaseStatics.ServerConnection = connectionString;
-            DatabaseStatics.ConnectionString = $"Data Source={connectionString};";
+            if (BHStaticSettings.UseLogsCleaner)
+            {
+                new LogsCleaner();
+            }
+            LoggerService.SetUpLogger();
         }
     }
 }

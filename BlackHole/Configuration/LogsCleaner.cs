@@ -8,7 +8,7 @@ namespace BlackHole.Configuration
 
         internal LogsCleaner()
         {
-            LogsPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
+            LogsPath = Path.Combine(BHStaticSettings.DataPath, "Logs");
 
             try
             {
@@ -21,12 +21,12 @@ namespace BlackHole.Configuration
 
                 File.Delete(pathFile);
 
-                if (DatabaseStatics.UseLogsCleaner)
+                if (BHStaticSettings.UseLogsCleaner)
                 {
                     Thread CleanerThread = new(() =>
                     {
                         Thread.CurrentThread.IsBackground = true;
-                        LogsCleanProcedure.StartJob(DatabaseStatics.CleanUpDays, LogsPath);
+                        LogsCleanProcedure.StartJob(BHStaticSettings.CleanUpDays, LogsPath);
                     });
                     Console.WriteLine("Starting Cleaner Thread..");
                     CleanerThread.Name = "BlackHoleLogsCleaner";
@@ -35,7 +35,7 @@ namespace BlackHole.Configuration
             }
             catch (Exception ex)
             {
-                DatabaseStatics.UseLogsCleaner = false;
+                BHStaticSettings.UseLogsCleaner = false;
                 Console.WriteLine(ex.Message);
             }
         }

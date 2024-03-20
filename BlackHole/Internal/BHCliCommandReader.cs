@@ -20,7 +20,8 @@ namespace BlackHole.Internal
                 if (File.Exists(commandFilePath))
                 {
                     Console.WriteLine("_bhLog_");
-                    Console.WriteLine("_bhLog_ Mikarsoft (R) BlackHole Cli v6.2.1 Singularity Edition (C) for .Net Core");
+                    Console.WriteLine("_bhLog_ Mikarsoft LTD (R) BlackHole.Core.Cli v1.0.1");
+                    Console.WriteLine("_bhLog_ Mikarsoft LTD (R) BlackHole.Core.ORM v6.2.1, Wormhole Edition (C) for .Net Core");
                     Console.WriteLine("_bhLog_");
                     Console.WriteLine("_bhLog_ \t Cli Mode Enabled. Reading Command Arguments..");
 

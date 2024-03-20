@@ -16,7 +16,7 @@ namespace BlackHole.Internal
         internal BHDatabaseParser()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
-            connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
+            connection = _multiDatabaseSelector.GetExecutionProvider(BHStaticSettings.ConnectionString);
             sqlWriter = new BHSqlExportWriter("ParsingResult", "ParsingReport", "txt");
             dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
             sqlWriter.DeleteSqlFolder();
@@ -46,7 +46,7 @@ namespace BlackHole.Internal
 
             DbParsingStates dbState = CheckCompatibility(tableInfo, columnScanner);
 
-            string folderPath = Path.Combine(DatabaseStatics.DataPath, "ParsingReport");
+            string folderPath = Path.Combine(BHStaticSettings.DataPath, "ParsingReport");
             string ParsingReportResult = "";
             switch (dbState)
             {
@@ -455,12 +455,12 @@ namespace BlackHole.Internal
             {
                 int characterSize = columnInfo.MaxLength;
 
-                if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer)
+                if (BHStaticSettings.DatabaseType == BlackHoleSqlTypes.SqlServer)
                 {
                     characterSize = columnInfo.MaxLength / 2;
                 }
 
-                if(DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlLite)
+                if(BHStaticSettings.DatabaseType == BlackHoleSqlTypes.SqlLite)
                 {
                     characterSize = GetSqLiteLength(columnInfo.DataType);
                 }

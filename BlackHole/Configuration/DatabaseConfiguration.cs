@@ -13,40 +13,41 @@ namespace BlackHole.Configuration
 
         internal static void SetMode(bool isDevMode)
         {
-            DatabaseStatics.IsDevMove = isDevMode;
+            BHStaticSettings.IsDevMove = isDevMode;
         }
 
         internal static void SetAutoUpdateMode(bool automaticUpdate)
         {
-            DatabaseStatics.AutoUpdate = automaticUpdate;
+            BHStaticSettings.AutoUpdate = automaticUpdate;
         }
 
         internal static void LogsSettings(string LogsPath, bool useLogsCleaner, int daysToClean, bool useLogging)
         {
-            DatabaseStatics.DataPath = LogsPath;
+            BHStaticSettings.DataPath = LogsPath;
 
             if (useLogging)
             {
-                DatabaseStatics.UseLogging = useLogging;
-                DatabaseStatics.UseLogsCleaner = useLogsCleaner;
-                DatabaseStatics.CleanUpDays = daysToClean;
+                BHStaticSettings.UseLogging = useLogging;
+                BHStaticSettings.UseLogsCleaner = useLogsCleaner;
+                BHStaticSettings.CleanUpDays = daysToClean;
             }
             else
             {
-                DatabaseStatics.UseLogging = useLogging;
-                DatabaseStatics.UseLogsCleaner = false;
+                BHStaticSettings.UseLogging = useLogging;
+                BHStaticSettings.UseLogsCleaner = false;
             }
 
-            if (DatabaseStatics.UseLogsCleaner)
+            if (BHStaticSettings.UseLogsCleaner)
             {
                 new LogsCleaner();
             }
+
             LoggerService.SetUpLogger();
         }
 
         internal static void ScanConnectionString(string connectionString, BlackHoleSqlTypes sqlType, string databaseSchema, int timeoutSeconds, bool isQuoted, int connectionIndex)
         {
-            DatabaseStatics.IsQuotedDatabase = isQuoted;
+            BHStaticSettings.IsQuotedDatabase = isQuoted;
 
             switch (sqlType)
             {
@@ -59,7 +60,8 @@ namespace BlackHole.Configuration
                 case BlackHoleSqlTypes.Postgres:
                     ScanPostgresString(connectionString,timeoutSeconds, connectionIndex);
                     break;
-                case BlackHoleSqlTypes.SqlLite:
+                case BlackHoleSqlTypes.SqlLite:     
+                    connectionString = Path.Combine(BHStaticSettings.DataPath, $"{connectionString}.db3");
                     ScanLiteString(connectionString, connectionIndex);
                     break;
                 case BlackHoleSqlTypes.Oracle:
@@ -67,9 +69,9 @@ namespace BlackHole.Configuration
                     break;
             }
 
-            if (databaseSchema != string.Empty && DatabaseStatics.OwnerName != string.Empty)
+            if (databaseSchema != string.Empty && BHStaticSettings.OwnerName != string.Empty)
             {
-                DatabaseStatics.DatabaseSchema = databaseSchema;
+                BHStaticSettings.DatabaseSchema = databaseSchema;
             }
         }
 
@@ -83,7 +85,7 @@ namespace BlackHole.Configuration
                 string tempPart = part.Replace(" ", "").ToLower();
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
-                    DatabaseStatics.DatabaseName = part;
+                    BHStaticSettings.DatabaseName = part;
                 }
 
                 if (tempPart.Contains("connectiontimeout="))
@@ -97,9 +99,9 @@ namespace BlackHole.Configuration
                 connectionString = $"Connection Timeout = {timeoutSeconds};{connectionString}";
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Oracle;
-            DatabaseStatics.ConnectionString = connectionString;
-            DatabaseStatics.ServerConnection = connectionString;
+            BHStaticSettings.DatabaseType = BlackHoleSqlTypes.Oracle;
+            BHStaticSettings.ConnectionString = connectionString;
+            BHStaticSettings.ServerConnection = connectionString;
         }
 
         private static void ScanMsSqlString(string connectionString, int timeoutSeconds, int connectionIndex)
@@ -114,7 +116,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
-                    DatabaseStatics.OwnerName = part;
+                    BHStaticSettings.OwnerName = part;
                 }
 
                 if (tempPart.Contains("commandtimeout="))
@@ -124,7 +126,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("database=") || tempPart.Contains("initialcatalog="))
                 {
-                    DatabaseStatics.DatabaseName = part;
+                    BHStaticSettings.DatabaseName = part;
                 }
                 else
                 {
@@ -140,9 +142,9 @@ namespace BlackHole.Configuration
                 connectionString = $"Command Timeout = {timeoutSeconds};{connectionString}";
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.SqlServer;
-            DatabaseStatics.ConnectionString = connectionString;
-            DatabaseStatics.ServerConnection = serverConnection;
+            BHStaticSettings.DatabaseType = BlackHoleSqlTypes.SqlServer;
+            BHStaticSettings.ConnectionString = connectionString;
+            BHStaticSettings.ServerConnection = serverConnection;
         }
 
         private static void ScanMySqlString(string connectionString, int timeoutSeconds, int connectionIndex)
@@ -157,7 +159,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
-                    DatabaseStatics.OwnerName = part;
+                    BHStaticSettings.OwnerName = part;
                 }
 
                 if (tempPart.Contains("commandtimeout="))
@@ -167,7 +169,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("database="))
                 {
-                    DatabaseStatics.DatabaseName = part;
+                    BHStaticSettings.DatabaseName = part;
                 }
                 else
                 {
@@ -183,9 +185,9 @@ namespace BlackHole.Configuration
                 connectionString = $"default command timeout = {timeoutSeconds};{connectionString}";
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.MySql;
-            DatabaseStatics.ConnectionString = connectionString; // +"OldGuids=true;";
-            DatabaseStatics.ServerConnection = serverConnection;
+            BHStaticSettings.DatabaseType = BlackHoleSqlTypes.MySql;
+            BHStaticSettings.ConnectionString = connectionString; // +"OldGuids=true;";
+            BHStaticSettings.ServerConnection = serverConnection;
         }
 
         private static void ScanPostgresString(string connectionString, int timeoutSeconds, int connectionIndex)
@@ -200,7 +202,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("userid=") || tempPart.Contains("uid="))
                 {
-                    DatabaseStatics.OwnerName = part;
+                    BHStaticSettings.OwnerName = part;
                 }
 
                 if (tempPart.Contains("commandtimeout="))
@@ -210,7 +212,7 @@ namespace BlackHole.Configuration
 
                 if (tempPart.Contains("database=") || tempPart.Contains("location="))
                 {
-                    DatabaseStatics.DatabaseName = part;
+                    BHStaticSettings.DatabaseName = part;
                 }
                 else
                 {
@@ -226,9 +228,9 @@ namespace BlackHole.Configuration
                 connectionString = $"Command Timeout = {timeoutSeconds};{connectionString}";
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.Postgres;
-            DatabaseStatics.ConnectionString = connectionString;
-            DatabaseStatics.ServerConnection = serverConnection;
+            BHStaticSettings.DatabaseType = BlackHoleSqlTypes.Postgres;
+            BHStaticSettings.ConnectionString = connectionString;
+            BHStaticSettings.ServerConnection = serverConnection;
         }
 
         private static void ScanLiteString(string connectionString, int connectionIndex)
@@ -237,16 +239,16 @@ namespace BlackHole.Configuration
             {
                 string[] pathSplit = connectionString.Split("\\");
                 string[] nameOnly = pathSplit[^1].Split(".");
-                DatabaseStatics.DatabaseName = nameOnly[0];
+                BHStaticSettings.DatabaseName = nameOnly[0];
             }
             catch
             {
-                DatabaseStatics.DatabaseName = connectionString;
+                BHStaticSettings.DatabaseName = connectionString;
             }
 
-            DatabaseStatics.DatabaseType = BlackHoleSqlTypes.SqlLite;
-            DatabaseStatics.ServerConnection = connectionString;
-            DatabaseStatics.ConnectionString = $"Data Source={connectionString};";
+            BHStaticSettings.DatabaseType = BlackHoleSqlTypes.SqlLite;
+            BHStaticSettings.ServerConnection = connectionString;
+            BHStaticSettings.ConnectionString = $"Data Source={connectionString};";
         }
     }
 }

@@ -10,20 +10,20 @@ namespace BlackHole.Internal
 {
     internal class BHTableBuilder
     {
-        private readonly BHDatabaseSelector _multiDatabaseSelector;
-        private readonly IDataProvider connection;
+        private BHDatabaseSelector _multiDatabaseSelector;
+        private IDataProvider _connection;
         private BHSqlExportWriter SqlWriter { get; set; }
         private List<TableParsingInfo> DbConstraints { get; set; } = new();
-        private readonly string[] SqlDatatypes;
-        private readonly bool IsMyShit;
-        private readonly bool IsLite;
-        private readonly bool IsOpenPKConstraint;
+        private string[] SqlDatatypes;
+        private bool IsMyShit;
+        private bool IsLite;
+        private bool IsOpenPKConstraint;
         private string TableSchemaCheck { get; set; }
         private string TableSchema { get; set; }
         internal BHDatabaseInfoReader dbInfoReader { get; set; }
-        internal bool IsForcedUpdate { get; } 
+        internal bool IsForcedUpdate { get; set; } 
         internal bool IsOracleProduct { get; set; }
-        private string AlterColumn { get; }
+        private string AlterColumn { get; set; }
         private bool IsSqlServer { get; set; }
         private List<string> SQLServerNotNullColumns { get; set; } = new();
         private List<string> CreateTablesTransaction { get; set; } = new();
@@ -33,37 +33,48 @@ namespace BlackHole.Internal
         private List<string> RevertOracleTables { get; set; } = new();
         private List<string> RevertOracleTransaction { get; set; } = new();
         private List<string> RevertOracleAfterMath { get; set; } = new();
+        private int ConnectionIndex { get; set; } = 0;
 
         internal BHTableBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
-            connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ConnectionString);
-            IsForcedUpdate = DatabaseStatics.AutoUpdate && (DatabaseStatics.IsDevMove || CliCommand.ForceAction);
-            dbInfoReader = new BHDatabaseInfoReader(connection, _multiDatabaseSelector);
-            AlterColumn = _multiDatabaseSelector.GetColumnModifyCommand();
-            IsOracleProduct = _multiDatabaseSelector.IsUsingOracleProduct();
+            IsForcedUpdate = _multiDatabaseSelector.CheckIfForcedUpdate();
+            SqlWriter = new BHSqlExportWriter("2_TablesSql","SqlFiles","sql");
+        }
 
-            IsSqlServer = DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer;
+        internal void SwitchConnection(int connectionIndex)
+        {
+            ConnectionIndex = connectionIndex;
+            CreateBuilderSettings();
+        }
+
+        internal void CreateBuilderSettings()
+        {
+            _connection = _multiDatabaseSelector.GetExecutionProvider(ConnectionIndex);
+            dbInfoReader = new BHDatabaseInfoReader(_connection, _multiDatabaseSelector);
 
             if (IsForcedUpdate)
             {
                 DbConstraints = dbInfoReader.GetDatabaseParsingInfo();
             }
 
-            SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation();
-            TableSchemaCheck = _multiDatabaseSelector.TableSchemaCheck();
-            TableSchema = _multiDatabaseSelector.GetDatabaseSchema();
-            IsMyShit = _multiDatabaseSelector.GetMyShit();
-            IsLite = _multiDatabaseSelector.IsLite();
-            IsOpenPKConstraint = _multiDatabaseSelector.GetOpenPKConstraint();
-            SqlWriter = new BHSqlExportWriter("2_TablesSql","SqlFiles","sql");
+            IsSqlServer = BHStaticSettings.DatabaseType == BlackHoleSqlTypes.SqlServer;
+
+            AlterColumn = _multiDatabaseSelector.GetColumnModifyCommand(ConnectionIndex);
+            IsOracleProduct = _multiDatabaseSelector.IsUsingOracleProduct(ConnectionIndex);
+            SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation(ConnectionIndex);
+            TableSchemaCheck = _multiDatabaseSelector.TableSchemaCheck(ConnectionIndex);
+            TableSchema = _multiDatabaseSelector.GetDatabaseSchema(ConnectionIndex);
+            IsMyShit = _multiDatabaseSelector.SkipQuotesOnDb(ConnectionIndex);
+            IsLite = _multiDatabaseSelector.IsLite(ConnectionIndex);
+            IsOpenPKConstraint = _multiDatabaseSelector.GetOpenPKConstraint(ConnectionIndex);
         }
 
         internal void BuildMultipleTables(List<Type> TableTypes, List<Type> OpenTableTypes)
         {
-            if(DatabaseStatics.AutoUpdate)
+            if(BHStaticSettings.AutoUpdate)
             {
-                DatabaseStatics.InitializeData = true;
+                BHStaticSettings.InitializeData = true;
                 bool[] Builded = new bool[TableTypes.Count];
                 bool[] OpenBuilded = new bool[OpenTableTypes.Count];
 
@@ -110,13 +121,13 @@ namespace BlackHole.Internal
                 }
                 ClearCommands();
             }
-            DatabaseStatics.AutoUpdate = false;
+            BHStaticSettings.AutoUpdate = false;
         }
 
         internal void CleanupConstraints()
         {
             DbConstraints.Clear();
-            DatabaseStatics.OnUpdateLogs = false;
+            BHStaticSettings.OnUpdateLogs = false;
         }
 
         bool CreateOpenTable(Type TableType)
@@ -145,7 +156,7 @@ namespace BlackHole.Internal
                         }
                         else
                         {
-                            tableCreator.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey));
+                            tableCreator.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey, ConnectionIndex));
                         }
                     }
                     else
@@ -166,7 +177,7 @@ namespace BlackHole.Internal
                 return true;
             }
 
-            DatabaseStatics.InitializeData = false;
+            BHStaticSettings.InitializeData = false;
             return false;
         }
 
@@ -195,17 +206,17 @@ namespace BlackHole.Internal
                     {
                         if (TableType.BaseType == typeof(BlackHoleEntity<int>))
                         {
-                            tableCreator.Append(_multiDatabaseSelector.GetPrimaryKeyCommand());
+                            tableCreator.Append(_multiDatabaseSelector.GetPrimaryKeyCommand(ConnectionIndex));
                         }
 
                         if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
                         {
-                            tableCreator.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand());
+                            tableCreator.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand(ConnectionIndex));
                         }
 
                         if (TableType.BaseType == typeof(BlackHoleEntity<string>))
                         {
-                            tableCreator.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand());
+                            tableCreator.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand(ConnectionIndex));
                         }
                     }
                 }
@@ -221,17 +232,17 @@ namespace BlackHole.Internal
                 return true;
             }
 
-            DatabaseStatics.InitializeData = false;
+            BHStaticSettings.InitializeData = false;
             return false;
         }
 
         bool CheckTable(string Tablename)
         {
-            return DatabaseStatics.DatabaseType switch
+            return BHStaticSettings.DatabaseType switch
             {
-                BlackHoleSqlTypes.SqlLite => connection.ExecuteScalar<string>($@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'", null) == Tablename,
-                BlackHoleSqlTypes.Oracle => connection.ExecuteScalar<string>($"SELECT table_name FROM all_tables WHERE owner ='{_multiDatabaseSelector.GetDatabaseName()}' and TABLE_NAME = '{Tablename}'", null) == Tablename,
-                _ => connection.ExecuteScalar<int>($"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + $"' {TableSchemaCheck})) then 1 else 0 end", null) == 1,
+                BlackHoleSqlTypes.SqlLite => _connection.ExecuteScalar<string>($@"SELECT name FROM sqlite_master WHERE type='table' AND name='" + Tablename + "'", null) == Tablename,
+                BlackHoleSqlTypes.Oracle => _connection.ExecuteScalar<string>($"SELECT table_name FROM all_tables WHERE owner ='{_multiDatabaseSelector.GetDatabaseName(ConnectionIndex)}' and TABLE_NAME = '{Tablename}'", null) == Tablename,
+                _ => _connection.ExecuteScalar<int>($"select case when exists((select * from information_schema.tables where table_name = '" + Tablename + $"' {TableSchemaCheck})) then 1 else 0 end", null) == 1,
             };
         }
 
@@ -357,7 +368,7 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            foreach (SqLiteTableInfo column in connection.Query<SqLiteTableInfo>($"PRAGMA table_info({MyShit(TableType.Name)}); ", null))
+            foreach (SqLiteTableInfo column in _connection.Query<SqLiteTableInfo>($"PRAGMA table_info({MyShit(TableType.Name)}); ", null))
             {
                 ColumnNames.Add(column.name);
             }
@@ -382,7 +393,7 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            foreach (SqLiteTableInfo column in connection.Query<SqLiteTableInfo>($"PRAGMA table_info({MyShit(TableType.Name)}); ", null))
+            foreach (SqLiteTableInfo column in _connection.Query<SqLiteTableInfo>($"PRAGMA table_info({MyShit(TableType.Name)}); ", null))
             {
                 ColumnNames.Add(column.name);
                 if(column.pk > 0)
@@ -416,8 +427,8 @@ namespace BlackHole.Internal
                 "Inactive"
             };
 
-            List<SqLiteForeignKeySchema> SchemaInfo = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null);
-            List<SqLiteTableInfo> ColumnsInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null);
+            List<SqLiteForeignKeySchema> SchemaInfo = _connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null);
+            List<SqLiteTableInfo> ColumnsInfo = _connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null);
 
             foreach (SqLiteTableInfo column in ColumnsInfo)
             {
@@ -462,17 +473,17 @@ namespace BlackHole.Internal
                 {
                     if (TableType.BaseType == typeof(BlackHoleEntity<int>))
                     {
-                        alterTable.Append(_multiDatabaseSelector.GetPrimaryKeyCommand());
+                        alterTable.Append(_multiDatabaseSelector.GetPrimaryKeyCommand(ConnectionIndex));
                     }
 
                     if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
                     {
-                        alterTable.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand());
+                        alterTable.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand(ConnectionIndex));
                     }
 
                     if (TableType.BaseType == typeof(BlackHoleEntity<string>))
                     {
-                        alterTable.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand());
+                        alterTable.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand(ConnectionIndex));
                     }
                 }
 
@@ -550,17 +561,17 @@ namespace BlackHole.Internal
                 {
                     if (TableType.BaseType == typeof(BlackHoleEntity<int>))
                     {
-                        alterTable.Append(_multiDatabaseSelector.GetPrimaryKeyCommand());
+                        alterTable.Append(_multiDatabaseSelector.GetPrimaryKeyCommand(ConnectionIndex));
                     }
 
                     if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
                     {
-                        alterTable.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand());
+                        alterTable.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand(ConnectionIndex));
                     }
 
                     if (TableType.BaseType == typeof(BlackHoleEntity<string>))
                     {
-                        alterTable.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand());
+                        alterTable.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand(ConnectionIndex));
                     }
                 }
             }
@@ -603,8 +614,8 @@ namespace BlackHole.Internal
             List<string> ColumnNames = new();
             List<string> NewColumnNames = new();
 
-            List<SqLiteForeignKeySchema> SchemaInfo = connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null);
-            List<SqLiteTableInfo> ColumnsInfo = connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null);
+            List<SqLiteForeignKeySchema> SchemaInfo = _connection.Query<SqLiteForeignKeySchema>($"PRAGMA foreign_key_list({Tablename});", null);
+            List<SqLiteTableInfo> ColumnsInfo = _connection.Query<SqLiteTableInfo>($"PRAGMA table_info({Tablename});", null);
 
             foreach (SqLiteTableInfo column in ColumnsInfo)
             {
@@ -649,7 +660,7 @@ namespace BlackHole.Internal
                     }
                     else
                     {
-                        alterTable.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey));
+                        alterTable.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey, ConnectionIndex));
                     }
                 }
                 else
@@ -706,7 +717,7 @@ namespace BlackHole.Internal
                     }
                     else
                     {
-                        alterTable.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey));
+                        alterTable.Append(_multiDatabaseSelector.GetCompositePrimaryKeyCommand(Property.PropertyType, pkInformation.MainPrimaryKey, ConnectionIndex));
                     }
                 }
                 else
@@ -830,9 +841,9 @@ namespace BlackHole.Internal
             List<FKInfo> FkOptions = new();
             List<UniqueInfo> UniqueOptions = new();
 
-            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+            if (BHStaticSettings.DatabaseType == BlackHoleSqlTypes.Oracle)
             {
-                string owner = _multiDatabaseSelector.GetDatabaseName();
+                string owner = _multiDatabaseSelector.GetDatabaseName(ConnectionIndex);
                 getColumns = $"SELECT Column_name From all_tab_cols where owner = '{owner}' and TABLE_NAME = '{TableType.Name}'";
             }
 
@@ -849,7 +860,7 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            List<string> ColumnNames = connection.Query<string>(getColumns, null);
+            List<string> ColumnNames = _connection.Query<string>(getColumns, null);
 
             if (IsForcedUpdate)
             {
@@ -926,9 +937,9 @@ namespace BlackHole.Internal
             string Tablename = MyShit(TableType.Name);
             string getColumns = $"SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{TableType.Name}' {TableSchemaCheck}";
 
-            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+            if (BHStaticSettings.DatabaseType == BlackHoleSqlTypes.Oracle)
             {
-                string owner = _multiDatabaseSelector.GetDatabaseName();
+                string owner = _multiDatabaseSelector.GetDatabaseName(ConnectionIndex);
                 getColumns = $"SELECT Column_name From all_tab_cols where owner = '{owner}' and TABLE_NAME = '{TableType.Name}'";
             }
 
@@ -941,7 +952,7 @@ namespace BlackHole.Internal
                 NewColumnNames.Add(Property.Name);
             }
 
-            List<string> ColumnNames = connection.Query<string>(getColumns, null);
+            List<string> ColumnNames = _connection.Query<string>(getColumns, null);
 
             bool PKsDropped = false;
 
@@ -1072,7 +1083,7 @@ namespace BlackHole.Internal
             string updateTxt = $"Update {TableSchema}{MyShit(TableName)} set {MyShit(PropName)} = {defaultValCommand} where {MyShit(PropName)} is null";
             string setText = "SET";
 
-            if(DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
+            if(BHStaticSettings.DatabaseType != BlackHoleSqlTypes.Postgres)
             {
                 setText = GetSqlDataType(ColumnInfo);
             }
@@ -1095,7 +1106,7 @@ namespace BlackHole.Internal
         {
             string setText = "DROP NOT";
 
-            if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
+            if (BHStaticSettings.DatabaseType != BlackHoleSqlTypes.Postgres)
             {
                 setText = GetSqlDataType(ColumnInfo);
             }
@@ -1114,12 +1125,12 @@ namespace BlackHole.Internal
         {
             string DataType = columnInfo.DataType;
 
-            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.SqlServer)
+            if (BHStaticSettings.DatabaseType == BlackHoleSqlTypes.SqlServer)
             {
                 columnInfo.MaxLength = columnInfo.MaxLength / 2;
             }
 
-            if (DatabaseStatics.DatabaseType == BlackHoleSqlTypes.Oracle)
+            if (BHStaticSettings.DatabaseType == BlackHoleSqlTypes.Oracle)
             {
                 if (DataType.ToLower().Contains("varchar"))
                 {
@@ -1145,7 +1156,7 @@ namespace BlackHole.Internal
         private void DropColumns(List<string> ColumnsToDrop, string TableName)
         {
             string lowerTbName = TableName.ToLower();
-            if (DatabaseStatics.IsDevMove || CliCommand.ForceAction)
+            if (BHStaticSettings.IsDevMove || CliCommand.ForceAction)
             {
                 foreach (string ColumnName in ColumnsToDrop)
                 {
@@ -1254,7 +1265,7 @@ namespace BlackHole.Internal
                 {
                     string setText = $"{MyShit(PropName)} SET";
 
-                    if (DatabaseStatics.DatabaseType != BlackHoleSqlTypes.Postgres)
+                    if (BHStaticSettings.DatabaseType != BlackHoleSqlTypes.Postgres)
                     {
                         setText = GetDatatypeCommand(PropType, attributes, PropName, TableName);
                     }
@@ -1677,7 +1688,7 @@ namespace BlackHole.Internal
                 "Double" => "0",
                 "Guid" => $"'{Guid.Empty}'",
                 "Boolean" => "0",
-                "DateTime" => $"'{new DateTime(1970,1,1).ToString(DatabaseStatics.DbDateFormat)}'",
+                "DateTime" => $"'{new DateTime(1970,1,1).ToString(BHStaticSettings.DbDateFormat)}'",
                 "Byte[]" => $"'{new byte[0]}'",
                 _ => throw ProtectDbAndThrow($"Unsupported property type '{PropertyType.FullName}' at Property '{PropName}' of Entity '{TableName}'"),
             };
@@ -1707,12 +1718,12 @@ namespace BlackHole.Internal
                 if (IsLite)
                 {
                     BlackHoleTransaction transaction = new(0);
-                    connection.JustExecute("PRAGMA foreign_keys = off", null, transaction,0);
+                    _connection.JustExecute("PRAGMA foreign_keys = off", null, transaction,0);
                     foreach (string command in AllCommands)
                     {
-                        connection.JustExecute(command, null, transaction,0);
+                        _connection.JustExecute(command, null, transaction,0);
                     }
-                    connection.JustExecute("PRAGMA foreign_keys = on", null, transaction, 0);
+                    _connection.JustExecute("PRAGMA foreign_keys = on", null, transaction, 0);
                     bool result = transaction.Commit();
                     transaction.Dispose();
                     return result;
@@ -1735,7 +1746,7 @@ namespace BlackHole.Internal
 
                     for (int i = 0; i < UpdateCommands.Count; i++)
                     {
-                        bool success = connection.JustExecute(AllCommands[i], null, transaction,0);
+                        bool success = _connection.JustExecute(AllCommands[i], null, transaction,0);
                         if (!success)
                         {
                             failedIndex = i;
@@ -1750,14 +1761,14 @@ namespace BlackHole.Internal
                     {
                         for(int i = 1; i < failedIndex + 1; i++)
                         {
-                            connection.JustExecute(RevertChanges[failedIndex - i], null);
+                            _connection.JustExecute(RevertChanges[failedIndex - i], null);
                         }
                     }
                     else
                     {
                         foreach(string command in DropTransaction)
                         {
-                            connection.JustExecute(command, null, transaction,0);
+                            _connection.JustExecute(command, null, transaction,0);
                         }
                         result = transaction.Commit();
                     }
@@ -1766,7 +1777,7 @@ namespace BlackHole.Internal
                     return result;
                 }
 
-                string[] safeTransaction = _multiDatabaseSelector.GetSafeTransactionTry();
+                string[] safeTransaction = _multiDatabaseSelector.GetSafeTransactionTry(ConnectionIndex);
                 StringBuilder KickInTheTeeth = new();
                 KickInTheTeeth.Append(safeTransaction[0]);
 
@@ -1776,7 +1787,7 @@ namespace BlackHole.Internal
                 }
 
                 KickInTheTeeth.Append(safeTransaction[1]);
-                bool itWorked = connection.JustExecute(KickInTheTeeth.ToString(), null);
+                bool itWorked = _connection.JustExecute(KickInTheTeeth.ToString(), null);
 
                 if(IsSqlServer && itWorked && SQLServerNotNullColumns.Any())
                 {
@@ -1789,7 +1800,7 @@ namespace BlackHole.Internal
                     }
 
                     KickInTheTeeth.Append(safeTransaction[1]);
-                    connection.JustExecute(KickInTheTeeth.ToString(), null);
+                    _connection.JustExecute(KickInTheTeeth.ToString(), null);
                 }
 
                 return itWorked;

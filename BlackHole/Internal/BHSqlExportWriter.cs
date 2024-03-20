@@ -18,9 +18,9 @@ namespace BlackHole.Internal
 
             try
             {
-                if (DatabaseStatics.UseLogging)
+                if (BHStaticSettings.UseLogging)
                 {
-                    SqlFilesPath = Path.Combine(DatabaseStatics.DataPath, folderName);
+                    SqlFilesPath = Path.Combine(BHStaticSettings.DataPath, folderName);
 
                     if (!Directory.Exists(SqlFilesPath))
                     {
@@ -37,8 +37,8 @@ namespace BlackHole.Internal
             }
             catch
             {
-                DatabaseStatics.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData");
-                SqlFilesPath = Path.Combine(DatabaseStatics.DataPath, "Logs");
+                BHStaticSettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "BlackHoleData");
+                SqlFilesPath = Path.Combine(BHStaticSettings.DataPath, "Logs");
                 canWriteFiles = false;
             }
 

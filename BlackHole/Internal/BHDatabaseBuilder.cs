@@ -9,26 +9,21 @@ namespace BlackHole.Internal
     internal class BHDatabaseBuilder
     {
         private readonly BHDatabaseSelector _multiDatabaseSelector;
-        private readonly IDataProvider connection;
         private bool ExistingDb { get; set; } = false;
         private string SchemaCreationCommand { get; set; } = string.Empty;
-        private string DbSchema { get; set; }
         private BHSqlExportWriter SqlWriter { get; set; }
 
         internal BHDatabaseBuilder()
         {
             _multiDatabaseSelector = new BHDatabaseSelector();
-            connection = _multiDatabaseSelector.GetExecutionProvider(DatabaseStatics.ServerConnection);
             SqlWriter = new BHSqlExportWriter("1_DatabaseSql", "SqlFiles", "sql");
-            DbSchema = DatabaseStatics.DatabaseSchema;
-            _multiDatabaseSelector.SetDbDateFormat(connection);
         }
 
-        internal bool DropDatabase()
+        internal bool DropDatabase(int connectionIndex)
         {
             string CheckDb = "";
 
-            if (!DatabaseStatics.IsDevMove && !CliCommand.ForceAction)
+            if (!BHStaticSettings.IsDevMove && !CliCommand.ForceAction)
             {
                 if (CliCommand.CliExecution)
                 {
@@ -45,16 +40,18 @@ namespace BlackHole.Internal
 
             try
             {
-                bool isLite = _multiDatabaseSelector.IsLite();
+                IDataProvider connection = _multiDatabaseSelector.GetExecutionProvider(connectionIndex);
+
+                bool isLite = _multiDatabaseSelector.IsLite(connectionIndex);
 
                 if (isLite)
                 {
-                    string databaseLocation = _multiDatabaseSelector.GetServerConnection();
+                    string databaseLocation = _multiDatabaseSelector.GetServerConnection(connectionIndex);
 
                     if (File.Exists(databaseLocation))
                     {
 
-                        SqliteConnection.ClearPool(new SqliteConnection(DatabaseStatics.ConnectionString));
+                        SqliteConnection.ClearPool(new SqliteConnection(WormHoleData.ConnectionStrings[connectionIndex]));
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
 
@@ -65,11 +62,11 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    string databaseName = _multiDatabaseSelector.GetDatabaseName();
+                    string databaseName = _multiDatabaseSelector.GetDatabaseName(connectionIndex);
                     bool dbExists = false;
                     string DropDb = $@"DROP DATABASE IF EXISTS ""{databaseName}""";
 
-                    switch (_multiDatabaseSelector.GetSqlTypeId())
+                    switch (_multiDatabaseSelector.GetSqlTypeId(connectionIndex))
                     {
                         case 0:
                             CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
@@ -131,18 +128,22 @@ namespace BlackHole.Internal
             }
         }
 
-        internal bool CreateDatabase()
+        internal bool CreateDatabase(int connectionIndex)
         {
             string CheckDb = "";
+            SchemaCreationCommand = string.Empty;
+            ExistingDb = false;
 
             try
             {
-                bool isLite = _multiDatabaseSelector.IsLite();
+                IDataProvider connection = _multiDatabaseSelector.GetExecutionProvider(connectionIndex);
+                _multiDatabaseSelector.SetDbDateFormat(connection, connectionIndex);
+
+                bool isLite = _multiDatabaseSelector.IsLite(connectionIndex);
 
                 if (isLite)
                 {
-                    SchemaCreationCommand = "";
-                    string databaseLocation = _multiDatabaseSelector.GetServerConnection();
+                    string databaseLocation = _multiDatabaseSelector.GetServerConnection(connectionIndex);
 
                     if (!File.Exists(databaseLocation))
                     {
@@ -153,28 +154,28 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    string databaseName = _multiDatabaseSelector.GetDatabaseName();
-                    string ownerName = _multiDatabaseSelector.GetOwnerName();
+                    string databaseName = _multiDatabaseSelector.GetDatabaseName(connectionIndex);
+                    string ownerName = _multiDatabaseSelector.GetOwnerName(connectionIndex);
                     bool dbExists = false;
                     string CreateDb = $@"CREATE DATABASE ""{databaseName}""";
                     bool isOracle = false;
 
-                    switch (_multiDatabaseSelector.GetSqlTypeId())
+                    switch (_multiDatabaseSelector.GetSqlTypeId(connectionIndex))
                     {
                         case 0:
-                            SchemaCreationCommand = $"IF NOT EXISTS ( SELECT  * FROM sys.schemas WHERE name = '{DatabaseStatics.DatabaseSchema}' ) BEGIN EXEC('CREATE SCHEMA [{DatabaseStatics.DatabaseSchema}]') END";
+                            SchemaCreationCommand = $"IF NOT EXISTS ( SELECT  * FROM sys.schemas WHERE name = '{WormHoleData.DbDefaultSchemas[connectionIndex]}' ) BEGIN EXEC('CREATE SCHEMA [{BHStaticSettings.DatabaseSchema}]') END";
                             CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
                         case 1:
-                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {DatabaseStatics.DatabaseSchema} AUTHORIZATION {ownerName}";
+                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {WormHoleData.DbDefaultSchemas[connectionIndex]} AUTHORIZATION {ownerName}";
                             CheckDb = $"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{databaseName}'";
                             CreateDb = $"CREATE DATABASE IF NOT EXISTS {databaseName}";
                             string? dbName = connection.ExecuteScalar<string>(CheckDb, null);
                             dbExists = dbName?.ToLower() == databaseName.ToLower();
                             break;
                         case 2:
-                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {DatabaseStatics.DatabaseSchema} AUTHORIZATION {ownerName}";
+                            SchemaCreationCommand = $"CREATE SCHEMA IF NOT EXISTS {WormHoleData.DbDefaultSchemas[connectionIndex]} AUTHORIZATION {ownerName}";
                             CheckDb = $"SELECT 1 FROM pg_database WHERE datname='{databaseName}';";
                             dbExists = connection.ExecuteScalar<int>(CheckDb, null) == 1;
                             break;
@@ -202,7 +203,6 @@ namespace BlackHole.Internal
                     }
 
                     ExistingDb = true;
-                    DbSchema = string.Empty;
                     return true;
                 }
             }
@@ -220,19 +220,21 @@ namespace BlackHole.Internal
             }
         }
 
-        internal bool DoesDbExists()
+        internal bool DoesDbExists(int connectionIndex)
         {
             string CheckDb = "";
 
             try
             {
-                string serverConnection = _multiDatabaseSelector.GetServerConnection();
+                IDataProvider connection = _multiDatabaseSelector.GetExecutionProvider(connectionIndex);
 
-                bool isLite = _multiDatabaseSelector.IsLite();
+                string serverConnection = _multiDatabaseSelector.GetServerConnection(connectionIndex);
+
+                bool isLite = _multiDatabaseSelector.IsLite(connectionIndex);
 
                 if (isLite)
                 {
-                    string databaseLocation = _multiDatabaseSelector.GetServerConnection();
+                    string databaseLocation = _multiDatabaseSelector.GetServerConnection(connectionIndex);
 
                     if (!File.Exists(databaseLocation))
                     {
@@ -247,9 +249,9 @@ namespace BlackHole.Internal
                 {
                     bool dbExists = true;
 
-                    string databaseName = _multiDatabaseSelector.GetDatabaseName();
+                    string databaseName = _multiDatabaseSelector.GetDatabaseName(connectionIndex);
 
-                    switch (_multiDatabaseSelector.GetSqlTypeId())
+                    switch (_multiDatabaseSelector.GetSqlTypeId(connectionIndex))
                     {
                         case 0:
                             CheckDb = $"select count(*) from master.dbo.sysdatabases where name='{databaseName}'";
@@ -281,17 +283,20 @@ namespace BlackHole.Internal
             }
         }
 
-        internal bool CreateDatabaseSchema()
+        internal bool CreateDatabaseSchema(int connectionIndex)
         {
-            if(DbSchema != string.Empty)
+            string dbSchema = WormHoleData.DbDefaultSchemas[connectionIndex];
+
+            if (dbSchema != string.Empty && SchemaCreationCommand != string.Empty)
             {
-                IBHConnection connection = new BHConnection();
+                IBHConnection connection = new BHConnection(connectionIndex);
+
                 if (connection.JustExecute(SchemaCreationCommand))
                 {
                     if (CliCommand.CliExecution)
                     {
                         Console.WriteLine("_bhLog_");
-                        Console.WriteLine($"_bhLog_ Created Schema : {DbSchema}.");
+                        Console.WriteLine($"_bhLog_ Created Schema : {dbSchema}.");
                     }
 
                     if (CliCommand.ExportSql)
@@ -304,7 +309,7 @@ namespace BlackHole.Internal
                     if (CliCommand.CliExecution)
                     {
                         Console.WriteLine("_bhLog_");
-                        Console.WriteLine($"_bhLog_ Error : Failed to Created Schema {DbSchema}.");
+                        Console.WriteLine($"_bhLog_ Error : Failed to Created Schema {dbSchema}.");
                     }
                 }
             }
@@ -317,9 +322,9 @@ namespace BlackHole.Internal
             return false;
         }
 
-        internal bool IsCreatedFirstTime()
+        internal bool IsCreatedFirstTime(int connectionIndex)
         {
-            return DatabaseStatics.InitializeData;
+            return WormHoleData.InitializeData[connectionIndex];
         }
     }
 }
