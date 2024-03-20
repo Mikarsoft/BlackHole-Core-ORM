@@ -145,6 +145,7 @@ namespace BlackHole.Configuration
         {
             if(MultipleConnectionsConfig.Count == 0)
             {
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 
@@ -162,7 +163,7 @@ namespace BlackHole.Configuration
                 return false;
             }
 
-            List<string> nspNames = MultipleConnectionsConfig.Where(x => !x.IsUsingAssembly).Select(x => x.SelectedNamespace).ToList();
+            List<string> nspNames = MultipleConnectionsConfig.Where(x => !x.IsUsingAssembly).Select(x => x.SelectedNamespace.Replace(" ","")).ToList();
 
             if (nspNames.Any(x => string.IsNullOrWhiteSpace(x)))
             {
@@ -176,15 +177,94 @@ namespace BlackHole.Configuration
                 return false;
             }
 
-            List<string> connectionStrings = MultipleConnectionsConfig.Select(x => x.ConnectionString).ToList();
+            List<string> connectionStrings = MultipleConnectionsConfig.Select(x => x.ConnectionString.Replace(" ","")).ToList();
 
             if (connectionStrings.Any(x => string.IsNullOrWhiteSpace(x)))
+            {
+                ValidationErrors = "A Connection string is missing in the multiple databases configuration";
+                return false;
+            }
+
+            if (connectionStrings.Count != connectionStrings.Distinct().Count())
+            {
+                ValidationErrors = "Some connection strings are duplicate in the multiple databases configuration";
+                return false;
+            }
+
+            List<string> serviceNamespaces = new();
+            List<string?> serviceAssemblies = new();
+
+            bool hasApplied;
+
+            foreach(MultiConnectionSettings settings in MultipleConnectionsConfig)
+            {
+                hasApplied = false;
+
+                if (settings.additionalSettings.RegisterServices)
+                {
+                    if (settings.additionalSettings.SamePathServices)
+                    {
+                        if (settings.IsUsingAssembly)
+                        {
+                            serviceAssemblies.Add(settings.Ass?.FullName);
+                        }
+                        else
+                        {
+                            serviceNamespaces.Add(settings.SelectedNamespace);
+                        }
+
+                        hasApplied = true;
+                    }
+
+                    if (settings.additionalSettings.ServicesInOtherAssembly)
+                    {
+                        if(settings.additionalSettings.ServicesAssembly != null)
+                        {
+                            serviceAssemblies.Add(settings.additionalSettings.ServicesAssembly.FullName);
+                        }
+                        else
+                        {
+                            ValidationErrors = "Null Assembly reference found in the services configuration of a database, that was configured to use an Assembly";
+                            return false;
+                        }
+
+                        hasApplied = true;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(settings.additionalSettings.ServicesNamespace))
+                    {
+                        serviceNamespaces.Add(settings.additionalSettings.ServicesNamespace);
+                    }
+                    else
+                    {
+                        if (!hasApplied)
+                        {
+                            ValidationErrors = "Null Assembly reference found in the services configuration of a database, that was configured to use an Assembly";
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            if (serviceNamespaces.Any(x => string.IsNullOrWhiteSpace(x)))
+            {
+                ValidationErrors = "A Connection string is missing in the multiple databases configuration";
+                return false;
+            }
+
+            if (serviceNamespaces.Count != serviceNamespaces.Distinct().Count())
+            {
+                ValidationErrors = "Some connection strings are duplicate in the multiple databases configuration";
+                return false;
+            }
+
+            if (serviceAssemblies.Any(x => x == null))
             {
                 ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 
-            if (connectionStrings.Count != connectionStrings.Distinct().Count())
+            if (serviceAssemblies.Count != serviceAssemblies.Distinct().Count())
             {
                 ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
