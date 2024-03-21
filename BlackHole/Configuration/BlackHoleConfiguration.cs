@@ -28,7 +28,7 @@ namespace BlackHole.Configuration
             BlackHoleSettings blackHoleSettings = new();
             settings.Invoke(blackHoleSettings);
 
-            if (!blackHoleSettings.ValidateSettings())
+            if (!blackHoleSettings.ValidateSettings(assembly.FullName))
             {
                 throw new Exception("The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once." +
                     $"{blackHoleSettings.ValidationErrors}");
