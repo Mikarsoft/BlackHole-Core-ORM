@@ -28,12 +28,6 @@ namespace BlackHole.Configuration
             BlackHoleSettings blackHoleSettings = new();
             settings.Invoke(blackHoleSettings);
 
-            if (!blackHoleSettings.ValidateSettings(assembly.FullName))
-            {
-                throw new Exception("The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once." +
-                    $"{blackHoleSettings.ValidationErrors}");
-            }
-
             if (blackHoleSettings.DirectorySettings.DataPath == string.Empty)
             {
                 blackHoleSettings.DirectorySettings.DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),"BlackHoleData");
@@ -51,6 +45,23 @@ namespace BlackHole.Configuration
             SetMode(blackHoleSettings.IsInDevMode, blackHoleSettings.AutoUpdate);
 
             bool cliMode = BHCliCommandReader.ReadCliJson(assembly, blackHoleSettings.ConnectionConfig.ConnectionString);
+
+            if (!blackHoleSettings.ValidateSettings(assembly.FullName))
+            {
+                if (cliMode)
+                {
+                    Console.WriteLine("_bhLog_ \t The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once." +
+                        $"{blackHoleSettings.ValidationErrors}");
+
+                    Environment.Exit(510);
+                }
+                else
+                {
+                    throw new Exception("The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once." +
+                                    $"{blackHoleSettings.ValidationErrors}");
+                }
+            }
+
             if (cliMode)
             {
                 useLogsCleaner = false;

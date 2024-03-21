@@ -1,4 +1,5 @@
 ﻿using BlackHole.Enums;
+using System.Reflection;
 
 namespace BlackHole.Configuration
 {
@@ -189,7 +190,7 @@ namespace BlackHole.Configuration
 
             if (assemblyNames.Count != assemblyNames.Distinct().Count())
             {
-                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
+                ValidationErrors = "Duplicate Assembly reference found in a configuration of a database, that was configured to use an Assembly";
                 return false;
             }
 
@@ -219,7 +220,101 @@ namespace BlackHole.Configuration
                 return false;
             }
 
-            return false;
+            if (!HighAvailabilityConfig.secondDbConfig.BackUpIsSelected)
+            {
+                ValidationErrors = "There is no setup for the secondary database in the High Availability configuration";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(HighAvailabilityConfig.secondDbConfig.ConnectionString))
+            {
+                ValidationErrors = "The connection string of the secondary database is missing or is empty";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(HighAvailabilityConfig.secondDbConfig.DatabaseIdentity))
+            {
+                ValidationErrors = "The database identity of the secondary database is missing or is empty";
+                return false;
+            }
+
+            if(HighAvailabilityConfig.ConnectionString.Replace(" ","") == HighAvailabilityConfig.secondDbConfig.ConnectionString.Replace(" ",""))
+            {
+                ValidationErrors = "Both main and secondary databases have the exact same connection string";
+                return false;
+            }
+
+            if (HighAvailabilityConfig.DatabaseIdentity.Replace(" ", "") == HighAvailabilityConfig.secondDbConfig.DatabaseIdentity.Replace(" ", ""))
+            {
+                ValidationErrors = "Both main and secondary databases have the exact same identity";
+                return false;
+            }
+
+            List<string?> assemblyNames = HighAvailabilityConfig.secondDbConfig.additionalConfig.AssembliesToUse.Select(x => x.FullName).ToList();
+
+            if (assemblyNames.Any(x => x == null))
+            {
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
+                return false;
+            }
+
+            if (assemblyNames.Count != assemblyNames.Distinct().Count())
+            {
+                ValidationErrors = "Duplicate Assembly reference found in a configuration of a database, that was configured to use an Assembly";
+                return false;
+            }
+
+
+            if (HighAvailabilityConfig.secondDbConfig.additionalConfig.EntityNamespaces != null)
+            {
+                if (HighAvailabilityConfig.secondDbConfig.additionalConfig.EntityNamespaces.EntitiesNamespaces.Count !=
+                     HighAvailabilityConfig.secondDbConfig.additionalConfig.EntityNamespaces.EntitiesNamespaces.Distinct().Count())
+                {
+                    ValidationErrors = "Duplicate Entities namespace found in the configuration";
+                    return false;
+                }
+
+                if (HighAvailabilityConfig.secondDbConfig.additionalConfig.EntityNamespaces.AssemblyToUse != null)
+                {
+                    if (!string.IsNullOrEmpty(callingAssemblyName)
+                        && callingAssemblyName == HighAvailabilityConfig.secondDbConfig.additionalConfig.EntityNamespaces.AssemblyToUse?.ScanAssembly?.FullName)
+                    {
+                        ValidationErrors = "The additional Assembly for the Entities and Services registration is the same as the main project Assembly";
+                        return false;
+                    }
+                }
+            }
+
+            if (HighAvailabilityConfig.secondDbConfig.additionalConfig.ServicesNamespaces != null)
+            {
+                if (HighAvailabilityConfig.secondDbConfig.additionalConfig.ServicesNamespaces.ServicesNamespaces.Count !=
+                    HighAvailabilityConfig.secondDbConfig.additionalConfig.ServicesNamespaces.ServicesNamespaces.Distinct().Count())
+                {
+                    ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
+                    return false;
+                }
+
+                if (HighAvailabilityConfig.secondDbConfig.additionalConfig.ServicesNamespaces.AssemblyToUse != null)
+                {
+                    if (!string.IsNullOrEmpty(callingAssemblyName)
+                        && callingAssemblyName == HighAvailabilityConfig.secondDbConfig.additionalConfig.ServicesNamespaces.AssemblyToUse?.ScanAssembly?.FullName)
+                    {
+                        ValidationErrors = "The additional Assembly for the Entities and Services registration is the same as the calling Assembly";
+                        return false;
+                    }
+                }
+            }
+
+            if (HighAvailabilityConfig.secondDbConfig.additionalConfig.useCallingAssembly)
+            {
+                if (!string.IsNullOrEmpty(callingAssemblyName) && assemblyNames.Contains(callingAssemblyName))
+                {
+                    ValidationErrors = "Duplicate Assembly, as the main project Assembly, reference found in a configuration of a database";
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool ValidateMultiple(string? callingAssemblyName)

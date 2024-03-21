@@ -76,24 +76,40 @@ namespace BlackHole.Configuration
         internal bool SeparateSchemaByNamespace { get; set; } = false;
         internal bool SchemaSeparationSelected { get; set; } = false;
         internal int ConnectionTimeOut { get; set; } = 60;
+
+        internal bool IncludeCallingAssembly { get; set; } = true;
         internal MultiServicesSettings ServicesSettings { get; set; } = new();
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="assembliesToUse"></param>
-        public MultiServicesSettings SeparateByAssemblies(List<Assembly> assembliesToUse)
+        /// <param name="includeCallingAssembly"></param>
+        public void SeparateByAssemblies(Action<List<Assembly>> assembliesToUse, bool includeCallingAssembly)
         {
             SchemaSeparationSelected = true;
-            AssembliesToUse = assembliesToUse;
+            assembliesToUse.Invoke(AssembliesToUse);
             SeparateSchemaByAssembly = true;
-            return ServicesSettings;
+            IncludeCallingAssembly = includeCallingAssembly;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public MultiServicesSettings SeparateByNamespace()
+        /// <param name="assembliesToUse"></param>
+        /// <param name="includeCallingAssembly"></param>
+        public void SeparateByAssemblies(List<Assembly> assembliesToUse, bool includeCallingAssembly)
+        {
+            SchemaSeparationSelected = true;
+            AssembliesToUse = assembliesToUse;
+            SeparateSchemaByAssembly = true;
+            IncludeCallingAssembly = includeCallingAssembly;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public MultiServicesSettings SeparateByNamespaces()
         {
             SchemaSeparationSelected = true;
             SeparateSchemaByNamespace = true;
@@ -104,11 +120,12 @@ namespace BlackHole.Configuration
         /// 
         /// </summary>
         /// <param name="ass"></param>
-        public MultiServicesSettings SeparateByNamespaceInAssembly(Assembly ass)
+        public MultiServicesSettings SeparateByNamespaceInOtherAssembly(Assembly ass)
         {
             SchemaSeparationSelected = true;
             AssembliesToUse.Add(ass);
             SeparateSchemaByNamespaceInAssembly = true;
+            IncludeCallingAssembly = false;
             return ServicesSettings;
         }
 
