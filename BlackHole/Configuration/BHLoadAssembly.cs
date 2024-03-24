@@ -5,24 +5,32 @@ namespace BlackHole.Configuration
     /// <summary>
     /// 
     /// </summary>
-    public class BHAssemblyLoader
+    public class BHLoadAssembly
     {
-        internal List<Assembly> LoadedAssemblies = new();
+        internal Assembly? LoadedAssembly { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="path"></param>
-        public void LoadFirstFromPath(string path)
+        public void LoadFromPath(string path)
         {
 
         }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class BHLoadAssemblies
+    {
+        internal List<Assembly> LoadedAssemblies { get; set; } = new();
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="path"></param>
-        public void LoadAllFromPath(string path)
+        public void LoadFromPath(string path)
         {
 
         }

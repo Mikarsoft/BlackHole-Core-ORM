@@ -204,6 +204,12 @@ namespace BlackHole.Configuration
         public ConnectionAdditionalSettings SetConnectionTimeoutSeconds(int timoutInSeconds)
         {
             ConnectionTimeOut = timoutInSeconds;
+
+            if (timoutInSeconds < 30)
+            {
+                ConnectionTimeOut = 30;
+            }
+
             return this;
         }
 

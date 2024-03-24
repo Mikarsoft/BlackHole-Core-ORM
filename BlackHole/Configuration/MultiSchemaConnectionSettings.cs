@@ -11,7 +11,6 @@ namespace BlackHole.Configuration
         internal MultiSchemaSettings additionalSettings = new();
 
         internal string ConnectionString { get; set; } = string.Empty;
-        internal string TableSchema { get; set; } = string.Empty;
         internal BlackHoleSqlTypes ConnectionType { get; set; }
         internal bool UseQuotedDb { get; set; } = false;
 
@@ -109,6 +108,23 @@ namespace BlackHole.Configuration
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="assembliesToUse"></param>
+        /// <param name="includeCallingAssembly"></param>
+        public void SeparateByAssemblies(Action<BHLoadAssemblies> assembliesToUse, bool includeCallingAssembly)
+        {
+            SchemaSeparationSelected = true;
+            BHLoadAssemblies loader = new();
+
+            assembliesToUse.Invoke(loader);
+
+            AssembliesToUse = loader.LoadedAssemblies;
+            SeparateSchemaByAssembly = true;
+            IncludeCallingAssembly = includeCallingAssembly;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public MultiServicesSettings SeparateByNamespaces()
         {
             SchemaSeparationSelected = true;
@@ -130,6 +146,28 @@ namespace BlackHole.Configuration
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ass"></param>
+        public MultiServicesSettings SeparateByNamespaceInOtherAssembly(Action<BHLoadAssembly> ass)
+        {
+            SchemaSeparationSelected = true;
+
+            BHLoadAssembly loader = new();
+            ass.Invoke(loader);
+
+            if(loader.LoadedAssembly == null)
+            {
+                throw new Exception("Assembly was not found");
+            }
+
+            AssembliesToUse.Add(loader.LoadedAssembly);
+            SeparateSchemaByNamespaceInAssembly = true;
+            IncludeCallingAssembly = false;
+            return ServicesSettings;
+        }
+
+        /// <summary>
         /// Change the Timeout of each command.The Default timeout of BlackHole is 60s.
         /// <para>This Feature does not apply to SqLite database</para>
         /// </summary>
@@ -138,6 +176,12 @@ namespace BlackHole.Configuration
         public MultiSchemaSettings SetConnectionTimeoutSeconds(int timeoutInSeconds)
         {
             ConnectionTimeOut = timeoutInSeconds;
+
+            if (timeoutInSeconds < 30)
+            {
+                ConnectionTimeOut = 30;
+            }
+
             return this;
         }
     }

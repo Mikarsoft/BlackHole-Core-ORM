@@ -1,5 +1,4 @@
 ﻿using BlackHole.Enums;
-using System.Reflection;
 
 namespace BlackHole.Configuration
 {
@@ -465,7 +464,76 @@ namespace BlackHole.Configuration
 
         private bool ValidateMultiSchema(string? callingAssemblyName)
         {
-            return false;
+            if (string.IsNullOrWhiteSpace(MultiSchemaConfig.ConnectionString))
+            {
+                ValidationErrors = "The connection string of the main database is missing or is empty";
+                return false;
+            }
+
+            if (!MultiSchemaConfig.additionalSettings.SchemaSeparationSelected)
+            {
+                ValidationErrors = "No Schema separation selected for this configuration";
+                return false;
+            }
+
+            List<string?> assemblyNames = MultiSchemaConfig.additionalSettings.AssembliesToUse.Select(x => x.FullName).ToList();
+
+            if (MultiSchemaConfig.additionalSettings.IncludeCallingAssembly)
+            {
+                assemblyNames.Add(callingAssemblyName);
+            }
+
+            if (assemblyNames.Any(x => x == null))
+            {
+                ValidationErrors = "Null Assembly reference found in a configuration of a database, that was configured to use an Assembly";
+                return false;
+            }
+
+            if (assemblyNames.Count != assemblyNames.Distinct().Count())
+            {
+                ValidationErrors = "Duplicate Assembly reference found in a configuration of a database, that was configured to use an Assembly";
+                return false;
+            }
+
+            if (!MultiSchemaConfig.additionalSettings.ServicesSettings.UseDefaultProjectServices)
+            {
+                if(MultiSchemaConfig.additionalSettings.ServicesSettings.AssemblyToUse != null)
+                {
+                    string? servicesAss = MultiSchemaConfig.additionalSettings.ServicesSettings.AssemblyToUse.FullName;
+
+                    if (!string.IsNullOrEmpty(callingAssemblyName)
+                        && callingAssemblyName == servicesAss)
+                    {
+                        ValidationErrors = "The additional Assembly for the Services registration is the same as the calling Assembly";
+                        return false;
+                    }
+
+                    if(!string.IsNullOrEmpty(servicesAss) && assemblyNames.Contains(servicesAss))
+                    {
+                        ValidationErrors = "The additional Assembly for the Services registration is already declared in one of the Entities assemblies";
+                        return false;
+                    }
+                }
+
+                if(MultiSchemaConfig.additionalSettings.ServicesSettings.ServicesNamespaces.Count > 0)
+                {
+                    List<string> nspNames = MultiSchemaConfig.additionalSettings.ServicesSettings.ServicesNamespaces;
+
+                    if (nspNames.Any(x => string.IsNullOrWhiteSpace(x)))
+                    {
+                        ValidationErrors = "Null or Empty Namespace reference found in the multi schema database configuration";
+                        return false;
+                    }
+
+                    if (nspNames.Count != nspNames.Distinct().Count())
+                    {
+                        ValidationErrors = "Duplicate Namespace reference found in the multi schema database configuration";
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }
