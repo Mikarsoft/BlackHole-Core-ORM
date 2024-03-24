@@ -3,7 +3,7 @@
     /// <summary>
     /// 
     /// </summary>
-    public class BHLocalizer
+    public class BHViewsMapping
     {
 
     }
