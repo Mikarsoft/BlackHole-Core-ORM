@@ -11,6 +11,8 @@ namespace BlackHole.Configuration
     /// </summary>
     public static class BlackHoleConfiguration
     {
+
+        public static void Builder(this IHostApplicationBuilder )
         /// <summary>
         /// <para>Generates a Database , based on the inserted connection string, to an
         /// Existing Database Server.</para><para>The connection string Must lead to the server and the 
