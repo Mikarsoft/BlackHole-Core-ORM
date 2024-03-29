@@ -1,6 +1,7 @@
 ﻿using BlackHole.Entities;
 using BlackHole.Services;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace BlackHole.Internal
 {
@@ -46,6 +47,12 @@ namespace BlackHole.Internal
                 && t.BaseType != null && t.BaseType.GetGenericTypeDefinition() == typeof(BHOpenEntity<>)).ToList());
             }
             return types;
+        }
+
+        internal List<Type> GetAllServices(Assembly ass)
+        {
+            return ass.GetTypes().Where(t => t.BaseType == typeof(BlackHoleScoped) 
+                || t.BaseType == typeof(BlackHoleSingleton) || t.BaseType == typeof(BlackHoleTransient)).ToList();
         }
 
         internal List<Type> GetBHServicesInNamespaces(List<string> nameSpaces, Assembly ass)

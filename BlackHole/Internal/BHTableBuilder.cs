@@ -40,16 +40,7 @@ namespace BlackHole.Internal
             _multiDatabaseSelector = new BHDatabaseSelector();
             IsForcedUpdate = _multiDatabaseSelector.CheckIfForcedUpdate();
             SqlWriter = new BHSqlExportWriter("2_TablesSql","SqlFiles","sql");
-        }
 
-        internal void SwitchConnection(int connectionIndex)
-        {
-            ConnectionIndex = connectionIndex;
-            CreateBuilderSettings();
-        }
-
-        internal void CreateBuilderSettings()
-        {
             _connection = _multiDatabaseSelector.GetExecutionProvider(ConnectionIndex);
             dbInfoReader = new BHDatabaseInfoReader(_connection, _multiDatabaseSelector);
 
@@ -68,6 +59,37 @@ namespace BlackHole.Internal
             IsMyShit = _multiDatabaseSelector.SkipQuotesOnDb(ConnectionIndex);
             IsLite = _multiDatabaseSelector.IsLite(ConnectionIndex);
             IsOpenPKConstraint = _multiDatabaseSelector.GetOpenPKConstraint(ConnectionIndex);
+        }
+
+        internal void SwitchConnection(int connectionIndex)
+        {
+            ConnectionIndex = connectionIndex;
+            CreateBuilderSettings();
+        }
+
+        internal void CreateBuilderSettings()
+        {
+            if(ConnectionIndex > 0)
+            {
+                _connection = _multiDatabaseSelector.GetExecutionProvider(ConnectionIndex);
+                dbInfoReader = new BHDatabaseInfoReader(_connection, _multiDatabaseSelector);
+
+                if (IsForcedUpdate)
+                {
+                    DbConstraints = dbInfoReader.GetDatabaseParsingInfo();
+                }
+
+                IsSqlServer = BHStaticSettings.DatabaseType == BlackHoleSqlTypes.SqlServer;
+
+                AlterColumn = _multiDatabaseSelector.GetColumnModifyCommand(ConnectionIndex);
+                IsOracleProduct = _multiDatabaseSelector.IsUsingOracleProduct(ConnectionIndex);
+                SqlDatatypes = _multiDatabaseSelector.SqlDatatypesTranslation(ConnectionIndex);
+                TableSchemaCheck = _multiDatabaseSelector.TableSchemaCheck(ConnectionIndex);
+                TableSchema = _multiDatabaseSelector.GetDatabaseSchema(ConnectionIndex);
+                IsMyShit = _multiDatabaseSelector.SkipQuotesOnDb(ConnectionIndex);
+                IsLite = _multiDatabaseSelector.IsLite(ConnectionIndex);
+                IsOpenPKConstraint = _multiDatabaseSelector.GetOpenPKConstraint(ConnectionIndex);
+            }
         }
 
         internal void BuildMultipleTables(List<Type> TableTypes, List<Type> OpenTableTypes)

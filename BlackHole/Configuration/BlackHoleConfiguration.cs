@@ -12,7 +12,6 @@ namespace BlackHole.Configuration
     public static class BlackHoleConfiguration
     {
 
-        public static void Builder(this IHostApplicationBuilder )
         /// <summary>
         /// <para>Generates a Database , based on the inserted connection string, to an
         /// Existing Database Server.</para><para>The connection string Must lead to the server and the 
@@ -126,7 +125,7 @@ namespace BlackHole.Configuration
                     services.BuildMultiSchemaDatabases(settings.MultiSchemaConfig, cliMode);
                     break;
                 case BHMode.Multiple:
-                    services.BuildMultipleDatabases(settings.MultipleConnectionsConfig, cliMode);
+                    services.BuildMultipleDatabases(settings.MultipleConnectionsConfig, cliMode, callingAssembly);
                     break;
                 case BHMode.HighAvailability:
                     services.BuildHighAvailabilityDatabase(settings.HighAvailabilityConfig, cliMode);
@@ -156,7 +155,7 @@ namespace BlackHole.Configuration
             services.BuildDatabaseAndServices(singleSettings.additionalSettings, callingAssembly, 0);
         }
 
-        private static void BuildMultipleDatabases(this IServiceCollection services, List<MultiConnectionSettings> multiSettings, bool cliMode)
+        private static void BuildMultipleDatabases(this IServiceCollection services, List<MultiConnectionSettings> multiSettings, bool cliMode, Assembly callingAssembly)
         {
             DatabaseInitializer initializer = new();
             BHTableBuilder tableBuilder = new();
@@ -168,6 +167,12 @@ namespace BlackHole.Configuration
             initializer.InitializeProviders(multiSettings.Count);
 
             services.AddBaseServices();
+
+            List<Type> entityTypes = new();
+            List<Type> openEntityTypes = new();
+            List<string> nSpaces = new();
+            List<string> serviceNSpaces = new();
+            List<Type> serviceTypes = new();
 
             for (int i = 0; i < multiSettings.Count; i++)
             {
@@ -190,7 +195,52 @@ namespace BlackHole.Configuration
                         $"Connect as Sysdba and execute the command => 'grant select on v_$instance to 'Username';'");
                 }
 
-                databaseBuilder.CreateDatabaseSchema(i);
+                if (!databaseBuilder.CreateDatabaseSchema(i))
+                {
+                    throw new Exception($"The schema of the database {multiSettings[i].DatabaseIdentity} could not be created");
+                }
+
+                if (multiSettings[i].IsUsingAssembly && multiSettings[i].Ass is Assembly asbl)
+                {
+                    entityTypes.AddRange(namespaceSelector.GetAllBHEntities(asbl));
+                    openEntityTypes.AddRange(namespaceSelector.GetOpenAllBHEntities(asbl));
+
+                    if (multiSettings[i].additionalSettings.SamePathServices)
+                    {
+                        serviceTypes.AddRange(namespaceSelector.GetAllServices(asbl));
+                    }
+
+                    if (multiSettings[i].additionalSettings.ServicesInOtherNamespace)
+                    {
+                        serviceNSpaces.Add(multiSettings[i].additionalSettings.ServicesNamespace);
+                        serviceTypes.AddRange(namespaceSelector.GetBHServicesInNamespaces(serviceNSpaces, asbl));
+                    }
+                }
+                else
+                {
+                    nSpaces.Add(multiSettings[i].SelectedNamespace);
+                    entityTypes.AddRange(namespaceSelector.GetBHEntitiesInNamespaces(nSpaces, callingAssembly));
+                    openEntityTypes.AddRange(namespaceSelector.GetOpenBHEntitiesInNamespaces(nSpaces, callingAssembly));
+
+                    if (multiSettings[i].additionalSettings.SamePathServices)
+                    {
+                        serviceTypes.AddRange(namespaceSelector.GetBHServicesInNamespaces(nSpaces, callingAssembly));
+                    }
+
+                    if (multiSettings[i].additionalSettings.ServicesInOtherNamespace)
+                    {
+                        serviceNSpaces.Add(multiSettings[i].additionalSettings.ServicesNamespace);
+                        serviceTypes.AddRange(namespaceSelector.GetBHServicesInNamespaces(serviceNSpaces, callingAssembly));
+                    }
+                }
+
+                if (multiSettings[i].additionalSettings.ServicesInOtherAssembly && multiSettings[i].additionalSettings.ServicesAssembly is Assembly srvAsbl)
+                {
+                    serviceTypes.AddRange(namespaceSelector.GetAllServices(srvAsbl));
+                }
+
+                tableBuilder.SwitchConnection(i);
+                tableBuilder.BuildMultipleTables(entityTypes, openEntityTypes);
             }
         }
 

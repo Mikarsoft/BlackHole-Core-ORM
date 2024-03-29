@@ -664,9 +664,8 @@ namespace BlackHole.Configuration
     {
         internal int ConnectionTimeOut { get; set; } = 60;
         internal bool SamePathServices { get; set; } = false;
-        internal bool RegisterServices { get; set; } = false;
         internal bool ServicesInOtherAssembly { get; set; } = false;
-        internal bool SkipDefaultProjectServices { get; set; } = false;
+        internal bool ServicesInOtherNamespace { get; set; } = false;
         internal string ServicesNamespace { get; set; } = string.Empty;
         internal Assembly? ServicesAssembly { get; set; }
 
@@ -691,9 +690,7 @@ namespace BlackHole.Configuration
         /// </summary>
         public void ServicesIncluded()
         {
-            RegisterServices = true;
             SamePathServices = true;
-            SkipDefaultProjectServices = true;
         }
 
 
@@ -703,9 +700,8 @@ namespace BlackHole.Configuration
         /// <param name="fromNamespace"></param>
         public void AddServicesFromNamespace(string fromNamespace)
         {
-            RegisterServices = true;
             ServicesNamespace = fromNamespace;
-            SkipDefaultProjectServices = true;
+            ServicesInOtherNamespace = true;
         }
 
         /// <summary>
@@ -714,10 +710,8 @@ namespace BlackHole.Configuration
         /// <param name="assembly"></param>
         public void AddServicesFromOtherAssembly(Assembly assembly)
         {
-            RegisterServices = true;
-            ServicesInOtherAssembly = true;
             ServicesAssembly = assembly;
-            SkipDefaultProjectServices = true;
+            ServicesInOtherAssembly = true;
         }
     }
 }

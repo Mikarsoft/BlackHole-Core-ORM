@@ -287,12 +287,16 @@ namespace BlackHole.Internal
         {
             string dbSchema = WormHoleData.DbDefaultSchemas[connectionIndex];
 
+            bool result = false;
+
             if (dbSchema != string.Empty && SchemaCreationCommand != string.Empty)
             {
                 IBHConnection connection = new BHConnection(connectionIndex);
 
                 if (connection.JustExecute(SchemaCreationCommand))
                 {
+                    result = true;
+
                     if (CliCommand.CliExecution)
                     {
                         Console.WriteLine("_bhLog_");
@@ -306,6 +310,8 @@ namespace BlackHole.Internal
                 }
                 else
                 {
+                    result = false;
+
                     if (CliCommand.CliExecution)
                     {
                         Console.WriteLine("_bhLog_");
@@ -313,13 +319,17 @@ namespace BlackHole.Internal
                     }
                 }
             }
+            else
+            {
+                result = true;
+            }
 
             if (CliCommand.ExportSql && !ExistingDb)
             {
                 SqlWriter.CreateSqlFile();
             }
 
-            return false;
+            return result;
         }
 
         internal bool IsCreatedFirstTime(int connectionIndex)
