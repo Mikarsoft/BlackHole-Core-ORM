@@ -51,15 +51,15 @@ namespace BlackHole.Configuration
             {
                 if (cliMode)
                 {
-                    Console.WriteLine("_bhLog_ \t The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once." +
-                        $"{blackHoleSettings.ValidationErrors}");
+                    Console.WriteLine("_bhLog_ \t The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once. \n" +
+                        $"Errors: {blackHoleSettings.ValidationErrors}");
 
                     Environment.Exit(510);
                 }
                 else
                 {
                     throw new Exception("The settings are incorrect. Please make sure that you are using Each Assembly and Each Namespace, only once." +
-                                    $"{blackHoleSettings.ValidationErrors}");
+                                    $"Errors: {blackHoleSettings.ValidationErrors}");
                 }
             }
 
@@ -67,24 +67,10 @@ namespace BlackHole.Configuration
             {
                 useLogsCleaner = false;
                 blackHoleSettings.DirectorySettings.UseLogger = true;
-
-                //if(blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut < 300)
-                //{
-                //    blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut = 300;
-                //}
             }
 
-            //if (blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut < 60)
-            //{
-            //    blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut = 60;
-            //}
-
-            //ScanConnectionString(blackHoleSettings.ConnectionConfig.ConnectionType, blackHoleSettings.ConnectionConfig.ConnectionString,
-            //    blackHoleSettings.DirectorySettings.DataPath, blackHoleSettings.ConnectionConfig.TableSchema,
-            //    blackHoleSettings.ConnectionConfig.additionalSettings.ConnectionTimeOut,
-            //    blackHoleSettings.ConnectionConfig.UseQuotedDb);
-
             DataPathAndLogs(blackHoleSettings.DirectorySettings.DataPath, useLogsCleaner, daysToClean, blackHoleSettings.DirectorySettings.UseLogger);
+
             CliCommandSettings cliSettings = BHCliCommandReader.GetCliCommandSettings();
 
             int exitCode = 0;
@@ -125,7 +111,7 @@ namespace BlackHole.Configuration
                     services.BuildMultiSchemaDatabases(settings.MultiSchemaConfig, cliMode);
                     break;
                 case BHMode.Multiple:
-                    services.BuildMultipleDatabases(settings.MultipleConnectionsConfig, cliMode, callingAssembly);
+                    services.BuildMultipleDatabases(settings.MultipleConnectionsConfig, callingAssembly, cliMode);
                     break;
                 case BHMode.HighAvailability:
                     services.BuildHighAvailabilityDatabase(settings.HighAvailabilityConfig, cliMode);
@@ -136,6 +122,7 @@ namespace BlackHole.Configuration
         private static void BuildSingleDatabase(this IServiceCollection services , ConnectionSettings singleSettings, Assembly callingAssembly, bool cliMode)
         {
             DatabaseInitializer initializer = new();
+            BHDatabaseBuilder databaseBuilder = new();
 
             initializer.SetBHMode(BHMode.Single);
             initializer.InitializeProviders(1);
@@ -148,14 +135,28 @@ namespace BlackHole.Configuration
                 }
             }
 
-            ScanConnectionString(singleSettings.ConnectionType, singleSettings.ConnectionString, singleSettings.TableSchema,
-                singleSettings.additionalSettings.ConnectionTimeOut, singleSettings.UseQuotedDb, 0);
+            initializer.AssignWormholeSettings(singleSettings.ConnectionString, singleSettings.ConnectionType,
+                singleSettings.TableSchema, "mainDb", singleSettings.UseQuotedDb,
+                singleSettings.additionalSettings.ConnectionTimeOut, 0);
 
             services.AddBaseServices();
-            services.BuildDatabaseAndServices(singleSettings.additionalSettings, callingAssembly, 0);
+
+            if (!databaseBuilder.CreateDatabase(0))
+            {
+                throw new Exception("The Host of the database is inaccessible..." +
+                    " If you are using Oracle database,make sure to grand permission to your User on the v$instance table. " +
+                    "Connect as Sysdba and execute the command => 'grant select on v_$instance to 'Username';'");
+            }
+
+            if (!databaseBuilder.CreateDatabaseSchema(0))
+            {
+                throw new Exception("The schema of the database could not be created");
+            }
+
+            services.AddServicesAndTables(singleSettings.additionalSettings, callingAssembly, databaseBuilder);
         }
 
-        private static void BuildMultipleDatabases(this IServiceCollection services, List<MultiConnectionSettings> multiSettings, bool cliMode, Assembly callingAssembly)
+        private static void BuildMultipleDatabases(this IServiceCollection services, List<MultiConnectionSettings> multiSettings, Assembly callingAssembly, bool cliMode)
         {
             DatabaseInitializer initializer = new();
             BHTableBuilder tableBuilder = new();
@@ -191,8 +192,8 @@ namespace BlackHole.Configuration
                 if (!databaseBuilder.CreateDatabase(i))
                 {
                     throw new Exception($"The Host of the database {multiSettings[i].DatabaseIdentity} is inaccessible..." +
-                        $" If you are using Oracle database,make sure to grand permission to your User on the v$instance table. " +
-                        $"Connect as Sysdba and execute the command => 'grant select on v_$instance to 'Username';'");
+                        " If you are using Oracle database,make sure to grand permission to your User on the v$instance table. " +
+                        "Connect as Sysdba and execute the command => 'grant select on v_$instance to 'Username';'");
                 }
 
                 if (!databaseBuilder.CreateDatabaseSchema(i))
@@ -239,14 +240,26 @@ namespace BlackHole.Configuration
                     serviceTypes.AddRange(namespaceSelector.GetAllServices(srvAsbl));
                 }
 
+                services.RegisterBHServicesByList(serviceTypes);
                 tableBuilder.SwitchConnection(i);
                 tableBuilder.BuildMultipleTables(entityTypes, openEntityTypes);
+                tableBuilder.CleanupConstraints();
+
+                entityTypes.Clear();
+                openEntityTypes.Clear();
+                serviceTypes.Clear();
+                nSpaces.Clear();
+                serviceNSpaces.Clear();
             }
         }
 
         private static void BuildMultiSchemaDatabases(this IServiceCollection services, MultiSchemaConnectionSettings multiSchemaSettings, bool cliMode)
         {
             DatabaseInitializer initializer = new();
+            BHTableBuilder tableBuilder = new();
+            BHNamespaceSelector namespaceSelector = new();
+            BHInitialDataBuilder dataBuilder = new();
+            BHDatabaseBuilder databaseBuilder = new();
 
             initializer.SetBHMode(BHMode.MultiSchema);
             initializer.InitializeProviders(1);
@@ -340,10 +353,10 @@ namespace BlackHole.Configuration
                     services.RegisterBHServices(callingAssembly);
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly),namespaceSelector.GetOpenAllBHEntities(callingAssembly));
 
-                    if (databaseBuilder.IsCreatedFirstTime())
-                    {
-                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
-                    }
+                    //if (databaseBuilder.IsCreatedFirstTime())
+                    //{
+                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
+                    //}
                 }
 
                 foreach(Assembly assembly in additionalSettings.AssembliesToUse)
@@ -351,10 +364,10 @@ namespace BlackHole.Configuration
                     services.RegisterBHServices(assembly);
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly), namespaceSelector.GetOpenAllBHEntities(assembly));
 
-                    if (databaseBuilder.IsCreatedFirstTime())
-                    {
-                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
-                    }
+                    //if (databaseBuilder.IsCreatedFirstTime())
+                    //{
+                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
+                    //}
                 }
             }
             else
@@ -407,10 +420,10 @@ namespace BlackHole.Configuration
                             namespaceSelector.GetOpenAllBHEntities(assembliesToUse.ScanAssembly));
                     }
 
-                    if (databaseBuilder.IsCreatedFirstTime())
-                    {
-                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembliesToUse.ScanAssembly));
-                    }
+                    //if (databaseBuilder.IsCreatedFirstTime())
+                    //{
+                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembliesToUse.ScanAssembly));
+                    //}
                 }
                 else
                 {
@@ -435,12 +448,13 @@ namespace BlackHole.Configuration
                             namespaceSelector.GetOpenAllBHEntities(callingAssembly));
                     }
 
-                    if (databaseBuilder.IsCreatedFirstTime())
-                    {
-                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
-                    }
+                    //if (databaseBuilder.IsCreatedFirstTime())
+                    //{
+                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
+                    //}
                 }
             }
+
             tableBuilder.CleanupConstraints();
         }
 
@@ -457,20 +471,20 @@ namespace BlackHole.Configuration
                 {
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly), namespaceSelector.GetOpenAllBHEntities(callingAssembly));
 
-                    if (databaseBuilder.IsCreatedFirstTime())
-                    {
-                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
-                    }
+                    //if (databaseBuilder.IsCreatedFirstTime())
+                    //{
+                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
+                    //}
                 }
 
                 foreach (Assembly assembly in additionalSettings.AssembliesToUse)
                 {
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly), namespaceSelector.GetOpenAllBHEntities(assembly));
 
-                    if (databaseBuilder.IsCreatedFirstTime())
-                    {
-                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
-                    }
+                    //if (databaseBuilder.IsCreatedFirstTime())
+                    //{
+                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
+                    //}
                 }
             }
             else
@@ -509,10 +523,10 @@ namespace BlackHole.Configuration
                             namespaceSelector.GetOpenAllBHEntities(assembliesToUse.ScanAssembly));
                     }
 
-                    if (databaseBuilder.IsCreatedFirstTime())
-                    {
-                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembliesToUse.ScanAssembly));
-                    }
+                    //if (databaseBuilder.IsCreatedFirstTime())
+                    //{
+                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembliesToUse.ScanAssembly));
+                    //}
                 }
                 else
                 {
@@ -527,10 +541,10 @@ namespace BlackHole.Configuration
                             namespaceSelector.GetOpenAllBHEntities(callingAssembly));
                     }
 
-                    if (databaseBuilder.IsCreatedFirstTime())
-                    {
-                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
-                    }
+                    //if (databaseBuilder.IsCreatedFirstTime())
+                    //{
+                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
+                    //}
                 }
             }
             tableBuilder.UpdateWithoutForceWarning();
