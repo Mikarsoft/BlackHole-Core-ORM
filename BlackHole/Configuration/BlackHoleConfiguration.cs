@@ -78,7 +78,6 @@ namespace BlackHole.Configuration
             {
                 case CliCommandTypes.Update:
                     services.BuildDatabase(blackHoleSettings, assembly, true);
-                    //exitCode = BuildOrUpdateDatabaseCliProcess(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
                     break;
                 case CliCommandTypes.Drop:
                     exitCode = DropDatabaseCliProcess();
@@ -88,7 +87,6 @@ namespace BlackHole.Configuration
                     break;
                 case CliCommandTypes.Default:
                     services.BuildDatabase(blackHoleSettings, assembly, false);
-                    //services.BuildDatabaseAndServices(blackHoleSettings.ConnectionConfig.additionalSettings, assembly);
                     break;
             }
 
@@ -322,24 +320,6 @@ namespace BlackHole.Configuration
             services.AddScoped(typeof(IBHViews), typeof(BHViews));
         }
 
-        private static void BuildDatabaseAndServices(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings,
-            Assembly callingAssembly, int connectionIndex)
-        {
-            BHDatabaseBuilder databaseBuilder = new();
-
-            bool dbExists = databaseBuilder.CreateDatabase(0);
-            databaseBuilder.CreateDatabaseSchema(connectionIndex);
-
-            if (dbExists)
-            {
-                services.AddServicesAndTables(additionalSettings, callingAssembly, databaseBuilder);
-            }
-            else
-            {
-                throw new Exception("The Host of the database is inaccessible... If you are using Oracle database,make sure to grand permission to your User on the v$instance table. Connect as Sysdba and execute the command => 'grant select on v_$instance to {Username};'");
-            }
-        }
-
         private static void AddServicesAndTables(this IServiceCollection services, ConnectionAdditionalSettings additionalSettings, Assembly callingAssembly, BHDatabaseBuilder databaseBuilder)
         {
             BHTableBuilder tableBuilder = new();
@@ -353,10 +333,10 @@ namespace BlackHole.Configuration
                     services.RegisterBHServices(callingAssembly);
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(callingAssembly),namespaceSelector.GetOpenAllBHEntities(callingAssembly));
 
-                    //if (databaseBuilder.IsCreatedFirstTime())
-                    //{
-                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
-                    //}
+                    if (databaseBuilder.IsCreatedFirstTime(0))
+                    {
+                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(callingAssembly));
+                    }
                 }
 
                 foreach(Assembly assembly in additionalSettings.AssembliesToUse)
@@ -364,10 +344,10 @@ namespace BlackHole.Configuration
                     services.RegisterBHServices(assembly);
                     tableBuilder.BuildMultipleTables(namespaceSelector.GetAllBHEntities(assembly), namespaceSelector.GetOpenAllBHEntities(assembly));
 
-                    //if (databaseBuilder.IsCreatedFirstTime())
-                    //{
-                    //    dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
-                    //}
+                    if (databaseBuilder.IsCreatedFirstTime(0))
+                    {
+                        dataBuilder.InsertDefaultData(namespaceSelector.GetInitialData(assembly));
+                    }
                 }
             }
             else
