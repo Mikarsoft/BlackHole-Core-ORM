@@ -1,4 +1,5 @@
-﻿using BlackHole.Core;
+﻿using BlackHole.Configuration.ConfigTypes;
+using BlackHole.Core;
 using BlackHole.Enums;
 using BlackHole.Internal;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,10 @@ namespace BlackHole.Configuration
     /// </summary>
     public static class BlackHoleConfiguration
     {
+        public static IServiceCollection SupaNova(this IServiceCollection sv, Action<BlackHoleBaseConfig> config)
+        {
+            return sv;
+        }
 
         /// <summary>
         /// <para>Generates a Database , based on the inserted connection string, to an
