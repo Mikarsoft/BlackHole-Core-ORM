@@ -9,6 +9,12 @@ namespace BlackHole.Configuration.ConfigTypes
     {
         internal BHDatabaseConfig? _databaseConfig {  get; set; }
 
+        internal string DataPath { get; set; }
+
+        internal bool UseLogger { get; set; }
+
+        internal bool UseLogsCleaner { get; set; }
+
         /// <summary>
         /// 
         /// </summary>
@@ -23,7 +29,6 @@ namespace BlackHole.Configuration.ConfigTypes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="quotedDb"></param>
         /// <param name="connectionTimeout"></param>
         /// <returns></returns>
         public SqlServerConfig UseQuotedSqlServer(int connectionTimeout = 60)
@@ -68,7 +73,6 @@ namespace BlackHole.Configuration.ConfigTypes
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="quotedDb"></param>
         /// <param name="connectionTimeout"></param>
         /// <returns></returns>
         public SqLiteConfig UseQuotedSqLite(int connectionTimeout = 60)

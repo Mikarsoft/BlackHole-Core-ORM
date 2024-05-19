@@ -5,15 +5,18 @@
     /// </summary>
     public class HighAvailabilityMsBHConfig : BHModeConfig
     {
+        internal UtilizationConfig? _bhItems {  get; set; }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="MasterDbConnectionString"></param>
         /// <param name="StandbyDbConnectionString"></param>
         /// <param name="BackUpDbConnectionString"></param>
-        public void AddDatabases(string MasterDbConnectionString, string StandbyDbConnectionString, string? BackUpDbConnectionString = null)
+        public UtilizationConfig AddDatabases(string MasterDbConnectionString, string StandbyDbConnectionString, string? BackUpDbConnectionString = null)
         {
-
+            _bhItems = new UtilizationConfig();
+            return _bhItems;
         }
 
 
@@ -24,9 +27,10 @@
         /// <param name="MasterDbConnectionString"></param>
         /// <param name="StandbyDbConnectionString"></param>
         /// <param name="BackUpDbConnectionString"></param>
-        public void AddDatabases(Action<MultiSchemaBHConfig> multiSchemaConfig, string MasterDbConnectionString, string StandbyDbConnectionString, string? BackUpDbConnectionString = null)
+        public UtilizationConfig AddDatabases(Action<MultiSchemaBHConfig> multiSchemaConfig, string MasterDbConnectionString, string StandbyDbConnectionString, string? BackUpDbConnectionString = null)
         {
-
+            _bhItems = new UtilizationConfig();
+            return _bhItems;
         }
     }
 }

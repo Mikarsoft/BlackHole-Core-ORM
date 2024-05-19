@@ -12,7 +12,7 @@ namespace BlackHole.Configuration
     /// </summary>
     public static class BlackHoleConfiguration
     {
-        public static IServiceCollection SupaNova(this IServiceCollection sv, Action<BlackHoleBaseConfig> config)
+        public static IServiceCollection SupaNova(this IServiceCollection sv, Action<BlackHoleRootConfig> config)
         {
             return sv;
         }
