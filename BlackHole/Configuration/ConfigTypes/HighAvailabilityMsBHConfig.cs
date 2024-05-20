@@ -1,36 +1,41 @@
-﻿namespace BlackHole.Configuration.ConfigTypes
+﻿using BlackHole.Enums;
+
+namespace BlackHole.Configuration.ConfigTypes
 {
     /// <summary>
     /// 
     /// </summary>
     public class HighAvailabilityMsBHConfig : BHModeConfig
     {
-        internal UtilizationConfig? _bhItems {  get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="MasterDbConnectionString"></param>
-        /// <param name="StandbyDbConnectionString"></param>
-        /// <param name="BackUpDbConnectionString"></param>
-        public UtilizationConfig AddDatabases(string MasterDbConnectionString, string StandbyDbConnectionString, string? BackUpDbConnectionString = null)
+        internal HighAvailabilityMsBHConfig() : base(BHMode.HighAvailability)
         {
-            _bhItems = new UtilizationConfig();
-            return _bhItems;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="setup"></param>
+        public void AddDatabases(Action<HighAvailabilitySetup> setup)
+        {
+            HighAvailabilitySetup haSetup = new();
+
+            setup.Invoke(haSetup);
+
+            DatabaseSetupConfigs.Add(haSetup);
+        }
 
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="setup"></param>
         /// <param name="multiSchemaConfig"></param>
-        /// <param name="MasterDbConnectionString"></param>
-        /// <param name="StandbyDbConnectionString"></param>
-        /// <param name="BackUpDbConnectionString"></param>
-        public UtilizationConfig AddDatabases(Action<MultiSchemaBHConfig> multiSchemaConfig, string MasterDbConnectionString, string StandbyDbConnectionString, string? BackUpDbConnectionString = null)
+        public void AddDatabases(Action<HighAvailabilitySetup> setup, Action<MultiSchemaBHConfig> multiSchemaConfig)
         {
-            _bhItems = new UtilizationConfig();
-            return _bhItems;
+            HighAvailabilitySetup haSetup = new();
+
+            setup.Invoke(haSetup);
+
+            DatabaseSetupConfigs.Add(haSetup);
         }
     }
 }

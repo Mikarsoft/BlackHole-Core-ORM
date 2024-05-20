@@ -1,4 +1,6 @@
 ﻿
+using BlackHole.Enums;
+
 namespace BlackHole.Configuration.ConfigTypes
 {
     /// <summary>
@@ -6,16 +8,21 @@ namespace BlackHole.Configuration.ConfigTypes
     /// </summary>
     public class HighAvailabilityBHConfig : BHModeConfig
     {
+        internal HighAvailabilityBHConfig() : base(BHMode.HighAvailability)
+        {
+        }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="MasterDbConnectionString"></param>
-        /// <param name="StandbyDbConnectionString"></param>
-        /// <param name="BackUpDbConnectionString"></param>
-        public void AddDatabases(string MasterDbConnectionString, string StandbyDbConnectionString, string? BackUpDbConnectionString = null)
+        /// <param name="setup"></param>
+        public void AddDatabases(Action<HighAvailabilitySetup> setup)
         {
+            HighAvailabilitySetup haSetup = new();
 
+            setup.Invoke(haSetup);
+
+            DatabaseSetupConfigs.Add(haSetup);
         }
     }
 }

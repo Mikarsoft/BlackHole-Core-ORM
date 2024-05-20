@@ -1,4 +1,6 @@
 ﻿
+using BlackHole.Enums;
+
 namespace BlackHole.Configuration.ConfigTypes
 {
     /// <summary>
@@ -6,9 +8,15 @@ namespace BlackHole.Configuration.ConfigTypes
     /// </summary>
     public class BHModeConfig
     {
-        internal bool UseAutomaticUpdate { get; set; }
-        internal bool UseDevMode { get; set; }
+        internal BHModeConfig(BHMode mode)
+        {
+            _bhMode = mode;
+        }
 
-      
+        internal BHMode _bhMode {  get; set; }
+
+        internal List<DatabaseSetupConfig> DatabaseSetupConfigs { get; set; } = new();
+
+        internal MultiSchemaBHConfig? MultiSchemaConfiguration { get; set; }
     }
 }

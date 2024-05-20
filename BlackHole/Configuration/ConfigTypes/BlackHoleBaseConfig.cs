@@ -7,6 +7,14 @@ namespace BlackHole.Configuration.ConfigTypes
     /// </summary>
     public class BlackHoleBaseConfig
     {
+        internal BlackHoleBaseConfig()
+        {
+            DataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "BlackHoleData");
+            UseLogger = true;
+            UseLogsCleaner = true;
+            CleanUpDays = 60;
+        }
+
         internal BHDatabaseConfig? _databaseConfig {  get; set; }
 
         internal string DataPath { get; set; }
@@ -14,6 +22,8 @@ namespace BlackHole.Configuration.ConfigTypes
         internal bool UseLogger { get; set; }
 
         internal bool UseLogsCleaner { get; set; }
+
+        internal int CleanUpDays { get; set; }
 
         /// <summary>
         /// 

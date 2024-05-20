@@ -28,11 +28,13 @@
         /// </summary>
         /// <param name="useLogger"></param>
         /// <param name="useLogsCleaner"></param>
+        /// <param name="cleanUpDays"></param>
         /// <returns></returns>
-        public BHRootSettings UseLogger(bool useLogger, bool useLogsCleaner = true)
+        public BHRootSettings UseLogger(bool useLogger, bool useLogsCleaner = true, int cleanUpDays = 60)
         {
             _configuration.UseLogger = useLogger;
             _configuration.UseLogsCleaner = useLogger ? useLogsCleaner : false;
+            _configuration.CleanUpDays = cleanUpDays;
             return this;
         }
     }

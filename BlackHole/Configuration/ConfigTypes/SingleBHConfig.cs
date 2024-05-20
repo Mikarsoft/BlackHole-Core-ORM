@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BlackHole.Enums;
 
 namespace BlackHole.Configuration.ConfigTypes
 {
@@ -11,5 +7,8 @@ namespace BlackHole.Configuration.ConfigTypes
     /// </summary>
     public class SingleBHConfig : BHModeConfig
     {
+        internal SingleBHConfig() : base(BHMode.Single)
+        {
+        }
     }
 }

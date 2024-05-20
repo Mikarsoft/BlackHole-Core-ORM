@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+
+using BlackHole.Enums;
 
 namespace BlackHole.Configuration.ConfigTypes
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class MultipleBHConfig : BHModeConfig
     {
+        internal MultipleBHConfig() : base(BHMode.Multiple)
+        {
+        }
     }
 }
