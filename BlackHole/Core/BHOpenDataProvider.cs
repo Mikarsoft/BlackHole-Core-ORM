@@ -11,7 +11,7 @@ namespace BlackHole.Core
     /// <para>For custom commands, use IBHConnection Interface</para>
     /// </summary>
     /// <typeparam name="T">BHOpenEntity</typeparam>
-    public class BHOpenDataProvider<T> : IBHOpenDataProvider<T> where T : BHOpenEntity<T>
+    public class BHOpenDataProvider<T> : IBHOpenDataProvider<T> where T : BHEntity<T>
     {
         #region Ctor
 

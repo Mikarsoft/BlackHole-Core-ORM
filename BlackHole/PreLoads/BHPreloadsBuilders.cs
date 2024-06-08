@@ -42,14 +42,14 @@ namespace BlackHole.PreLoads
             _initialTransaction = initialTransaction;
         }
 
-        public void InsertEntrty<T, G>(T entry) where G: IComparable<G> where T : BlackHoleEntity<G>
+        public void InsertEntrty<T, G>(T entry) where G: IComparable<G> where T : BHEntityAI<G>
         {
             _initialTransaction.hasChanges +=1;
             IBHDataProvider<T,G> provider = new BHDataProvider<T, G>();
             provider.InsertEntry(entry, _initialTransaction.bhTransaction);
         }
 
-        public void InsertOpenEntry<T>(T entry) where T: BHOpenEntity<T>
+        public void InsertOpenEntry<T>(T entry) where T: BHEntity<T>
         {
             _initialTransaction.hasChanges += 1;
             IBHOpenDataProvider<T> provider = new BHOpenDataProvider<T>();

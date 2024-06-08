@@ -11,7 +11,7 @@ namespace BlackHole.Core
     /// </summary>
     /// <typeparam name="T">BlackHoleEntity</typeparam>
     /// <typeparam name="G">The type of Entity's Id</typeparam>
-    public class BHDataProvider<T, G> : IBHDataProvider<T, G> where T : BlackHoleEntity<G> where G :IComparable<G>
+    public class BHDataProvider<T, G> : IBHDataProvider<T, G> where T : BHEntityAI<G> where G :IComparable<G>
     {
         #region Ctor
         internal EntityContext _context;

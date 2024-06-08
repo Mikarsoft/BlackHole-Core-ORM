@@ -226,17 +226,17 @@ namespace BlackHole.Internal
                     }
                     else
                     {
-                        if (TableType.BaseType == typeof(BlackHoleEntity<int>))
+                        if (TableType.BaseType == typeof(BHEntityAI<int>))
                         {
                             tableCreator.Append(_multiDatabaseSelector.GetPrimaryKeyCommand(ConnectionIndex));
                         }
 
-                        if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
+                        if (TableType.BaseType == typeof(BHEntityAI<Guid>))
                         {
                             tableCreator.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand(ConnectionIndex));
                         }
 
-                        if (TableType.BaseType == typeof(BlackHoleEntity<string>))
+                        if (TableType.BaseType == typeof(BHEntityAI<string>))
                         {
                             tableCreator.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand(ConnectionIndex));
                         }
@@ -493,17 +493,17 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    if (TableType.BaseType == typeof(BlackHoleEntity<int>))
+                    if (TableType.BaseType == typeof(BHEntityAI<int>))
                     {
                         alterTable.Append(_multiDatabaseSelector.GetPrimaryKeyCommand(ConnectionIndex));
                     }
 
-                    if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
+                    if (TableType.BaseType == typeof(BHEntityAI<Guid>))
                     {
                         alterTable.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand(ConnectionIndex));
                     }
 
-                    if (TableType.BaseType == typeof(BlackHoleEntity<string>))
+                    if (TableType.BaseType == typeof(BHEntityAI<string>))
                     {
                         alterTable.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand(ConnectionIndex));
                     }
@@ -581,17 +581,17 @@ namespace BlackHole.Internal
                 }
                 else
                 {
-                    if (TableType.BaseType == typeof(BlackHoleEntity<int>))
+                    if (TableType.BaseType == typeof(BHEntityAI<int>))
                     {
                         alterTable.Append(_multiDatabaseSelector.GetPrimaryKeyCommand(ConnectionIndex));
                     }
 
-                    if (TableType.BaseType == typeof(BlackHoleEntity<Guid>))
+                    if (TableType.BaseType == typeof(BHEntityAI<Guid>))
                     {
                         alterTable.Append(_multiDatabaseSelector.GetGuidPrimaryKeyCommand(ConnectionIndex));
                     }
 
-                    if (TableType.BaseType == typeof(BlackHoleEntity<string>))
+                    if (TableType.BaseType == typeof(BHEntityAI<string>))
                     {
                         alterTable.Append(_multiDatabaseSelector.GetStringPrimaryKeyCommand(ConnectionIndex));
                     }

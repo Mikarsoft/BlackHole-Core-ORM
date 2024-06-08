@@ -23,6 +23,33 @@ namespace BlackHole.Engine
             Sh = SHA1.Create();
         }
 
+        internal static bool SetId<G>(this BHEntityAI<G> entity, G? id) where G : IComparable<G>
+        {
+            if (id != null)
+            {
+                entity.Id = id;
+
+                if (typeof(G) == typeof(int))
+                {
+                    object value = id;
+                    return (int)value != 0;
+                }
+
+                if (typeof(G) == typeof(Guid))
+                {
+                    object value = id;
+                    return (Guid)value != Guid.Empty;
+                }
+
+                if (typeof(G) == typeof(string))
+                {
+                    object value = id;
+                    return (string)value != string.Empty;
+                }
+            }
+            return false;
+        }
+
         internal static int SetIndex(this int providerIndex, int providerNewIndex)
         {
             if(providerNewIndex > -1 && providerNewIndex < DataProviders.Length)
@@ -1578,7 +1605,7 @@ namespace BlackHole.Engine
 
                 data.BaseTable = typeof(TSource);
 
-                bool OpenEntity = typeof(TSource).BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
+                bool OpenEntity = typeof(TSource).BaseType?.GetGenericTypeDefinition() == typeof(BHEntity<>);
                 EntityInfo basicTableInfo = data.BaseTable.SwitchBlackHoleMode(DatabaseRole.Master);
 
                 data.TablesToLetters.Add(new TableLetters { Table = typeof(TSource),
@@ -1621,7 +1648,7 @@ namespace BlackHole.Engine
 
             if (secondTable == null)
             {
-                bool isOpen = otherTableType.BaseType?.GetGenericTypeDefinition() == typeof(BHOpenEntity<>);
+                bool isOpen = otherTableType.BaseType?.GetGenericTypeDefinition() == typeof(BHEntity<>);
                 EntityInfo otherTableInfo = otherTableType.SwitchBlackHoleMode(DatabaseRole.Master);
 
                 if (data.ConnectionIndex == otherTableInfo.DBTIndex)

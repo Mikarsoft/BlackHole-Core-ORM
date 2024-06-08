@@ -18,7 +18,7 @@ namespace BlackHole.Entities
     /// Is Required to use Mapping on DTO, Views and Joins Functionality and 
     /// selecting specific columns of BHOpenEntities.
     /// </summary>
-    public abstract class BHOpenDto : BHDtoIdentifier
+    public abstract class BHDto : BHDtoIdentifier
     {
     }
 
@@ -26,7 +26,7 @@ namespace BlackHole.Entities
     /// Flexible Black Hole Entity with more options. The table in database is based on this.
     /// <para>It is Suggested for more advanced developers.</para>
     /// </summary>
-    public abstract class BHOpenEntity<Self> : BHEntityIdentifier where Self : BHOpenEntity<Self>
+    public abstract class BHEntity<Self> : BHEntityIdentifier where Self : BHEntity<Self>
     {
         /// <summary>
         /// Configuration method for the BHOpenEntity.
@@ -40,7 +40,7 @@ namespace BlackHole.Entities
     /// Is Required to use Mapping on DTO, Views and Joins Functionality
     /// </summary>
     /// <typeparam name="G"></typeparam>
-    public abstract class BlackHoleDto<G> : BHDtoIdentifier
+    public abstract class BHDto<G> : BHDtoIdentifier
     {
         /// <summary>
         /// The Primary Key of the DTO
@@ -54,7 +54,7 @@ namespace BlackHole.Entities
     /// Black Hole Entity. The table in database is based on this
     /// </summary>
     /// <typeparam name="G"></typeparam>
-    public abstract class BlackHoleEntity<G> : BHEntityIdentifier where G : IComparable<G>
+    public abstract class BHEntityAI<G> : BHEntityIdentifier where G : IComparable<G>
     {
         /// <summary>
         /// The Primary Key of the Entity
@@ -65,38 +65,6 @@ namespace BlackHole.Entities
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         internal int Inactive { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public bool SetId(G? id)
-        {
-            if (id != null)
-            {
-                Id = id;
-
-                if (typeof(G) == typeof(int))
-                {
-                    object value = id;
-                    return (int)value != 0;
-                }
-
-                if (typeof(G) == typeof(Guid))
-                {
-                    object value = id;
-                    return (Guid)value != Guid.Empty;
-                }
-
-                if (typeof(G) == typeof(string))
-                {
-                    object value = id;
-                    return (string)value != string.Empty;
-                }
-            }
-            return false;
-        }
     }
 
     /// <summary>

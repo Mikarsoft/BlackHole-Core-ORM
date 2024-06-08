@@ -15,9 +15,9 @@ namespace BlackHole.Internal
 
         internal List<Type> GetAllBHEntities(Assembly ass)
         {
-            return ass.GetTypes().Where(t => t.BaseType == typeof(BlackHoleEntity<int>)
-            || t.BaseType == typeof(BlackHoleEntity<Guid>)
-            || t.BaseType == typeof(BlackHoleEntity<string>)).ToList();
+            return ass.GetTypes().Where(t => t.BaseType == typeof(BHEntityAI<int>)
+            || t.BaseType == typeof(BHEntityAI<Guid>)
+            || t.BaseType == typeof(BHEntityAI<string>)).ToList();
         }
 
         internal List<Type> GetBHEntitiesInNamespaces(List<string> nameSpaces, Assembly ass)
@@ -26,16 +26,16 @@ namespace BlackHole.Internal
             foreach (string nameSpace in nameSpaces)
             {
                 types.AddRange(ass.GetTypes().Where(t => string.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
-                && (t.BaseType == typeof(BlackHoleEntity<int>)
-                || t.BaseType == typeof(BlackHoleEntity<Guid>)
-                || t.BaseType == typeof(BlackHoleEntity<string>))).ToList());
+                && (t.BaseType == typeof(BHEntityAI<int>)
+                || t.BaseType == typeof(BHEntityAI<Guid>)
+                || t.BaseType == typeof(BHEntityAI<string>))).ToList());
             }
             return types;
         }
 
         internal List<Type> GetOpenAllBHEntities(Assembly ass)
         {
-            return ass.GetTypes().Where(x => x.BaseType != null && x.BaseType.GetGenericTypeDefinition() == typeof(BHOpenEntity<>)).ToList();
+            return ass.GetTypes().Where(x => x.BaseType != null && x.BaseType.GetGenericTypeDefinition() == typeof(BHEntity<>)).ToList();
         }
 
         internal List<Type> GetOpenBHEntitiesInNamespaces(List<string> nameSpaces, Assembly ass)
@@ -44,7 +44,7 @@ namespace BlackHole.Internal
             foreach (string nameSpace in nameSpaces)
             {
                 types.AddRange(ass.GetTypes().Where(t => string.Equals(t.Namespace, nameSpace, StringComparison.Ordinal)
-                && t.BaseType != null && t.BaseType.GetGenericTypeDefinition() == typeof(BHOpenEntity<>)).ToList());
+                && t.BaseType != null && t.BaseType.GetGenericTypeDefinition() == typeof(BHEntity<>)).ToList());
             }
             return types;
         }

@@ -8,7 +8,7 @@ namespace BlackHole.Core
     /// <para>For custom commands, use IBHConnection Interface</para>
     /// </summary>
     /// <typeparam name="T">BHOpenEntity</typeparam>
-    public interface IBHOpenDataProvider<T> where T : BHOpenEntity<T>
+    public interface IBHOpenDataProvider<T> where T : BHEntity<T>
     {
         // SYNC METHODS
 
@@ -106,7 +106,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Entities of the Table mapped to DTO</returns>
-        List<Dto> GetAllEntries<Dto>() where Dto : BHOpenDto;
+        List<Dto> GetAllEntries<Dto>() where Dto : BHDto;
 
         /// <summary>
         /// Generates an Sql command using the Lambda Expression, that filters the
@@ -124,7 +124,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Data Transfer Object</returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
+        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHDto;
 
         /// <summary>
         /// Generates an Sql command using the Lambda Expression, that filters the
@@ -142,7 +142,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>List of DTOs</returns>
-        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHDto;
 
         // WITH TRANSACTION
 
@@ -161,7 +161,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <returns>All Entities of the Table mapped to DTO</returns>
-        List<Dto> GetAllEntries<Dto>(IBHTransaction transaction) where Dto : BHOpenDto;
+        List<Dto> GetAllEntries<Dto>(IBHTransaction transaction) where Dto : BHDto;
 
         /// <summary>
         /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -181,7 +181,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Data Transfer Object</returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BHOpenDto;
+        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BHDto;
 
         /// <summary>
         /// <b>Transaction.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -201,7 +201,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of DTOs</returns>
-        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BHOpenDto;
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BHDto;
 
         // WITH ORDER BY
 
@@ -219,7 +219,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto"></typeparam>
         /// <param name="orderBy"></param>
         /// <returns></returns>
-        List<Dto> GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto;
+        List<Dto> GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : BHDto;
 
         /// <summary>
         /// 
@@ -236,7 +236,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="orderBy"></param>
         /// <returns></returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto;
+        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHDto;
 
         /// <summary>
         /// 
@@ -253,7 +253,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="orderBy"></param>
         /// <returns></returns>
-        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto;
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHDto;
 
         // WITH ORDER BY AND TRANSACTION
 
@@ -272,7 +272,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        List<Dto> GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHOpenDto;
+        List<Dto> GetAllEntries<Dto>(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHDto;
 
         /// <summary>
         /// 
@@ -291,7 +291,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHOpenDto;
+        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHDto;
 
         /// <summary>
         /// 
@@ -310,7 +310,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHOpenDto;
+        List<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHDto;
 
         #endregion
 
@@ -529,7 +529,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
         /// <returns>All Entities of the Table mapped to DTO</returns>
-        Task<List<Dto>> GetAllEntriesAsync<Dto>() where Dto : BHOpenDto;
+        Task<List<Dto>> GetAllEntriesAsync<Dto>() where Dto : BHDto;
 
         /// <summary>
         /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -551,7 +551,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>Data Transfer Object</returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
+        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHDto;
 
         /// <summary>
         /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -573,7 +573,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="predicate">Lambda Expression</param>
         /// <returns>List of DTOs</returns>
-        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHOpenDto;
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate) where Dto : BHDto;
 
         // WITH TRANSACTION
 
@@ -594,7 +594,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <typeparam name="Dto">Data transfer Object</typeparam>
         /// <returns>All Entities of the Table mapped to DTO</returns>
-        Task<List<Dto>> GetAllEntriesAsync<Dto>(IBHTransaction transaction) where Dto : BHOpenDto;
+        Task<List<Dto>> GetAllEntriesAsync<Dto>(IBHTransaction transaction) where Dto : BHDto;
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -618,7 +618,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Data Transfer Object</returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BHOpenDto;
+        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BHDto;
 
         /// <summary>
         /// <b>Transaction.</b> <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
@@ -642,7 +642,7 @@ namespace BlackHole.Core
         /// <param name="predicate">Lambda Expression</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>List of DTOs</returns>
-        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BHOpenDto;
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction transaction) where Dto : BHDto;
 
         // WITH ORDER BY
 
@@ -659,7 +659,7 @@ namespace BlackHole.Core
         /// <typeparam name="Dto"></typeparam>
         /// <param name="orderBy"></param>
         /// <returns></returns>
-        Task<List<Dto>> GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto;
+        Task<List<Dto>> GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy) where Dto : BHDto;
 
         /// <summary>
         /// 
@@ -676,7 +676,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="orderBy"></param>
         /// <returns></returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto;
+        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHDto;
 
         /// <summary>
         /// 
@@ -693,7 +693,7 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="orderBy"></param>
         /// <returns></returns>
-        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHOpenDto;
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy) where Dto : BHDto;
 
         // WITH ORDER BY AND TRANSACTION
 
@@ -712,7 +712,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<List<Dto>> GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHOpenDto;
+        Task<List<Dto>> GetAllEntriesAsync<Dto>(Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHDto;
 
         /// <summary>
         /// 
@@ -731,7 +731,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHOpenDto;
+        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHDto;
 
         /// <summary>
         /// 
@@ -750,7 +750,7 @@ namespace BlackHole.Core
         /// <param name="orderBy"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHOpenDto;
+        Task<List<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, Action<BHOrderBy<T>> orderBy, IBHTransaction transaction) where Dto : BHDto;
         #endregion
 
         #region Insert Methods Async

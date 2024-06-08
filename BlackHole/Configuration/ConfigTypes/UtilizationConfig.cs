@@ -19,7 +19,7 @@
         /// 
         /// </summary>
         /// <param name="entityNamespaces"></param>
-        public void UseEntityInNamespaces(Action<List<string>> entityNamespaces)
+        public void UseEntitiesInNamespaces(Action<List<string>> entityNamespaces)
         {
 
         }
@@ -47,7 +47,7 @@
         /// 
         /// </summary>
         /// <param name="entityNamespaces"></param>
-        public void UseEntityInNamespace(string entityNamespaces)
+        public void UseEntitiesInNamespace(string entityNamespaces)
         {
 
         }
@@ -81,7 +81,7 @@
         /// <param name="assemblyPath"></param>
         /// <param name="entityNamespaces"></param>
         /// <param name="includeCallingAssembly"></param>
-        public void UseEntityInNamespacesFromAssembly(string assemblyPath, Action<List<string>> entityNamespaces,
+        public void UseEntitiesInNamespacesFromAssembly(string assemblyPath, Action<List<string>> entityNamespaces,
             bool includeCallingAssembly = false)
         {
 
@@ -118,7 +118,7 @@
         /// <param name="assemblyPath"></param>
         /// <param name="entityNamespaces"></param>
         /// <param name="includeCallingAssembly"></param>
-        public void UseEntityInNamespaceFromAssembly(string assemblyPath, string entityNamespaces,
+        public void UseEntitiesInNamespaceFromAssembly(string assemblyPath, string entityNamespaces,
             bool includeCallingAssembly = false)
         {
 
