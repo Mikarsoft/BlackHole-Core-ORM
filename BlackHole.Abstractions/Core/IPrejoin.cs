@@ -7,7 +7,7 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
+    /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
     public interface IPrejoin<Dto, TSource, TOther> where Dto : BHDtoIdentifier
     {

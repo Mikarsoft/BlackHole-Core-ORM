@@ -1,5 +1,6 @@
 ﻿
 
+using BlackHole.Abstractions.Core;
 using BlackHole.Identifiers;
 using System.Linq.Expressions;
 
@@ -9,16 +10,16 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
-    /// <typeparam name="Tsource"></typeparam>
+    /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IJoinOptions<Dto, Tsource, TOther> where Dto : BHDtoIdentifier
+    public interface IJoinOptions<Dto, TSource, TOther> : IBHQuery<Dto> where Dto : class, BHDtoIdentifier
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        IJoinOptions<Dto, Tsource, TOther> WhereFirst(Expression<Func<Tsource, bool>> predicate);
+        IJoinOptions<Dto, TSource, TOther> WhereFirst(Expression<Func<TSource, bool>> predicate);
 
 
         /// <summary>
@@ -26,17 +27,7 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        IJoinOptions<Dto, Tsource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="Tkey"></typeparam>
-        /// <typeparam name="TOtherkey"></typeparam>
-        /// <param name="predicate"></param>
-        /// <param name="castOnDto"></param>
-        /// <returns></returns>
-        IJoinOptions<Dto, Tsource, TOther> CastColumnOfFirst<Tkey, TOtherkey>(Expression<Func<Tsource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto);
+        IJoinOptions<Dto, TSource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate);
 
         /// <summary>
         /// 
@@ -46,7 +37,17 @@ namespace BlackHole.Core
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        IJoinOptions<Dto, Tsource, TOther> CastColumnOfSecond<Tkey, TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto);
+        IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<Tkey, TOtherkey>(Expression<Func<TSource, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="Tkey"></typeparam>
+        /// <typeparam name="TOtherkey"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="castOnDto"></param>
+        /// <returns></returns>
+        IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<Tkey, TOtherkey>(Expression<Func<TOther, Tkey?>> predicate, Expression<Func<Dto, TOtherkey?>> castOnDto);
 
         /// <summary>
         /// 

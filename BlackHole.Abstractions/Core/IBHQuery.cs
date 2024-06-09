@@ -1,10 +1,60 @@
-﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using System.Collections;
+﻿using BlackHole.Core;
+using BlackHole.Entities;
+using BlackHole.Identifiers;
 using System.Linq.Expressions;
-using System.Xml.Linq;
 
 namespace BlackHole.Abstractions.Core
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="Dto"></typeparam>
+    /// <typeparam name="T"></typeparam>
+    public interface IBHQueryJoinable<Dto, T> : IBHQuerySearchable<Dto> where Dto : BHDto where T : BHEntityIdentifier
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOther"></typeparam>
+        /// <returns></returns>
+        IPrejoin<Dto, T, TOther> InnerJoin<TOther>();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOther"></typeparam>
+        /// <returns></returns>
+        IPrejoin<Dto, T, TOther> OuterJoin<TOther>();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOther"></typeparam>
+        /// <returns></returns>
+        IPrejoin<Dto, T, TOther> LeftJoin<TOther>();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TOther"></typeparam>
+        /// <returns></returns>
+        IPrejoin<Dto, T, TOther> RightJoin<TOther>();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IBHQuerySearchable<T> : IBHQuery<T> where T : class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHQuery<T> Where(Expression<Func<T, bool>> predicate);
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -15,14 +65,14 @@ namespace BlackHole.Abstractions.Core
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        IBHQuery<T> OrderByAscending(Expression<Func<T, object?>> action);
+        BHOrderBy<T> OrderByAscending(Expression<Func<T, object?>> action);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        IBHQuery<T> OrderByDescending(Expression<Func<T, object?>> action);
+        BHOrderBy<T> OrderByDescending(Expression<Func<T, object?>> action);
 
         /// <summary>
         /// 
@@ -30,7 +80,7 @@ namespace BlackHole.Abstractions.Core
         /// <typeparam name="G"></typeparam>
         /// <param name="keySelectors"></param>
         /// <returns></returns>
-        CustomEnumerable<CustomGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
+        IBHEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
 
         /// <summary>
         /// 
@@ -43,32 +93,116 @@ namespace BlackHole.Abstractions.Core
         /// </summary>
         /// <returns></returns>
         Task<List<T>> ToListAsync();
-        //public static IEnumerable<string> GetGroupByFieldNames<TSource>(params Expression<Func<TSource, object>>[] keySelectors)
-        //{
-        //    foreach (var keySelector in keySelectors)
-        //    {
-        //        var memberExpression = GetMemberExpression(keySelector.Body);
-        //        if (memberExpression != null)
-        //        {
-        //            yield return memberExpression.Member.Name;
-        //        }
-        //    }
-        //}
 
-        //private static MemberExpression GetMemberExpression(Expression expression)
-        //{
-        //    if (expression is MemberExpression memberExpression)
-        //    {
-        //        return memberExpression;
-        //    }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        T? FirstOrDefault();
 
-        //    if (expression is UnaryExpression unaryExpression && unaryExpression.NodeType == ExpressionType.Convert)
-        //    {
-        //        return unaryExpression.Operand as MemberExpression;
-        //    }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<T?> FirstOrDefaultAsync();
+    }
 
-        //    return null;
-        //}
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IBHFinalQuery<T> where T: class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        List<T> ToList();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<List<T>> ToListAsync();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IBHOrderByQuery<T> where T: class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        IBHOrderByQuery<T> ThenByAscending(Expression<Func<T, object?>> action);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        IBHOrderByQuery<T> ThenByDescending(Expression<Func<T, object?>> action);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fetchRows"></param>
+        IBHFinalQuery<T> Take(int fetchRows);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offsetRows"></param>
+        /// <param name="fetchRows"></param>
+        IBHFinalQuery<T> TakeWithOffset(int offsetRows, int fetchRows);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        List<T> ToList();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<List<T>> ToListAsync();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IBHGroupedQuery<T> where T: class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        IBHOrderByQuery<T> OrderByAscending(Expression<Func<T, object?>> action);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        IBHOrderByQuery<T> OrderByDescending(Expression<Func<T, object?>> action);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        List<T> ToList();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<List<T>> ToListAsync();
     }
 
     /// <summary>
@@ -78,100 +212,129 @@ namespace BlackHole.Abstractions.Core
     /// <typeparam name="G"></typeparam>
     public interface IBHGroup<T, G>
     {
-        IBHQuery<T> Select();
+        /// <summary>
+        /// 
+        /// </summary>
+        T Key { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        G First { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        G Last { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        IBHMethods<G> Select { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHMethods<G> Where(Expression<Func<G, bool>> predicate);
     }
 
-
-    public static class CustomLinqExtensions
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="G"></typeparam>
+    public interface IBHMethods<G>
     {
-        // Custom Grouping class
-        private class BHGrouping<TKey, TElement> : IGrouping<TKey, TElement>
-        {
-            public TKey Key { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        G First { get; }
 
-            private readonly IEnumerable<TElement> _elements;
+        /// <summary>
+        /// 
+        /// </summary>
+        G Last { get; }
 
-            public BHGrouping(TKey key, IEnumerable<TElement> elements)
-            {
-                Key = key;
-                _elements = elements;
-            }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        int Max(Func<G, int?> selector);
 
-            public IEnumerator<TElement> GetEnumerator()
-            {
-                return _elements.GetEnumerator();
-            }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        double Max(Func<G, double?> selector);
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return _elements.GetEnumerator();
-            }
-        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        decimal Max(Func<G, decimal?> selector);
 
-        // Custom GroupBy method
-        //public static IEnumerable<IGrouping<TKey, TElement>> CustomGroupBy<TSource, TKey, TElement>(
-        //    this CustomEnumerable<TSource> source,
-        //    Func<TSource, TKey> keySelector,
-        //    Func<TSource, TElement> elementSelector)
-        //{
-        //    if (source == null) throw new ArgumentNullException(nameof(source));
-        //    if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-        //    if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        long Max(Func<G, long?> selector);
 
-        //    return CustomGroupByIterator(source, keySelector, elementSelector);
-        //}
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        short Max(Func<G, short?> selector);
 
-        private static IEnumerable<IGrouping<TKey, TElement>> CustomGroupByIterator<TSource, TKey, TElement>(
-            IEnumerable<TSource> source,
-            Func<TSource, TKey> keySelector,
-            Func<TSource, TElement> elementSelector)
-        {
-            var lookup = new Dictionary<TKey, List<TElement>>();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        DateTime Max(Func<G, DateTime?> selector);
 
-            foreach (var item in source)
-            {
-                var key = keySelector(item);
-                var element = elementSelector(item);
-
-                if (!lookup.TryGetValue(key, out var elements))
-                {
-                    elements = new List<TElement>();
-                    lookup[key] = elements;
-                }
-
-                elements.Add(element);
-            }
-
-            foreach (var pair in lookup)
-            {
-                yield return new BHGrouping<TKey, TElement>(pair.Key, pair.Value);
-            }
-        }
-
-
-        public static IEnumerable<TResult> CustomSelect<TSource, TResult>(
-        this CustomEnumerable<TSource> source,
-        Func<TSource, TResult> selector)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (selector == null) throw new ArgumentNullException(nameof(selector));
-
-            return CustomSelectIterator(source, selector);
-        }
-
-
-        // Custom Select method (not necessary to customize, just use the standard one)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        DateTimeOffset Max(Func<G, DateTimeOffset?> selector);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TResult"></typeparam>
+    public interface IBHEnumerable<T, TResult> where TResult : class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="selector"></param>
+        /// <returns></returns>
+        IBHGroupedQuery<TResult> Map(Func<T, TResult> selector);
+    }
 
-    public class CustomGroup<TKey, TElement> where TElement : class
+    public class BHGroup<TKey, TElement> where TElement : class
     {
         public TKey Key { get; }
         public IEnumerable<TElement> Elements { get; }
         public TElement First { get; }
 
         public TElement Last { get; }
-        public CustomGroup(TKey key, IEnumerable<TElement> elements)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="elements"></param>
+        public BHGroup(TKey key, IEnumerable<TElement> elements)
         {
             Key = key;
             Elements = elements;
@@ -185,15 +348,15 @@ namespace BlackHole.Abstractions.Core
         }
     }
 
-    public class CustomEnumerable<T,TResult>
+    public class BHEnumerable<T,TResult>
     {
         private readonly List<T> _items;
-        public CustomEnumerable()
+        public BHEnumerable()
         {
             _items = new List<T>();
         }
 
-        public IEnumerable<TResult> Map(Func<T, TResult> selector)
+        public IBHQuery<TResult> Map(Func<T, TResult> selector)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
             if (selector == null) throw new ArgumentNullException(nameof(selector));
@@ -201,7 +364,7 @@ namespace BlackHole.Abstractions.Core
             return CustomSelectIterator(selector);
         }
 
-        private IEnumerable<TResult> CustomSelectIterator(Func<T, TResult> selector)
+        private IBHQuery<TResult> CustomSelectIterator(Func<T, TResult> selector)
         {
             foreach (var item in _items)
             {

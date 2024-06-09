@@ -21,7 +21,7 @@ namespace BlackHole.Abstractions.Core
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IBHTable<T> where T: BHEntityIdentifier
+    public interface IBHTable<T> where T: class, BHEntityIdentifier
     {
         // SYNC METHODS
 
@@ -90,7 +90,7 @@ namespace BlackHole.Abstractions.Core
         /// </summary>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>All Entities of the Table</returns>
-        IBHQuery<T> GetAllEntries(IBHTransaction? transaction = null);
+        IBHQuerySearchable<T> Select(IBHTransaction? transaction = null);
 
         /// <summary>
         /// Selects only the columns of the specified Dto that exist on the Table
@@ -101,48 +101,7 @@ namespace BlackHole.Abstractions.Core
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>All Entities of the Table mapped to DTO</returns>
-        IBHQuery<Dto> GetAllEntries<Dto>(IBHTransaction? transaction = null) where Dto : BHDto;
-
-        /// <summary>
-        /// Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns the first one that matches the filters
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction"></param>
-        /// <returns>Entity</returns>
-        T? GetEntryWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// Generates an Sql command using the Lambda Expression and the Dto properties that match
-        /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
-        /// filters
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Data Transfer Object</returns>
-        Dto? GetEntryWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null) where Dto : BHDto;
-
-        /// <summary>
-        /// Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Entries that match the filters
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of Entities</returns>
-        IBHQuery<T> GetEntriesWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Columns that match with the filters
-        /// and the Dto properties
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of DTOs</returns>
-        IBHQuery<Dto> GetEntriesWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null) where Dto : BHDto;
-
+        IBHQueryJoinable<Dto, T> Select<Dto>(IBHTransaction? transaction = null) where Dto : BHDto;
         #endregion
 
         #region Insert Methods
@@ -279,76 +238,6 @@ namespace BlackHole.Abstractions.Core
 
         #endregion
 
-        #region Select Methods Async
-        /// <summary>
-        /// <b>Asyncronous.</b> Gets all the entries of the specific Table
-        /// and returns a List of Entities
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>All Entities of the Table</returns>
-        Task<IBHQuery<T>> GetAllEntriesAsync(IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// <b>Asyncronous.</b> Selects only the columns of the specified Dto that exist on the Table
-        /// and returns a List of the Dto.
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <typeparam name="Dto">Data transfer Object</typeparam>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>All Entities of the Table mapped to DTO</returns>
-        Task<IBHQuery<Dto>> GetAllEntriesAsync<Dto>(IBHTransaction? transaction = null) where Dto : BHDto;
-
-        /// <summary>
-        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns the first one that matches the filters
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Entity</returns>
-        Task<T?> GetEntryAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression and the Dto properties that match
-        /// with the Entity properties. Returns the Dto columns of the first Entry that satisfies these 
-        /// filters
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Data Transfer Object</returns>
-        Task<Dto?> GetEntryAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null) where Dto : BHDto;
-
-        /// <summary>
-        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Entries that match the filters
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of Entities</returns>
-        Task<IBHQuery<T>> GetEntriesAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// <b>Asyncronous.</b> Generates an Sql command using the Lambda Expression, that filters the
-        /// Entries of the table and returns all Columns that match with the filters
-        /// and the Dto properties 
-        /// <para>Only the properties of the Dto that have the same name and type with 
-        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>List of DTOs</returns>
-        Task<IBHQuery<Dto>> GetEntriesAsyncWhere<Dto>(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null) where Dto : BHDto;
-        #endregion
 
         #region Insert Methods Async
 
