@@ -1,11 +1,14 @@
-﻿using System.Linq.Expressions;
+﻿using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using System.Collections;
+using System.Linq.Expressions;
+using System.Xml.Linq;
 
 namespace BlackHole.Abstractions.Core
 {
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHQuery<T>
+    public interface IBHQuery<T> where T : class
     {
         /// <summary>
         /// 
@@ -24,9 +27,10 @@ namespace BlackHole.Abstractions.Core
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="action"></param>
+        /// <typeparam name="G"></typeparam>
+        /// <param name="keySelectors"></param>
         /// <returns></returns>
-        IBHGroup<T,G> GroupBy<G>(Expression<Func<T, G?>> action);
+        CustomEnumerable<CustomGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
 
         /// <summary>
         /// 
@@ -39,16 +43,89 @@ namespace BlackHole.Abstractions.Core
         /// </summary>
         /// <returns></returns>
         Task<List<T>> ToListAsync();
+        //public static IEnumerable<string> GetGroupByFieldNames<TSource>(params Expression<Func<TSource, object>>[] keySelectors)
+        //{
+        //    foreach (var keySelector in keySelectors)
+        //    {
+        //        var memberExpression = GetMemberExpression(keySelector.Body);
+        //        if (memberExpression != null)
+        //        {
+        //            yield return memberExpression.Member.Name;
+        //        }
+        //    }
+        //}
 
-        public static IEnumerable<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(
-    this IEnumerable<TSource> source,
-    Func<TSource, TKey> keySelector,
-    Func<TSource, TElement> elementSelector)
+        //private static MemberExpression GetMemberExpression(Expression expression)
+        //{
+        //    if (expression is MemberExpression memberExpression)
+        //    {
+        //        return memberExpression;
+        //    }
+
+        //    if (expression is UnaryExpression unaryExpression && unaryExpression.NodeType == ExpressionType.Convert)
+        //    {
+        //        return unaryExpression.Operand as MemberExpression;
+        //    }
+
+        //    return null;
+        //}
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="G"></typeparam>
+    public interface IBHGroup<T, G>
+    {
+        IBHQuery<T> Select();
+    }
+
+
+    public static class CustomLinqExtensions
+    {
+        // Custom Grouping class
+        private class BHGrouping<TKey, TElement> : IGrouping<TKey, TElement>
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-            if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+            public TKey Key { get; }
 
+            private readonly IEnumerable<TElement> _elements;
+
+            public BHGrouping(TKey key, IEnumerable<TElement> elements)
+            {
+                Key = key;
+                _elements = elements;
+            }
+
+            public IEnumerator<TElement> GetEnumerator()
+            {
+                return _elements.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _elements.GetEnumerator();
+            }
+        }
+
+        // Custom GroupBy method
+        //public static IEnumerable<IGrouping<TKey, TElement>> CustomGroupBy<TSource, TKey, TElement>(
+        //    this CustomEnumerable<TSource> source,
+        //    Func<TSource, TKey> keySelector,
+        //    Func<TSource, TElement> elementSelector)
+        //{
+        //    if (source == null) throw new ArgumentNullException(nameof(source));
+        //    if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
+        //    if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+
+        //    return CustomGroupByIterator(source, keySelector, elementSelector);
+        //}
+
+        private static IEnumerable<IGrouping<TKey, TElement>> CustomGroupByIterator<TSource, TKey, TElement>(
+            IEnumerable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector)
+        {
             var lookup = new Dictionary<TKey, List<TElement>>();
 
             foreach (var item in source)
@@ -67,65 +144,81 @@ namespace BlackHole.Abstractions.Core
 
             foreach (var pair in lookup)
             {
-                yield return new Grouping<TKey, TElement>(pair.Key, pair.Value);
+                yield return new BHGrouping<TKey, TElement>(pair.Key, pair.Value);
             }
         }
-    }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="G"></typeparam>
-    public interface IBHGroup<T, G>
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        IBHQuery<T> OrderByAscending(Expression<Func<T, object?>> action);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        IBHQuery<T> OrderByDescending(Expression<Func<T, object?>> action);
+        public static IEnumerable<TResult> CustomSelect<TSource, TResult>(
+        this CustomEnumerable<TSource> source,
+        Func<TSource, TResult> selector)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        List<T> ToList();
+            return CustomSelectIterator(source, selector);
+        }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        Task<List<T>> ToListAsync();
+
+        // Custom Select method (not necessary to customize, just use the standard one)
     }
 
 
-    private class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+    public class CustomGroup<TKey, TElement> where TElement : class
     {
         public TKey Key { get; }
-        private readonly IEnumerable<TElement> _elements;
+        public IEnumerable<TElement> Elements { get; }
+        public TElement First { get; }
 
-        public Grouping(TKey key, IEnumerable<TElement> elements)
+        public TElement Last { get; }
+        public CustomGroup(TKey key, IEnumerable<TElement> elements)
         {
             Key = key;
-            _elements = elements;
+            Elements = elements;
+            First = elements.First();
+            Last = elements.Last();
         }
 
-        public IEnumerator<TElement> GetEnumerator()
+        public void Case(TKey key, IEnumerable<TElement> elements)
         {
-            return _elements.GetEnumerator();
+
+        }
+    }
+
+    public class CustomEnumerable<T,TResult>
+    {
+        private readonly List<T> _items;
+        public CustomEnumerable()
+        {
+            _items = new List<T>();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        public IEnumerable<TResult> Map(Func<T, TResult> selector)
         {
-            return _elements.GetEnumerator();
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (selector == null) throw new ArgumentNullException(nameof(selector));
+
+            return CustomSelectIterator(selector);
+        }
+
+        private IEnumerable<TResult> CustomSelectIterator(Func<T, TResult> selector)
+        {
+            foreach (var item in _items)
+            {
+                yield return selector(item);
+            }
+        }
+
+        // Method to add items to the custom collection
+        public void Add(T item)
+        {
+            _items.Add(item);
+        }
+
+        // Method to get enumerator
+        public IEnumerator<T> GetEnumerator()
+        {
+            return _items.GetEnumerator();
         }
     }
 }
