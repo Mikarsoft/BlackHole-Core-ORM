@@ -1,6 +1,4 @@
-﻿
-
-using BlackHole.Core;
+﻿using BlackHole.Core;
 using BlackHole.Entities;
 using BlackHole.Identifiers;
 using System.Linq.Expressions;
@@ -14,7 +12,234 @@ namespace BlackHole.Abstractions.Core
     /// <typeparam name="G"></typeparam>
     public interface IBHTable<T, G> : IBHTable<T> where T : BHEntityAI<G> where G : IComparable<G>
     {
+        #region Unique AI Entity Methods
+        /// <summary>
+        /// Returns the Entity from this Table that has the
+        /// specified Id
+        /// </summary>
+        /// <param name="Id">Specified Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Entity</returns>
+        T? GetById(G Id, IBHTransaction? transaction = null);
 
+        /// <summary>
+        /// Selects only the columns of the specified Dto that exist on the Table
+        /// and returns a Dto of the Entity with the specified Id.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="Id">Specified Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Data Transfer Object</returns>
+        Dto? GetById<Dto>(G Id, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+
+        /// <summary>
+        /// Finds the entry in the table that has
+        /// the same Id with the input's Entity and updates all
+        /// the columns based on the Entity's property values. 
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <param name="entry">Entity</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        bool UpdateById(T entry, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// Finds the entry in the database table that
+        /// has the same Id with the input's Entity and
+        /// using a 'Columns' class that has properties with the same
+        /// name and type with some properties of the Entity, to specifically update
+        /// these columns on the database entry.
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="entry">Entity</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        bool UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+
+
+        /// <summary>
+        /// Finds the entries in the table that have
+        /// the same Id with the input's Entities and updates all
+        /// the columns based on each Entity's property values.
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <param name="entries">List of Entities</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        bool UpdateById(List<T> entries, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// Finds the entries in the database table that
+        /// has the same Id with the input's Entities and
+        /// using a 'Columns' class that has properties with the same
+        /// name and type with some properties of the Entity, to specifically update
+        /// these columns on each database entry.
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="entries">List of Entities</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        bool UpdateById<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+
+        /// <summary>
+        /// Finds and deletes the entry of the database table
+        /// that has the same Id as the input.
+        /// If you are using a 'UseActivator' Attribute on this Entity,
+        /// the entry gets deactivated instead of deleted and it can only
+        /// be accessed with the 'GetInactiveEntries' command. 
+        /// </summary>
+        /// <param name="Id">Entry's Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        bool DeleteById(G Id, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// If you are using a 'UseActivator' Attribute on this Entity
+        /// It finds the entry in the database table that is Inactive and has the same
+        /// Id as the input and permanently deletes it from the database.
+        /// </summary>
+        /// <param name="Id">Inactive Entry's Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        bool RemoveById(G Id, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// If you are using a 'UseActivator' Attribute on this Entity,
+        /// Activates again an Inactive Entry
+        /// in the database.
+        /// </summary>
+        /// <param name="Id">Inactive Entry's Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        bool RestoreById(G Id, IBHTransaction? transaction = null);
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
+        #endregion
+
+        #region Unique AI Entity Methods Async
+        /// <summary>
+        /// Returns the Entity from this Table that has the
+        /// specified Id
+        /// </summary>
+        /// <param name="Id">Specified Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Entity</returns>
+        Task<T?> GetByIdAsync(G Id, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// Selects only the columns of the specified Dto that exist on the Table
+        /// and returns a Dto of the Entity with the specified Id.
+        /// <para>Only the properties of the Dto that have the same name and type with 
+        /// some properties of the Entity will be returned. Unmatched properties will be null</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="Id">Specified Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Data Transfer Object</returns>
+        Task<Dto?> GetByIdAsync<Dto>(G Id, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+
+        /// <summary>
+        /// Finds the entry in the table that has
+        /// the same Id with the input's Entity and updates all
+        /// the columns based on the Entity's property values. 
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <param name="entry">Entity</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        Task<bool> UpdateByIdAsync(T entry, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// Finds the entry in the database table that
+        /// has the same Id with the input's Entity and
+        /// using a 'Columns' class that has properties with the same
+        /// name and type with some properties of the Entity, to specifically update
+        /// these columns on the database entry.
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="entry">Entity</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        Task<bool> UpdateByIdAsync<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+
+
+        /// <summary>
+        /// Finds the entries in the table that have
+        /// the same Id with the input's Entities and updates all
+        /// the columns based on each Entity's property values.
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <param name="entries">List of Entities</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        Task<bool> UpdateByIdAsync(List<T> entries, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// Finds the entries in the database table that
+        /// has the same Id with the input's Entities and
+        /// using a 'Columns' class that has properties with the same
+        /// name and type with some properties of the Entity, to specifically update
+        /// these columns on each database entry.
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <typeparam name="Dto">Data Transfer Object</typeparam>
+        /// <param name="entries">List of Entities</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        Task<bool> UpdateByIdAsync<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+
+        /// <summary>
+        /// Finds and deletes the entry of the database table
+        /// that has the same Id as the input.
+        /// If you are using a 'UseActivator' Attribute on this Entity,
+        /// the entry gets deactivated instead of deleted and it can only
+        /// be accessed with the 'GetInactiveEntries' command. 
+        /// </summary>
+        /// <param name="Id">Entry's Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        Task<bool> DeleteByIdAsync(G Id, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// If you are using a 'UseActivator' Attribute on this Entity
+        /// It finds the entry in the database table that is Inactive and has the same
+        /// Id as the input and permanently deletes it from the database.
+        /// </summary>
+        /// <param name="Id">Inactive Entry's Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        Task<bool> RemoveByIdAsync(G Id, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// If you are using a 'UseActivator' Attribute on this Entity,
+        /// Activates again an Inactive Entry
+        /// in the database.
+        /// </summary>
+        /// <param name="Id">Inactive Entry's Id</param>
+        /// <param name="transaction"></param>
+        /// <returns>Success</returns>
+        Task<bool> RestoreByIdAsync(G Id, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
+        #endregion
     }
 
     /// <summary>
@@ -23,63 +248,20 @@ namespace BlackHole.Abstractions.Core
     /// <typeparam name="T"></typeparam>
     public interface IBHTable<T> where T: class, BHEntityIdentifier
     {
-        // SYNC METHODS
-
-        #region Additional Methods
+        #region Optional Methods
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="dbIdentity"></param>
         /// <returns></returns>
-        IBHConnection CustomCommand(string? dbIdentity = null);
+        IBHConnection Command(string? dbIdentity = null);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         IBHTransaction BeginIBHTransaction();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        bool Any(Expression<Func<T, bool>>? predicate = null);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        int Count(Expression<Func<T, bool>>? predicate = null);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        bool Any(IBHTransaction transaction);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <param name="transaction"></param>
-        /// <returns></returns>
-        bool Any(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        int Count(IBHTransaction transaction);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        int Count(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
-
         #endregion
 
         #region Select Methods
@@ -102,6 +284,39 @@ namespace BlackHole.Abstractions.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>All Entities of the Table mapped to DTO</returns>
         IBHQueryJoinable<Dto, T> Select<Dto>(IBHTransaction? transaction = null) where Dto : BHDto;
+        #endregion
+
+        // SYNC METHODS
+
+        #region Additional Methods
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        bool Any(IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
+        bool Any(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        int Count(IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        int Count(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
+
         #endregion
 
         #region Insert Methods
@@ -185,36 +400,9 @@ namespace BlackHole.Abstractions.Core
         /// <summary>
         /// 
         /// </summary>
-        /// <returns></returns>
-        Task<bool> AnyAsync();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        Task<int> CountAsync();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        Task<int> CountWhereAsync(Expression<Func<T, bool>> predicate);
-
-        // WITH TRANSACTION
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<bool> AnyAsync(IBHTransaction transaction);
+        Task<bool> AnyAsync(IBHTransaction? transaction = null);
 
         /// <summary>
         /// 
@@ -222,22 +410,21 @@ namespace BlackHole.Abstractions.Core
         /// <param name="predicate"></param>
         /// <param name="transaction"></param>
         /// <returns></returns>
-        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        Task<int> CountAsync(IBHTransaction transaction);
+        Task<int> CountAsync(IBHTransaction? transaction = null);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        Task<int> CountWhereAsync(Expression<Func<T, bool>> predicate, IBHTransaction transaction);
+        Task<int> CountAsync(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null);
 
         #endregion
-
 
         #region Insert Methods Async
 
