@@ -8,6 +8,48 @@ namespace BlackHole.Abstractions.Core
     /// <summary>
     /// 
     /// </summary>
+    public interface IBHContextBase
+    {
+        #region Optional Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        IBHCommand Command { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        IBHTransaction BeginTransaction();
+        #endregion
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface IBHContext : IBHContextBase
+    {
+        #region Table Getters
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        IBHTable<T> Table<T>() where T : class, BHEntityIdentifier;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="G"></typeparam>
+        /// <returns></returns>
+        IBHTable<T, G> Table<T, G>() where T : BHEntityAI<G> where G : IComparable<G>;
+        #endregion
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="G"></typeparam>
     public interface IBHTable<T, G> : IBHTable<T> where T : BHEntityAI<G> where G : IComparable<G>
@@ -246,24 +288,8 @@ namespace BlackHole.Abstractions.Core
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IBHTable<T> where T: class, BHEntityIdentifier
+    public interface IBHTable<T> : IBHContextBase where T: class, BHEntityIdentifier
     {
-        #region Optional Methods
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dbIdentity"></param>
-        /// <returns></returns>
-        IBHConnection Command(string? dbIdentity = null);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        IBHTransaction BeginIBHTransaction();
-        #endregion
-
         #region Select Methods
 
         /// <summary>

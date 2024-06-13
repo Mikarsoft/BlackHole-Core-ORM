@@ -321,67 +321,67 @@ namespace BlackHole.Abstractions.Core
         IBHGroupedQuery<TResult> Map(Func<T, TResult> selector);
     }
 
-    public class BHGroup<TKey, TElement> where TElement : class
-    {
-        public TKey Key { get; }
-        public IEnumerable<TElement> Elements { get; }
-        public TElement First { get; }
+    //public class BHGroup<TKey, TElement> where TElement : class
+    //{
+    //    public TKey Key { get; }
+    //    public IEnumerable<TElement> Elements { get; }
+    //    public TElement First { get; }
 
-        public TElement Last { get; }
+    //    public TElement Last { get; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="elements"></param>
-        public BHGroup(TKey key, IEnumerable<TElement> elements)
-        {
-            Key = key;
-            Elements = elements;
-            First = elements.First();
-            Last = elements.Last();
-        }
+    //    /// <summary>
+    //    /// 
+    //    /// </summary>
+    //    /// <param name="key"></param>
+    //    /// <param name="elements"></param>
+    //    public BHGroup(TKey key, IEnumerable<TElement> elements)
+    //    {
+    //        Key = key;
+    //        Elements = elements;
+    //        First = elements.First();
+    //        Last = elements.Last();
+    //    }
 
-        public void Case(TKey key, IEnumerable<TElement> elements)
-        {
+    //    public void Case(TKey key, IEnumerable<TElement> elements)
+    //    {
 
-        }
-    }
+    //    }
+    //}
 
-    public class BHEnumerable<T,TResult>
-    {
-        private readonly List<T> _items;
-        public BHEnumerable()
-        {
-            _items = new List<T>();
-        }
+    //public class BHEnumerable<T,TResult>
+    //{
+    //    private readonly List<T> _items;
+    //    public BHEnumerable()
+    //    {
+    //        _items = new List<T>();
+    //    }
 
-        public IBHQuery<TResult> Map(Func<T, TResult> selector)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (selector == null) throw new ArgumentNullException(nameof(selector));
+    //    public IBHQuery<TResult> Map(Func<T, TResult> selector)
+    //    {
+    //        if (source == null) throw new ArgumentNullException(nameof(source));
+    //        if (selector == null) throw new ArgumentNullException(nameof(selector));
 
-            return CustomSelectIterator(selector);
-        }
+    //        return CustomSelectIterator(selector);
+    //    }
 
-        private IBHQuery<TResult> CustomSelectIterator(Func<T, TResult> selector)
-        {
-            foreach (var item in _items)
-            {
-                yield return selector(item);
-            }
-        }
+    //    private IBHQuery<TResult> CustomSelectIterator(Func<T, TResult> selector)
+    //    {
+    //        foreach (var item in _items)
+    //        {
+    //            yield return selector(item);
+    //        }
+    //    }
 
-        // Method to add items to the custom collection
-        public void Add(T item)
-        {
-            _items.Add(item);
-        }
+    //    // Method to add items to the custom collection
+    //    public void Add(T item)
+    //    {
+    //        _items.Add(item);
+    //    }
 
-        // Method to get enumerator
-        public IEnumerator<T> GetEnumerator()
-        {
-            return _items.GetEnumerator();
-        }
-    }
+    //    // Method to get enumerator
+    //    public IEnumerator<T> GetEnumerator()
+    //    {
+    //        return _items.GetEnumerator();
+    //    }
+    //}
 }

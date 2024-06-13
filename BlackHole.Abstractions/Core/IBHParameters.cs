@@ -11,11 +11,11 @@ namespace BlackHole.Core
         /// </summary>
         /// <param name="Name"></param>
         /// <param name="Value"></param>
-        void Add(string? Name, object? Value);
+        void AddParameter(string? Name, object? Value);
 
         /// <summary>
         /// 
         /// </summary>
-        void Clear();
+        internal void Clear();
     }
 }
