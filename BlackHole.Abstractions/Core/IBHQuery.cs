@@ -45,6 +45,52 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    public interface IBHQueryUpdatable<T> where T : class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        bool AllColumns();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> AllColumnsAsync();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        bool SelectColumns(Action<UpdateSelection<T>> selection);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> SelectColumnsAsync(Action<UpdateSelection<T>> selection);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface UpdateSelection<T> where T : class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="key"></param>
+        void Select<TKey>(Func<T, TKey> key);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface IBHQuerySearchable<T> : IBHQuery<T> where T : class
     {
         /// <summary>

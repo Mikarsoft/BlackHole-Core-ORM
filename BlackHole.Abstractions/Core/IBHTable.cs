@@ -91,7 +91,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        bool UpdateById(T entry, IBHTransaction? transaction = null);
+        IBHQueryUpdatable<T> UpdateById(T entry, IBHTransaction? transaction = null);
 
         /// <summary>
         /// Finds the entry in the database table that
@@ -105,7 +105,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        bool UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+        IBHQueryUpdatable<Dto> UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>;
 
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace BlackHole.Core
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        bool UpdateById(List<T> entries, IBHTransaction? transaction = null);
+        IBHQueryUpdatable<T> UpdateById(List<T> entries, IBHTransaction? transaction = null);
 
         /// <summary>
         /// Finds the entries in the database table that
@@ -131,7 +131,7 @@ namespace BlackHole.Core
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        bool UpdateById<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+        IBHQueryUpdatable<Dto> UpdateById<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>;
 
         /// <summary>
         /// Finds and deletes the entry of the database table
@@ -196,57 +196,6 @@ namespace BlackHole.Core
         /// <param name="transaction"></param>
         /// <returns>Data Transfer Object</returns>
         Task<Dto?> GetByIdAsync<Dto>(G Id, IBHTransaction? transaction = null) where Dto : BHDto<G>;
-
-        /// <summary>
-        /// Finds the entry in the table that has
-        /// the same Id with the input's Entity and updates all
-        /// the columns based on the Entity's property values. 
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// </summary>
-        /// <param name="entry">Entity</param>
-        /// <param name="transaction"></param>
-        /// <returns>Success</returns>
-        Task<bool> UpdateByIdAsync(T entry, IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// Finds the entry in the database table that
-        /// has the same Id with the input's Entity and
-        /// using a 'Columns' class that has properties with the same
-        /// name and type with some properties of the Entity, to specifically update
-        /// these columns on the database entry.
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="entry">Entity</param>
-        /// <param name="transaction"></param>
-        /// <returns>Success</returns>
-        Task<bool> UpdateByIdAsync<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>;
-
-
-        /// <summary>
-        /// Finds the entries in the table that have
-        /// the same Id with the input's Entities and updates all
-        /// the columns based on each Entity's property values.
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// </summary>
-        /// <param name="entries">List of Entities</param>
-        /// <param name="transaction"></param>
-        /// <returns>Success</returns>
-        Task<bool> UpdateByIdAsync(List<T> entries, IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// Finds the entries in the database table that
-        /// has the same Id with the input's Entities and
-        /// using a 'Columns' class that has properties with the same
-        /// name and type with some properties of the Entity, to specifically update
-        /// these columns on each database entry.
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// </summary>
-        /// <typeparam name="Dto">Data Transfer Object</typeparam>
-        /// <param name="entries">List of Entities</param>
-        /// <param name="transaction"></param>
-        /// <returns>Success</returns>
-        Task<bool> UpdateByIdAsync<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>;
 
         /// <summary>
         /// Finds and deletes the entry of the database table
@@ -386,7 +335,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null);
+        IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null);
 
         /// <summary>
         /// Finds the entries in the database table
@@ -401,7 +350,7 @@ namespace BlackHole.Core
         /// <param name="entry">Columns Object</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class;
+        IBHQueryUpdatable<Columns> UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class;
 
         #endregion
 
@@ -482,38 +431,6 @@ namespace BlackHole.Core
         /// <returns>Success</returns>
         Task<bool> InsertEntriesAsync(IBHQuery<T> entries, IBHTransaction? transaction = null);
 
-        #endregion
-
-        #region Update Methods Async
-
-        /// <summary>
-        /// <b>Asyncronous.</b> Finds the entries in the table
-        /// using a Lambda Expression as filter and updates all
-        /// the columns based on the inserted Entity's property values.
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="entry">Entity</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Success</returns>
-        Task<bool> UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// <b>Asyncronous.</b> Finds the entries in the database table
-        /// using a Lambda Expression as filter and
-        /// uses a 'Columns' class that has properties with the same
-        /// name and type with some properties of the Entity, to specifically update
-        /// these columns on each database entry with the Columns Object's values.
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// <para><b>Important</b> => You must use 'await' operator if your next operation depends on this operation</para>
-        /// </summary>
-        /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="entry">Columns Object</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Success</returns>
-        Task<bool> UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class;
         #endregion
 
         #region Delete Methods Async
