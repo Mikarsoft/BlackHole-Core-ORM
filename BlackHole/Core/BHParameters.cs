@@ -11,7 +11,7 @@ namespace BlackHole.Core
             Parameters = new();
         } 
 
-        public void Add(string? Name , object? Value)
+        public void AddParameter(string? Name , object? Value)
         {
             Parameters.Add(new BlackHoleParameter { Name = @Name , Value = Value });
         }

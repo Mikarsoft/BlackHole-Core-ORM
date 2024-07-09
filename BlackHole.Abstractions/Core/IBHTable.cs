@@ -3,7 +3,7 @@ using BlackHole.Entities;
 using BlackHole.Identifiers;
 using System.Linq.Expressions;
 
-namespace BlackHole.Abstractions.Core
+namespace BlackHole.Core
 {
     /// <summary>
     /// 
@@ -14,7 +14,13 @@ namespace BlackHole.Abstractions.Core
         /// <summary>
         /// 
         /// </summary>
-        IBHCommand Command { get; }
+        IBHCommand Command(string commandText, string? databaseIdentity = null);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        IBHParameters CreateParameters();
 
         /// <summary>
         /// 

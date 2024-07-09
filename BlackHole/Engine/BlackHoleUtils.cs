@@ -44,6 +44,29 @@ namespace BlackHole.Engine
         }
     }
 
+    internal class EntityAISet
+    {
+        internal bool UseIdGenerator { get; set; }
+        internal bool WithActivator { get; set; }
+        internal string ThisId { get; set; } = string.Empty;
+        internal string ThisInactive { get; set; } = string.Empty;
+        internal string ReturningId { get; set; } = string.Empty;
+    }
+
+    internal class EntityBaseSet
+    {
+        internal int ConnectionIndex { get; set; }
+        internal BlackHoleSqlTypes DatabaseType { get; set; }
+        internal string ThisTable { get; set; } = string.Empty;
+        internal List<string> Columns { get; set; } = new();
+        internal string PropertyNames { get; set; } = string.Empty;
+        internal string PropertyParams { get; set; } = string.Empty;
+        internal string UpdateParams { get; set; } = string.Empty;
+        internal string ThisSchema { get; set; } = string.Empty;
+        internal bool IsQuotedDb { get; set; }
+        internal PropertyInfo[] Tprops { get; set; } = new PropertyInfo[0];
+    }
+
     internal class EntityContext : BHEntityContext
     {
         internal bool UseIdGenerator { get; set; }

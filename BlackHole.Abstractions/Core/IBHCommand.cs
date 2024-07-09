@@ -1,37 +1,33 @@
 ﻿using BlackHole.Core;
 
-namespace BlackHole.Abstractions.Core
+namespace BlackHole.Core
 {
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHCommand
+    public interface IBHCommand : IBHCommandExecution
     {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="commandText"></param>
-        /// <param name="databaseIdentity"></param>
+        /// <param name="parameters"></param>
         /// <returns></returns>
-        IBHCommandExecution Set(string commandText, string? databaseIdentity = null);
+        IBHCommandExecution Parameters(Action<IBHParameters> parameters);
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="commandText"></param>
         /// <param name="parameters"></param>
-        /// <param name="databaseIdentity"></param>
         /// <returns></returns>
-        IBHCommandExecution Set(string commandText, Action<IBHParameters> parameters, string? databaseIdentity = null);
+        IBHCommandExecution Parameters(IBHParameters parameters);
+
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="commandText"></param>
         /// <param name="parameters"></param>
-        /// <param name="databaseIdentity"></param>
         /// <returns></returns>
-        IBHCommandExecution Set(string commandText, object[] parameters, string? databaseIdentity = null);
+        IBHCommandExecution Parameters(object[] parameters);
     }
 
     /// <summary>

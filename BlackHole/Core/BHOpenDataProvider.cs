@@ -88,7 +88,7 @@ namespace BlackHole.Core
             foreach (PropertyInfo property in propertyInfos)
             {
                 object? value = property.GetValue(parametersObject);
-                parameters.Add(property.Name, value);
+                parameters.AddParameter(property.Name, value);
             }
             return parameters.Parameters;
         }

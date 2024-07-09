@@ -16,6 +16,6 @@ namespace BlackHole.Core
         /// <summary>
         /// 
         /// </summary>
-        internal void Clear();
+        void Clear();
     }
 }
