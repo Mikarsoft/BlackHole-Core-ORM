@@ -5,7 +5,7 @@ namespace BlackHole.Core
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHJoinsProcess<Dto> where Dto : BHDtoIdentifier
+    public interface IBHJoinsProcess<Dto> where Dto : class, BHDtoIdentifier
     {
         /// <summary>
         /// 

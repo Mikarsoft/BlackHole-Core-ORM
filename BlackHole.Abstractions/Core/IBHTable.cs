@@ -1,5 +1,4 @@
-﻿using BlackHole.Core;
-using BlackHole.Entities;
+﻿using BlackHole.Entities;
 using BlackHole.Identifiers;
 using System.Linq.Expressions;
 
@@ -105,7 +104,7 @@ namespace BlackHole.Core
         /// <param name="entry">Entity</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        IBHQueryUpdatable<Dto> UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+        IBHQueryUpdatable<T, Dto> UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>;
 
 
         /// <summary>
@@ -267,6 +266,37 @@ namespace BlackHole.Core
         IBHQueryJoinable<Dto, T> Select<Dto>(IBHTransaction? transaction = null) where Dto : BHDto;
         #endregion
 
+        #region Update Methods
+
+        /// <summary>
+        /// Finds the entries in the table
+        /// using a Lambda Expression as filter and updates all
+        /// the columns based on the inserted Entity's property values.
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <param name="entry">Entity</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Success</returns>
+        IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null);
+
+        /// <summary>
+        /// Finds the entries in the database table
+        /// using a Lambda Expression as filter and
+        /// uses a 'Columns' class that has properties with the same
+        /// name and type with some properties of the Entity, to specifically update
+        /// these columns on each database entry with the Columns Object's values.
+        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+        /// </summary>
+        /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
+        /// <param name="predicate">Lambda Expression</param>
+        /// <param name="entry">Columns Object</param>
+        /// <param name="transaction">Transaction Object</param>
+        /// <returns>Success</returns>
+        IBHQueryUpdatable<T, Columns> UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class;
+
+        #endregion
+
         // SYNC METHODS
 
         #region Additional Methods
@@ -321,37 +351,6 @@ namespace BlackHole.Core
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
         bool InsertEntries(IBHQuery<T> entries, IBHTransaction? transaction = null);
-        #endregion
-
-        #region Update Methods
-
-        /// <summary>
-        /// Finds the entries in the table
-        /// using a Lambda Expression as filter and updates all
-        /// the columns based on the inserted Entity's property values.
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="entry">Entity</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Success</returns>
-        IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null);
-
-        /// <summary>
-        /// Finds the entries in the database table
-        /// using a Lambda Expression as filter and
-        /// uses a 'Columns' class that has properties with the same
-        /// name and type with some properties of the Entity, to specifically update
-        /// these columns on each database entry with the Columns Object's values.
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// </summary>
-        /// <typeparam name="Columns">Class with Properties that match with some of the Entity's properties</typeparam>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="entry">Columns Object</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Success</returns>
-        IBHQueryUpdatable<Columns> UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class;
-
         #endregion
 
         #region Delete Methods

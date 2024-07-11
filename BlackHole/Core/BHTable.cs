@@ -21,30 +21,52 @@ namespace BlackHole.Core
             _dataProvider = _context.ConnectionIndex.GetDataProvider();
         }
 
-        #endregion
+        public T? GetById(G Id, IBHTransaction? transaction = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dto? GetById<Dto>(G Id, IBHTransaction? transaction = null) where Dto : BHDto<G>
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBHQueryUpdatable<T> UpdateById(T entry, IBHTransaction? transaction = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBHQueryUpdatable<T, Dto> UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBHQueryUpdatable<T> UpdateById(List<T> entries, IBHTransaction? transaction = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBHQueryUpdatable<Dto> UpdateById<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>
+        {
+            throw new NotImplementedException();
+        }
+
         public bool DeleteById(G Id, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteByIdAsync(G Id, IBHTransaction? transaction = null)
+        public bool RemoveById(G Id, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
 
-        public T? GetById(G Id, IBHTransaction? transaction = null)
+        public bool RestoreById(G Id, IBHTransaction? transaction = null)
         {
-            BHParameters Params = new BHParameters();
-            Params.AddParameter("Id", Id);
-
-            if (_context.WithActivator)
-            {
-                return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id and {_context.ThisInactive} = 0", Params.Parameters);
-            }
-            return _dataProvider.QueryFirst<T>($"select {_context.ThisId},{_context.PropertyNames} from {_context.ThisTable} where {_context.ThisId} = @Id", Params.Parameters);
+            throw new NotImplementedException();
         }
 
-        public Dto? GetById<Dto>(G Id, IBHTransaction? transaction = null) where Dto : BHDto<G>
+        public List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
@@ -59,17 +81,7 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        public Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<G> GetIdsWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool RemoveById(G Id, IBHTransaction? transaction = null)
+        public Task<bool> DeleteByIdAsync(G Id, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
@@ -79,55 +91,18 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        public bool RestoreById(G Id, IBHTransaction? transaction = null)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<bool> RestoreByIdAsync(G Id, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateById(T entry, IBHTransaction? transaction = null)
+        public Task<List<G>> GetIdsAsyncWhere(Expression<Func<T, bool>> predicate, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
 
-        public bool UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>
-        {
-            throw new NotImplementedException();
-        }
+        #endregion
 
-        public bool UpdateById(List<T> entries, IBHTransaction? transaction = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool UpdateById<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateByIdAsync(T entry, IBHTransaction? transaction = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateByIdAsync<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateByIdAsync(List<T> entries, IBHTransaction? transaction = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> UpdateByIdAsync<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>
-        {
-            throw new NotImplementedException();
-        }
     }
 
     internal class BHTable<T> : BHContextBase, IBHTable<T> where T : class, BHEntityIdentifier
@@ -222,22 +197,12 @@ namespace BlackHole.Core
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateEntriesAsyncWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null)
+        public IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateEntriesAsyncWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class
+        public IBHQueryUpdatable<T, Columns> UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class
         {
             throw new NotImplementedException();
         }

@@ -9,7 +9,7 @@ namespace BlackHole.Core
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IPrejoin<Dto, TSource, TOther> where Dto : BHDtoIdentifier
+    public interface IPrejoin<Dto, TSource, TOther> where Dto : class, BHDtoIdentifier
     {
         /// <summary>
         /// Skata <para> <b>mpla</b></para>

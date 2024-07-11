@@ -1,5 +1,4 @@
-﻿using BlackHole.Core;
-using BlackHole.Entities;
+﻿using BlackHole.Entities;
 using BlackHole.Identifiers;
 using System.Linq.Expressions;
 
@@ -76,15 +75,63 @@ namespace BlackHole.Core
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    /// <typeparam name="Dto"></typeparam>
+    public interface IBHQueryUpdatable<T, Dto> where T : class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        bool AllColumns();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> AllColumnsAsync();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        bool SelectColumns(Action<UpdateSelection<T, Dto>> selection);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> SelectColumnsAsync(Action<UpdateSelection<T, Dto>> selection);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="Dto"></typeparam>
+    public interface UpdateSelection<T,Dto> : UpdateSelection<T> where T : class
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="dtoKey"></param>
+        /// <param name="entityKey"></param>
+        void Map<TKey>(Func<Dto, TKey> dtoKey, Func<T, TKey> entityKey);
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public interface UpdateSelection<T> where T : class
     {
         /// <summary>
         /// 
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <typeparam name="TKey"></typeparam>
         /// <param name="key"></param>
-        void Select<TKey>(Func<T, TKey> key);
+        void Use<TKey>(Func<T, TKey> key);
     }
 
     /// <summary>
