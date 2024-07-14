@@ -62,13 +62,13 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        bool SelectColumns(Action<UpdateSelection<T>> selection);
+        bool UpdateColumns(Action<UpdateSelection<T>> selection);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        Task<bool> SelectColumnsAsync(Action<UpdateSelection<T>> selection);
+        Task<bool> UpdateColumnsAsync(Action<UpdateSelection<T>> selection);
     }
 
     /// <summary>
@@ -94,13 +94,13 @@ namespace BlackHole.Core
         /// 
         /// </summary>
         /// <returns></returns>
-        bool SelectColumns(Action<UpdateSelection<T, Dto>> selection);
+        bool UpdateColumns(Action<UpdateSelection<T, Dto>> selection);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        Task<bool> SelectColumnsAsync(Action<UpdateSelection<T, Dto>> selection);
+        Task<bool> UpdateColumnsAsync(Action<UpdateSelection<T, Dto>> selection);
     }
 
     /// <summary>
