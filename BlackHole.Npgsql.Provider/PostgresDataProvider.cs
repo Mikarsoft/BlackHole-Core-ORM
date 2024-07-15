@@ -1,9 +1,9 @@
-﻿using BlackHole.Provider.Abstractions;
+﻿using Mikarsoft.BlackHoleCore.Connector;
 using Npgsql;
 using System.Data;
 using System.Reflection;
 
-namespace BlackHole.Npgsql.Provider
+namespace Mikarsoft.BlackHoleCore.Npgsql
 {
     public class PostgresDataProvider : IBHDataProvider
     {

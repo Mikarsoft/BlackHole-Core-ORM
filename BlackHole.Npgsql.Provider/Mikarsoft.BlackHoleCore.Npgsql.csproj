@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BlackHole.Provider.Abstractions\BlackHole.Provider.Abstractions.csproj" />
+    <ProjectReference Include="..\BlackHole.Provider.Abstractions\Mikarsoft.BlackHoleCore.Connector.csproj" />
   </ItemGroup>
 
 </Project>

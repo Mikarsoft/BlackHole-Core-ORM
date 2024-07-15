@@ -1,6 +1,6 @@
-﻿using BlackHole.Provider.Abstractions;
+﻿using Mikarsoft.BlackHoleCore.Connector;
 
-namespace BlackHole.Npgsql.Provider
+namespace Mikarsoft.BlackHoleCore.Npgsql
 {
     public static class NpgsqlConfiguration
     {

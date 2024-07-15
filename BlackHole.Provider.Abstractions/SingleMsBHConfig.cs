@@ -1,6 +1,6 @@
 ﻿
 
-namespace BlackHole.Provider.Abstractions
+namespace Mikarsoft.BlackHoleCore.Connector
 {
     public class SingleMsBHConfig : BHModeConfig
     {

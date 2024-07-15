@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 	<PackageOutputPath>../nupkg/abstractions</PackageOutputPath>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<PackageId>BlackHole.Core.Abstractions</PackageId>
+	<PackageId>Mikarsoft.BlackHoleCore.Abstractions</PackageId>
 	<Title>BlackHole.Abstractions</Title>
 	<Version>6.0.6</Version>
 	<Authors>Michael Archolekas</Authors>

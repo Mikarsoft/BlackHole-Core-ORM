@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PackageId>BlackHole.Core.ORM</PackageId>
+    <PackageId>Mikarsoft.BlackHoleCore</PackageId>
     <Authors>Michael Archolekas</Authors>
     <Company>Mikarsoft Ltd</Company>
 	<PackageOutputPath>../nupkg/orm</PackageOutputPath>
@@ -95,8 +95,8 @@ Find the Tutorial here =&gt;</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BlackHole.Abstractions\BlackHole.Abstractions.csproj" />
-    <ProjectReference Include="..\BlackHole.Provider.Abstractions\BlackHole.Provider.Abstractions.csproj" />
+    <ProjectReference Include="..\BlackHole.Abstractions\Mikarsoft.BlackHoleCore.Abstractions.csproj" />
+    <ProjectReference Include="..\BlackHole.Provider.Abstractions\Mikarsoft.BlackHoleCore.Connector.csproj" />
   </ItemGroup>
 
   <ItemGroup>

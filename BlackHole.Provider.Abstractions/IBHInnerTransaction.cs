@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace BlackHole.Provider.Abstractions
+namespace Mikarsoft.BlackHoleCore.Connector
 {
     public interface IBHInnerTransaction : IDisposable
     {
