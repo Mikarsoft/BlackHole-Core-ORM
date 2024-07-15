@@ -18,3 +18,4 @@
 /BlackHole.Abstractions/bin/Debug/net6.0
 /BlackHole.Provider.Abstractions/obj
 /BlackHole.Npgsql.Provider/obj
+/BlackHole.Provider.Abstractions/bin/Debug/net8.0

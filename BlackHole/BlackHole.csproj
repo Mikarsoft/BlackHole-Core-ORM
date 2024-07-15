@@ -96,6 +96,7 @@ Find the Tutorial here =&gt;</Description>
 
   <ItemGroup>
     <ProjectReference Include="..\BlackHole.Abstractions\BlackHole.Abstractions.csproj" />
+    <ProjectReference Include="..\BlackHole.Provider.Abstractions\BlackHole.Provider.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

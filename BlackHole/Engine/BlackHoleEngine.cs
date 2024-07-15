@@ -3,6 +3,7 @@ using BlackHole.DataProviders;
 using BlackHole.Entities;
 using BlackHole.Enums;
 using BlackHole.Identifiers;
+using BlackHole.Provider.Abstractions;
 using BlackHole.Statics;
 using System.Data;
 using System.Linq.Expressions;
@@ -14,12 +15,12 @@ namespace BlackHole.Engine
 {
     internal static class BlackHoleEngine
     {
-        private static IDataProvider[] DataProviders { get; set; } = new IDataProvider[0];
+        private static IBHDataProvider[] DataProviders { get; set; } = new IBHDataProvider[0];
         private static SHA1? Sh { get; set; }
 
         internal static void InitializeEngine(this int pvCount)
         {
-            DataProviders = new IDataProvider[pvCount];
+            DataProviders = new IBHDataProvider[pvCount];
             Sh = SHA1.Create();
         }
 
