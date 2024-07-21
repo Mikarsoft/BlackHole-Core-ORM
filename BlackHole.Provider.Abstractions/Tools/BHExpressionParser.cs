@@ -114,23 +114,23 @@ namespace Mikarsoft.BlackHoleCore.Connector.Tools
             var res = data.OrderBy(x => x.FinalPosition).ToList();
             BHExpressionPart[] parts = new BHExpressionPart[res.Count];
 
-            for(int i = 0; i < data.Count; i++)
+            for (int i = 0; i < data.Count; i++)
             {
-                if (data[i].IsEdge())
+                if (res[i].IsEdge())
                 {
-                    parts[i] = data[i].MapEdge();
+                    parts[i] = res[i].MapEdge();
                     continue;
                 }
 
-                if (data[i].IsBranch())
+                if (res[i].IsBranch())
                 {
-                    parts[i] = data[i].MapBranch();
+                    parts[i] = res[i].MapBranch();
                     continue;
                 }
 
-                if (data[i].IsDoubleEdge())
+                if (res[i].IsDoubleEdge())
                 {
-                    parts[i] = data[i].MapDoubleEdge();
+                    parts[i] = res[i].MapDoubleEdge();
                 }
             }
 
@@ -139,17 +139,30 @@ namespace Mikarsoft.BlackHoleCore.Connector.Tools
 
         private static BHExpressionPart MapEdge(this ExpressionsData item)
         {
-
+            return new BHExpressionPart
+            {
+                LeftName = item.LeftMember != null ? item.LeftMember.ToString().Split(".")[1] : item.RightMember?.ToString().Split(".")[1],
+                Value = item?.MemberValue,
+                ExpType = item?.OperationType ?? ExpressionType.Default
+            };
         }
 
         private static BHExpressionPart MapBranch(this ExpressionsData item)
         {
-
+            return new BHExpressionPart
+            {
+                ExpType = item?.OperationType ?? ExpressionType.Default
+            };
         }
 
         private static BHExpressionPart MapDoubleEdge(this ExpressionsData item)
         {
-
+            return new BHExpressionPart
+            {
+                LeftName = item.LeftMember?.ToString().Split('.')[1],
+                RightName = item.RightMember?.ToString().Split(".")[1],
+                ExpType = item?.OperationType ?? ExpressionType.Default
+            };
         }
 
         private static bool IsBranch(this ExpressionsData item) => item.MemberValue == null && item.MethodData.Count == 0 && item.OperationType != ExpressionType.Default;
