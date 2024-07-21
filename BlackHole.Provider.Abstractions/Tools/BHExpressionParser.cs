@@ -22,29 +22,13 @@ namespace Mikarsoft.BlackHoleCore.Connector.Tools
         internal bool IsNullValue { get; set; }
     }
 
-    public class BHExpressionLayer
-    {
-        public string[] Letters { get; set; } = new string[2];
-        public string[] Columns { get; set; } = new string[2];
-        public string[] Schemas { get; set; } = new string[2];
-        public string[] Methods { get; set; } = new string[2];
-        public ExpressionType ExpType { get; set; }
-        public short ParentOrderId { get; set; }
-    }
-
     public class BHExpressionPart
     {
-        public short OrderId { get; set; }
-
-        public short ParentOrderId { get; set; }
-
         public string? LeftName { get; set; }
 
         public string? RightName { get; set; }
 
         public object? Value { get; set; }
-
-        //public BHMethod? CustomMethod { get; set; }
 
         public ExpressionType ExpType { get; set; }
     }
@@ -109,6 +93,45 @@ namespace Mikarsoft.BlackHoleCore.Connector.Tools
             }
         }
 
+        public static string BuildSqlCommand(this BHExpressionPart[] parts)
+        {
+            string res = string.Empty;
+
+            foreach (var part in parts)
+            {
+                if (part.LeftName != null)
+                {
+                    res += $"{part.LeftName} ";
+                }
+
+                res += part.ExpType switch
+                {
+                    ExpressionType.AndAlso => "and ",
+                    ExpressionType.OrElse => "or ",
+                    ExpressionType.NotEqual => "!= ",
+                    ExpressionType.GreaterThan => "> ",
+                    ExpressionType.LessThan => "< ",
+                    ExpressionType.GreaterThanOrEqual => ">= ",
+                    ExpressionType.LessThanOrEqual => "<= ",
+                    _ => "= "
+                };
+
+                if (part.IsNotConnector())
+                {
+                    if (part.RightName != null)
+                    {
+                        res += $"{part.RightName} ";
+                    }
+                    else
+                    {
+                        res += $"{part.Value ?? "null"} ";
+                    }
+                }
+            }
+
+            return res;
+        }
+
         private static BHExpressionPart[] OrderExpressionTree<T>(this List<ExpressionsData> data)
         {
             var res = data.OrderBy(x => x.FinalPosition).ToList();
@@ -171,7 +194,7 @@ namespace Mikarsoft.BlackHoleCore.Connector.Tools
 
         private static bool IsDoubleEdge(this ExpressionsData item) => item.MemberValue == null && item.LeftMember != null && item.RightMember != null && item.MethodData.Count == 0;
 
-        private static bool IsNotConnector(this ExpressionsData item) => item.OperationType != ExpressionType.AndAlso && item.OperationType != ExpressionType.OrElse;
+        private static bool IsNotConnector(this BHExpressionPart item) => item.ExpType != ExpressionType.AndAlso && item.ExpType != ExpressionType.OrElse;
 
         public static BHExpressionPart[] ParseExpression<T>(this Expression<Func<T, bool>> completeExpression)
         {
