@@ -4,7 +4,7 @@ namespace Mikarsoft.BlackHoleCore.Npgsql
 {
     public class NpgsqlConfig : BHDatabaseConfig
     {
-        internal NpgsqlConfig(bool useQuotedDb, int connectionTimeout) : base(useQuotedDb, connectionTimeout, BlackHoleSqlTypes.Postgres)
+        internal NpgsqlConfig(bool useQuotedDb, int connectionTimeout) : base(useQuotedDb, connectionTimeout)
         {
         }
 

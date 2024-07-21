@@ -13,14 +13,11 @@ namespace Mikarsoft.BlackHoleCore.Connector
 
         public BHModeConfig? _bhBase { get; set; }
 
-        public BlackHoleSqlTypes BHDatabaseType { get; }
 
-
-        public BHDatabaseConfig(bool useQuotedDb, int connectionTimeout, BlackHoleSqlTypes bhType)
+        public BHDatabaseConfig(bool useQuotedDb, int connectionTimeout)
         {
             UseQuotedDb = useQuotedDb;
             ConnectionTimeout = connectionTimeout > 59 ? connectionTimeout : 60;
-            BHDatabaseType = bhType;
         }
     }
 }

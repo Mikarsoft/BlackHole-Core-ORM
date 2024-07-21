@@ -1,14 +1,5 @@
 ﻿namespace Mikarsoft.BlackHoleCore.Connector
 {
-    public enum BlackHoleSqlTypes
-    {
-        SqlServer,
-        MySql,
-        Postgres,
-        SqlLite,
-        Oracle
-    }
-
     internal enum CliCommandTypes
     {
         Update,
@@ -27,7 +18,6 @@
     internal enum BHMode
     {
         Single,
-        MultiSchema,
         Multiple,
         HighAvailability
     }
