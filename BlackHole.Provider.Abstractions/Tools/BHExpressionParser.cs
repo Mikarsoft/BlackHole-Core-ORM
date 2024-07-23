@@ -121,7 +121,7 @@ namespace Mikarsoft.BlackHoleCore.Connector
                     _ => string.Empty
                 };
 
-                if (part.ExpType.IsNotConnector())
+                if (!part.ExpType.IsConnector())
                 {
                     if (part.RightName != null)
                     {
@@ -167,8 +167,6 @@ namespace Mikarsoft.BlackHoleCore.Connector
                 }
             }
 
-
-
             return parts;
         }
 
@@ -212,7 +210,7 @@ namespace Mikarsoft.BlackHoleCore.Connector
 
         private static bool IsDoubleEdge(this ExpressionsData item) => item.MemberValue == null && item.LeftMember != null && item.RightMember != null && item.MethodData.Count == 0;
 
-        private static bool IsNotConnector(this ExpressionType item) => item != ExpressionType.AndAlso && item != ExpressionType.OrElse;
+        private static bool IsConnector(this ExpressionType item) => item == ExpressionType.AndAlso || item == ExpressionType.OrElse;
 
         public static BHExpressionPart[] ParseExpression<T>(this Expression<Func<T, bool>> completeExpression)
         {
@@ -294,7 +292,7 @@ namespace Mikarsoft.BlackHoleCore.Connector
 
                 if (expressionTree[currentIndex].Operation != null)
                 {
-                    if (expressionTree[currentIndex].OperationType == ExpressionType.AndAlso || expressionTree[currentIndex].OperationType == ExpressionType.OrElse)
+                    if (expressionTree[currentIndex].OperationType.IsConnector())
                     {
                         BinaryExpression? leftOperation = expressionTree[currentIndex].Operation?.Left as BinaryExpression;
                         BinaryExpression? rightOperation = expressionTree[currentIndex].Operation?.Right as BinaryExpression;
