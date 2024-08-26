@@ -19,3 +19,14 @@
 /BlackHole.Provider.Abstractions/obj
 /BlackHole.Npgsql.Provider/obj
 /BlackHole.Provider.Abstractions/bin/Debug/net8.0
+/.vs
+/TestBench/obj
+/TestBench/bin/Debug/net8.0
+/Mikarsoft.BlackHoleCore/BlackHole.Abstractions/Mikarsoft.BlackHoleCore.Abstractions/bin/Debug/net8.0
+/Mikarsoft.BlackHoleCore/BlackHole.Abstractions/Mikarsoft.BlackHoleCore.Abstractions/obj
+/Mikarsoft.BlackHoleCore/BlackHole.Abstractions/Mikarsoft.BlackHoleCore.Connector/bin/Debug/net8.0
+/Mikarsoft.BlackHoleCore/BlackHole.Abstractions/Mikarsoft.BlackHoleCore.Connector/obj
+/Mikarsoft.BlackHoleCore/BlackHole.Providers/Mikarsoft.BlackHoleCore.Npgsql/bin/Debug/net8.0
+/Mikarsoft.BlackHoleCore/BlackHole.Providers/Mikarsoft.BlackHoleCore.Npgsql/obj
+/Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore/bin/Debug/net8.0
+/Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore/obj
