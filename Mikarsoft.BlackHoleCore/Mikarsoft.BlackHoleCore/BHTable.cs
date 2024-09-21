@@ -20,22 +20,22 @@ namespace Mikarsoft.BlackHoleCore
             return _dataProvider.QueryFirst<Dto>(query.Command, query.InnerParameters);
         }
 
-        public IBHQueryUpdatable<T> UpdateById(T entry, IBHTransaction? transaction = null)
+        public IBHQueryUpdatable<T> UpdateById(T entry)
         {
-            return new BHQueryUpdatable<T>(entry, transaction as BHTransaction);
+            return new BHQueryUpdatable<T>(entry);
         }
 
-        public IBHQueryUpdatable<T, Dto> UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>
-        {
-            throw new NotImplementedException();
-        }
-
-        public IBHQueryUpdatable<T> UpdateById(List<T> entries, IBHTransaction? transaction = null)
+        public IBHQueryUpdatable<T, Dto> UpdateById<Dto>(Dto entry) where Dto : BHDto<G>
         {
             throw new NotImplementedException();
         }
 
-        public IBHQueryUpdatable<Dto> UpdateById<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>
+        public IBHQueryUpdatable<T> UpdateById(List<T> entries)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBHQueryUpdatable<Dto> UpdateById<Dto>(List<Dto> entries) where Dto : BHDto<G>
         {
             throw new NotImplementedException();
         }
@@ -98,7 +98,7 @@ namespace Mikarsoft.BlackHoleCore
             throw new NotImplementedException();
         }
 
-        IBHQueryUpdatable<T, Dto> IBHTable<T, G>.UpdateById<Dto>(List<Dto> entries, IBHTransaction? transaction)
+        IBHQueryUpdatable<T, Dto> IBHTable<T, G>.UpdateById<Dto>(List<Dto> entries)
         {
             throw new NotImplementedException();
         }
@@ -212,22 +212,22 @@ namespace Mikarsoft.BlackHoleCore
             throw new NotImplementedException();
         }
 
-        public IBHQuerySearchable<T> Select(IBHTransaction? transaction = null)
+        public IBHQuerySearchable<T> Select()
         {
             throw new NotImplementedException();
         }
 
-        public IBHQueryJoinable<Dto, T> Select<Dto>(IBHTransaction? transaction = null) where Dto : BHDto
+        public IBHQueryJoinable<Dto, T> Select<Dto>() where Dto : BHDto
         {
             throw new NotImplementedException();
         }
 
-        public IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null)
+        public IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
         {
             throw new NotImplementedException();
         }
 
-        public IBHQueryUpdatable<T, Columns> UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class
+        public IBHQueryUpdatable<T, Columns> UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class
         {
             throw new NotImplementedException();
         }

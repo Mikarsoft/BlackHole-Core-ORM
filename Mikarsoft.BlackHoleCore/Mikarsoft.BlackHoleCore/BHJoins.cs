@@ -61,7 +61,9 @@ namespace Mikarsoft.BlackHoleCore
 
         public IJoinConfig<Dto, TSource, TOther> On<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
         {
-            StatementBuilder.AddConnection(key.MemberParse(), otherKey.MemberParse());
+            string first = key.MemberParse();
+            string second = otherKey.MemberParse();
+            StatementBuilder.AddConnection(first, second);
             return new JoinConfig<Dto, TSource, TOther>(StatementBuilder);
         }
     }
@@ -78,7 +80,9 @@ namespace Mikarsoft.BlackHoleCore
 
         public IJoinConfig<Dto, TSource, TOther> And<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
         {
-            StatementBuilder.AddConnection(key.MemberParse(), otherKey.MemberParse(), OuterPairType.And);
+            string first = key.MemberParse();
+            string second = otherKey.MemberParse();
+            StatementBuilder.AddConnection(first, second, OuterPairType.And);
             return new JoinConfig<Dto, TSource, TOther>(StatementBuilder);
         }
 
@@ -99,7 +103,9 @@ namespace Mikarsoft.BlackHoleCore
 
         public IJoinConfig<Dto, TSource, TOther> Or<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
         {
-            StatementBuilder.AddConnection(key.MemberParse(), otherKey.MemberParse(), OuterPairType.Or);
+            string first = key.MemberParse();
+            string second = otherKey.MemberParse();
+            StatementBuilder.AddConnection(first, second, OuterPairType.Or);
             return new JoinConfig<Dto, TSource, TOther>(StatementBuilder);
         }
 

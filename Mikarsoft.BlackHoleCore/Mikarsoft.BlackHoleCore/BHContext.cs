@@ -21,7 +21,7 @@ namespace Mikarsoft.BlackHoleCore
     {
         public IBHTransaction BeginTransaction()
         {
-            throw new NotImplementedException();
+            return new BHTransaction();
         }
 
         public IBHCommand Command(string commandText, string? databaseIdentity = null)

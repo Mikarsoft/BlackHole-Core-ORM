@@ -41,7 +41,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="entry">Entity</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        IBHQueryUpdatable<T> UpdateById(T entry, IBHTransaction? transaction = null);
+        IBHQueryUpdatable<T> UpdateById(T entry);
 
         /// <summary>
         /// Finds the entry in the database table that
@@ -55,7 +55,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="entry">Entity</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        IBHQueryUpdatable<T, Dto> UpdateById<Dto>(Dto entry, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+        IBHQueryUpdatable<T, Dto> UpdateById<Dto>(Dto entry) where Dto : BHDto<G>;
 
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        IBHQueryUpdatable<T> UpdateById(List<T> entries, IBHTransaction? transaction = null);
+        IBHQueryUpdatable<T> UpdateById(List<T> entries);
 
         /// <summary>
         /// Finds the entries in the database table that
@@ -81,7 +81,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction"></param>
         /// <returns>Success</returns>
-        IBHQueryUpdatable<T, Dto> UpdateById<Dto>(List<Dto> entries, IBHTransaction? transaction = null) where Dto : BHDto<G>;
+        IBHQueryUpdatable<T, Dto> UpdateById<Dto>(List<Dto> entries) where Dto : BHDto<G>;
 
         /// <summary>
         /// Finds and deletes the entry of the database table
@@ -203,7 +203,7 @@ namespace Mikarsoft.BlackHoleCore
         /// </summary>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>All Entities of the Table</returns>
-        IBHQuerySearchable<T> Select(IBHTransaction? transaction = null);
+        IBHQuerySearchable<T> Select();
 
         /// <summary>
         /// Selects only the columns of the specified Dto that exist on the Table
@@ -214,7 +214,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>All Entities of the Table mapped to DTO</returns>
-        IBHQueryJoinable<Dto, T> Select<Dto>(IBHTransaction? transaction = null) where Dto : BHDto;
+        IBHQueryJoinable<Dto, T> Select<Dto>() where Dto : BHDto;
         #endregion
 
         #region Update Methods
@@ -229,7 +229,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="entry">Entity</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry, IBHTransaction? transaction = null);
+        IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry);
 
         /// <summary>
         /// Finds the entries in the database table
@@ -244,7 +244,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="entry">Columns Object</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        IBHQueryUpdatable<T, Columns> UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry, IBHTransaction? transaction = null) where Columns : class;
+        IBHQueryUpdatable<T, Columns> UpdateEntriesWhere<Columns>(Expression<Func<T, bool>> predicate, Columns entry) where Columns : class;
 
         #endregion
 

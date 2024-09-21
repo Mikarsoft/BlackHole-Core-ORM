@@ -10,22 +10,17 @@ namespace Mikarsoft.BlackHoleCore
     {
         internal List<T> Values { get; private set; }
 
-        internal BHTransaction? _transaction;
-
-        public BHQueryUpdatable(T value, BHTransaction? transaction)
+        public BHQueryUpdatable(T value)
         {
             Values = new List<T>
             {
                 value
             };
-
-            _transaction = transaction;
         }
 
-        public BHQueryUpdatable(List<T> values, BHTransaction transaction)
+        public BHQueryUpdatable(List<T> values)
         {
             Values = values;
-            _transaction = transaction;
         }
 
         public bool OnColumns(Action<UpdateSelection<T>> selection)
