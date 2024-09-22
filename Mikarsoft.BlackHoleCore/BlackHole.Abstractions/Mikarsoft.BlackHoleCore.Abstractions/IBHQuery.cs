@@ -204,6 +204,18 @@ namespace Mikarsoft.BlackHoleCore
         /// 
         /// </summary>
         /// <returns></returns>
+        List<T> ToList(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<List<T>> ToListAsync(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         T? FirstOrDefault();
 
         /// <summary>
@@ -211,6 +223,18 @@ namespace Mikarsoft.BlackHoleCore
         /// </summary>
         /// <returns></returns>
         Task<T?> FirstOrDefaultAsync();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        T? FirstOrDefault(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
     }
 
     /// <summary>

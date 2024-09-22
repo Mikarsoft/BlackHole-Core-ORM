@@ -1,26 +1,31 @@
 ﻿using Mikarsoft.BlackHoleCore.Connector;
 using Mikarsoft.BlackHoleCore.Connector.Enums;
-using Mikarsoft.BlackHoleCore.Connector.Statements;
 using Mikarsoft.BlackHoleCore.Entities;
+using Mikarsoft.BlackHoleCore.Tools;
 using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore
 {
     internal class BHQueryUpdatable<T> : IBHQueryUpdatable<T> where T : BHEntity<T>
     {
-        internal List<T> Values { get; private set; }
+        internal readonly IBHDataProvider _dataProvider;
 
-        public BHQueryUpdatable(T value)
+        internal readonly List<T> Values;
+
+        public BHQueryUpdatable(T value, IBHDataProvider dataProvider)
         {
             Values = new List<T>
             {
                 value
             };
+
+            _dataProvider = dataProvider;
         }
 
-        public BHQueryUpdatable(List<T> values)
+        public BHQueryUpdatable(List<T> values, IBHDataProvider dataProvider)
         {
             Values = values;
+            _dataProvider = dataProvider;
         }
 
         public bool OnColumns(Action<UpdateSelection<T>> selection)
@@ -91,22 +96,26 @@ namespace Mikarsoft.BlackHoleCore
     {
         public IPreJoin<Dto, T, TOther> InnerJoin<TOther>() where TOther : BHEntity<TOther>
         {
-            return new PreJoin<Dto, T, TOther>(new JoinStatement<Dto>(nameof(T), nameof(TOther), JoinType.Inner));
+            byte[] tableLetters = StatementBuilder.AddJoin<T, TOther>(JoinType.Inner);
+            return new PreJoin<Dto, T, TOther>(StatementBuilder, tableLetters);
         }
 
         public IPreJoin<Dto, T, TOther> LeftJoin<TOther>() where TOther : BHEntity<TOther>
         {
-            return new PreJoin<Dto, T, TOther>(new JoinStatement<Dto>(nameof(T), nameof(TOther), JoinType.Left));
+            byte[] tableLetters = StatementBuilder.AddJoin<T, TOther>(JoinType.Left);
+            return new PreJoin<Dto, T, TOther>(StatementBuilder, tableLetters);
         }
 
         public IPreJoin<Dto, T, TOther> OuterJoin<TOther>() where TOther : BHEntity<TOther>
         {
-            return new PreJoin<Dto, T, TOther>(new JoinStatement<Dto>(nameof(T), nameof(TOther), JoinType.Outer));
+            byte[] tableLetters = StatementBuilder.AddJoin<T, TOther>(JoinType.Outer);
+            return new PreJoin<Dto, T, TOther>(StatementBuilder, tableLetters);
         }
 
         public IPreJoin<Dto, T, TOther> RightJoin<TOther>() where TOther : BHEntity<TOther>
         {
-            return new PreJoin<Dto, T, TOther>(new JoinStatement<Dto>(nameof(T), nameof(TOther), JoinType.Right));
+            byte[] tableLetters = StatementBuilder.AddJoin<T, TOther>(JoinType.Right);
+            return new PreJoin<Dto, T, TOther>(StatementBuilder, tableLetters);
         }
     }
 
@@ -114,19 +123,44 @@ namespace Mikarsoft.BlackHoleCore
     {
         public IBHQuery<T> Where(Expression<Func<T, bool>> predicate)
         {
-            throw new NotImplementedException();
+            StatementBuilder.AddWhereCase(predicate);
+            return new BHQuery<T>(StatementBuilder);
         }
     }
 
     internal class BHQuery<T> : IBHQuery<T> where T : class
     {
+        internal readonly BHStatementBuilder StatementBuilder;
+
+        internal BHQuery()
+        {
+            StatementBuilder = new(BHCommandType.Select, typeof(T));
+        }
+
+        internal BHQuery(BHStatementBuilder statement)
+        {
+            StatementBuilder = statement;
+        }
+
         public T? FirstOrDefault()
         {
             throw new NotImplementedException();
         }
 
+        public T? FirstOrDefault(Expression<Func<T, bool>> predicate)
+        {
+            StatementBuilder.AddWhereCase(predicate);
+            throw new NotImplementedException();
+        }
+
         public Task<T?> FirstOrDefaultAsync()
         {
+            throw new NotImplementedException();
+        }
+
+        public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+        {
+            StatementBuilder.AddWhereCase(predicate);
             throw new NotImplementedException();
         }
 
@@ -150,8 +184,20 @@ namespace Mikarsoft.BlackHoleCore
             throw new NotImplementedException();
         }
 
+        public List<T> ToList(Expression<Func<T, bool>> predicate)
+        {
+            StatementBuilder.AddWhereCase(predicate);
+            throw new NotImplementedException();
+        }
+
         public Task<List<T>> ToListAsync()
         {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<T>> ToListAsync(Expression<Func<T, bool>> predicate)
+        {
+            StatementBuilder.AddWhereCase(predicate);
             throw new NotImplementedException();
         }
     }

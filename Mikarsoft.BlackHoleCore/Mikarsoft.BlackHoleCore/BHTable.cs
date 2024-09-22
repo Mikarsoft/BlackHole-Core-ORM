@@ -22,7 +22,7 @@ namespace Mikarsoft.BlackHoleCore
 
         public IBHQueryUpdatable<T> UpdateById(T entry)
         {
-            return new BHQueryUpdatable<T>(entry);
+            return new BHQueryUpdatable<T>(entry, _dataProvider);
         }
 
         public IBHQueryUpdatable<T, Dto> UpdateById<Dto>(Dto entry) where Dto : BHDto<G>

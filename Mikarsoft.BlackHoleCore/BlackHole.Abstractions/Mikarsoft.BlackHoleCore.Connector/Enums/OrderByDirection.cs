@@ -1,8 +1,6 @@
-﻿
-
-namespace Mikarsoft.BlackHoleCore.Connector.Enums
+﻿namespace Mikarsoft.BlackHoleCore.Connector.Enums
 {
-    internal enum OrderByDirection
+    public enum OrderByDirection
     {
         Ascending,
         Descending

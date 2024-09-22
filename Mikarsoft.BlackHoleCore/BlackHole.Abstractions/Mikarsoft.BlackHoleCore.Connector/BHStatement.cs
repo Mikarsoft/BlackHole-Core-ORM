@@ -28,6 +28,6 @@ namespace Mikarsoft.BlackHoleCore.Connector
 
     public class BHStatement<T> where T : class
     {
-        public JoinStatement<T>? JoinStatement { get; set; }
+
     }
 }

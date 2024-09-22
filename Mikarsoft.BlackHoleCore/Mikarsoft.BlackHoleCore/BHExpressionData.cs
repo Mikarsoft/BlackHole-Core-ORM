@@ -1,7 +1,6 @@
 ﻿using Mikarsoft.BlackHoleCore.Connector;
 using System.Linq.Expressions;
 
-
 namespace Mikarsoft.BlackHoleCore
 {
     internal class BHExpressionData
@@ -63,7 +62,7 @@ namespace Mikarsoft.BlackHoleCore
             }
         }
 
-        public bool IsReversed
+        internal bool IsReversed
         {
             get
             {
