@@ -1,4 +1,6 @@
-﻿namespace Mikarsoft.BlackHoleCore.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace Mikarsoft.BlackHoleCore.Entities
 {
     /// <summary>
     /// 
@@ -176,6 +178,32 @@
         public static implicit operator Guid(Uid number)
         {
             return number.Value;
+        }
+    }
+
+    public struct Json<T> where T : class
+    {
+        [JsonPropertyName("value")]
+        public T Value { get; set; }
+
+        // Constructor
+        public Json(T value)
+        {
+            Value = value;
+        }
+
+        public static implicit operator Json<T>(T value)
+        {
+            return new Json<T>(value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="number"></param>
+        public static implicit operator T(Json<T> jObject)
+        {
+            return jObject.Value;
         }
     }
 }

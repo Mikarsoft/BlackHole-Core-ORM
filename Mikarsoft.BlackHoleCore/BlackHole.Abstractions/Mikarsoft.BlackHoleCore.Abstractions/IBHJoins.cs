@@ -107,7 +107,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto);
+        IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<Dto, TOtherKey?>> otherKey);
 
         /// <summary>
         /// 
@@ -117,19 +117,13 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto);
+        IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> key, Expression<Func<Dto, TOtherKey?>> otherKey);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         IBHJoinsProcess<Dto> Then();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        IJoinComplete<Dto> Finally();
     }
 
     /// <summary>
@@ -162,7 +156,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto);
+        IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<Dto, TOtherKey?>> otherKey);
 
         /// <summary>
         /// 
@@ -172,37 +166,12 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="predicate"></param>
         /// <param name="castOnDto"></param>
         /// <returns></returns>
-        IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto);
+        IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> key, Expression<Func<Dto, TOtherKey?>> otherKey);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
         IBHJoinsProcess<Dto> Then();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        IJoinComplete<Dto> Finally();
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="Dto"></typeparam>
-    public interface IJoinComplete<Dto> where Dto : BHDto
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        List<Dto> ExecuteQuery();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        Task<List<Dto>> ExecuteQueryAsync();
     }
 }

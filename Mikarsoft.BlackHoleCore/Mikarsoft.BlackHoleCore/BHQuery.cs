@@ -147,20 +147,8 @@ namespace Mikarsoft.BlackHoleCore
             throw new NotImplementedException();
         }
 
-        public T? FirstOrDefault(Expression<Func<T, bool>> predicate)
-        {
-            StatementBuilder.AddWhereCase(predicate);
-            throw new NotImplementedException();
-        }
-
         public Task<T?> FirstOrDefaultAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
-        {
-            StatementBuilder.AddWhereCase(predicate);
             throw new NotImplementedException();
         }
 
@@ -184,20 +172,8 @@ namespace Mikarsoft.BlackHoleCore
             throw new NotImplementedException();
         }
 
-        public List<T> ToList(Expression<Func<T, bool>> predicate)
-        {
-            StatementBuilder.AddWhereCase(predicate);
-            throw new NotImplementedException();
-        }
-
         public Task<List<T>> ToListAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<T>> ToListAsync(Expression<Func<T, bool>> predicate)
-        {
-            StatementBuilder.AddWhereCase(predicate);
             throw new NotImplementedException();
         }
     }

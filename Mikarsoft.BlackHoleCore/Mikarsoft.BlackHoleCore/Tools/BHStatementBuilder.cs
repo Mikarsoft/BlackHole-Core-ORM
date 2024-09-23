@@ -1,5 +1,7 @@
-﻿using Mikarsoft.BlackHoleCore.Connector;
+﻿using Mikarsoft.BlackHoleCore.Abstractions.Tools;
+using Mikarsoft.BlackHoleCore.Connector;
 using Mikarsoft.BlackHoleCore.Connector.Enums;
+using Mikarsoft.BlackHoleCore.Entities;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -42,9 +44,11 @@ namespace Mikarsoft.BlackHoleCore.Tools
             {
                 tableLetters[0] = 0;
                 TableKeys.Add(tableTypeA, tableLetters[0]);
+                BindPropertiesToDto(tableTypeA, tableLetters[0]);
 
                 tableLetters[1] = AddIndex();
                 TableKeys.Add(tableTypeB, tableLetters[1]);
+                BindPropertiesToDto(tableTypeB, tableLetters[1]);
             }
             else
             {
@@ -54,6 +58,7 @@ namespace Mikarsoft.BlackHoleCore.Tools
 
                     tableLetters[1] = AddIndex();
                     TableKeys.Add(tableTypeB, tableLetters[1]);
+                    BindPropertiesToDto(tableTypeB, tableLetters[1]);
                 }
                 else
                 {
@@ -67,8 +72,11 @@ namespace Mikarsoft.BlackHoleCore.Tools
             return tableLetters;
         }
 
-        internal void AddJoinPoint(string columnA, string columnB, OuterPairType pairType = OuterPairType.On)
+        internal void AddJoinPoint<T, TOther, TKey, TOtherKey>(Expression<Func<T, TKey?>> key,
+            Expression<Func<TOther, TOtherKey?>> otherKey, OuterPairType pairType = OuterPairType.On)
         {
+            string columnA = key.MemberParse();
+            string columnB = otherKey.MemberParse();
             JoinPairs[JoinPairs.Count - 1].AddJoinPoint(columnA, columnB, pairType);
         }
 
@@ -78,10 +86,22 @@ namespace Mikarsoft.BlackHoleCore.Tools
             WhereCases.Add(new WhereCase(parts, tableCode));
         }
 
-        internal void AddCastCase<T, Dto, TKey, TOtherKey>(Expression<Func<T, TKey?>> predicate,
-            Expression<Func<Dto, TOtherKey?>> castOnDto, byte tableCode)
+        internal void AddCastCase<T, Dto, TKey, TOtherKey>(Expression<Func<T, TKey?>> key,
+            Expression<Func<Dto, TOtherKey?>> otherKey, byte tableCode)
         {
+            string tablePropertyName = key.MemberParse();
+            string dtoPropertyName = otherKey.MemberParse();
 
+            PropertyInfo? tableProperty = typeof(T).GetProperty(tablePropertyName);
+            PropertyInfo? dtoProperty = typeof(Dto).GetProperty(dtoPropertyName);
+
+            //BHDataTypes tablePropertyType = GetPropertyType(tableProperty);
+            //BHDataTypes dtoPropertyType = GetPropertyType(dtoProperty);
+
+            if(tableProperty != null && dtoProperty != null)
+            {
+                MappingCases.Add(new MappingCase(tablePropertyName, dtoPropertyName, tableProperty.PropertyType, dtoProperty.PropertyType, tableCode));
+            }
         }
 
         private byte AddIndex()
@@ -96,23 +116,87 @@ namespace Mikarsoft.BlackHoleCore.Tools
 
             foreach(PropertyInfo pinfo in modelType.GetProperties())
             {
-                occupiedProps.Add(new OccupiedProperty(pinfo.Name));
+                occupiedProps.Add(new OccupiedProperty(pinfo.Name, pinfo.PropertyType));
             }
 
             return occupiedProps;
+        }
+
+        private void BindPropertiesToDto(Type tableType, byte tableCode)
+        {
+            List<string> OtherPropNames = tableType.GetProperties().Select(x => x.Name).ToList();
+
+            for (int i = 0; i < OccupiedProperties.Count; i++)
+            {
+                OccupiedProperty property = OccupiedProperties[i];
+
+                if (OtherPropNames.Contains(property.PropertyName) && !property.IsOccupied)
+                {
+                    Type? TOtherPropType = tableType.GetProperty(property.PropertyName)?.PropertyType;
+
+                    if (TOtherPropType == property.PropertyType)
+                    {
+                        OccupiedProperties[i].IsOccupied = true;
+                        OccupiedProperties[i].TableColumn = TOtherPropType.Name;
+                        OccupiedProperties[i].TableColumnType = TOtherPropType;
+                        OccupiedProperties[i].TableCode = tableCode;
+                    }
+                }
+            }
+        }
+
+        private BHDataTypes GetPropertyType(PropertyInfo? pinfo)
+        {
+            if(pinfo == null)
+            {
+                throw new ArgumentNullException("Property was not found on the entity or dto");
+            }
+
+            Type propertyType = pinfo.PropertyType;
+            Type actualType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+
+            return actualType switch
+            {
+                Type t when t == typeof(Int) => BHDataTypes.Integer,
+                Type t when t == typeof(Str) => BHDataTypes.Text,
+                Type t when t == typeof(Uid) => BHDataTypes.Uid,
+                Type t when t == typeof(int) => BHDataTypes.Integer,
+                Type t when t == typeof(string) => BHDataTypes.Text,
+                Type t when t == typeof(Guid) => BHDataTypes.Uid,
+                Type t when t == typeof(bool) => BHDataTypes.Boolean,
+                Type t when t == typeof(decimal) => BHDataTypes.Decimal,
+                Type t when t == typeof(short) => BHDataTypes.Short,
+                Type t when t == typeof(double) => BHDataTypes.Double,
+                Type t when t == typeof(byte[]) => BHDataTypes.ByteArray,
+                Type t when t == typeof(DateTime) => BHDataTypes.DateTime,
+                Type t when t == typeof(DateTimeOffset) => BHDataTypes.DateTimeOffset,
+                Type t when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Json<>) => BHDataTypes.Json,
+                Type t when t == typeof(long) => BHDataTypes.Long,
+                Type t when t == typeof(float) => BHDataTypes.Float,
+                Type t when t == typeof(char) => BHDataTypes.Character,
+                Type t when t == typeof(byte) => BHDataTypes.Byte,
+                Type t when t == typeof(TimeOnly) => BHDataTypes.Time,
+                _ => throw new ArgumentException("Property type is Not Supported by BlackHole ORM"),
+            };
         }
     }
 
     internal class OccupiedProperty
     {
-        internal OccupiedProperty(string propname)
+        internal OccupiedProperty(string propname, Type propertyType)
         {
             PropertyName = propname;
+            TableColumn = propname;
+            PropertyType = propertyType;
+            TableColumnType = propertyType;
         }
 
         internal string PropertyName { get; set; }
+        internal Type PropertyType { get; set; }
+
+        internal Type TableColumnType { get; set; }
         internal byte TableCode { get; set; }
-        internal string TableColumn { get; set; } = string.Empty;
+        internal string TableColumn { get; set; }
         internal bool IsOccupied { get; set; }
     }
 
@@ -128,7 +212,7 @@ namespace Mikarsoft.BlackHoleCore.Tools
 
     internal class WhereCase
     {
-        internal WhereCase(BHExpressionPart[] parts, byte tableCode = 0x00)
+        internal WhereCase(BHExpressionPart[] parts, byte tableCode)
         {
             ExpressionParts = parts;
             TableCode = tableCode;
@@ -140,7 +224,7 @@ namespace Mikarsoft.BlackHoleCore.Tools
 
     internal class MappingCase
     {
-        internal MappingCase(string fromColumn, string toColumn, BHDataTypes fromType, BHDataTypes toType , byte tableCode = 0x00)
+        internal MappingCase(string fromColumn, string toColumn, Type fromType, Type toType , byte tableCode)
         {
             ColumnFrom = fromColumn;
             ColumnTo = toColumn;
@@ -150,12 +234,12 @@ namespace Mikarsoft.BlackHoleCore.Tools
         }
 
         internal byte TableCode { get; set; }
+
         internal string ColumnFrom { get; set; }
+        internal Type FromType { get; set; }
 
-        internal BHDataTypes FromType { get; set; }
         internal string ColumnTo { get; set; }
-
-        internal BHDataTypes ToType { get; set; }
+        internal Type ToType { get; set; }
 
         internal bool UseCast
         {
@@ -165,13 +249,13 @@ namespace Mikarsoft.BlackHoleCore.Tools
             }
         }
 
-        internal bool InvalidCast
-        {
-            get
-            {
-                return FromType > ToType;
-            }
-        }
+        //internal bool InvalidCast
+        //{
+        //    get
+        //    {
+        //        return FromType > ToType;
+        //    }
+        //}
     }
 
     internal class OrderByCase

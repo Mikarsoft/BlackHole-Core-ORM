@@ -1,5 +1,4 @@
-﻿using Mikarsoft.BlackHoleCore.Abstractions.Tools;
-using Mikarsoft.BlackHoleCore.Connector.Enums;
+﻿using Mikarsoft.BlackHoleCore.Connector.Enums;
 using Mikarsoft.BlackHoleCore.Entities;
 using Mikarsoft.BlackHoleCore.Tools;
 using System.Linq.Expressions;
@@ -62,11 +61,10 @@ namespace Mikarsoft.BlackHoleCore
             TableDCode = tableLetters[1];
         }
 
-        public IJoinConfig<Dto, TSource, TOther> On<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
+        public IJoinConfig<Dto, TSource, TOther> On<TKey>(Expression<Func<TSource, TKey?>> key,
+            Expression<Func<TOther, TKey?>> otherKey)
         {
-            string first = key.MemberParse();
-            string second = otherKey.MemberParse();
-            StatementBuilder.AddJoinPoint(first, second);
+            StatementBuilder.AddJoinPoint(key, otherKey);
             return new JoinConfig<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
         }
     }
@@ -74,45 +72,40 @@ namespace Mikarsoft.BlackHoleCore
     internal class JoinConfig<Dto, TSource, TOther> : BHQuery<Dto>, IJoinConfig<Dto, TSource, TOther> 
         where Dto : BHDto where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
     {
-        private readonly BHStatementBuilder StatementBuilder;
         private readonly byte TableACode;
         private readonly byte TableDCode;
 
-        internal JoinConfig(BHStatementBuilder statement, byte tableACode, byte tableDCode)
+        internal JoinConfig(BHStatementBuilder statement, byte tableACode, byte tableDCode) : base(statement)
         {
-            StatementBuilder = statement;
             TableACode = tableACode;
             TableDCode = tableDCode;
         }
 
-        public IJoinConfig<Dto, TSource, TOther> And<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
+        public IJoinConfig<Dto, TSource, TOther> And<TKey>(Expression<Func<TSource, TKey?>> key,
+            Expression<Func<TOther, TKey?>> otherKey)
         {
-            string first = key.MemberParse();
-            string second = otherKey.MemberParse();
-            StatementBuilder.AddJoinPoint(first, second, OuterPairType.And);
+            StatementBuilder.AddJoinPoint(key, otherKey, OuterPairType.And);
             return new JoinConfig<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
         }
 
-        public IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
+        public IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> key,
+            Expression<Func<Dto, TOtherKey?>> otherKey)
         {
-            throw new NotImplementedException();
+            StatementBuilder.AddCastCase(key, otherKey, TableACode);
+            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
         }
 
-        public IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> predicate, Expression<Func<Dto, TOtherKey?>> castOnDto)
+        public IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> key,
+            Expression<Func<Dto, TOtherKey?>> otherKey)
         {
-            throw new NotImplementedException();
+            StatementBuilder.AddCastCase(key, otherKey, TableDCode);
+            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
         }
 
-        public IJoinComplete<Dto> Finally()
+        public IJoinConfig<Dto, TSource, TOther> Or<TKey>(Expression<Func<TSource, TKey?>> key,
+            Expression<Func<TOther, TKey?>> otherKey)
         {
-            return new JoinComplete<Dto>(StatementBuilder);
-        }
-
-        public IJoinConfig<Dto, TSource, TOther> Or<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
-        {
-            string first = key.MemberParse();
-            string second = otherKey.MemberParse();
-            StatementBuilder.AddJoinPoint(first, second, OuterPairType.Or);
+            StatementBuilder.AddJoinPoint(key, otherKey, OuterPairType.Or);
             return new JoinConfig<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
         }
 
@@ -136,32 +129,27 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class JoinOptions<Dto, TSource, TOther> : BHQuery<Dto>, IJoinOptions<Dto, TSource, TOther> where Dto : BHDto
     {
-        private readonly BHStatementBuilder StatementBuilder;
         private readonly byte TableACode;
         private readonly byte TableDCode;
 
-        internal JoinOptions(BHStatementBuilder statement, byte tableACode, byte tableDCode)
+        internal JoinOptions(BHStatementBuilder statement, byte tableACode, byte tableDCode) : base(statement)
         {
-            StatementBuilder = statement;
             TableACode = tableACode;
             TableDCode = tableDCode;
         }
 
-        public IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> predicate,
-            Expression<Func<Dto, TOtherKey?>> castOnDto)
+        public IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> key,
+            Expression<Func<Dto, TOtherKey?>> otherKey)
         {
-            throw new NotImplementedException();
+            StatementBuilder.AddCastCase(key, otherKey, TableACode);
+            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
         }
 
-        public IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> predicate, 
-            Expression<Func<Dto, TOtherKey?>> castOnDto)
+        public IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> key, 
+            Expression<Func<Dto, TOtherKey?>> otherKey)
         {
-            throw new NotImplementedException();
-        }
-
-        public IJoinComplete<Dto> Finally()
-        {
-            return new JoinComplete<Dto>(StatementBuilder);
+            StatementBuilder.AddCastCase(key, otherKey, TableDCode);
+            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
         }
 
         public IBHJoinsProcess<Dto> Then()
@@ -179,26 +167,6 @@ namespace Mikarsoft.BlackHoleCore
         {
             StatementBuilder.AddWhereCase(predicate, TableDCode);
             return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
-        }
-    }
-
-    internal class JoinComplete<Dto> : IJoinComplete<Dto> where Dto : BHDto
-    {
-        private readonly BHStatementBuilder StatementBuilder;
-
-        internal JoinComplete(BHStatementBuilder statement)
-        {
-            StatementBuilder = statement;
-        }
-
-        public List<Dto> ExecuteQuery()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<Dto>> ExecuteQueryAsync()
-        {
-            throw new NotImplementedException();
         }
     }
 }
