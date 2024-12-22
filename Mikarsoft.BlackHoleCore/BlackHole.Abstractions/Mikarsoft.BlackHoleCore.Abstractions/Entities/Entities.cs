@@ -1,4 +1,5 @@
-﻿namespace Mikarsoft.BlackHoleCore.Entities
+﻿
+namespace Mikarsoft.BlackHoleCore.Entities
 {
     /// <summary>
     /// 

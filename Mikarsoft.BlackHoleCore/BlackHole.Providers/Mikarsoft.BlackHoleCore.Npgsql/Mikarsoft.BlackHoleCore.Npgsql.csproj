@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\BlackHole.Abstractions\Mikarsoft.BlackHoleCore.Connector\Mikarsoft.BlackHoleCore.Connector.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -90,10 +90,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
         /// 
         /// </summary>
         /// <returns></returns>
-        public readonly Type GetBaseType()
-        {
-            return typeof(int);
-        }
+        public readonly Type BaseType => typeof(int);
 
         /// <summary>
         /// 
@@ -181,29 +178,48 @@ namespace Mikarsoft.BlackHoleCore.Entities
         }
     }
 
-    public struct Json<T> where T : class
+    public struct BHJson<T> where T : class
     {
         [JsonPropertyName("value")]
         public T Value { get; set; }
 
         // Constructor
-        public Json(T value)
+        public BHJson(T value)
         {
             Value = value;
         }
 
-        public static implicit operator Json<T>(T value)
+        public static implicit operator BHJson<T>(T value)
         {
-            return new Json<T>(value);
+            return new BHJson<T>(value);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="number"></param>
-        public static implicit operator T(Json<T> jObject)
+        public static implicit operator T(BHJson<T> jObject)
         {
             return jObject.Value;
         }
+    }
+
+    public struct BHCollection<T> where T : BHEntity<T>
+    {
+        private List<T> Children;
+
+        public BHCollection()
+        {
+            Children = new List<T>();
+        }
+
+        public BHCollection(List<T> items)
+        {
+            Children = items;
+        }
+
+        public static implicit operator BHCollection<T>(List<T> items) => new BHCollection<T>(items);
+
+        public static implicit operator List<T>(BHCollection<T> collection) => collection.Children;
     }
 }

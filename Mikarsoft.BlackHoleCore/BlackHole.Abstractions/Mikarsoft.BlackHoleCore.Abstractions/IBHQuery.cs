@@ -159,6 +159,68 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="predicate"></param>
         /// <returns></returns>
         IBHQuery<T> Where(Expression<Func<T, bool>> predicate);
+
+        IBHInclude<T, G> Include<G>(Expression<Func<T, BHCollection<G>>> predicate) where G :BHEntity<G>;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="G"></typeparam>
+    public interface IBHInclude<T, G> where T : class where G :BHEntity<G>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="otherKey"></param>
+        /// <returns></returns>
+        IBHThenInclude<T, G> On<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey);
+    }
+
+    public interface IBHInclude<T, G, D> where T : class where G : BHEntity<G> where D : BHEntity<D>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="otherKey"></param>
+        /// <returns></returns>
+        IBHThenInclude<T, D> On<TKey>(Expression<Func<G, TKey>> key, Expression<Func<D, TKey>> otherKey);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="G"></typeparam>
+    public interface IBHThenInclude<T, G> : IBHQuery<T> where T : class where G :BHEntity<G>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHQuery<T> Where(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="D"></typeparam>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHInclude<T, D> Include<D>(Expression<Func<T, BHCollection<D>>> predicate) where D : BHEntity<D>;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="D"></typeparam>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHInclude<T, G, D> ThenInclude<D>(Expression<Func<G, BHCollection<D>>> predicate) where D : BHEntity<D>;
     }
 
     /// <summary>

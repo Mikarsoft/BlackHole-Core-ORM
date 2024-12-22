@@ -170,7 +170,7 @@ namespace Mikarsoft.BlackHoleCore.Tools
                 Type t when t == typeof(byte[]) => BHDataTypes.ByteArray,
                 Type t when t == typeof(DateTime) => BHDataTypes.DateTime,
                 Type t when t == typeof(DateTimeOffset) => BHDataTypes.DateTimeOffset,
-                Type t when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Json<>) => BHDataTypes.Json,
+                Type t when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(BHJson<>) => BHDataTypes.Json,
                 Type t when t == typeof(long) => BHDataTypes.Long,
                 Type t when t == typeof(float) => BHDataTypes.Float,
                 Type t when t == typeof(char) => BHDataTypes.Character,
