@@ -1,6 +1,7 @@
 ﻿using Mikarsoft.BlackHoleCore.Abstractions.Tools;
 using Mikarsoft.BlackHoleCore.Connector;
 using Mikarsoft.BlackHoleCore.Connector.Enums;
+using Mikarsoft.BlackHoleCore.Connector.Statements;
 using Mikarsoft.BlackHoleCore.Entities;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,16 +11,16 @@ namespace Mikarsoft.BlackHoleCore.Tools
     internal class BHStatementBuilder
     {
         private readonly Dictionary<Type, byte> TableKeys;
-        private readonly List<JoinPair> JoinPairs;
-        private readonly List<WhereCase> WhereCases;
+        private readonly List<JoinStatement> JoinPairs;
+        private readonly List<WhereStatement> WhereCases;
         private readonly List<OrderByCase> OrderByCases;
         private readonly List<MappingCase> MappingCases;
         private readonly List<GroupByCase> GroupByCases;
         private readonly List<OccupiedProperty> OccupiedProperties;
-        private readonly BHCommandType CommandType;
+        private readonly BHExpressionPartType CommandType;
         private byte TableIndex = 0;
 
-        internal BHStatementBuilder(BHCommandType commandType, Type modelType)
+        internal BHStatementBuilder(BHExpressionPartType commandType, Type modelType)
         {
             TableKeys = new();
             JoinPairs = new();
@@ -56,9 +57,16 @@ namespace Mikarsoft.BlackHoleCore.Tools
                 {
                     tableLetters[0] = TableKeys[tableTypeA];
 
-                    tableLetters[1] = AddIndex();
-                    TableKeys.Add(tableTypeB, tableLetters[1]);
-                    BindPropertiesToDto(tableTypeB, tableLetters[1]);
+                    if (TableKeys.ContainsKey(tableTypeB))
+                    {
+                        tableLetters[1] = TableKeys[tableTypeB];
+                    }
+                    else
+                    {
+                        tableLetters[1] = AddIndex();
+                        TableKeys.Add(tableTypeB, tableLetters[1]);
+                        BindPropertiesToDto(tableTypeB, tableLetters[1]);
+                    }
                 }
                 else
                 {
@@ -67,7 +75,7 @@ namespace Mikarsoft.BlackHoleCore.Tools
                 }
             }
 
-            JoinPairs.Add(new JoinPair(joinType, tableLetters));
+            JoinPairs.Add(new JoinStatement(joinType, tableLetters));
 
             return tableLetters;
         }
@@ -83,7 +91,7 @@ namespace Mikarsoft.BlackHoleCore.Tools
         internal void AddWhereCase<T>(Expression<Func<T, bool>> predicate, byte tableCode = 0x00)
         {
             BHExpressionPart[] parts = predicate.ParseExpression(tableCode);
-            WhereCases.Add(new WhereCase(parts, tableCode));
+            WhereCases.Add(new WhereStatement(parts, tableCode));
         }
 
         internal void AddCastCase<T, Dto, TKey, TOtherKey>(Expression<Func<T, TKey?>> key,
@@ -106,6 +114,11 @@ namespace Mikarsoft.BlackHoleCore.Tools
 
         private byte AddIndex()
         {
+            if(TableIndex > 254)
+            {
+                throw new ArgumentException("Reached maximum allowed limit of tables in a query : 254 Tables");
+            }
+
             TableIndex++;
             return TableIndex;
         }
@@ -145,6 +158,23 @@ namespace Mikarsoft.BlackHoleCore.Tools
             }
         }
 
+        private Type GetPropertyOriginType(PropertyInfo? pinfo)
+        {
+            if (pinfo == null)
+            {
+                throw new ArgumentNullException("Property was not found on the entity or dto");
+            }
+
+            Type pType = pinfo.PropertyType;
+
+            if(pType is IBHStruct bhType)
+            {
+                return bhType.BaseType;
+            }
+
+            return Nullable.GetUnderlyingType(pType) ?? pType;
+        }
+
         private BHDataTypes GetPropertyType(PropertyInfo? pinfo)
         {
             if(pinfo == null)
@@ -170,12 +200,13 @@ namespace Mikarsoft.BlackHoleCore.Tools
                 Type t when t == typeof(byte[]) => BHDataTypes.ByteArray,
                 Type t when t == typeof(DateTime) => BHDataTypes.DateTime,
                 Type t when t == typeof(DateTimeOffset) => BHDataTypes.DateTimeOffset,
-                Type t when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(BHJson<>) => BHDataTypes.Json,
                 Type t when t == typeof(long) => BHDataTypes.Long,
                 Type t when t == typeof(float) => BHDataTypes.Float,
                 Type t when t == typeof(char) => BHDataTypes.Character,
                 Type t when t == typeof(byte) => BHDataTypes.Byte,
                 Type t when t == typeof(TimeOnly) => BHDataTypes.Time,
+                Type t when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(BHJson<>) => BHDataTypes.Json,
+                Type t when t.IsGenericType && t.GetGenericTypeDefinition() == typeof(BHCollection<>) => BHDataTypes.Collection,
                 _ => throw new ArgumentException("Property type is Not Supported by BlackHole ORM"),
             };
         }
@@ -208,18 +239,6 @@ namespace Mikarsoft.BlackHoleCore.Tools
         }
 
         internal string PropertyName { get; set; }
-    }
-
-    internal class WhereCase
-    {
-        internal WhereCase(BHExpressionPart[] parts, byte tableCode)
-        {
-            ExpressionParts = parts;
-            TableCode = tableCode;
-        }
-
-        internal BHExpressionPart[] ExpressionParts { get; set; }
-        internal byte TableCode { get; set; }
     }
 
     internal class MappingCase
@@ -270,42 +289,5 @@ namespace Mikarsoft.BlackHoleCore.Tools
         internal string ColumnName { get; set; }
         internal byte TableCode { get; set; }
         internal OrderByDirection Direcation { get; set; }
-    }
-
-    internal class JoinPair
-    {
-        internal JoinPair(JoinType joinType, byte[] tableLetters)
-        {
-            JType = joinType;
-            TableACode = tableLetters[0];
-            TableDCode = tableLetters[1];
-            JoinPoints = new();
-        }
-
-        internal JoinType JType { get; set; }
-
-        internal byte TableACode { get; set; }
-        internal byte TableDCode { get; set; }
-
-        internal List<JoinPoint> JoinPoints { get; set; }
-
-        internal void AddJoinPoint(string columnA, string columnB, OuterPairType pairType)
-        {
-            JoinPoints.Add(new JoinPoint(columnA, columnB, pairType));
-        }
-    }
-
-    internal class JoinPoint
-    {
-        internal JoinPoint(string columnA, string columnB, OuterPairType pairType)
-        {
-            PairType = pairType;
-            ColumnA = columnA;
-            ColumnB = columnB;
-        }
-
-        internal OuterPairType PairType { get; set; }
-        internal string ColumnA { get; set; }
-        internal string ColumnB { get; set; }
     }
 }

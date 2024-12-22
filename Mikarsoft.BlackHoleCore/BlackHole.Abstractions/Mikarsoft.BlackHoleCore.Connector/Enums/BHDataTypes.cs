@@ -18,5 +18,6 @@
         Text            =         0x40,
         ByteArray       =         0x60,
         Json            =         0x80,
+        Collection      =         0x82
     }
 }

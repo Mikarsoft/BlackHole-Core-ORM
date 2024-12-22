@@ -5,27 +5,15 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHStruct<T> : IBHStruct where T : IComparable<T>
-    {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public T Value { get; }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
     public interface IBHStruct
     {
-
+        Type BaseType { get; }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    public struct Int : IBHStruct<int>
+    public struct Int : IBHStruct, IComparable
     {
         private const int ByteMask = 0xFF; // Mask to ensure only 8 bits are used
 
@@ -86,6 +74,11 @@ namespace Mikarsoft.BlackHoleCore.Entities
             return byteArray;
         }
 
+        public int CompareTo(object? obj)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -101,7 +94,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// <summary>
     /// 
     /// </summary>
-    public struct Str : IBHStruct<string>
+    public struct Str : IBHStruct, IComparable
     {
         private string value;
 
@@ -136,12 +129,20 @@ namespace Mikarsoft.BlackHoleCore.Entities
         {
             return number.Value;
         }
+
+
+        public readonly Type BaseType => typeof(string);
+
+        public int CompareTo(object? obj)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    public struct Uid : IBHStruct<Guid>
+    public struct Uid : IBHStruct
     {
         private Guid value;
 
@@ -176,12 +177,16 @@ namespace Mikarsoft.BlackHoleCore.Entities
         {
             return number.Value;
         }
+
+        public readonly Type BaseType => typeof(Guid);
     }
 
-    public struct BHJson<T> where T : class
+    public struct BHJson<T> : IBHStruct, IComparable where T : class
     {
         [JsonPropertyName("value")]
         public T Value { get; set; }
+
+        public Type BaseType => typeof(string);
 
         // Constructor
         public BHJson(T value)
@@ -201,6 +206,11 @@ namespace Mikarsoft.BlackHoleCore.Entities
         public static implicit operator T(BHJson<T> jObject)
         {
             return jObject.Value;
+        }
+
+        public int CompareTo(object? obj)
+        {
+            throw new NotImplementedException();
         }
     }
 

@@ -43,14 +43,14 @@ namespace Mikarsoft.BlackHoleCore
         public bool DeleteById(G Id, IBHTransaction? transaction = null)
         {
             string deleteCommand = _commandBuilder.DeactivateCommand<T>();
-            BHStatement query = WhereBuild(x => x.Id.Equals(Id), deleteCommand);
+            BHExpressionPart[] parts = WhereBuild(x => x.Id.Equals(Id));
             return _dataProvider.JustExecute(query.Command, query.InnerParameters);
         }
 
         public bool RemoveById(G Id, IBHTransaction? transaction = null)
         {
             string deleteCommand = _commandBuilder.DeleteCommand<T>();
-            BHStatement query = WhereBuild(x => x.Id.Equals(Id), deleteCommand);
+            BHExpressionPart[] parts = WhereBuild(x => x.Id.Equals(Id));
             return _dataProvider.JustExecute(query.Command, query.InnerParameters);
         }
 
@@ -125,10 +125,9 @@ namespace Mikarsoft.BlackHoleCore
             }
         }
 
-        internal BHStatement WhereBuild(Expression<Func<T, bool>> predicate, string? startingCommand)
+        internal BHExpressionPart[] WhereBuild(Expression<Func<T, bool>> predicate)
         {
-            BHExpressionPart[] parts = BHExpressionParser.ParseExpression(predicate);
-            return _commandBuilder.WhereStatement(parts, startingCommand);
+            return BHExpressionParser.ParseExpression(predicate);
         }
 
         public bool Any(IBHTransaction? transaction = null)

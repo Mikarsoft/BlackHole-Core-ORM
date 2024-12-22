@@ -83,6 +83,8 @@ namespace Mikarsoft.BlackHoleCore
         {
             UpdateSelection<T, Dto> model = new();
             selection.Invoke(model);
+
+            
             throw new NotImplementedException();
         }
     }
@@ -121,10 +123,49 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class BHQuerySearchable<T> : BHQuery<T>, IBHQuerySearchable<T> where T : class
     {
+        public IBHInclude<T, G> Include<G>(Expression<Func<T, BHCollection<G>>> predicate) where G : BHEntity<G>
+        {
+            throw new NotImplementedException();
+        }
+
         public IBHQuery<T> Where(Expression<Func<T, bool>> predicate)
         {
             StatementBuilder.AddWhereCase(predicate);
             return new BHQuery<T>(StatementBuilder);
+        }
+    }
+
+    internal class BHInclude<T, G> : IBHInclude<T, G> where T : class where G : BHEntity<G>
+    {
+        public IBHThenInclude<T, G> On<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class BHInclude<T, G, D> : IBHInclude<T, G, D> where T : class where G : BHEntity<G> where D : BHEntity<D>
+    {
+        public IBHThenInclude<T, D> On<TKey>(Expression<Func<G, TKey>> key, Expression<Func<D, TKey>> otherKey)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class BHThenInclude<T, G> : BHQuery<T>, IBHThenInclude<T, G> where G : BHEntity<G> where T : class
+    {
+        public IBHInclude<T, D> Include<D>(Expression<Func<T, BHCollection<D>>> predicate) where D : BHEntity<D>
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBHInclude<T, G, D> ThenInclude<D>(Expression<Func<G, BHCollection<D>>> predicate) where D : BHEntity<D>
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBHQuery<T> Where(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -134,7 +175,7 @@ namespace Mikarsoft.BlackHoleCore
 
         internal BHQuery()
         {
-            StatementBuilder = new(BHCommandType.Select, typeof(T));
+            StatementBuilder = new(BHExpressionPartType.Select, typeof(T));
         }
 
         internal BHQuery(BHStatementBuilder statement)

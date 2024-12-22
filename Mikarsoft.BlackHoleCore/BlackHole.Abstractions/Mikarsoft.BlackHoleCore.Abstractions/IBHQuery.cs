@@ -120,9 +120,11 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="TKey"></typeparam>
         /// <param name="dtoKey"></param>
         /// <param name="entityKey"></param>
-        public void Map<TKey>(Expression<Func<Dto, TKey?>> dtoKey, Expression<Func<T, TKey?>> entityKey)
+        public void Map<TKey>(Expression<Func<Dto, TKey?>> dtoKey, Expression<Func<T, TKey?>> entityKey) where TKey : IComparable
         {
-            PropertyMappings.Add(dtoKey.MemberParse(), entityKey.MemberParse());
+            string dto = dtoKey.MemberParse();
+            string entity = entityKey.MemberParse();
+            PropertyMappings.Add(dto, entity);
         }
     }
 
@@ -141,7 +143,7 @@ namespace Mikarsoft.BlackHoleCore
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <param name="key"></param>
-        public void Use<TKey>(Expression<Func<T, TKey?>> key)
+        public void Use<TKey>(Expression<Func<T, TKey?>> key) where TKey : IComparable
         {
             PropertyNames.Add(key.MemberParse());
         }
@@ -177,7 +179,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="key"></param>
         /// <param name="otherKey"></param>
         /// <returns></returns>
-        IBHThenInclude<T, G> On<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey);
+        IBHThenInclude<T, G> On<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey) where TKey : IComparable;
     }
 
     public interface IBHInclude<T, G, D> where T : class where G : BHEntity<G> where D : BHEntity<D>
@@ -233,14 +235,14 @@ namespace Mikarsoft.BlackHoleCore
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        IBHOrderBy<T> OrderByAscending<TKey>(Expression<Func<T, TKey>> action);
+        IBHOrderBy<T> OrderByAscending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        IBHOrderBy<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> action);
+        IBHOrderBy<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
 
         /// <summary>
         /// 
@@ -248,7 +250,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="G"></typeparam>
         /// <param name="keySelectors"></param>
         /// <returns></returns>
-        IBHEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
+        IBHEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors) where G : IComparable;
 
         /// <summary>
         /// 
@@ -305,14 +307,14 @@ namespace Mikarsoft.BlackHoleCore
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        IBHOrderByQuery<T> ThenByAscending(Expression<Func<T, object?>> action);
+        IBHOrderByQuery<T> ThenByAscending<TKey>(Expression<Func<T, TKey?>> action) where TKey : IComparable;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        IBHOrderByQuery<T> ThenByDescending(Expression<Func<T, object?>> action);
+        IBHOrderByQuery<T> ThenByDescending<TKey>(Expression<Func<T, TKey?>> action) where TKey : IComparable;
 
         /// <summary>
         /// 
