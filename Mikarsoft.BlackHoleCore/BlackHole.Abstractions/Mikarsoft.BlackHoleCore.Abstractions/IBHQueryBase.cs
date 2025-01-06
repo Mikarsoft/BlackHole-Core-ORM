@@ -109,13 +109,13 @@ namespace Mikarsoft.BlackHoleCore
         /// 
         /// </summary>
         /// <returns></returns>
-        bool MapColumns(Action<UpdateSelection<T, Dto>> selection);
+        bool MapColumns(Expression<Func<Dto, T>> selector);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        Task<bool> MapColumnsAsync(Action<UpdateSelection<T, Dto>> selection);
+        Task<bool> MapColumnsAsync(Expression<Func<Dto, T>> selector);
     }
 
     /// <summary>

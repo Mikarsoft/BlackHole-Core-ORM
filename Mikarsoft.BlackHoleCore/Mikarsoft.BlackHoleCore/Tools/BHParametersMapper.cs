@@ -1,5 +1,6 @@
 ﻿using Mikarsoft.BlackHoleCore.Abstractions.Models;
 using Mikarsoft.BlackHoleCore.Connector;
+using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore.Tools
 {
@@ -15,6 +16,35 @@ namespace Mikarsoft.BlackHoleCore.Tools
             }
 
             return innerParameters;
+        }
+
+        internal static Dictionary<string, string> GetPropertyMappings<TSource, TTarget>(this Expression<Func<TSource, TTarget>> mapExpression)
+        {
+            // Create a dictionary to hold the mappings
+            var mappings = new Dictionary<string, string>();
+
+            // Check if the body is a MemberInitExpression (i.e., a new object initialization)
+            if (mapExpression.Body is MemberInitExpression initExpression)
+            {
+                foreach (var binding in initExpression.Bindings)
+                {
+                    // Ensure it's a MemberAssignment (i.e., a direct property assignment)
+                    if (binding is MemberAssignment assignment)
+                    {
+                        // Get the target property name
+                        var targetProperty = assignment.Member.Name;
+
+                        // Get the source property name from the expression
+                        if (assignment.Expression is MemberExpression sourceExpression)
+                        {
+                            var sourceProperty = sourceExpression.Member.Name;
+                            mappings[sourceProperty] = targetProperty;
+                        }
+                    }
+                }
+            }
+
+            return mappings;
         }
     }
 }

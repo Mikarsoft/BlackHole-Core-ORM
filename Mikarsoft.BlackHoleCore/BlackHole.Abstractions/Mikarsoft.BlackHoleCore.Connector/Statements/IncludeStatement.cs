@@ -2,7 +2,8 @@
 
 namespace Mikarsoft.BlackHoleCore.Connector.Statements
 {
-    public class IncludeStatement
+
+    internal class IncludeStatement
     {
         public IncludeStatement(Type paretnType , Type childType)
         {

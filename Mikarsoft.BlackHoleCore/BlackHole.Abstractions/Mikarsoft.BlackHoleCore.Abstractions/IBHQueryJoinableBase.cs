@@ -34,7 +34,7 @@ namespace Mikarsoft.BlackHoleCore
         /// </summary>
         /// <param name="selector"></param>
         /// <returns></returns>
-        IBHJoinsGroupedQuery<T, Dto> Map(Func<T, Dto> selector);
+        IBHJoinsGroupedQuery<T, Dto> Map(Expression<Func<T, Dto>> selector);
 
         /// <summary>
         /// 

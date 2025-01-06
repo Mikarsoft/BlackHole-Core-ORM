@@ -1,6 +1,6 @@
 ﻿namespace Mikarsoft.BlackHoleCore.Abstractions.Models
 {
-    public class BlackHoleParameter
+    internal class BlackHoleParameter
     {
         internal BlackHoleParameter(string pramaName, object? paramValue)
         {
@@ -8,7 +8,7 @@
             Value = paramValue;
         }
 
-        public string Name { get; set; }
-        public object? Value { get; set; }
+        internal string Name { get; set; }
+        internal object? Value { get; set; }
     }
 }

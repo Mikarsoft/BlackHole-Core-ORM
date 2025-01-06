@@ -81,7 +81,8 @@ namespace Mikarsoft.BlackHoleCore
     /// </summary>
     public class BHParameters
     {
-        private List<BlackHoleParameter> _parameters = new();
+        internal List<BlackHoleParameter> _parameters = new();
+
         /// <summary>
         /// 
         /// </summary>
@@ -99,8 +100,6 @@ namespace Mikarsoft.BlackHoleCore
         {
             _parameters.Clear();
         }
-
-        public List<BlackHoleParameter> Parameters => _parameters;
     }
 
     /// <summary>

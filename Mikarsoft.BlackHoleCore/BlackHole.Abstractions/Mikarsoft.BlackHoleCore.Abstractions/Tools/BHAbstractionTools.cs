@@ -2,9 +2,9 @@
 
 namespace Mikarsoft.BlackHoleCore.Abstractions.Tools
 {
-    public static class BHAbstractionTools
+    internal static class BHAbstractionTools
     {
-        public static string MemberParse<T, TKey>(this Expression<Func<T, TKey?>> key)
+        internal static string MemberParse<T, TKey>(this Expression<Func<T, TKey?>> key)
         {
             if (key.Body is MemberExpression memberExpression)
             {
