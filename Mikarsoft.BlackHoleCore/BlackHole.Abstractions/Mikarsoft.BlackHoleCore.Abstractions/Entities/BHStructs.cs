@@ -231,5 +231,10 @@ namespace Mikarsoft.BlackHoleCore.Entities
         public static implicit operator BHCollection<T>(List<T> items) => new BHCollection<T>(items);
 
         public static implicit operator List<T>(BHCollection<T> collection) => collection.Children;
+
+        public List<T> ToList()
+        {
+            return Children;
+        }
     }
 }

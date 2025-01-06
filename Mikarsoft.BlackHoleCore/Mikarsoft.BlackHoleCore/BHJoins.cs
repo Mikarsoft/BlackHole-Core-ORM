@@ -5,11 +5,11 @@ using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore
 {
-    internal class BHJoinsProcess<Dto> : IBHJoinsProcess<Dto> where Dto : BHDto
+    internal class BHJoinsProcess<Dto> : IBHJoinsProcess<Dto> where Dto : class
     {
-        private readonly BHStatementBuilder StatementBuilder;
+        private readonly BHSelectStatementBuilder StatementBuilder;
 
-        internal BHJoinsProcess(BHStatementBuilder statement)
+        internal BHJoinsProcess(BHSelectStatementBuilder statement)
         {
             StatementBuilder = statement;
         }
@@ -48,13 +48,13 @@ namespace Mikarsoft.BlackHoleCore
     }
 
     internal class PreJoin<Dto, TSource, TOther> : IPreJoin<Dto, TSource, TOther> 
-        where Dto : BHDto where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
+        where Dto : class where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
     {
-        private readonly BHStatementBuilder StatementBuilder;
+        private readonly BHSelectStatementBuilder StatementBuilder;
         private readonly byte TableACode;
         private readonly byte TableDCode;
 
-        internal PreJoin(BHStatementBuilder statement, byte[] tableLetters)
+        internal PreJoin(BHSelectStatementBuilder statement, byte[] tableLetters)
         {
             StatementBuilder = statement;
             TableACode = tableLetters[0];
@@ -64,18 +64,18 @@ namespace Mikarsoft.BlackHoleCore
         public IJoinConfig<Dto, TSource, TOther> On<TKey>(Expression<Func<TSource, TKey?>> key,
             Expression<Func<TOther, TKey?>> otherKey)
         {
-            StatementBuilder.AddJoinPoint(key, otherKey);
+            StatementBuilder.AddJoinPoint(key, otherKey, OuterPairType.On);
             return new JoinConfig<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
         }
     }
 
     internal class JoinConfig<Dto, TSource, TOther> : BHQuery<Dto>, IJoinConfig<Dto, TSource, TOther> 
-        where Dto : BHDto where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
+        where Dto : class where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
     {
         private readonly byte TableACode;
         private readonly byte TableDCode;
 
-        internal JoinConfig(BHStatementBuilder statement, byte tableACode, byte tableDCode) : base(statement)
+        internal JoinConfig(BHSelectStatementBuilder statement, byte tableACode, byte tableDCode) : base(statement)
         {
             TableACode = tableACode;
             TableDCode = tableDCode;
@@ -127,12 +127,12 @@ namespace Mikarsoft.BlackHoleCore
         }
     }
 
-    internal class JoinOptions<Dto, TSource, TOther> : BHQuery<Dto>, IJoinOptions<Dto, TSource, TOther> where Dto : BHDto
+    internal class JoinOptions<Dto, TSource, TOther> : BHQuery<Dto>, IJoinOptions<Dto, TSource, TOther> where Dto : class
     {
         private readonly byte TableACode;
         private readonly byte TableDCode;
 
-        internal JoinOptions(BHStatementBuilder statement, byte tableACode, byte tableDCode) : base(statement)
+        internal JoinOptions(BHSelectStatementBuilder statement, byte tableACode, byte tableDCode) : base(statement)
         {
             TableACode = tableACode;
             TableDCode = tableDCode;

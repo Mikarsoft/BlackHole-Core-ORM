@@ -6,7 +6,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHJoinsProcess<Dto> where Dto : BHDto
+    public interface IBHJoinsProcess<Dto> where Dto : class
     {
         /// <summary>
         /// 
@@ -47,7 +47,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IPreJoin<Dto, TSource, TOther> where Dto : BHDto where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
+    public interface IPreJoin<Dto, TSource, TOther> where Dto : class where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
     {
         /// <summary>
         /// 
@@ -65,7 +65,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IJoinConfig<Dto, TSource, TOther> : IBHQuery<Dto> where Dto : BHDto where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
+    public interface IJoinConfig<Dto, TSource, TOther> : IBHQueryBase<Dto> where Dto : class where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
     {
         /// <summary>
         /// 
@@ -132,7 +132,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IJoinOptions<Dto, TSource, TOther> : IBHQuery<Dto> where Dto : BHDto
+    public interface IJoinOptions<Dto, TSource, TOther> : IBHQueryBase<Dto> where Dto : class
     {
         /// <summary>
         /// 

@@ -3,6 +3,7 @@ using Mikarsoft.BlackHoleCore.Connector.Enums;
 using Mikarsoft.BlackHoleCore.Entities;
 using Mikarsoft.BlackHoleCore.Tools;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Mikarsoft.BlackHoleCore
 {
@@ -28,32 +29,34 @@ namespace Mikarsoft.BlackHoleCore
             _dataProvider = dataProvider;
         }
 
-        public bool OnColumns(Action<UpdateSelection<T>> selection)
+        bool IBHQueryUpdatable<T>.OnColumns(Action<UpdateSelection<T>> selection)
         {
             UpdateSelection<T> model = new();
             selection.Invoke(model);
             throw new NotImplementedException();
         }
 
-        public Task<bool> OnColumnsAsync(Action<UpdateSelection<T>> selection)
+        Task<bool> IBHQueryUpdatable<T>.OnColumnsAsync(Action<UpdateSelection<T>> selection)
         {
             UpdateSelection<T> model = new();
             selection.Invoke(model);
+
+            IBHDataProvider provider = BHServiceInjector.GetDataProvider();
             throw new NotImplementedException();
         }
 
-        public bool AllColumns()
+        bool IBHQueryUpdatable<T>.AllColumns()
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> AllColumnsAsync()
+        Task<bool> IBHQueryUpdatable<T>.AllColumnsAsync()
         {
             throw new NotImplementedException();
         }
     }
 
-    internal class BHQueryUpdatable<T, Dto> : IBHQueryUpdatable<T, Dto> where Dto : BHDto where T : BHEntity<T>
+    internal class BHQueryUpdatable<T, Dto> : IBHQueryUpdatable<T, Dto> where Dto : class where T : BHEntity<T>
     {
         private readonly IBHDataProvider _dataProvider;
 
@@ -62,24 +65,24 @@ namespace Mikarsoft.BlackHoleCore
             _dataProvider = bHDataProvider;
         }
 
-        public bool AllMatchingColumns()
+        bool IBHQueryUpdatable<T, Dto>.AllMatchingColumns()
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> AllMatchingColumnsAsync()
+        Task<bool> IBHQueryUpdatable<T, Dto>.AllMatchingColumnsAsync()
         {
             throw new NotImplementedException();
         }
 
-        public bool MapColumns(Action<UpdateSelection<T, Dto>> selection)
+        bool IBHQueryUpdatable<T, Dto>.MapColumns(Action<UpdateSelection<T, Dto>> selection)
         {
             UpdateSelection<T, Dto> model = new();
             selection.Invoke(model);
             throw new NotImplementedException();
         }
 
-        public Task<bool> MapColumnsAsync(Action<UpdateSelection<T, Dto>> selection)
+        Task<bool> IBHQueryUpdatable<T, Dto>.MapColumnsAsync(Action<UpdateSelection<T, Dto>> selection)
         {
             UpdateSelection<T, Dto> model = new();
             selection.Invoke(model);
@@ -94,41 +97,53 @@ namespace Mikarsoft.BlackHoleCore
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="T"></typeparam>
-    internal class BHQueryJoinable<Dto, T> : BHQuerySearchable<Dto>, IBHQueryJoinable<Dto, T> where Dto : BHDto where T : BHEntity<T>
+    internal class BHQueryJoinable<Dto, T> : BHQuery<T>, IBHQueryJoinable<Dto, T> where Dto : class where T : BHEntity<T>
     {
-        public IPreJoin<Dto, T, TOther> InnerJoin<TOther>() where TOther : BHEntity<TOther>
+
+        IBHIncludeJoinable<T, G, Dto> IBHQueryJoinable<Dto, T>.Include<G>(Expression<Func<T, BHCollection<G>>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IBHQueryBase<Dto> Where(Expression<Func<T, bool>> predicate)
+        {
+            StatementBuilder.AddWhereCase(predicate);
+            return new BHQuery<Dto>(StatementBuilder);
+        }
+
+        IPreJoin<Dto, T, TOther> IBHQueryJoinable<Dto, T>.InnerJoin<TOther>()
         {
             byte[] tableLetters = StatementBuilder.AddJoin<T, TOther>(JoinType.Inner);
             return new PreJoin<Dto, T, TOther>(StatementBuilder, tableLetters);
         }
 
-        public IPreJoin<Dto, T, TOther> LeftJoin<TOther>() where TOther : BHEntity<TOther>
+        IPreJoin<Dto, T, TOther> IBHQueryJoinable<Dto, T>.LeftJoin<TOther>()
         {
             byte[] tableLetters = StatementBuilder.AddJoin<T, TOther>(JoinType.Left);
             return new PreJoin<Dto, T, TOther>(StatementBuilder, tableLetters);
         }
 
-        public IPreJoin<Dto, T, TOther> OuterJoin<TOther>() where TOther : BHEntity<TOther>
+        IPreJoin<Dto, T, TOther> IBHQueryJoinable<Dto, T>.OuterJoin<TOther>()
         {
             byte[] tableLetters = StatementBuilder.AddJoin<T, TOther>(JoinType.Outer);
             return new PreJoin<Dto, T, TOther>(StatementBuilder, tableLetters);
         }
 
-        public IPreJoin<Dto, T, TOther> RightJoin<TOther>() where TOther : BHEntity<TOther>
+        IPreJoin<Dto, T, TOther> IBHQueryJoinable<Dto, T>.RightJoin<TOther>()
         {
             byte[] tableLetters = StatementBuilder.AddJoin<T, TOther>(JoinType.Right);
             return new PreJoin<Dto, T, TOther>(StatementBuilder, tableLetters);
         }
     }
 
-    internal class BHQuerySearchable<T> : BHQuery<T>, IBHQuerySearchable<T> where T : class
+    internal class BHQuerySearchable<T> : BHQuery<T>, IBHQuerySearchable<T> where T : BHEntity<T>
     {
-        public IBHInclude<T, G> Include<G>(Expression<Func<T, BHCollection<G>>> predicate) where G : BHEntity<G>
+        IBHInclude<T, G> IBHQuerySearchable<T>.Include<G>(Expression<Func<T, BHCollection<G>>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public IBHQuery<T> Where(Expression<Func<T, bool>> predicate)
+        IBHQueryBase<T> IBHQuerySearchable<T>.Where(Expression<Func<T, bool>> predicate)
         {
             StatementBuilder.AddWhereCase(predicate);
             return new BHQuery<T>(StatementBuilder);
@@ -137,7 +152,7 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class BHInclude<T, G> : IBHInclude<T, G> where T : class where G : BHEntity<G>
     {
-        public IBHThenInclude<T, G> On<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey)
+        IBHThenInclude<T, G> IBHInclude<T, G>.Match<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey)
         {
             throw new NotImplementedException();
         }
@@ -145,7 +160,7 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class BHInclude<T, G, D> : IBHInclude<T, G, D> where T : class where G : BHEntity<G> where D : BHEntity<D>
     {
-        public IBHThenInclude<T, D> On<TKey>(Expression<Func<G, TKey>> key, Expression<Func<D, TKey>> otherKey)
+        IBHThenInclude<T, D> IBHInclude<T, G, D>.Match<TKey>(Expression<Func<G, TKey>> key, Expression<Func<D, TKey>> otherKey)
         {
             throw new NotImplementedException();
         }
@@ -153,67 +168,68 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class BHThenInclude<T, G> : BHQuery<T>, IBHThenInclude<T, G> where G : BHEntity<G> where T : class
     {
-        public IBHInclude<T, D> Include<D>(Expression<Func<T, BHCollection<D>>> predicate) where D : BHEntity<D>
+        IBHInclude<T, D> IBHThenInclude<T, G>.Include<D>(Expression<Func<T, BHCollection<D>>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public IBHInclude<T, G, D> ThenInclude<D>(Expression<Func<G, BHCollection<D>>> predicate) where D : BHEntity<D>
+        IBHInclude<T, G, D> IBHThenInclude<T, G>.ThenInclude<D>(Expression<Func<G, BHCollection<D>>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public IBHQuery<T> Where(Expression<Func<T, bool>> predicate)
+        IBHQueryBase<T> IBHThenInclude<T, G>.Where(Expression<Func<T, bool>> predicate)
         {
             throw new NotImplementedException();
         }
     }
 
-    internal class BHQuery<T> : IBHQuery<T> where T : class
+    internal class BHQuery<T> : IBHQueryBase<T> where T : class
     {
-        internal readonly BHStatementBuilder StatementBuilder;
+        internal readonly BHSelectStatementBuilder StatementBuilder;
 
         internal BHQuery()
         {
             StatementBuilder = new(BHExpressionPartType.Select, typeof(T));
         }
 
-        internal BHQuery(BHStatementBuilder statement)
+        internal BHQuery(BHSelectStatementBuilder statement)
         {
             StatementBuilder = statement;
         }
 
-        public T? FirstOrDefault()
+        T? IBHQueryBase<T>.FirstOrDefault()
         {
             throw new NotImplementedException();
         }
 
-        public Task<T?> FirstOrDefaultAsync()
+        Task<T?> IBHQueryBase<T>.FirstOrDefaultAsync()
         {
             throw new NotImplementedException();
         }
 
-        public IBHEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors)
+        IBHEnumerable<IBHGroup<G, T>, T> IBHQueryBase<T>.GroupBy<G>(Expression<Func<T, G>> keySelectors)
+        {
+            PropertyInfo[] groupProps = typeof(G).GetProperties();
+            return new BHEnumerable<IBHGroup<G, T>, T>();
+        }
+
+        IBHOrderBy<T> IBHQueryBase<T>.OrderByAscending<TKey>(Expression<Func<T, TKey>> action)
         {
             throw new NotImplementedException();
         }
 
-        public IBHOrderBy<T> OrderByAscending<TKey>(Expression<Func<T, TKey>> action)
+        IBHOrderBy<T> IBHQueryBase<T>.OrderByDescending<TKey>(Expression<Func<T, TKey>> action)
         {
             throw new NotImplementedException();
         }
 
-        public IBHOrderBy<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> action)
+        List<T> IBHQueryBase<T>.ToList()
         {
             throw new NotImplementedException();
         }
 
-        public List<T> ToList()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<T>> ToListAsync()
+        Task<List<T>> IBHQueryBase<T>.ToListAsync()
         {
             throw new NotImplementedException();
         }
@@ -223,28 +239,28 @@ namespace Mikarsoft.BlackHoleCore
     {
         public IBHGroupedQuery<TResult> Map(Func<T, TResult> selector)
         {
-            throw new NotImplementedException();
+            return new BHGroupedQuery<TResult>();
         }
     }
 
     internal class BHGroupedQuery<T> : IBHGroupedQuery<T> where T : class
     {
-        public IBHOrderByQuery<T> OrderByAscending(Expression<Func<T, object?>> action)
+        IBHOrderByQuery<T> IBHGroupedQuery<T>.OrderByAscending(Expression<Func<T, object?>> action)
         {
             throw new NotImplementedException();
         }
 
-        public IBHOrderByQuery<T> OrderByDescending(Expression<Func<T, object?>> action)
+        IBHOrderByQuery<T> IBHGroupedQuery<T>.OrderByDescending(Expression<Func<T, object?>> action)
         {
             throw new NotImplementedException();
         }
 
-        public List<T> ToList()
+        List<T> IBHGroupedQuery<T>.ToList()
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<T>> ToListAsync()
+        Task<List<T>> IBHGroupedQuery<T>.ToListAsync()
         {
             throw new NotImplementedException();
         }
@@ -252,32 +268,32 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class BHOrderByQuery<T> : IBHOrderByQuery<T> where T : class
     {
-        public IBHFinalQuery<T> Take(int fetchRows)
+        IBHOrderByQuery<T> IBHOrderByQuery<T>.ThenByAscending<TKey>(Expression<Func<T, TKey?>> action) where TKey : default
         {
             throw new NotImplementedException();
         }
 
-        public IBHFinalQuery<T> TakeWithOffset(int offsetRows, int fetchRows)
+        IBHOrderByQuery<T> IBHOrderByQuery<T>.ThenByDescending<TKey>(Expression<Func<T, TKey?>> action) where TKey : default
         {
             throw new NotImplementedException();
         }
 
-        public IBHOrderByQuery<T> ThenByAscending(Expression<Func<T, object?>> action)
+        IBHFinalQuery<T> IBHOrderByQuery<T>.Take(int fetchRows)
         {
             throw new NotImplementedException();
         }
 
-        public IBHOrderByQuery<T> ThenByDescending(Expression<Func<T, object?>> action)
+        IBHFinalQuery<T> IBHOrderByQuery<T>.TakeWithOffset(int offsetRows, int fetchRows)
         {
             throw new NotImplementedException();
         }
 
-        public List<T> ToList()
+        List<T> IBHOrderByQuery<T>.ToList()
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<T>> ToListAsync()
+        Task<List<T>> IBHOrderByQuery<T>.ToListAsync()
         {
             throw new NotImplementedException();
         }
@@ -285,12 +301,12 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class BHFinalQuery<T> : IBHFinalQuery<T> where T : class
     {
-        public List<T> ToList()
+        List<T> IBHFinalQuery<T>.ToList()
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<T>> ToListAsync()
+        Task<List<T>> IBHFinalQuery<T>.ToListAsync()
         {
             throw new NotImplementedException();
         }
@@ -298,7 +314,14 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class BHGroup<T, G> : IBHGroup<T, G>
     {
-        public T Key => throw new NotImplementedException();
+        private readonly T _key;
+
+        internal BHGroup(T key)
+        {
+            _key = key;
+        }
+
+        public T Key => _key;
 
         public G First => throw new NotImplementedException();
 

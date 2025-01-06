@@ -191,12 +191,12 @@ namespace Mikarsoft.BlackHoleCore
             throw new NotImplementedException();
         }
 
-        public bool InsertEntries(IBHQuery<T> entries, IBHTransaction? transaction = null)
+        public bool InsertEntries(IBHQueryBase<T> entries, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> InsertEntriesAsync(IBHQuery<T> entries, IBHTransaction? transaction = null)
+        public Task<bool> InsertEntriesAsync(IBHQueryBase<T> entries, IBHTransaction? transaction = null)
         {
             throw new NotImplementedException();
         }
@@ -213,12 +213,12 @@ namespace Mikarsoft.BlackHoleCore
 
         public IBHQuerySearchable<T> Select()
         {
-            throw new NotImplementedException();
+            return new BHQuerySearchable<T>();
         }
 
-        public IBHQueryJoinable<Dto, T> Select<Dto>() where Dto : BHDto
+        public IBHQueryJoinable<Dto, T> Select<Dto>() where Dto : class
         {
-            throw new NotImplementedException();
+            return new BHQueryJoinable<Dto,T>();
         }
 
         public IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)

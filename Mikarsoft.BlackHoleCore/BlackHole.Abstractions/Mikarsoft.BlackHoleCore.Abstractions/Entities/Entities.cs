@@ -13,13 +13,6 @@ namespace Mikarsoft.BlackHoleCore.Entities
         public void HistoricSettings();
     }
 
-    /// <summary>
-    /// Is Required to use Mapping on DTO, Views and Joins Functionality and 
-    /// selecting specific columns of BHOpenEntities.
-    /// </summary>
-    public class BHDto
-    {
-    }
 
     /// <summary>
     /// Flexible Black Hole Entity with more options. The table in database is based on this.
@@ -40,7 +33,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// Is Required to use Mapping on DTO, Views and Joins Functionality
     /// </summary>
     /// <typeparam name="G"></typeparam>
-    public class BHDto<G> : BHDto where G : struct, IBHStruct
+    public class BHDto<G> where G : struct, IBHStruct
     {
         /// <summary>
         /// The Primary Key of the DTO

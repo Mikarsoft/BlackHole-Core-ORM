@@ -214,7 +214,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>All Entities of the Table mapped to DTO</returns>
-        IBHQueryJoinable<Dto, T> Select<Dto>() where Dto : BHDto;
+        IBHQueryJoinable<Dto, T> Select<Dto>() where Dto : class;
         #endregion
 
         #region Update Methods
@@ -301,7 +301,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="entries">Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        bool InsertEntries(IBHQuery<T> entries, IBHTransaction? transaction = null);
+        bool InsertEntries(IBHQueryBase<T> entries, IBHTransaction? transaction = null);
         #endregion
 
         #region Delete Methods
@@ -379,7 +379,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="entries">List of Entities</param>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>Success</returns>
-        Task<bool> InsertEntriesAsync(IBHQuery<T> entries, IBHTransaction? transaction = null);
+        Task<bool> InsertEntriesAsync(IBHQueryBase<T> entries, IBHTransaction? transaction = null);
 
         #endregion
 

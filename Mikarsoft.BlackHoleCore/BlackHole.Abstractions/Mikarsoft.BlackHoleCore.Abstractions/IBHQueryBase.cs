@@ -9,7 +9,7 @@ namespace Mikarsoft.BlackHoleCore
     /// </summary>
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="T"></typeparam>
-    public interface IBHQueryJoinable<Dto, T> : IBHQuerySearchable<Dto> where Dto : BHDto where T : BHEntity<T>
+    public interface IBHQueryJoinable<Dto, T> : IBHQueryJoinableBase<Dto, T> where Dto : class where T : BHEntity<T>
     {
         /// <summary>
         /// 
@@ -38,6 +38,21 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
         IPreJoin<Dto, T, TOther> RightJoin<TOther>() where TOther : BHEntity<TOther>;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHQueryBase<Dto> Where(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="G"></typeparam>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHIncludeJoinable<T, G, Dto> Include<G>(Expression<Func<T, BHCollection<G>>> key) where G : BHEntity<G>;
     }
 
     /// <summary>
@@ -145,7 +160,8 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="key"></param>
         public void Use<TKey>(Expression<Func<T, TKey?>> key) where TKey : IComparable
         {
-            PropertyNames.Add(key.MemberParse());
+            string column = key.MemberParse();
+            PropertyNames.Add(column);
         }
     }
 
@@ -153,24 +169,19 @@ namespace Mikarsoft.BlackHoleCore
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IBHQuerySearchable<T> : IBHQuery<T> where T : class
+    public interface IBHQuerySearchable<T> : IBHQueryBase<T> where T : class
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        IBHQuery<T> Where(Expression<Func<T, bool>> predicate);
+        IBHQueryBase<T> Where(Expression<Func<T, bool>> predicate);
 
         IBHInclude<T, G> Include<G>(Expression<Func<T, BHCollection<G>>> predicate) where G :BHEntity<G>;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="G"></typeparam>
-    public interface IBHInclude<T, G> where T : class where G :BHEntity<G>
+    public interface IBHIncludeJoinable<T, G, Dto> where T : BHEntity<T> where Dto : class where G : BHEntity<G>
     {
         /// <summary>
         /// 
@@ -179,7 +190,72 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="key"></param>
         /// <param name="otherKey"></param>
         /// <returns></returns>
-        IBHThenInclude<T, G> On<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey) where TKey : IComparable;
+        IBHThenIncludeJoinable<T, G, Dto> Match<TKey>(Expression<Func<T, TKey>> parentKey, Expression<Func<G, TKey>> childKey) where TKey : IComparable;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="G"></typeparam>
+    public interface IBHIncludeJoinable<T, G, D, Dto> where T : BHEntity<T> where Dto : class where G : BHEntity<G>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="otherKey"></param>
+        /// <returns></returns>
+        IBHIncludeJoinable<T, G, Dto> Match<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey) where TKey : IComparable;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="G"></typeparam>
+    public interface IBHThenIncludeJoinable<T, G, Dto> : IBHQueryJoinableBase<Dto, T> where T : BHEntity<T> where Dto : class where G : BHEntity<G>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHQueryJoinableBase<Dto, T> Where(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="D"></typeparam>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHIncludeJoinable<T, D, Dto> Include<D>(Expression<Func<T, BHCollection<D>>> predicate) where D : BHEntity<D>;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="D"></typeparam>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        IBHIncludeJoinable<T, G, D, Dto> ThenInclude<D>(Expression<Func<G, BHCollection<D>>> predicate) where D : BHEntity<D>;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="G"></typeparam>
+    public interface IBHInclude<T, G> where T : class where G : BHEntity<G>
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="otherKey"></param>
+        /// <returns></returns>
+        IBHThenInclude<T, G> Match<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey) where TKey : IComparable;
     }
 
     public interface IBHInclude<T, G, D> where T : class where G : BHEntity<G> where D : BHEntity<D>
@@ -191,7 +267,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="key"></param>
         /// <param name="otherKey"></param>
         /// <returns></returns>
-        IBHThenInclude<T, D> On<TKey>(Expression<Func<G, TKey>> key, Expression<Func<D, TKey>> otherKey);
+        IBHThenInclude<T, D> Match<TKey>(Expression<Func<G, TKey>> key, Expression<Func<D, TKey>> otherKey);
     }
 
     /// <summary>
@@ -199,14 +275,14 @@ namespace Mikarsoft.BlackHoleCore
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="G"></typeparam>
-    public interface IBHThenInclude<T, G> : IBHQuery<T> where T : class where G :BHEntity<G>
+    public interface IBHThenInclude<T, G> : IBHQueryBase<T> where T : class where G :BHEntity<G>
     {
         /// <summary>
         /// 
         /// </summary>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        IBHQuery<T> Where(Expression<Func<T, bool>> predicate);
+        IBHQueryBase<T> Where(Expression<Func<T, bool>> predicate);
 
         /// <summary>
         /// 
@@ -228,7 +304,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHQuery<T> where T : class
+    public interface IBHQueryBase<T> where T : class
     {
         /// <summary>
         /// 
@@ -250,7 +326,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="G"></typeparam>
         /// <param name="keySelectors"></param>
         /// <returns></returns>
-        IBHEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors) where G : IComparable;
+        IBHEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
 
         /// <summary>
         /// 

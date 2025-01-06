@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Mikarsoft.BlackHoleCore.Tools
 {
-    internal class BHStatementBuilder
+    internal class BHSelectStatementBuilder
     {
         private readonly Dictionary<Type, byte> TableKeys;
         private readonly List<JoinStatement> JoinPairs;
@@ -17,10 +17,11 @@ namespace Mikarsoft.BlackHoleCore.Tools
         private readonly List<MappingCase> MappingCases;
         private readonly List<GroupByCase> GroupByCases;
         private readonly List<OccupiedProperty> OccupiedProperties;
+        private readonly List<IncludeStatement> IncludeCases;
         private readonly BHExpressionPartType CommandType;
         private byte TableIndex = 0;
 
-        internal BHStatementBuilder(BHExpressionPartType commandType, Type modelType)
+        internal BHSelectStatementBuilder(BHExpressionPartType commandType, Type modelType)
         {
             TableKeys = new();
             JoinPairs = new();
@@ -28,6 +29,7 @@ namespace Mikarsoft.BlackHoleCore.Tools
             OrderByCases = new();
             MappingCases = new();
             GroupByCases = new();
+            IncludeCases = new();
             OccupiedProperties = GenerateProperties(modelType);
             CommandType = commandType;
         }
@@ -81,7 +83,7 @@ namespace Mikarsoft.BlackHoleCore.Tools
         }
 
         internal void AddJoinPoint<T, TOther, TKey, TOtherKey>(Expression<Func<T, TKey?>> key,
-            Expression<Func<TOther, TOtherKey?>> otherKey, OuterPairType pairType = OuterPairType.On)
+            Expression<Func<TOther, TOtherKey?>> otherKey, OuterPairType pairType)
         {
             string columnA = key.MemberParse();
             string columnB = otherKey.MemberParse();
