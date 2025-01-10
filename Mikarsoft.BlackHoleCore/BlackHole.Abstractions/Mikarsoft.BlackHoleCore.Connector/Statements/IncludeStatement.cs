@@ -5,14 +5,14 @@ namespace Mikarsoft.BlackHoleCore.Connector.Statements
 
     internal class IncludeStatement
     {
-        public IncludeStatement(Type paretnType , Type childType)
+        public string ParentProperty { get; set; }
+
+        public string ChildProperty { get; set; }
+
+        public IncludeStatement(string parentProp, string childProp)
         {
-            ChildType = childType;
-            ParentType = paretnType;
+            ParentProperty = parentProp;
+            ChildProperty = childProp;
         }
-
-        public Type ChildType { get; set; }
-
-        public Type ParentType { get; set; }
     }
 }

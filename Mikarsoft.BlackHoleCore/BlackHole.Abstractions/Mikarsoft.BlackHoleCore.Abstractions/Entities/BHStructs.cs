@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Mikarsoft.BlackHoleCore.Abstractions;
+using System.Text.Json.Serialization;
 
 namespace Mikarsoft.BlackHoleCore.Entities
 {
@@ -216,7 +217,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
 
     public struct BHCollection<T> where T : BHEntity<T>
     {
-        private List<T> Children;
+        private List<T> Children { get; set; }
 
         public BHCollection()
         {
@@ -231,6 +232,11 @@ namespace Mikarsoft.BlackHoleCore.Entities
         public static implicit operator BHCollection<T>(List<T> items) => new BHCollection<T>(items);
 
         public static implicit operator List<T>(BHCollection<T> collection) => collection.Children;
+
+        internal async Task Include(IMIncludeCaller caller, IBHTransaction transaction, string property, object value)
+        {
+            Children = await caller.GetItemsAsync<T>(property, value, transaction);
+        }
 
         public List<T> ToList()
         {

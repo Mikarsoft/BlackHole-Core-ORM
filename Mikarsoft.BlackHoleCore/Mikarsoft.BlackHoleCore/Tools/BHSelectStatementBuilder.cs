@@ -1,4 +1,5 @@
-﻿using Mikarsoft.BlackHoleCore.Abstractions.Tools;
+﻿using Mikarsoft.BlackHoleCore.Abstractions;
+using Mikarsoft.BlackHoleCore.Abstractions.Tools;
 using Mikarsoft.BlackHoleCore.Connector;
 using Mikarsoft.BlackHoleCore.Connector.Enums;
 using Mikarsoft.BlackHoleCore.Connector.Statements;
@@ -8,6 +9,8 @@ using System.Reflection;
 
 namespace Mikarsoft.BlackHoleCore.Tools
 {
+    internal delegate Task GetIncludeAction(IMIncludeCaller caller, IBHTransaction transaction, string property, object value);
+
     internal class BHSelectStatementBuilder
     {
         private readonly Dictionary<Type, byte> TableKeys;
@@ -17,9 +20,12 @@ namespace Mikarsoft.BlackHoleCore.Tools
         private readonly List<MappingCase> MappingCases;
         private readonly List<GroupByCase> GroupByCases;
         private readonly List<OccupiedProperty> OccupiedProperties;
-        private readonly List<IncludeStatement> IncludeCases;
+        private readonly List<BHIncludeModel> IncludeCases;
+        
         private readonly BHExpressionPartType CommandType;
         private byte TableIndex = 0;
+
+        internal bool HasInclude => IncludeCases.Count > 0;
 
         internal BHSelectStatementBuilder(BHExpressionPartType commandType, Type modelType)
         {
@@ -114,9 +120,18 @@ namespace Mikarsoft.BlackHoleCore.Tools
             }
         }
 
+        internal void UseInclude<T, D>(Func<T, BHCollection<D>> predicate) where T : BHEntity<T>, new() where D : BHEntity<D>
+        {
+            T item = new();
+            BHCollection<D> include = predicate.Invoke(item);
+            IncludeCases.Add(new BHIncludeModel(include.Include));
+
+            IncludeCases[0].IncludeAction.Invoke();
+        }
+
         private byte AddIndex()
         {
-            if(TableIndex > 254)
+            if (TableIndex > 254)
             {
                 throw new ArgumentException("Reached maximum allowed limit of tables in a query : 254 Tables");
             }

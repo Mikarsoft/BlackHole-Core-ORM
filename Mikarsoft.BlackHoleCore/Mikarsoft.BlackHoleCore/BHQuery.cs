@@ -166,11 +166,19 @@ namespace Mikarsoft.BlackHoleCore
         }
     }
 
-    internal class BHThenInclude<T, G> : BHQuery<T>, IBHThenInclude<T, G> where G : BHEntity<G> where T : class
+    internal class BHThenInclude<T, G> : BHQuery<T>, IBHThenInclude<T, G> where G : BHEntity<G> where T : class, new()
     {
         IBHInclude<T, D> IBHThenInclude<T, G>.Include<D>(Expression<Func<T, BHCollection<D>>> predicate)
         {
-            throw new NotImplementedException();
+            BHCollection<D> prop = predicate
+            StatementBuilder.GetIncludeActions.Add()
+        }
+
+        IBHInclude<T, D> IBHThenInclude<T, G>.Include<D>(Func<T, BHCollection<D>> predicate)
+        {
+            T item = new();
+            BHCollection<D> prop = predicate.Invoke(item);
+            StatementBuilder.GetIncludeActions.Add(prop.Include);
         }
 
         IBHInclude<T, G, D> IBHThenInclude<T, G>.ThenInclude<D>(Expression<Func<G, BHCollection<D>>> predicate)
