@@ -5,50 +5,36 @@ using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore
 {
-    internal class BHJoinsProcess<Dto> : IBHJoinsProcess<Dto> where Dto : class
+    internal class MJoinsProcess<Dto> : MGroupBy<Dto> , IMJoinsProcess<Dto> 
+        where Dto : class
     {
-        private readonly BHSelectStatementBuilder StatementBuilder;
+        internal MJoinsProcess(BHSelectStatementBuilder statement) : base(statement) { }
 
-        internal BHJoinsProcess(BHSelectStatementBuilder statement)
+        IPreJoin<Dto, TSource, TOther> IMJoinsProcess<Dto>.InnerJoin<TSource, TOther>()
         {
-            StatementBuilder = statement;
+            throw new NotImplementedException();
         }
 
-        public IPreJoin<Dto, TSource, TOther> InnerJoin<TSource, TOther>()
-            where TSource : BHEntity<TSource>
-            where TOther : BHEntity<TOther>
+        IPreJoin<Dto, TSource, TOther> IMJoinsProcess<Dto>.LeftJoin<TSource, TOther>()
         {
-            byte[]tableLetters = StatementBuilder.AddJoin<TSource,TOther>(JoinType.Inner);
-            return new PreJoin<Dto, TSource, TOther>(StatementBuilder, tableLetters);
+            throw new NotImplementedException();
         }
 
-        public IPreJoin<Dto, TSource, TOther> LeftJoin<TSource, TOther>()
-            where TSource : BHEntity<TSource>
-            where TOther : BHEntity<TOther>
+        IPreJoin<Dto, TSource, TOther> IMJoinsProcess<Dto>.OuterJoin<TSource, TOther>()
         {
-            byte[] tableLetters = StatementBuilder.AddJoin<TSource, TOther>(JoinType.Left);
-            return new PreJoin<Dto, TSource, TOther>(StatementBuilder, tableLetters);
+            throw new NotImplementedException();
         }
 
-        public IPreJoin<Dto, TSource, TOther> OuterJoin<TSource, TOther>()
-            where TSource : BHEntity<TSource>
-            where TOther : BHEntity<TOther>
+        IPreJoin<Dto, TSource, TOther> IMJoinsProcess<Dto>.RightJoin<TSource, TOther>()
         {
-            byte[] tableLetters = StatementBuilder.AddJoin<TSource, TOther>(JoinType.Outer);
-            return new PreJoin<Dto, TSource, TOther>(StatementBuilder, tableLetters);
-        }
-
-        public IPreJoin<Dto, TSource, TOther> RightJoin<TSource, TOther>()
-            where TSource : BHEntity<TSource>
-            where TOther : BHEntity<TOther>
-        {
-            byte[] tableLetters = StatementBuilder.AddJoin<TSource, TOther>(JoinType.Right);
-            return new PreJoin<Dto, TSource, TOther>(StatementBuilder, tableLetters);
+            throw new NotImplementedException();
         }
     }
 
     internal class PreJoin<Dto, TSource, TOther> : IPreJoin<Dto, TSource, TOther> 
-        where Dto : class where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
+        where Dto : class 
+        where TSource : BHEntity<TSource> , new()
+        where TOther : BHEntity<TOther> , new()
     {
         private readonly BHSelectStatementBuilder StatementBuilder;
         private readonly byte TableACode;
@@ -61,16 +47,17 @@ namespace Mikarsoft.BlackHoleCore
             TableDCode = tableLetters[1];
         }
 
-        public IJoinConfig<Dto, TSource, TOther> On<TKey>(Expression<Func<TSource, TKey?>> key,
-            Expression<Func<TOther, TKey?>> otherKey)
+        IJoinConfig<Dto, TSource, TOther> IPreJoin<Dto, TSource, TOther>.On<TKey>(Expression<Func<TSource, TKey?>> key, 
+            Expression<Func<TOther, TKey?>> otherKey) where TKey : default
         {
-            StatementBuilder.AddJoinPoint(key, otherKey, OuterPairType.On);
-            return new JoinConfig<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
     }
 
-    internal class JoinConfig<Dto, TSource, TOther> : BHQuery<Dto>, IJoinConfig<Dto, TSource, TOther> 
-        where Dto : class where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
+    internal class JoinConfig<Dto, TSource, TOther> : MGroupBy<Dto>, IJoinConfig<Dto, TSource, TOther> 
+        where Dto : class 
+        where TSource : BHEntity<TSource> , new()
+        where TOther : BHEntity<TOther> , new()
     {
         private readonly byte TableACode;
         private readonly byte TableDCode;
@@ -81,53 +68,49 @@ namespace Mikarsoft.BlackHoleCore
             TableDCode = tableDCode;
         }
 
-        public IJoinConfig<Dto, TSource, TOther> And<TKey>(Expression<Func<TSource, TKey?>> key,
-            Expression<Func<TOther, TKey?>> otherKey)
+        IJoinConfig<Dto, TSource, TOther> IJoinConfig<Dto, TSource, TOther>.And<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
+            where TKey : default
         {
-            StatementBuilder.AddJoinPoint(key, otherKey, OuterPairType.And);
-            return new JoinConfig<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
 
-        public IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> key,
-            Expression<Func<Dto, TOtherKey?>> otherKey)
+        IJoinOptions<Dto, TSource, TOther> IJoinConfig<Dto, TSource, TOther>.CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<Dto, TOtherKey?>> otherKey)
+            where TKey : default
+            where TOtherKey : default
         {
-            StatementBuilder.AddCastCase(key, otherKey, TableACode);
-            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
 
-        public IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> key,
-            Expression<Func<Dto, TOtherKey?>> otherKey)
+        IJoinOptions<Dto, TSource, TOther> IJoinConfig<Dto, TSource, TOther>.CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> key, Expression<Func<Dto, TOtherKey?>> otherKey)
+            where TKey : default
+            where TOtherKey : default
         {
-            StatementBuilder.AddCastCase(key, otherKey, TableDCode);
-            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
 
-        public IJoinConfig<Dto, TSource, TOther> Or<TKey>(Expression<Func<TSource, TKey?>> key,
-            Expression<Func<TOther, TKey?>> otherKey)
+        IJoinConfig<Dto, TSource, TOther> IJoinConfig<Dto, TSource, TOther>.Or<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey)
+            where TKey : default
         {
-            StatementBuilder.AddJoinPoint(key, otherKey, OuterPairType.Or);
-            return new JoinConfig<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
 
-        public IBHJoinsProcess<Dto> Then()
+        IMJoinsProcess<Dto> IJoinConfig<Dto, TSource, TOther>.Then()
         {
-            return new BHJoinsProcess<Dto>(StatementBuilder);
+            throw new NotImplementedException();
         }
 
-        public IJoinOptions<Dto, TSource, TOther> WhereFirst(Expression<Func<TSource, bool>> predicate)
+        IJoinOptions<Dto, TSource, TOther> IJoinConfig<Dto, TSource, TOther>.WhereFirst(Expression<Func<TSource, bool>> predicate)
         {
-            StatementBuilder.AddWhereCase(predicate, TableACode);
-            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
 
-        public IJoinOptions<Dto, TSource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
+        IJoinOptions<Dto, TSource, TOther> IJoinConfig<Dto, TSource, TOther>.WhereSecond(Expression<Func<TOther, bool>> predicate)
         {
-            StatementBuilder.AddWhereCase(predicate, TableDCode);
-            return new JoinOptions<Dto,TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
     }
 
-    internal class JoinOptions<Dto, TSource, TOther> : BHQuery<Dto>, IJoinOptions<Dto, TSource, TOther> where Dto : class
+    internal class JoinOptions<Dto, TSource, TOther> : MGroupBy<Dto>, IJoinOptions<Dto, TSource, TOther> where Dto : class
     {
         private readonly byte TableACode;
         private readonly byte TableDCode;
@@ -138,35 +121,33 @@ namespace Mikarsoft.BlackHoleCore
             TableDCode = tableDCode;
         }
 
-        public IJoinOptions<Dto, TSource, TOther> CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> key,
-            Expression<Func<Dto, TOtherKey?>> otherKey)
+        IJoinOptions<Dto, TSource, TOther> IJoinOptions<Dto, TSource, TOther>.CastColumnOfFirst<TKey, TOtherKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<Dto, TOtherKey?>> otherKey)
+            where TKey : default
+            where TOtherKey : default
         {
-            StatementBuilder.AddCastCase(key, otherKey, TableACode);
-            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
 
-        public IJoinOptions<Dto, TSource, TOther> CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> key, 
-            Expression<Func<Dto, TOtherKey?>> otherKey)
+        IJoinOptions<Dto, TSource, TOther> IJoinOptions<Dto, TSource, TOther>.CastColumnOfSecond<TKey, TOtherKey>(Expression<Func<TOther, TKey?>> key, Expression<Func<Dto, TOtherKey?>> otherKey)
+            where TKey : default
+            where TOtherKey : default
         {
-            StatementBuilder.AddCastCase(key, otherKey, TableDCode);
-            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
 
-        public IBHJoinsProcess<Dto> Then()
+        IMJoinsProcess<Dto> IJoinOptions<Dto, TSource, TOther>.Then()
         {
-            return new BHJoinsProcess<Dto>(StatementBuilder);
+            throw new NotImplementedException();
         }
 
-        public IJoinOptions<Dto, TSource, TOther> WhereFirst(Expression<Func<TSource, bool>> predicate)
+        IJoinOptions<Dto, TSource, TOther> IJoinOptions<Dto, TSource, TOther>.WhereFirst(Expression<Func<TSource, bool>> predicate)
         {
-            StatementBuilder.AddWhereCase(predicate, TableACode);
-            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
 
-        public IJoinOptions<Dto, TSource, TOther> WhereSecond(Expression<Func<TOther, bool>> predicate)
+        IJoinOptions<Dto, TSource, TOther> IJoinOptions<Dto, TSource, TOther>.WhereSecond(Expression<Func<TOther, bool>> predicate)
         {
-            StatementBuilder.AddWhereCase(predicate, TableDCode);
-            return new JoinOptions<Dto, TSource, TOther>(StatementBuilder, TableACode, TableDCode);
+            throw new NotImplementedException();
         }
     }
 }

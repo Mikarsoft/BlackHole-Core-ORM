@@ -18,7 +18,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// Flexible Black Hole Entity with more options. The table in database is based on this.
     /// <para>It is Suggested for more advanced developers.</para>
     /// </summary>
-    public abstract class BHEntity<Self> where Self : BHEntity<Self>
+    public abstract class BHEntity<Self> where Self : BHEntity<Self>, new()
     {
         /// <summary>
         /// 

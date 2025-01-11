@@ -1,4 +1,5 @@
-﻿using Mikarsoft.BlackHoleCore.Entities;
+﻿using Mikarsoft.BlackHoleCore.Abstractions;
+using Mikarsoft.BlackHoleCore.Entities;
 using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore
@@ -6,7 +7,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <summary>
     /// 
     /// </summary>
-    public interface IBHJoinsProcess<Dto> where Dto : class
+    public interface IMJoinsProcess<Dto> : IMGroupBy<Dto> where Dto : class
     {
         /// <summary>
         /// 
@@ -14,7 +15,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        IPreJoin<Dto, TSource, TOther> InnerJoin<TSource, TOther>() where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>;
+        IPreJoin<Dto, TSource, TOther> InnerJoin<TSource, TOther>() where TSource : BHEntity<TSource> , new() where TOther : BHEntity<TOther>, new();
 
         /// <summary>
         /// 
@@ -22,7 +23,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        IPreJoin<Dto, TSource, TOther> OuterJoin<TSource, TOther>() where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>;
+        IPreJoin<Dto, TSource, TOther> OuterJoin<TSource, TOther>() where TSource : BHEntity<TSource> , new() where TOther : BHEntity<TOther> , new();
 
         /// <summary>
         /// 
@@ -30,7 +31,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        IPreJoin<Dto, TSource, TOther> LeftJoin<TSource, TOther>() where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>;
+        IPreJoin<Dto, TSource, TOther> LeftJoin<TSource, TOther>() where TSource : BHEntity<TSource> , new() where TOther : BHEntity<TOther> , new();
 
         /// <summary>
         /// 
@@ -38,7 +39,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TOther"></typeparam>
         /// <returns></returns>
-        IPreJoin<Dto, TSource, TOther> RightJoin<TSource, TOther>() where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>;
+        IPreJoin<Dto, TSource, TOther> RightJoin<TSource, TOther>() where TSource : BHEntity<TSource> , new() where TOther : BHEntity<TOther>, new();
     }
 
     /// <summary>
@@ -47,7 +48,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IPreJoin<Dto, TSource, TOther> where Dto : class where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
+    public interface IPreJoin<Dto, TSource, TOther> where Dto : class where TSource : BHEntity<TSource> , new() where TOther : BHEntity<TOther> , new()
     {
         /// <summary>
         /// 
@@ -56,7 +57,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <param name="key"></param>
         /// <param name="otherKey"></param>
         /// <returns></returns>
-        IJoinConfig<Dto, TSource, TOther> On<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey);
+        IJoinConfig<Dto, TSource, TOther> On<TKey>(Expression<Func<TSource, TKey?>> key, Expression<Func<TOther, TKey?>> otherKey) where TKey : IComparable;
     }
 
     /// <summary>
@@ -65,7 +66,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IJoinConfig<Dto, TSource, TOther> : IBHQueryBase<Dto> where Dto : class where TSource : BHEntity<TSource> where TOther : BHEntity<TOther>
+    public interface IJoinConfig<Dto, TSource, TOther> : IMGroupBy<Dto> where Dto : class where TSource : BHEntity<TSource>, new() where TOther : BHEntity<TOther> , new()
     {
         /// <summary>
         /// 
@@ -123,7 +124,7 @@ namespace Mikarsoft.BlackHoleCore
         /// 
         /// </summary>
         /// <returns></returns>
-        IBHJoinsProcess<Dto> Then();
+        IMJoinsProcess<Dto> Then();
     }
 
     /// <summary>
@@ -132,7 +133,7 @@ namespace Mikarsoft.BlackHoleCore
     /// <typeparam name="Dto"></typeparam>
     /// <typeparam name="TSource"></typeparam>
     /// <typeparam name="TOther"></typeparam>
-    public interface IJoinOptions<Dto, TSource, TOther> : IBHQueryBase<Dto> where Dto : class
+    public interface IJoinOptions<Dto, TSource, TOther> : IMGroupBy<Dto> where Dto : class
     {
         /// <summary>
         /// 
@@ -172,6 +173,6 @@ namespace Mikarsoft.BlackHoleCore
         /// 
         /// </summary>
         /// <returns></returns>
-        IBHJoinsProcess<Dto> Then();
+        IMJoinsProcess<Dto> Then();
     }
 }

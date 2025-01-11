@@ -14,5 +14,11 @@ namespace Mikarsoft.BlackHoleCore.Tools
         {
             IncludeAction = includeAction;
         }
+
+        internal void Match(string parentProp, string childProp)
+        {
+            ParentProperty = parentProp;
+            ChildProperty = childProp;
+        }
     }
 }

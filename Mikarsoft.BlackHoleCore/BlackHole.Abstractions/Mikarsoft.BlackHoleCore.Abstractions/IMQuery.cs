@@ -1,90 +1,78 @@
 ﻿
 
+using Mikarsoft.BlackHoleCore.Abstractions.Models;
 using Mikarsoft.BlackHoleCore.Entities;
 using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore.Abstractions
 {
-    public interface IMQuery<T> : IMQueryBase<T> where T : BHEntity<T>
+    public interface IMQuery<T> : IMIncludeBase<T> where T : BHEntity<T>, new()
     {
-        IMOrderBy<T> OrderByAscending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
-
-        IMOrderBy<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
-
-        IBHEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
-
-        IMQuery<T> Where(Expression<Func<T, bool>> predicate);
-
-        IBHInclude<T, G> Include<G>(Expression<Func<T, BHCollection<G>>> predicate) where G : BHEntity<G>;
+        Task<BHTableInfo> TableInfoAsync();
+        BHTableInfo TableInfo();
     }
 
-    public interface IMQuery<T, Dto> : IMIncludeBase<T, Dto> where T : BHEntity<T> where Dto : class
+    public interface IMQuery<T, Dto> : IMIncludeBase<T, Dto> where T : BHEntity<T> , new() where Dto : class
     {
-        IPreJoin<Dto, T, TOther> InnerJoin<TOther>() where TOther : BHEntity<TOther>;
+        IPreJoin<Dto, T, TOther> InnerJoin<TOther>() where TOther : BHEntity<TOther>, new();
 
-        IPreJoin<Dto, T, TOther> OuterJoin<TOther>() where TOther : BHEntity<TOther>;
+        IPreJoin<Dto, T, TOther> OuterJoin<TOther>() where TOther : BHEntity<TOther>, new();
 
-        IPreJoin<Dto, T, TOther> LeftJoin<TOther>() where TOther : BHEntity<TOther>;
+        IPreJoin<Dto, T, TOther> LeftJoin<TOther>() where TOther : BHEntity<TOther>, new();
 
-        IPreJoin<Dto, T, TOther> RightJoin<TOther>() where TOther : BHEntity<TOther>;
+        IPreJoin<Dto, T, TOther> RightJoin<TOther>() where TOther : BHEntity<TOther>, new();
     }
 
-    public interface IMIncludeBase<T, Dto> : IMSearchQuery<T, Dto> where T : BHEntity<T> where Dto : class
+    public interface IMIncludeBase<T> : IMSearchQuery<T> where T : BHEntity<T>, new()
     {
-        IMIncludeMatch<T, Dto, G> Include<G>(Expression<Func<T, BHCollection<G>>> predicate) where G : BHEntity<G>;
+        IMIncludeMatch<T, G> Include<G>(Func<T, BHCollection<G>> predicate) where G : BHEntity<G>, new();
+        IMIncludeMatch<T, G> Include<G>(Func<T, BHItem<G>> predicate) where G : BHEntity<G>, new();
     }
 
-    //public interface IMInclude<T, Dto, G> : IMIncludeBase<T, Dto> where T : BHEntity<T> where Dto : class where G : BHEntity<G>
-    //{
-    //    IMIncludeAfter<T, G, D, Dto> ThenInclude<D>(Expression<Func<G, BHCollection<D>>> predicate) where D : BHEntity<D>;
-    //}
-
-    //public interface IMIncludeAfter<T, G, D, Dto> where T : BHEntity<T> where Dto : class where G : BHEntity<G>
-    //{
-    //    IMInclude<T, Dto, G> Match<TKey>(Expression<Func<T, TKey>> key, Expression<Func<G, TKey>> otherKey) where TKey : IComparable;
-    //}
-
-    public interface IMIncludeMatch<T, Dto, G> where T : BHEntity<T> where Dto : class where G : BHEntity<G>
+    public interface IMIncludeMatch<T, G> where T : BHEntity<T>, new() where G : BHEntity<G>, new()
     {
-        IMIncludeBase<T, Dto> Match<TKey>(Expression<Func<T, TKey>> parentKey, Expression<Func<G, TKey>> childKey) where TKey : IComparable;
+        IMIncludeBase<T> Match<TKey>(Expression<Func<T, TKey>> parentKey, Expression<Func<G, TKey>> childKey) where TKey : IComparable;
     }
 
-    public interface IMSearchQuery<T, Dto> : IMGroupBy<T, Dto> where T : BHEntity<T> where Dto : class
+    public interface IMSearchQuery<T> : IMGroupBy<T> where T : BHEntity<T>, new()
     {
-        IMGroupBy<T, Dto> Where(Expression<Func<T, bool>> predicate);
+        IMGroupBy<T> Where(Expression<Func<T, bool>> predicate);
     }
 
-    public interface IMGroupBy<T, Dto> : IMOrderBy<T, Dto> where T : BHEntity<T> where Dto : class
+    public interface IMGroupBy<T> : IMOrderBy<T> where T : class
     {
-        IMOrderBy<T, Dto> Map(Expression<Func<T, Dto>> selector);
-        IMEnumerable<IBHGroup<G, T>, Dto, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
+        IMEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
     }
 
-    public interface IMEnumerable<J, Dto, T> where T : BHEntity<T> where Dto : class
+    public interface IMIncludeBase<T, Dto> : IMSearchQuery<T, Dto> where T : BHEntity<T>, new() where Dto : class
     {
-        IMOrderBy<T, Dto> Map(Func<J, Dto> selector);
+        IMIncludeMatch<T, Dto, G> Include<G>(Func<Dto, BHCollection<G>> predicate) where G : BHEntity<G>, new();
+        IMIncludeMatch<T, Dto, G> Include<G>(Func<Dto, BHItem<G>> predicate) where G : BHEntity<G>, new();
     }
 
-    public interface IMEnumerable<J, T> where T : BHEntity<T>
+    public interface IMIncludeMatch<T, Dto, G> where T : BHEntity<T>, new() where Dto : class where G : BHEntity<G> , new()
+    {
+        IMIncludeBase<T, Dto> Match<TKey>(Expression<Func<Dto, TKey>> parentKey, Expression<Func<G, TKey>> childKey) where TKey : IComparable;
+    }
+
+    public interface IMSearchQuery<T, Dto> : IMGroupBy<Dto> where T : BHEntity<T>, new() where Dto : class
+    {
+        IMGroupBy<Dto> Where(Expression<Func<T, bool>> predicate);
+    }
+
+    public interface IMEnumerable<J, T> where T : class
     {
         IMOrderBy<T> Map(Func<J, T> selector);
     }
 
-    public interface IMOrderBy<T> : IMQueryBase<T> where T : BHEntity<T>
+    public interface IMOrderBy<T> : IMQueryBase<T> where T : class
     {
         IMOrderByAfter<T> OrderByAscending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
 
         IMOrderByAfter<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
     }
 
-    public interface IMOrderBy<T, Dto> : IMQueryBase<Dto> where T : BHEntity<T> where Dto: class
-    {
-        IMOrderByAfter<T> OrderByAscending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
-
-        IMOrderByAfter<T> OrderByDescending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
-    }
-
-    public interface IMOrderByAfter<T> : IMQueryBase<T> where T : BHEntity<T>
+    public interface IMOrderByAfter<T> : IMQueryBase<T> where T : class
     {
         IMOrderByAfter<T> ThenByAscending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
 
@@ -97,7 +85,7 @@ namespace Mikarsoft.BlackHoleCore.Abstractions
         IMQueryBaseList<T> TakeWithOffset(int offsetRows, int fetchRows);
     }
 
-    public interface IMOrderByAfter<T, Dto> : IMQueryBase<Dto> where T : BHEntity<T> where Dto : class
+    public interface IMOrderByAfter<T, Dto> : IMQueryBase<Dto> where T : BHEntity<T> , new() where Dto : class
     {
         IMOrderByAfter<T, Dto> ThenByAscending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
 

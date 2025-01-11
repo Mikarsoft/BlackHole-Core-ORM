@@ -143,7 +143,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// <summary>
     /// 
     /// </summary>
-    public struct Uid : IBHStruct
+    public struct Uid : IBHStruct , IComparable
     {
         private Guid value;
 
@@ -180,9 +180,14 @@ namespace Mikarsoft.BlackHoleCore.Entities
         }
 
         public readonly Type BaseType => typeof(Guid);
+
+        public int CompareTo(object? obj)
+        {
+            throw new NotImplementedException();
+        }
     }
 
-    public struct BHJson<T> : IBHStruct, IComparable where T : class
+    public struct BHJson<T> : IComparable where T : class , new()
     {
         [JsonPropertyName("value")]
         public T Value { get; set; }
@@ -215,7 +220,26 @@ namespace Mikarsoft.BlackHoleCore.Entities
         }
     }
 
-    public struct BHCollection<T> where T : BHEntity<T>
+    public struct BHItem<T> where T : BHEntity<T> , new()
+    {
+        private T? Value;
+
+        public BHItem(T? value)
+        {
+            Value = value;
+        }
+
+        public static implicit operator BHItem<T>(T? item) => new BHItem<T>(item);
+
+        public static implicit operator T?(BHItem<T> item) => item.Value;
+
+        internal async Task Include(IMIncludeCaller caller, IBHTransaction transaction, string property, object value)
+        {
+            Value = await caller.GetItemAsync<T>(property, value, transaction);
+        }
+    }
+
+    public struct BHCollection<T> where T : BHEntity<T> , new()
     {
         private List<T> Children { get; set; }
 

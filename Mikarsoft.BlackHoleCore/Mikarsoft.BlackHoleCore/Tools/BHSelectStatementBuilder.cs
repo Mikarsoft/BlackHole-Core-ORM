@@ -120,13 +120,23 @@ namespace Mikarsoft.BlackHoleCore.Tools
             }
         }
 
-        internal void UseInclude<T, D>(Func<T, BHCollection<D>> predicate) where T : BHEntity<T>, new() where D : BHEntity<D>
+        internal void UseInclude<T, D>(Func<T, BHCollection<D>> predicate) where D : BHEntity<D>, new() where T : BHEntity<T>, new()
         {
             T item = new();
             BHCollection<D> include = predicate.Invoke(item);
             IncludeCases.Add(new BHIncludeModel(include.Include));
+        }
 
-            IncludeCases[0].IncludeAction.Invoke();
+        internal void UseInclude<T, D>(Func<T, BHItem<D>> predicate) where D : BHEntity<D>, new() where T : BHEntity<T>, new()
+        {
+            T item = new();
+            BHItem<D> include = predicate.Invoke(item);
+            IncludeCases.Add(new BHIncludeModel(include.Include));
+        }
+
+        internal void MatchInclude(string parentKey, string childKey)
+        {
+            IncludeCases[IncludeCases.Count - 1].Match(parentKey, childKey);
         }
 
         private byte AddIndex()
