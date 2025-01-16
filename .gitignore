@@ -31,3 +31,10 @@
 /Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore/bin/Debug/net8.0
 /Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore/obj
 /BlackHoleDIBench/obj
+/BlackHoleDIBench/bin/Debug/net8.0
+/Mikarsoft.BlackHoleCore/BlackHole.Abstractions/Mikarsoft.BlackHoleCore.Abstractions/bin/Debug
+/Mikarsoft.BlackHoleCore/Mikarsoft.Analyzers/Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore/obj
+/Mikarsoft.BlackHoleCore/Mikarsoft.Analyzers/Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore.CodeFixes/obj
+/Mikarsoft.BlackHoleCore/Mikarsoft.Analyzers/Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore.Package/obj
+/Mikarsoft.BlackHoleCore/Mikarsoft.Analyzers/Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore.Test/obj
+/Mikarsoft.BlackHoleCore/Mikarsoft.Analyzers/Mikarsoft.BlackHoleCore/Mikarsoft.BlackHoleCore.Test/bin/Debug/netcoreapp3.1
