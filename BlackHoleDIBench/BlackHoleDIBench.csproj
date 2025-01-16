@@ -7,12 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Mikarsoft.Analyzer" Version="1.0.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mikarsoft.BlackHoleCore\BlackHole.Providers\Mikarsoft.BlackHoleCore.Npgsql\Mikarsoft.BlackHoleCore.Npgsql.csproj" />
-    <ProjectReference Include="..\Mikarsoft.BlackHoleCore\Mikarsoft.BlackHoleCore\Mikarsoft.BlackHoleCore.csproj" />
+    <ProjectReference Include="..\Mikarsoft.BlackHoleCore\BlackHole.Abstractions\Mikarsoft.BlackHoleCore.Abstractions\Mikarsoft.BlackHoleCore.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

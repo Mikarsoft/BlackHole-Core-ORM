@@ -1,4 +1,5 @@
-﻿using Mikarsoft.BlackHoleCore.Entities;
+﻿using Mikarsoft.BlackHoleCore.Abstractions;
+using Mikarsoft.BlackHoleCore.Entities;
 using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore
@@ -8,7 +9,7 @@ namespace Mikarsoft.BlackHoleCore
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="G"></typeparam>
-    public interface IBHTable<T, G> : IBHTable<T> where G : struct, IBHStruct where T : BHEntityAI<T, G>
+    public interface IBHTable<T, G> : IBHTable<T> where G : struct, IBHStruct where T : BHEntityAI<T, G> , new()
     {
         #region Unique AI Entity Methods
         /// <summary>
@@ -193,7 +194,7 @@ namespace Mikarsoft.BlackHoleCore
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IBHTable<T> : IBHContextBase where T : BHEntity<T>
+    public interface IBHTable<T> : IBHContextBase where T : BHEntity<T> , new()
     {
         #region Select Methods
 
@@ -203,7 +204,7 @@ namespace Mikarsoft.BlackHoleCore
         /// </summary>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>All Entities of the Table</returns>
-        IBHQuerySearchable<T> Select();
+        IMQuery<T> Select();
 
         /// <summary>
         /// Selects only the columns of the specified Dto that exist on the Table
@@ -214,22 +215,22 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="Dto">Data Transfer Object</typeparam>
         /// <param name="transaction">Transaction Object</param>
         /// <returns>All Entities of the Table mapped to DTO</returns>
-        IBHQueryJoinable<Dto, T> Select<Dto>() where Dto : class;
-        #endregion
+        IMQuery<T, Dto> Select<Dto>() where Dto : class;
+            #endregion
 
         #region Update Methods
 
-        /// <summary>
-        /// Finds the entries in the table
-        /// using a Lambda Expression as filter and updates all
-        /// the columns based on the inserted Entity's property values.
-        /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
-        /// </summary>
-        /// <param name="predicate">Lambda Expression</param>
-        /// <param name="entry">Entity</param>
-        /// <param name="transaction">Transaction Object</param>
-        /// <returns>Success</returns>
-        IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry);
+                /// <summary>
+                /// Finds the entries in the table
+                /// using a Lambda Expression as filter and updates all
+                /// the columns based on the inserted Entity's property values.
+                /// <para><b>Important</b> => Primary Key Columns Will NOT be updated</para>
+                /// </summary>
+                /// <param name="predicate">Lambda Expression</param>
+                /// <param name="entry">Entity</param>
+                /// <param name="transaction">Transaction Object</param>
+                /// <returns>Success</returns>
+                IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry);
 
         /// <summary>
         /// Finds the entries in the database table

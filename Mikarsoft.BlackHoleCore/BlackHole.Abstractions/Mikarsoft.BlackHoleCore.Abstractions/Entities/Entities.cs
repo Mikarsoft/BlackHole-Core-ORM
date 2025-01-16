@@ -5,7 +5,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IHistoricEntity<T> where T : BHEntity<T>
+    public interface IHistoricEntity<T> where T : BHEntity<T>, new()
     {
         /// <summary>
         /// 
@@ -46,7 +46,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="G"></typeparam>
-    public class BHEntityAI<T, G> : BHEntity<T> where T : BHEntityAI<T, G> where G : struct, IBHStruct
+    public class BHEntityAI<T, G> : BHEntity<T> where T : BHEntityAI<T, G>, new() where G : struct, IBHStruct
     {
         /// <summary>
         /// The Primary Key of the Entity

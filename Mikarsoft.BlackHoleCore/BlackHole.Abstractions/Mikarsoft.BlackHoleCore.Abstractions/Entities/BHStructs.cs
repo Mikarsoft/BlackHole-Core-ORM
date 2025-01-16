@@ -11,91 +11,89 @@ namespace Mikarsoft.BlackHoleCore.Entities
         Type BaseType { get; }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public struct Int : IBHStruct, IComparable
+    public struct Int : IBHStruct, IComparable, IComparable<int>, IEquatable<int>
     {
         private const int ByteMask = 0xFF; // Mask to ensure only 8 bits are used
 
         private int value;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
+        // Constructor that allows nullable input
         public Int(int? value)
         {
-            this.value = value ?? 0;
+            value = value ?? 0;
         }
 
+        // Implicit conversion from int? to Int
+        public static implicit operator Int(int? value) => new Int(value);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
-        public static implicit operator Int(int? value)
+        // Implicit conversion from Int to int
+        public static implicit operator int(Int number) => number.Value;
+
+        // Implement IComparable<int>
+        public int CompareTo(int other)
         {
-            return new Int(value);
+            return value.CompareTo(other);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="number"></param>
-        public static implicit operator int(Int number)
+        // Implement IEquatable<int>
+        public bool Equals(int other)
         {
-            return number.Value;
+            return value == other;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+        // Override ToString
         public override string ToString()
         {
             return value.ToString();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+        // GetBytes (for serializing the Int)
         public byte[] GetBytes()
         {
-            // We need 4 bytes for an Int32
             byte[] byteArray = new byte[4];
-
-            // Extract the 4 bytes from the Int32 value
-            byteArray[0] = (byte)((value >> 24) & ByteMask);  // Most significant byte
-            byteArray[1] = (byte)((value >> 16) & ByteMask);  // Second most significant byte
-            byteArray[2] = (byte)((value >> 8) & ByteMask);   // Third most significant byte
-            byteArray[3] = (byte)(value & ByteMask);          // Least significant byte
-
+            byteArray[0] = (byte)((value >> 24) & ByteMask);
+            byteArray[1] = (byte)((value >> 16) & ByteMask);
+            byteArray[2] = (byte)((value >> 8) & ByteMask);
+            byteArray[3] = (byte)(value & ByteMask);
             return byteArray;
         }
 
+        // Implement IComparable<object> for compatibility with other types
         public int CompareTo(object? obj)
         {
-            throw new NotImplementedException();
+            if (obj is int)
+                return CompareTo((int)obj);
+
+            throw new ArgumentException("Object is not an Int32.");
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
+        // Property to retrieve the base value
+        public int Value => value;
+
+        // The base type of the struct
         public readonly Type BaseType => typeof(int);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public int Value => value;
+        // Override Equals for object comparison
+        public override bool Equals(object? obj)
+        {
+            if (obj is int otherInt)
+                return Equals(otherInt);
+
+            return base.Equals(obj);
+        }
+
+        // Hash code for equality comparison
+        public override int GetHashCode()
+        {
+            return value.GetHashCode();
+        }
     }
+
 
     /// <summary>
     /// 
     /// </summary>
-    public struct Str : IBHStruct, IComparable
+    public struct Str : IBHStruct, IComparable, IComparable<string>, IEquatable<string>
     {
         private string value;
 
@@ -138,12 +136,22 @@ namespace Mikarsoft.BlackHoleCore.Entities
         {
             throw new NotImplementedException();
         }
+
+        public bool Equals(string? other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CompareTo(string? other)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    public struct Uid : IBHStruct , IComparable
+    public struct Uid : IBHStruct , IComparable, IComparable<Guid>, IEquatable<Guid>
     {
         private Guid value;
 
@@ -182,6 +190,16 @@ namespace Mikarsoft.BlackHoleCore.Entities
         public readonly Type BaseType => typeof(Guid);
 
         public int CompareTo(object? obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CompareTo(Guid other)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(Guid other)
         {
             throw new NotImplementedException();
         }

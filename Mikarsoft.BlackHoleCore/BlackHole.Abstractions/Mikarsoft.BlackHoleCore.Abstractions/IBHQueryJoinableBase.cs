@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore
 {
-    public interface IBHQueryJoinableBase<Dto, T> where T : BHEntity<T> where Dto : class
+    public interface IBHQueryJoinableBase<Dto, T> where T : BHEntity<T>, new() where Dto : class
     {
         /// <summary>
         /// 
@@ -66,7 +66,7 @@ namespace Mikarsoft.BlackHoleCore
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IBHGroupedQueryJoinable<T, Dto> where T : BHEntity<T> where Dto : class
+    public interface IBHGroupedQueryJoinable<T, Dto> where T : BHEntity<T>, new() where Dto : class
     {
         /// <summary>
         /// 
@@ -100,7 +100,7 @@ namespace Mikarsoft.BlackHoleCore
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <typeparam name="Dto"></typeparam>
-    public interface IBHJoinsEnumerable<J, Dto, T> where T : BHEntity<T> where Dto : class
+    public interface IBHJoinsEnumerable<J, Dto, T> where T : BHEntity<T>, new() where Dto : class
     {
         /// <summary>
         /// 
@@ -114,7 +114,7 @@ namespace Mikarsoft.BlackHoleCore
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IBHJoinsGroupedQuery<T, Dto> where T : BHEntity<T> where Dto : class
+    public interface IBHJoinsGroupedQuery<T, Dto> where T : BHEntity<T>, new() where Dto : class
     {
         /// <summary>
         /// 
@@ -143,7 +143,7 @@ namespace Mikarsoft.BlackHoleCore
         Task<List<Dto>> ToListAsync();
     }
 
-    public interface IBHJoinsOrderByQuery<T, Dto> where T : BHEntity<T> where Dto : class
+    public interface IBHJoinsOrderByQuery<T, Dto> where T : BHEntity<T>, new() where Dto : class
     {
         /// <summary>
         /// 

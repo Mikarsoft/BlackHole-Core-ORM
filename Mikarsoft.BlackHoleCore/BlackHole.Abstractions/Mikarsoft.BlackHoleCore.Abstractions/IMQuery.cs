@@ -4,7 +4,7 @@ using Mikarsoft.BlackHoleCore.Abstractions.Models;
 using Mikarsoft.BlackHoleCore.Entities;
 using System.Linq.Expressions;
 
-namespace Mikarsoft.BlackHoleCore.Abstractions
+namespace Mikarsoft.BlackHoleCore
 {
     public interface IMQuery<T> : IMIncludeBase<T> where T : BHEntity<T>, new()
     {
@@ -50,14 +50,19 @@ namespace Mikarsoft.BlackHoleCore.Abstractions
         IMIncludeMatch<T, Dto, G> Include<G>(Func<Dto, BHItem<G>> predicate) where G : BHEntity<G>, new();
     }
 
-    public interface IMIncludeMatch<T, Dto, G> where T : BHEntity<T>, new() where Dto : class where G : BHEntity<G> , new()
+    public interface IMIncludeMatch<T, Dto, G> where T : BHEntity<T>, new() where G : BHEntity<G> , new() where Dto : class
     {
-        IMIncludeBase<T, Dto> Match<TKey>(Expression<Func<Dto, TKey>> parentKey, Expression<Func<G, TKey>> childKey) where TKey : IComparable;
+        IMIncludeBase<T, Dto> Match<TKey>(Expression<Func<Dto, TKey?>> key, Expression<Func<G, TKey?>> otherKey) where TKey : IComparable<TKey>;
     }
 
-    public interface IMSearchQuery<T, Dto> : IMGroupBy<Dto> where T : BHEntity<T>, new() where Dto : class
+    public interface IMSearchQuery<T, Dto> : IMMapper<T, Dto> where T : BHEntity<T>, new() where Dto : class
     {
-        IMGroupBy<Dto> Where(Expression<Func<T, bool>> predicate);
+        IMMapper<T, Dto> Where(Expression<Func<T, bool>> predicate);
+    }
+
+    public interface IMMapper<T, Dto> : IMGroupBy<Dto> where T : BHEntity<T>, new() where Dto : class
+    {
+        IMOrderBy<Dto> Map();
     }
 
     public interface IMEnumerable<J, T> where T : class
@@ -83,19 +88,6 @@ namespace Mikarsoft.BlackHoleCore.Abstractions
         IMQueryBaseList<T> Skip(int offset);
 
         IMQueryBaseList<T> TakeWithOffset(int offsetRows, int fetchRows);
-    }
-
-    public interface IMOrderByAfter<T, Dto> : IMQueryBase<Dto> where T : BHEntity<T> , new() where Dto : class
-    {
-        IMOrderByAfter<T, Dto> ThenByAscending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
-
-        IMOrderByAfter<T, Dto> ThenByDescending<TKey>(Expression<Func<T, TKey>> action) where TKey : IComparable;
-
-        IMQueryBaseList<Dto> Take(int fetchRows);
-
-        IMQueryBaseList<T> Skip(int offset);
-
-        IMQueryBaseList<Dto> TakeWithOffset(int offsetRows, int fetchRows);
     }
 
     public interface IMQueryBase<T> : IMQueryBaseList<T> where T : class

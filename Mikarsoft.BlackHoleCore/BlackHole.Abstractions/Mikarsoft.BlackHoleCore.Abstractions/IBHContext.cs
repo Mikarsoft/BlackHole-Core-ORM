@@ -40,7 +40,7 @@ namespace Mikarsoft.BlackHoleCore
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        IBHTable<T> Table<T>() where T : BHEntity<T>;
+        IBHTable<T> Table<T>() where T : BHEntity<T> , new();
 
         /// <summary>
         /// 
@@ -48,7 +48,7 @@ namespace Mikarsoft.BlackHoleCore
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="G"></typeparam>
         /// <returns></returns>
-        IBHTable<T, G> Table<T, G>() where G : struct, IBHStruct where T : BHEntityAI<T, G>;
+        IBHTable<T, G> Table<T, G>() where G : struct, IBHStruct where T : BHEntityAI<T, G>, new();
         #endregion
     }
 

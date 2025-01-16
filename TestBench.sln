@@ -19,6 +19,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mikarsoft.BlackHoleCore", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlackHoleDIBench", "BlackHoleDIBench\BlackHoleDIBench.csproj", "{956DA0D1-2B3F-4E55-B8F1-9AB771129221}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BlackHole.Analyzers", "BlackHole.Analyzers", "{1B6A010C-A04E-427A-8014-A87E747A2E3E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mikarsoft.BlackHoleCore", "Mikarsoft.BlackHoleCore\Mikarsoft.Analyzers\Mikarsoft.BlackHoleCore\Mikarsoft.BlackHoleCore\Mikarsoft.BlackHoleCore.csproj", "{E4AB1595-B1B1-4F31-8CC3-8E7E3C682E72}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mikarsoft.BlackHoleCore.CodeFixes", "Mikarsoft.BlackHoleCore\Mikarsoft.Analyzers\Mikarsoft.BlackHoleCore\Mikarsoft.BlackHoleCore.CodeFixes\Mikarsoft.BlackHoleCore.CodeFixes.csproj", "{DCCB2D71-15AB-4A4A-B8D5-F28C88139875}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mikarsoft.BlackHoleCore.Package", "Mikarsoft.BlackHoleCore\Mikarsoft.Analyzers\Mikarsoft.BlackHoleCore\Mikarsoft.BlackHoleCore.Package\Mikarsoft.BlackHoleCore.Package.csproj", "{EB015AA4-3D93-4CDF-9714-2266EABCF4F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +57,18 @@ Global
 		{956DA0D1-2B3F-4E55-B8F1-9AB771129221}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{956DA0D1-2B3F-4E55-B8F1-9AB771129221}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{956DA0D1-2B3F-4E55-B8F1-9AB771129221}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4AB1595-B1B1-4F31-8CC3-8E7E3C682E72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4AB1595-B1B1-4F31-8CC3-8E7E3C682E72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4AB1595-B1B1-4F31-8CC3-8E7E3C682E72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4AB1595-B1B1-4F31-8CC3-8E7E3C682E72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCCB2D71-15AB-4A4A-B8D5-F28C88139875}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCCB2D71-15AB-4A4A-B8D5-F28C88139875}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCCB2D71-15AB-4A4A-B8D5-F28C88139875}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCCB2D71-15AB-4A4A-B8D5-F28C88139875}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB015AA4-3D93-4CDF-9714-2266EABCF4F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB015AA4-3D93-4CDF-9714-2266EABCF4F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB015AA4-3D93-4CDF-9714-2266EABCF4F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB015AA4-3D93-4CDF-9714-2266EABCF4F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -57,6 +77,9 @@ Global
 		{3E32871E-666A-4924-8EB2-530712FF2F58} = {5581DF96-963D-4FBC-9A66-5300728F1947}
 		{9CE70878-B599-4EDA-A80E-C3E77FD0509B} = {5581DF96-963D-4FBC-9A66-5300728F1947}
 		{10E1C493-46E4-49EC-942B-C3442DDA9FC3} = {CBE49722-1726-4346-A4D0-6C0AC215CAEC}
+		{E4AB1595-B1B1-4F31-8CC3-8E7E3C682E72} = {1B6A010C-A04E-427A-8014-A87E747A2E3E}
+		{DCCB2D71-15AB-4A4A-B8D5-F28C88139875} = {1B6A010C-A04E-427A-8014-A87E747A2E3E}
+		{EB015AA4-3D93-4CDF-9714-2266EABCF4F9} = {1B6A010C-A04E-427A-8014-A87E747A2E3E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EC344137-E636-4DD3-8745-20D33DEC1E68}

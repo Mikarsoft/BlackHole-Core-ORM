@@ -1,5 +1,4 @@
-using Mikarsoft.BlackHoleCore.Configuration;
-using Mikarsoft.BlackHoleCore.Npgsql;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.SupaNova(x => x.UseNpgsql(""));
+//builder.Services.SupaNova(x => x.UseNpgsql(""));
 
 var app = builder.Build();
 

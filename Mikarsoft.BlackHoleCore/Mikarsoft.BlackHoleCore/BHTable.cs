@@ -1,10 +1,11 @@
-﻿using Mikarsoft.BlackHoleCore.Connector;
+﻿using Mikarsoft.BlackHoleCore.Abstractions;
+using Mikarsoft.BlackHoleCore.Connector;
 using Mikarsoft.BlackHoleCore.Entities;
 using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore
 {
-    internal class BHTable<T, G> : BHTable<T>, IBHTable<T, G> where G : struct, IBHStruct where T : BHEntityAI<T, G>
+    internal class BHTable<T, G> : BHTable<T>, IBHTable<T, G> where G : struct, IBHStruct where T : BHEntityAI<T, G> , new()
     {
         public T? GetById(G Id, IBHTransaction? transaction = null)
         {
@@ -104,7 +105,7 @@ namespace Mikarsoft.BlackHoleCore
         }
     }
 
-    internal class BHTable<T> : BHContextBase, IBHTable<T> where T : BHEntity<T>
+    internal class BHTable<T> : BHContextBase, IBHTable<T> where T : BHEntity<T>, new()
     {
         internal readonly IBHDataProvider _dataProvider;
         internal readonly IBHCommandBuilder _commandBuilder;
@@ -211,14 +212,14 @@ namespace Mikarsoft.BlackHoleCore
             throw new NotImplementedException();
         }
 
-        public IBHQuerySearchable<T> Select()
+        public IMQuery<T> Select()
         {
-            return new BHQuerySearchable<T>();
+            return new MQuery<T>();
         }
 
-        public IBHQueryJoinable<Dto, T> Select<Dto>() where Dto : class
+        public IMQuery<T, Dto> Select<Dto>() where Dto : class
         {
-            return new BHQueryJoinable<Dto,T>();
+            return new MQuery<T, Dto>();
         }
 
         public IBHQueryUpdatable<T> UpdateEntriesWhere(Expression<Func<T, bool>> predicate, T entry)
