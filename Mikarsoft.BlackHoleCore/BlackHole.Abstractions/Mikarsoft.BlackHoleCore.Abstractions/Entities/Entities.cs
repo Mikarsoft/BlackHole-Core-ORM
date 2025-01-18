@@ -1,4 +1,6 @@
 ﻿
+using Mikarsoft.BlackHoleCore.Abstractions.Entities;
+
 namespace Mikarsoft.BlackHoleCore.Entities
 {
     /// <summary>
@@ -27,6 +29,10 @@ namespace Mikarsoft.BlackHoleCore.Entities
         /// <returns></returns>
         public abstract EntitySettings<Self> EntityOptions(EntityOptionsBuilder<Self> builder);
 
+        public virtual IncludeSettings<Self> IncludeOptions(IncludeOptionsBuilder<Self> builder)
+        {
+            return builder.IncludeNone();
+        }
     }
 
     /// <summary>
@@ -71,7 +77,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// on a BHOpenEntity, to automatically generate the value of
     /// a column on the InsertMethods.
     /// </summary>
-    public interface IBHValueGenerator<T> where T : IComparable<T>
+    public interface IBHValueGenerator<T> where T : IComparable
     {
         /// <summary>
         /// The method that is called on the insert and returns the

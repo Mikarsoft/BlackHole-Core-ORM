@@ -25,13 +25,26 @@ namespace Mikarsoft.BlackHoleCore
 
     public interface IMIncludeBase<T> : IMSearchQuery<T> where T : BHEntity<T>, new()
     {
-        IMIncludeMatch<T, G> Include<G>(Func<T, BHCollection<G>> predicate) where G : BHEntity<G>, new();
-        IMIncludeMatch<T, G> Include<G>(Func<T, BHItem<G>> predicate) where G : BHEntity<G>, new();
+        IMThenInclude<T, G> Include<G>(Func<T, BHCollection<G>> predicate) where G : BHEntity<G>, new();
+        IMThenInclude<T, G> Include<G>(Func<T, BHItem<G>> predicate) where G : BHEntity<G>, new();
     }
 
-    public interface IMIncludeMatch<T, G> where T : BHEntity<T>, new() where G : BHEntity<G>, new()
+    public interface IMIncludeBase<T, Dto> : IMSearchQuery<T, Dto> where T : BHEntity<T>, new() where Dto : class
     {
-        IMIncludeBase<T> Match<TKey>(Expression<Func<T, TKey>> parentKey, Expression<Func<G, TKey>> childKey) where TKey : IComparable;
+        IMThenInclude<T, G, Dto> Include<G>(Func<Dto, BHCollection<G>> predicate) where G : BHEntity<G>, new();
+        IMThenInclude<T, G, Dto> Include<G>(Func<Dto, BHItem<G>> predicate) where G : BHEntity<G>, new();
+    }
+
+    public interface IMThenInclude<T, G> : IMIncludeBase<T> where T :BHEntity<T>, new() where G : BHEntity<G>, new()
+    {
+        IMThenInclude<T, J> ThenInclude<J>(Func<T, BHCollection<J>> predicate) where J : BHEntity<J>, new();
+        IMThenInclude<T, J> ThenInclude<J>(Func<T, BHItem<J>> predicate) where J : BHEntity<J>, new();
+    }
+
+    public interface IMThenInclude<T, G, Dto> : IMIncludeBase<T, Dto> where T : BHEntity<T>, new() where G : BHEntity<G>, new() where Dto : class
+    {
+        IMThenInclude<T, J, Dto> ThenInclude<J>(Func<T, BHCollection<J>> predicate) where J : BHEntity<J>, new();
+        IMThenInclude<T, J, Dto> ThenInclude<J>(Func<T, BHItem<J>> predicate) where J : BHEntity<J>, new();
     }
 
     public interface IMSearchQuery<T> : IMGroupBy<T> where T : BHEntity<T>, new()
@@ -44,17 +57,6 @@ namespace Mikarsoft.BlackHoleCore
         IMEnumerable<IBHGroup<G, T>, T> GroupBy<G>(Expression<Func<T, G>> keySelectors);
     }
 
-    public interface IMIncludeBase<T, Dto> : IMSearchQuery<T, Dto> where T : BHEntity<T>, new() where Dto : class
-    {
-        IMIncludeMatch<T, Dto, G> Include<G>(Func<Dto, BHCollection<G>> predicate) where G : BHEntity<G>, new();
-        IMIncludeMatch<T, Dto, G> Include<G>(Func<Dto, BHItem<G>> predicate) where G : BHEntity<G>, new();
-    }
-
-    public interface IMIncludeMatch<T, Dto, G> where T : BHEntity<T>, new() where G : BHEntity<G> , new() where Dto : class
-    {
-        IMIncludeBase<T, Dto> Match<TKey>(Expression<Func<Dto, TKey?>> key, Expression<Func<G, TKey?>> otherKey) where TKey : IComparable<TKey>;
-    }
-
     public interface IMSearchQuery<T, Dto> : IMMapper<T, Dto> where T : BHEntity<T>, new() where Dto : class
     {
         IMMapper<T, Dto> Where(Expression<Func<T, bool>> predicate);
@@ -62,7 +64,7 @@ namespace Mikarsoft.BlackHoleCore
 
     public interface IMMapper<T, Dto> : IMGroupBy<Dto> where T : BHEntity<T>, new() where Dto : class
     {
-        IMOrderBy<Dto> Map();
+        IMOrderBy<Dto> Map(Action<BHMapperConfig<T, Dto>> mapping);
     }
 
     public interface IMEnumerable<J, T> where T : class

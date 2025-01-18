@@ -6,7 +6,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class EntityOptionsBuilder<T>
+    public class EntityOptionsBuilder<T> where T : BHEntity<T>, new()
     {
         /// <summary>
         /// Sets property as Primary key.
@@ -14,7 +14,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
         /// <typeparam name="TKey">Type of the property</typeparam>
         /// <param name="primaryKey">Property of the entity</param>
         /// <returns>Entity Settings Object</returns>
-        public EntitySettings<T> SetPrimaryKey<TKey>(Expression<Func<T, TKey>> primaryKey) where TKey : IComparable<TKey>
+        public EntitySettings<T> SetPrimaryKey<TKey>(Expression<Func<T, TKey>> primaryKey) where TKey : IComparable
         {
             EntitySettings<T> settings = new(false);
             if (primaryKey.Body is MemberExpression pkMember)
@@ -100,7 +100,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
         /// <param name="primaryKey">Property of the entity</param>
         /// <param name="valueGenerator">class that inherits from IBHValueGenerator</param>
         /// <returns>Entity Settings Object</returns>
-        public EntitySettings<T> SetPrimaryKey<TKey>(Expression<Func<T, TKey>> primaryKey, IBHValueGenerator<TKey> valueGenerator) where TKey : IComparable<TKey>
+        public EntitySettings<T> SetPrimaryKey<TKey>(Expression<Func<T, TKey>> primaryKey, IBHValueGenerator<TKey> valueGenerator) where TKey : IComparable
         {
             EntitySettings<T> settings = new(false);
             if (primaryKey.Body is MemberExpression pkMember)
@@ -195,7 +195,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
         /// <param name="settings"></param>
         /// <param name="primaryKey"></param>
         /// <returns>Entity Settings Object</returns>
-        public static EntitySettings<T> CompositeKey<T, TKey>(this EntitySettings<T> settings, Expression<Func<T, TKey>> primaryKey) where TKey : IComparable<TKey>
+        public static EntitySettings<T> CompositeKey<T, TKey>(this EntitySettings<T> settings, Expression<Func<T, TKey>> primaryKey) where TKey : IComparable
         {
             if (!settings.LockedPK)
             {
@@ -221,7 +221,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
         /// <param name="valueGenerator">class that inherits from IBHValueGenerator</param>
         /// <returns>Entity Settings Object</returns>
         public static EntitySettings<T> CompositeKey<T, TKey>(this EntitySettings<T> settings, Expression<Func<T, TKey>> primaryKey, IBHValueGenerator<TKey> valueGenerator)
-            where TKey : IComparable<TKey>
+            where TKey : IComparable
         {
             if (!settings.LockedPK)
             {
@@ -257,7 +257,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
         /// <param name="valueGenerator">class that inherits from IBHValueGenerator</param>
         /// <returns>Entity Settings Object</returns>
         public static EntitySettings<T> AutoGenerate<T, TKey>(this EntitySettings<T> settings, Expression<Func<T, TKey>> primaryKey, IBHValueGenerator<TKey> valueGenerator)
-            where TKey : IComparable<TKey>
+            where TKey : IComparable
         {
             if (primaryKey.Body is MemberExpression pkMember)
             {

@@ -1,4 +1,5 @@
-﻿using Mikarsoft.BlackHoleCore.Entities;
+﻿using Mikarsoft.BlackHoleCore.Abstractions.Entities;
+using Mikarsoft.BlackHoleCore.Entities;
 
 namespace BlackHoleDIBench.Entities
 {
@@ -9,5 +10,10 @@ namespace BlackHoleDIBench.Entities
         public string Description { get; set; } = string.Empty;
 
         public BHCollection<TestChildModel> Children { get; set; }
+
+        public override IncludeSettings<TestModel> IncludeOptions(IncludeOptionsBuilder<TestModel> builder)
+        {
+            return base.IncludeOptions(builder);    
+        }
     }
 }
