@@ -216,10 +216,10 @@ namespace Mikarsoft.BlackHoleCore
             throw new NotImplementedException();
         }
 
-        IBHEnumerable<IBHGroup<G, T>, T> IBHQueryBase<T>.GroupBy<G>(Expression<Func<T, G>> keySelectors)
+        IBHEnumerable<IMGroupBy<G, T>, T> IBHQueryBase<T>.GroupBy<G>(Expression<Func<T, G>> keySelectors)
         {
             PropertyInfo[] groupProps = typeof(G).GetProperties();
-            return new BHEnumerable<IBHGroup<G, T>, T>();
+            return new BHEnumerable<IMGroupBy<G, T>, T>();
         }
 
         IBHOrderBy<T> IBHQueryBase<T>.OrderByAscending<TKey>(Expression<Func<T, TKey>> action)
@@ -320,7 +320,7 @@ namespace Mikarsoft.BlackHoleCore
         }
     }
 
-    internal class BHGroup<T, G> : IBHGroup<T, G>
+    internal class BHGroup<T, G> : IMGroupBy<T, G>
     {
         private readonly T _key;
 
@@ -335,15 +335,15 @@ namespace Mikarsoft.BlackHoleCore
 
         public G Last => throw new NotImplementedException();
 
-        public IBHMethods<G> Select => throw new NotImplementedException();
+        public IMMethods<G> Select => throw new NotImplementedException();
 
-        public IBHMethods<G> Where(Expression<Func<G, bool>> predicate)
+        public IMMethods<G> Where(Expression<Func<G, bool>> predicate)
         {
             throw new NotImplementedException();
         }
     }
 
-    internal class BHMethods<G> : IBHMethods<G>
+    internal class BHMethods<G> : IMMethods<G>
     {
         public G First => throw new NotImplementedException();
 

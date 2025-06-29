@@ -29,9 +29,14 @@ namespace Mikarsoft.BlackHoleCore.Entities
         /// <returns></returns>
         public abstract EntitySettings<Self> EntityOptions(EntityOptionsBuilder<Self> builder);
 
-        public virtual IncludeSettings<Self> IncludeOptions(IncludeOptionsBuilder<Self> builder)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public virtual IncludeSettings<Self> IncludeOptions(IncludeOptionsBuilder<Self> entity)
         {
-            return builder.IncludeNone();
+            return entity.IncludeNone();
         }
     }
 

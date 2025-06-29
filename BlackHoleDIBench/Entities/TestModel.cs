@@ -9,11 +9,12 @@ namespace BlackHoleDIBench.Entities
 
         public string Description { get; set; } = string.Empty;
 
-        public BHCollection<TestChildModel> Children { get; set; }
+        public BHCollection<TestChildModel, Int> Children { get; set; }
 
-        public override IncludeSettings<TestModel> IncludeOptions(IncludeOptionsBuilder<TestModel> builder)
+        public override IncludeSettings<TestModel> IncludeOptions(IncludeOptionsBuilder<TestModel> entity)
         {
-            return base.IncludeOptions(builder);    
+            return entity.HasMany(x => x.Children).On<int>(x => x.Id, c => c.Id)
+                         .HasMany(x => x.Children).On<int>(x => x.Id, c => c.Id);    
         }
     }
 }

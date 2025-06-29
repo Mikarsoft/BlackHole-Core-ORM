@@ -238,7 +238,7 @@ namespace Mikarsoft.BlackHoleCore.Entities
         }
     }
 
-    public struct BHItem<T> where T : BHEntity<T> , new()
+    public struct BHItem<T, G> : IComparable where T : BHEntityAI<T, G>, new() where G : struct, IBHStruct
     {
         private T? Value;
 
@@ -247,17 +247,30 @@ namespace Mikarsoft.BlackHoleCore.Entities
             Value = value;
         }
 
-        public static implicit operator BHItem<T>(T? item) => new BHItem<T>(item);
+        public static implicit operator BHItem<T, G>(T? item) => new BHItem<T, G>(item);
 
-        public static implicit operator T?(BHItem<T> item) => item.Value;
+        public static implicit operator T?(BHItem<T, G> item) => item.Value;
 
         internal async Task Include(IMIncludeCaller caller, IBHTransaction transaction, string property, object value)
         {
             Value = await caller.GetItemAsync<T>(property, value, transaction);
         }
+
+        public int CompareTo(object? obj)
+        {
+            if (obj is BHItem<T, G> item)
+            {
+                if (item.Value == Value)
+                {
+                    return 0;
+                }
+            }
+
+            return -1;
+        }
     }
 
-    public struct BHCollection<T> where T : BHEntity<T> , new()
+    public struct BHCollection<T, G> : IComparable where T : BHEntityAI<T, G> , new() where G : struct, IBHStruct
     {
         private List<T> Children { get; set; }
 
@@ -271,9 +284,9 @@ namespace Mikarsoft.BlackHoleCore.Entities
             Children = items;
         }
 
-        public static implicit operator BHCollection<T>(List<T> items) => new BHCollection<T>(items);
+        public static implicit operator BHCollection<T, G>(List<T> items) => new BHCollection<T, G>(items);
 
-        public static implicit operator List<T>(BHCollection<T> collection) => collection.Children;
+        public static implicit operator List<T>(BHCollection<T, G> collection) => collection.Children;
 
         internal async Task Include(IMIncludeCaller caller, IBHTransaction transaction, string property, object value)
         {
@@ -284,5 +297,31 @@ namespace Mikarsoft.BlackHoleCore.Entities
         {
             return Children;
         }
+
+        public int CompareTo(object? obj)
+        {
+            if (obj is BHCollection<T, G> item)
+            {
+                if (item.Children == Children)
+                {
+                    return 0;
+                }
+            }
+
+            return -1;
+        }
+    }
+
+    public struct BHResult<T> where T : struct, IComparable<T>
+    {
+        private T Value;
+
+        public BHResult(T item)
+        {
+            Value = item;
+        }
+
+        public static implicit operator T(BHResult<T> result) => result.Value;
+        public static implicit operator BHResult<T>(T item) => new BHResult<T>(item);
     }
 }

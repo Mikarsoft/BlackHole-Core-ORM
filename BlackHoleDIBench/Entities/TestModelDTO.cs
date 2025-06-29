@@ -9,6 +9,6 @@ namespace BlackHoleDIBench.Entities
 
         public string Description { get; set; } = string.Empty;
 
-        public BHCollection<TestChildModel> ChildrenList { get; set; }
+        public BHCollection<TestChildModel, Int> ChildrenList { get; set; }
     }
 }

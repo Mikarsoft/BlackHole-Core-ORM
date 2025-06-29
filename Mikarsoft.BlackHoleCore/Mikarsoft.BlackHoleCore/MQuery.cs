@@ -1,24 +1,49 @@
-﻿using Mikarsoft.BlackHoleCore.Abstractions;
-using Mikarsoft.BlackHoleCore.Abstractions.Models;
-using Mikarsoft.BlackHoleCore.Connector.Enums;
+﻿
+
+
 using Mikarsoft.BlackHoleCore.Entities;
-using Mikarsoft.BlackHoleCore.Tools;
 using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore
 {
-    #region Using Entity
-
-    internal class MQuery<T> : MIncludeBase<T>, IMQuery<T> where T : BHEntity<T>, new()
+    internal class MQeury<T> : MIncludeBase<T>, IMQuery<T> where T : BHEntity<T>, new()
     {
-        internal MQuery() : base (new(BHExpressionPartType.Select, typeof(T))) { }
-
-        BHTableInfo IMQuery<T>.TableInfo()
+        bool IMQuery<T>.Any()
         {
             throw new NotImplementedException();
         }
 
-        Task<BHTableInfo> IMQuery<T>.TableInfoAsync()
+        bool IMQuery<T>.Any(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> IMQuery<T>.AnyAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> IMQuery<T>.AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        int IMQuery<T>.Count()
+        {
+            throw new NotImplementedException();
+        }
+
+        int IMQuery<T>.Count(Expression<Func<T, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<int> IMQuery<T>.CountAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<int> IMQuery<T>.CountAsync(Expression<Func<T, bool>> predicate)
         {
             throw new NotImplementedException();
         }
@@ -26,107 +51,49 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class MIncludeBase<T> : MSearchQuery<T>, IMIncludeBase<T> where T : BHEntity<T>, new()
     {
-        internal MIncludeBase(BHSelectStatementBuilder statementBuilder) : base(statementBuilder) { }
-
-        IMIncludeMatch<T, G> IMIncludeBase<T>.Include<G>(Func<T, BHCollection<G>> predicate)
+        IMThenInclude<T, G> IMIncludeBase<T>.Include<G, H>(Func<T, BHCollection<G, H>> predicate)
         {
-            StatementBuilder.UseInclude(predicate);
-            return new MIncludeMatch<T, G>(StatementBuilder);
+            throw new NotImplementedException();
         }
 
-        IMIncludeMatch<T, G> IMIncludeBase<T>.Include<G>(Func<T, BHItem<G>> predicate)
+        IMThenInclude<T, G> IMIncludeBase<T>.Include<G, H>(Func<T, BHItem<G, H>> predicate)
         {
             throw new NotImplementedException();
         }
     }
 
-    internal class MIncludeMatch<T, G> : IMIncludeMatch<T, G> where T : BHEntity<T>, new() where G : BHEntity<G>, new()
+    internal class MThenInclude<T, G> : MIncludeBase<T>, IMThenInclude<T, G> where T : BHEntity<T>, new() where G : BHEntity<G>, new()
     {
-        internal BHSelectStatementBuilder StatementBuilder;
-
-        internal MIncludeMatch(BHSelectStatementBuilder statementBuilder) { StatementBuilder = statementBuilder; }
-
-        IMIncludeBase<T> IMIncludeMatch<T, G>.Match<TKey>(Expression<Func<T, TKey>> parentKey, Expression<Func<G, TKey>> childKey)
+        IMThenInclude<T, J> IMThenInclude<T, G>.ThenInclude<J, H>(Func<G, BHCollection<J, H>> predicate)
         {
+            throw new NotImplementedException();
+        }
 
-            return new MIncludeBase<T>(StatementBuilder);
+        IMThenInclude<T, J> IMThenInclude<T, G>.ThenInclude<J, H>(Func<G, BHItem<J, H>> predicate)
+        {
+            throw new NotImplementedException();
         }
     }
 
-    internal class MSearchQuery<T> : MGroupBy<T>, IMSearchQuery<T> where T : BHEntity<T>, new()
+    internal class MSearchQuery<T> : MGroupBy<T>, IMSearchQuery<T> where T : BHEntity<T> , new()
     {
-        internal MSearchQuery(BHSelectStatementBuilder statementBuilder) : base(statementBuilder) { }
-
         IMGroupBy<T> IMSearchQuery<T>.Where(Expression<Func<T, bool>> predicate)
         {
             throw new NotImplementedException();
         }
     }
 
-    #endregion
-
-    #region Using Dto
-
-    internal class MQuery<T, Dto> : MIncludeBase<T, Dto>, IMQuery<T, Dto> where T : BHEntity<T>, new() where Dto : class
-    {
-        internal MQuery() : base(new(BHExpressionPartType.Select, typeof(Dto))) { }
-
-        IPreJoin<Dto, T, TOther> IMQuery<T, Dto>.InnerJoin<TOther>()
-        {
-            throw new NotImplementedException();
-        }
-
-        IPreJoin<Dto, T, TOther> IMQuery<T, Dto>.LeftJoin<TOther>()
-        {
-            throw new NotImplementedException();
-        }
-
-        IPreJoin<Dto, T, TOther> IMQuery<T, Dto>.OuterJoin<TOther>()
-        {
-            throw new NotImplementedException();
-        }
-
-        IPreJoin<Dto, T, TOther> IMQuery<T, Dto>.RightJoin<TOther>()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    internal class MIncludeBase<T, Dto> : MSearchQuery<T, Dto>, IMIncludeBase<T, Dto> where T : BHEntity<T>, new() where Dto : class
-    {
-        internal MIncludeBase(BHSelectStatementBuilder statementBuilder) : base(statementBuilder) { }
-
-        IMIncludeMatch<T, Dto, G> IMIncludeBase<T, Dto>.Include<G>(Func<Dto, BHCollection<G>> predicate)
-        {
-            throw new NotImplementedException();
-        }
-
-        IMIncludeMatch<T, Dto, G> IMIncludeBase<T, Dto>.Include<G>(Func<Dto, BHItem<G>> predicate)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    internal class MSearchQuery<T, Dto> : MGroupBy<Dto>, IMSearchQuery<T, Dto> where T : BHEntity<T>, new() where Dto : class
-    {
-        internal MSearchQuery(BHSelectStatementBuilder statementBuilder) : base(statementBuilder) { }
-
-        IMGroupBy<Dto> IMSearchQuery<T, Dto>.Where(Expression<Func<T, bool>> predicate)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    #endregion
-
-    #region Common
-
-
     internal class MGroupBy<T> : MOrderBy<T>, IMGroupBy<T> where T : class
     {
-        internal MGroupBy(BHSelectStatementBuilder statementBuilder) : base(statementBuilder) { }
+        IMEnumerable<IMGroupBy<G, T>, T> IMGroupBy<T>.GroupBy<G>(Expression<Func<T, G>> keySelectors)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
-        IMEnumerable<IBHGroup<G, T>, T> IMGroupBy<T>.GroupBy<G>(Expression<Func<T, G>> keySelectors)
+    internal class MEnumerable<J, T> : IMEnumerable<J, T> where T : class
+    {
+        IMOrderBy<T> IMEnumerable<J, T>.Map(Func<J, T> selector)
         {
             throw new NotImplementedException();
         }
@@ -134,8 +101,6 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class MOrderBy<T> : MQueryBase<T>, IMOrderBy<T> where T : class
     {
-        internal MOrderBy(BHSelectStatementBuilder statementBuilder) : base(statementBuilder) { }
-
         IMOrderByAfter<T> IMOrderBy<T>.OrderByAscending<TKey>(Expression<Func<T, TKey>> action)
         {
             throw new NotImplementedException();
@@ -149,8 +114,6 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class MOrderByAfter<T> : MQueryBase<T>, IMOrderByAfter<T> where T : class
     {
-        internal MOrderByAfter(BHSelectStatementBuilder statementBuilder) : base(statementBuilder) { }
-
         IMQueryBaseList<T> IMOrderByAfter<T>.Skip(int offset)
         {
             throw new NotImplementedException();
@@ -179,24 +142,22 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class MQueryBase<T> : MQueryBaseList<T>, IMQueryBase<T> where T : class
     {
-        internal MQueryBase(BHSelectStatementBuilder statementBuilder) : base(statementBuilder) { }
-
-        T? IMQueryBase<T>.FirstOrDefault()
+        T? IMQueryBase<T>.FirstOrDefault(IBHTransaction? transaction)
         {
             throw new NotImplementedException();
         }
 
-        Task<T?> IMQueryBase<T>.FirstOrDefaultAsync()
+        Task<T?> IMQueryBase<T>.FirstOrDefaultAsync(IBHTransaction? transaction)
         {
             throw new NotImplementedException();
         }
 
-        T? IMQueryBase<T>.LastOrDefeult()
+        T? IMQueryBase<T>.LastOrDefeult(IBHTransaction? transaction)
         {
             throw new NotImplementedException();
         }
 
-        Task<T?> IMQueryBase<T>.LastOrDefeultAsync()
+        Task<T?> IMQueryBase<T>.LastOrDefeultAsync(IBHTransaction? transaction)
         {
             throw new NotImplementedException();
         }
@@ -204,23 +165,14 @@ namespace Mikarsoft.BlackHoleCore
 
     internal class MQueryBaseList<T> : IMQueryBaseList<T> where T : class
     {
-        internal BHSelectStatementBuilder StatementBuilder;
-
-        internal MQueryBaseList(BHSelectStatementBuilder statementBuilder)
-        {
-            StatementBuilder = statementBuilder;
-        }
-
-        List<T> IMQueryBaseList<T>.ToList()
+        List<T> IMQueryBaseList<T>.ToList(IBHTransaction? transaction)
         {
             throw new NotImplementedException();
         }
 
-        Task<List<T>> IMQueryBaseList<T>.ToListAsync()
+        Task<List<T>> IMQueryBaseList<T>.ToListAsync(IBHTransaction? transaction)
         {
             throw new NotImplementedException();
         }
     }
-
-    #endregion
 }

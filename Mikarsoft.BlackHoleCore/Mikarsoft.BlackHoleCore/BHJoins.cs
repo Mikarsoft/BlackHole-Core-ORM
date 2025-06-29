@@ -1,5 +1,6 @@
 ﻿using Mikarsoft.BlackHoleCore.Connector.Enums;
 using Mikarsoft.BlackHoleCore.Entities;
+using Mikarsoft.BlackHoleCore.Settings;
 using Mikarsoft.BlackHoleCore.Tools;
 using System.Linq.Expressions;
 

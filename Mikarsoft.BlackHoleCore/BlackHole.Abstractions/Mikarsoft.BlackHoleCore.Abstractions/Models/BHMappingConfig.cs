@@ -4,11 +4,11 @@ using System.Linq.Expressions;
 
 namespace Mikarsoft.BlackHoleCore.Abstractions.Models
 {
-    public class BHUpdateMappingConfig<T> where T : BHEntity<T>, new()
+    public class BHColumnUsageConfig<T> where T : BHEntity<T>, new()
     {
         List<string> PropertiesToMap = new List<string>();
 
-        public BHUpdateMappingConfig<T> Use<TKey>(Expression<Func<T, TKey?>> key)
+        public BHColumnUsageConfig<T> Use<TKey>(Expression<Func<T, TKey?>> key) where TKey : IComparable
         {
             string sourceProperty = key.MemberParse();
 
@@ -23,11 +23,11 @@ namespace Mikarsoft.BlackHoleCore.Abstractions.Models
         }
     }
 
-    public class BHUpdateMappingConfig<T, Dto> where T : BHEntity<T>, new() where Dto : class
+    public class BHMappingConfig<T, Dto> where T : BHEntity<T>, new() where Dto : class
     {
         internal List<BHMappingModel> Mappings { get; set; } = new();
 
-        public BHUpdateMappingConfig<T, Dto> UseAs<TKey>(Expression<Func<T, TKey?>> key, Expression<Func<T, TKey?>> otherKey)
+        public BHMappingConfig<T, Dto> UseAs<TKey>(Expression<Func<Dto, TKey?>> key, Expression<Func<T, TKey?>> otherKey) where TKey : IComparable
         {
             string sourceProperty = key.MemberParse();
             string targetProperty = otherKey.MemberParse();

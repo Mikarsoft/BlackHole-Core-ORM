@@ -1,37 +1,34 @@
-﻿using Mikarsoft.BlackHoleCore.Entities;
-
+﻿
 namespace Mikarsoft.BlackHoleCore
 {
     internal class BHContext : BHContextBase, IBHContext
     {
-        public IBHTable<T> Table<T>() where T : BHEntity<T>
+        IBHTable<T> IBHContext.Table<T>()
         {
-            return new BHTable<T>();
+            throw new NotImplementedException();
         }
 
-        public IBHTable<T, G> Table<T, G>()
-            where T : BHEntityAI<T, G>
-            where G : struct, IBHStruct
+        IBHTable<T, G> IBHContext.Table<T, G>()
         {
-            return new BHTable<T, G>();
+            throw new NotImplementedException();
         }
     }
 
     internal class BHContextBase : IBHContextBase
     {
-        public IBHTransaction BeginTransaction()
-        {
-            return new BHTransaction();
-        }
-
-        public IBHCommand Command(string commandText, string? databaseIdentity = null)
+        IBHTransaction IBHContextBase.BeginTransaction()
         {
             throw new NotImplementedException();
         }
 
-        public BHParameters CreateParameters()
+        IBHCommand IBHContextBase.Command(string commandText, string? databaseIdentity)
         {
-            return new BHParameters();
+            throw new NotImplementedException();
+        }
+
+        BHParameters IBHContextBase.CreateParameters()
+        {
+            throw new NotImplementedException();
         }
     }
 }
